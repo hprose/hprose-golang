@@ -9,7 +9,7 @@
         - [Synchronous Exception Handling](#synchronous-exception-handling)
         - [Asynchronous Invoking](#asynchronous-invoking)
         - [Asynchronous Exception Handling](#asynchronous-exception-handling)
-        - [Function/Method Alias](#functionmethod-alias)
+        - [Function Alias](#function-alias)
         - [Passing by reference parameters](#passing-by-reference-parameters)
     - **[Hprose Proxy](#hprose-proxy)**
         - [Better Proxy](#better-proxy)
@@ -212,9 +212,9 @@ func main() {
 ```
 You will get the result `0`, but do not know what happened.
 
-#### Function/Method Alias
+#### Function Alias
 
-Golang does not support method overload, but some other languages support. So hprose provides "Function/Method Alias" to invoke overloaded methods in other languages. You can also use it to invoke the same function/method with different names.
+Golang does not support function/method overload, but some other languages support. So hprose provides "Function/Method Alias" to invoke overloaded methods in other languages. You can also use it to invoke the same function/method with different names.
 
 For example:
 
