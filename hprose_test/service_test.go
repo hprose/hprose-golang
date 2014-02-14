@@ -23,7 +23,7 @@ package hprose_test
 import (
 	"errors"
 	"fmt"
-	"hprose"
+	"github.com/hprose/hprose-go/hprose"
 	"net/http/httptest"
 	"testing"
 )

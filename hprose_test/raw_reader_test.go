@@ -22,7 +22,7 @@ package hprose_test
 
 import (
 	"bytes"
-	. "hprose"
+	. "github.com/hprose/hprose-go/hprose"
 	"testing"
 )
 

@@ -23,7 +23,7 @@ package hprose_test
 import (
 	"bytes"
 	"container/list"
-	. "hprose"
+	. "github.com/hprose/hprose-go/hprose"
 	"math"
 	"math/big"
 	"reflect"

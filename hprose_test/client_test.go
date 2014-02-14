@@ -22,7 +22,7 @@ package hprose_test
 
 import (
 	"fmt"
-	. "hprose"
+	. "github.com/hprose/hprose-go/hprose"
 	"testing"
 	"time"
 )
