@@ -9,7 +9,7 @@
         - [Synchronous Exception Handling](#synchronous-exception-handling)
         - [Asynchronous Invoking](#asynchronous-invoking)
         - [Asynchronous Exception Handling](#asynchronous-exception-handling)
-        - [Function/Method Alias](#function/method-alias)
+        - [Function/Method Alias](#functionmethod-alias)
         - [Passing by reference parameters](#passing-by-reference-parameters)
     - **[Hprose Proxy](#hprose-proxy)**
         - [Better Proxy](#better-proxy)
