@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Reader for Go.                                  *
  *                                                        *
- * LastModified: Feb 10, 2014                             *
+ * LastModified: Feb 14, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,7 +31,6 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
-	"uuid"
 )
 
 var badEncodeError = errors.New("bad utf-8 encoding")
@@ -245,7 +244,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 			*p = *x
 		}
 		return err
-	case *uuid.UUID:
+	case *UUID:
 		if x, err := r.ReadUUID(); err == NilError {
 			*p = *x
 			err = nil
@@ -393,7 +392,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 			err = nil
 		}
 		return err
-	case **uuid.UUID:
+	case **UUID:
 		if *p, err = r.ReadUUID(); err == NilError {
 			*p = nil
 			err = nil
@@ -1394,58 +1393,59 @@ func (r *Reader) ReadBytesWithoutTag() (*[]byte, error) {
 	}
 }
 
-func (r *Reader) ReadUUID() (*uuid.UUID, error) {
-	id := new(uuid.UUID)
+func (r *Reader) ReadUUID() (*UUID, error) {
+	var nilUUID UUID = nil
 	s := r.stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
 		case TagNull:
-			return id, NilError
+			return &nilUUID, NilError
 		case TagString:
 			str, err := r.ReadStringWithoutTag()
-			u := uuid.Parse(str)
+			u := ToUUID(str)
 			return &u, err
 		case TagGuid:
 			return r.ReadUUIDWithoutTag()
 		case TagBytes:
 			if b, err := r.ReadBytesWithoutTag(); err == nil {
 				if len(*b) == 16 {
-					u := uuid.UUID(*b)
+					u := UUID(*b)
 					return &u, nil
 				}
-				return id, convertError(TagBytes, "UUID")
+				return &nilUUID, convertError(TagBytes, "UUID")
 			}
-			return id, err
+			return &nilUUID, err
 		case TagRef:
 			var ref interface{}
 			if ref, err = r.readRef(r.ReadInteger(TagSemicolon)); err == nil {
-				if ref, ok := ref.(*uuid.UUID); ok {
+				if ref, ok := ref.(*UUID); ok {
 					return ref, nil
 				}
-				return id, errors.New("cannot convert type " +
+				return &nilUUID, errors.New("cannot convert type " +
 					reflect.TypeOf(ref).String() + " to type UUID")
 			}
 		default:
-			return id, convertError(tag, "UUID")
+			return &nilUUID, convertError(tag, "UUID")
 		}
 	}
-	return id, err
+	return &nilUUID, err
 }
 
-func (r *Reader) ReadUUIDWithoutTag() (*uuid.UUID, error) {
+func (r *Reader) ReadUUIDWithoutTag() (*UUID, error) {
 	s := r.stream
 	err := r.CheckTag(TagOpenbrace)
 	if err == nil {
 		b := make([]byte, 36)
 		if _, err = s.Read(b); err == nil {
 			err = r.CheckTag(TagClosebrace)
-			u := uuid.Parse(string(b))
+			u := ToUUID(string(b))
 			r.setRef(&u)
 			return &u, err
 		}
 	}
-	return new(uuid.UUID), err
+	var nilUUID UUID = nil
+	return &nilUUID, err
 }
 
 func (r *Reader) ReadList() (*list.List, error) {
@@ -2710,7 +2710,7 @@ func tagToString(tag byte) (string, error) {
 	case TagString:
 		return "string", nil
 	case TagGuid:
-		return "uuid.UUID", nil
+		return "UUID", nil
 	case TagList:
 		return "slice", nil
 	case TagMap:

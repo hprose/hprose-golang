@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Writer Test for Go.                             *
  *                                                        *
- * LastModified: Feb 11, 2014                             *
+ * LastModified: Feb 14, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -29,7 +29,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"uuid"
 )
 
 func TestWriterNil(t *testing.T) {
@@ -256,7 +255,7 @@ func TestWriterBytes(t *testing.T) {
 func TestWriterUUID(t *testing.T) {
 	b := new(bytes.Buffer)
 	writer := NewWriter(b, false)
-	err := writer.Serialize(uuid.Parse("3f257da1-0b85-48d6-8f5c-6cd13d2d60c9"))
+	err := writer.Serialize(ToUUID("3f257da1-0b85-48d6-8f5c-6cd13d2d60c9"))
 	if err != nil {
 		t.Error(err.Error())
 	}

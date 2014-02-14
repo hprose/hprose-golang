@@ -13,7 +13,7 @@
  *                                                        *
  * hprose SimpleReader Test for Go.                       *
  *                                                        *
- * LastModified: Feb 8, 2014                              *
+ * LastModified: Feb 14, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -29,7 +29,6 @@ import (
 	"reflect"
 	"testing"
 	"time"
-	"uuid"
 )
 
 func TestSimpleReaderInt(t *testing.T) {
@@ -761,7 +760,7 @@ func TestSimpleReaderBytes(t *testing.T) {
 func TestSimpleReaderUUID(t *testing.T) {
 	b := new(bytes.Buffer)
 	writer := NewWriter(b, true)
-	u := uuid.NewUUID()
+	u := ToUUID("3f257da1-0b85-48d6-8f5c-6cd13d2d60c9")
 	writer.Serialize(u)
 	writer.Serialize(u)
 	writer.Serialize(u.String())
@@ -770,8 +769,8 @@ func TestSimpleReaderUUID(t *testing.T) {
 	writer.Serialize(nil)
 
 	reader := NewReader(b, true)
-	var x uuid.UUID
-	var p *uuid.UUID
+	var x UUID
+	var p *UUID
 	var err error
 	if err = reader.Unserialize(&x); err != nil {
 		t.Error(err.Error())

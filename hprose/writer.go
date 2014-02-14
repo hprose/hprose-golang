@@ -30,7 +30,6 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
-	"uuid"
 )
 
 const rune3Max = 1<<16 - 1
@@ -377,9 +376,9 @@ func (w *Writer) fastSerialize(v interface{}, rv reflect.Value, n int) error {
 		return w.writeTimeWithRef(v, v)
 	case *time.Time:
 		return w.writeTimeWithRef(v, *v)
-	case uuid.UUID:
+	case UUID:
 		return w.writeUUIDWithRef(&v, v)
-	case *uuid.UUID:
+	case *UUID:
 		return w.writeUUIDWithRef(v, *v)
 	case list.List:
 		return w.writeListWithRef(&v, &v)
@@ -498,7 +497,7 @@ func (w *Writer) slowSerialize(v interface{}, rv reflect.Value, n int) error {
 			switch x := rv.Interface().(type) {
 			case []byte:
 				return w.writeBytesWithRef(v, x)
-			case uuid.UUID:
+			case UUID:
 				return w.writeUUIDWithRef(v, x)
 			default:
 				if n == 0 {
@@ -615,12 +614,12 @@ func (w *Writer) writeBytesWithRef(v interface{}, bytes []byte) error {
 	}
 }
 
-func (w *Writer) writeUUID(v interface{}, u uuid.UUID) (err error) {
+func (w *Writer) writeUUID(v interface{}, uuid UUID) (err error) {
 	w.setRef(v)
 	s := w.stream
 	if err = s.WriteByte(TagGuid); err == nil {
 		if err = s.WriteByte(TagOpenbrace); err == nil {
-			if _, err = s.WriteString(u.String()); err == nil {
+			if _, err = s.WriteString(uuid.String()); err == nil {
 				err = s.WriteByte(TagClosebrace)
 			}
 		}
@@ -628,9 +627,9 @@ func (w *Writer) writeUUID(v interface{}, u uuid.UUID) (err error) {
 	return err
 }
 
-func (w *Writer) writeUUIDWithRef(v interface{}, u uuid.UUID) error {
+func (w *Writer) writeUUIDWithRef(v interface{}, uuid UUID) error {
 	if success, err := w.writeRef(w, v); err == nil && !success {
-		return w.writeUUID(v, u)
+		return w.writeUUID(v, uuid)
 	} else {
 		return err
 	}
