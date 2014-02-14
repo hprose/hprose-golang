@@ -2,6 +2,7 @@
 
 >---
 - **[Introduction](#introduction)**
+- **[Installation](#installation)**
 - **[Usage](#usage)**
     - **[Http Server](#http-server)**
     - **[Http Client](#http-client)**
@@ -54,6 +55,12 @@ programming languages.
 
 This project is the implementation of Hprose for Golang.
 
+## Installation
+
+```bash
+go get github.com/hprose/hprose-go/hprose
+```
+
 ## Usage
 
 ### Http Server
@@ -65,7 +72,7 @@ package main
 
 import (
 	"errors"
-	"hprose"
+	"github.com/hprose/hprose-go/hprose"
 	"net/http"
 )
 
@@ -111,7 +118,7 @@ package main
 
 import (
 	"fmt"
-	"hprose"
+	"github.com/hprose/hprose-go/hprose"
 )
 
 type clientStub struct {
@@ -140,7 +147,7 @@ package main
 
 import (
 	"fmt"
-	"hprose"
+	"github.com/hprose/hprose-go/hprose"
 )
 
 type clientStub struct {
@@ -167,7 +174,7 @@ package main
 
 import (
 	"fmt"
-	"hprose"
+	"github.com/hprose/hprose-go/hprose"
 )
 
 type clientStub struct {
@@ -196,7 +203,7 @@ package main
 
 import (
     "fmt"
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
 )
 
 type clientStub struct {
@@ -223,7 +230,7 @@ package main
 
 import (
     "fmt"
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
 )
 
 type clientStub struct {
@@ -251,7 +258,7 @@ package main
 
 import (
     "fmt"
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
 )
 
 type clientStub struct {
@@ -292,7 +299,7 @@ You can use hprose server and client to create a hprose proxy server. All reques
 package main
 
 import (
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
     "net/http"
 )
 
@@ -321,7 +328,7 @@ Hprose provides an ResultMode options to improve performance of the proxy server
 package main
 
 import (
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
     "net/http"
 )
 
@@ -369,7 +376,7 @@ You can open simple mode in server like this:
 package main
 
 import (
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
     "net/http"
 )
 
@@ -393,7 +400,7 @@ package main
 
 import (
     "fmt"
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
 )
 
 type clientStub struct {
@@ -423,7 +430,7 @@ Hprose supports publishing a special method: MissingMethod. All methods not expl
 package main
 
 import (
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
     "net/http"
     "reflect"
     "strings"
@@ -469,7 +476,7 @@ package main
 
 import (
     "fmt"
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
 )
 
 type clientStub struct {
@@ -548,7 +555,7 @@ package main
 
 import (
     "fmt"
-    "hprose"
+    "github.com/hprose/hprose-go/hprose"
     "net/http"
     "reflect"
 )
