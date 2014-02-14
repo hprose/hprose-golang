@@ -13,7 +13,7 @@
  *                                                        *
  * hprose ClassManager for Go.                            *
  *                                                        *
- * LastModified: Jan 26, 2014                             *
+ * LastModified: Feb 14, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,30 +31,27 @@ type classManager struct {
 	mutex      *sync.Mutex
 }
 
-type IClassManager interface {
-	Register(reflect.Type, string)
-	GetClassAlias(reflect.Type) string
-	GetClass(string) reflect.Type
+// Register class with alias.
+func (cm *classManager) Register(class reflect.Type, alias string) {
+	cm.mutex.Lock()
+	cm.classCache[alias] = class
+	cm.aliasCache[class] = alias
+	cm.mutex.Unlock()
 }
 
-func (self *classManager) Register(class reflect.Type, alias string) {
-	self.mutex.Lock()
-	self.classCache[alias] = class
-	self.aliasCache[class] = alias
-	self.mutex.Unlock()
-}
-
-func (self *classManager) GetClassAlias(class reflect.Type) (alias string) {
-	self.mutex.Lock()
-	alias = self.aliasCache[class]
-	self.mutex.Unlock()
+// GetClassAlias by class.
+func (cm *classManager) GetClassAlias(class reflect.Type) (alias string) {
+	cm.mutex.Lock()
+	alias = cm.aliasCache[class]
+	cm.mutex.Unlock()
 	return alias
 }
 
-func (self *classManager) GetClass(alias string) (class reflect.Type) {
-	self.mutex.Lock()
-	class = self.classCache[alias]
-	self.mutex.Unlock()
+// GetClass by alias.
+func (cm *classManager) GetClass(alias string) (class reflect.Type) {
+	cm.mutex.Lock()
+	class = cm.classCache[alias]
+	cm.mutex.Unlock()
 	return class
 }
 
@@ -63,4 +60,5 @@ func initClassManager() *classManager {
 	return &cm
 }
 
-var ClassManager IClassManager = initClassManager()
+// ClassManager used to be register class with alias for hprose serialize/unserialize.
+var ClassManager = initClassManager()

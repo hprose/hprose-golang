@@ -13,7 +13,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Feb 8, 2014                              *
+ * LastModified: Feb 14, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -52,7 +52,7 @@ func NewMethods() *Methods {
 	return &Methods{make([]string, 0, 64), make(map[string]*Method)}
 }
 
-func (this *Methods) AddFunction(name string, function interface{}, options ...interface{}) {
+func (methods *Methods) AddFunction(name string, function interface{}, options ...interface{}) {
 	if name == "" {
 		panic("name can't be empty")
 	}
@@ -82,22 +82,22 @@ func (this *Methods) AddFunction(name string, function interface{}, options ...i
 	if prefix != "" && name != "*" {
 		name = prefix + "_" + name
 	}
-	this.MethodNames = append(this.MethodNames, name)
+	methods.MethodNames = append(methods.MethodNames, name)
 	m := &Method{Function: f, ResultMode: resultMode, SimpleMode: simpleMode}
-	this.RemoteMethods[strings.ToLower(name)] = m
+	methods.RemoteMethods[strings.ToLower(name)] = m
 }
 
-func (this *Methods) AddFunctions(names []string, functions []interface{}, options ...interface{}) {
+func (methods *Methods) AddFunctions(names []string, functions []interface{}, options ...interface{}) {
 	if len(names) != len(functions) {
 		panic("names and functions must have the same length")
 	}
 	count := len(names)
 	for i := 0; i < count; i++ {
-		this.AddFunction(names[i], functions[i], options...)
+		methods.AddFunction(names[i], functions[i], options...)
 	}
 }
 
-func (this *Methods) AddMethods(obj interface{}, options ...interface{}) {
+func (methods *Methods) AddMethods(obj interface{}, options ...interface{}) {
 	if obj == nil {
 		panic("obj can't be nil")
 	}
@@ -105,7 +105,7 @@ func (this *Methods) AddMethods(obj interface{}, options ...interface{}) {
 	t := v.Type()
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
-		this.AddFunction(t.Method(i).Name, v.Method(i).Interface(), options...)
+		methods.AddFunction(t.Method(i).Name, v.Method(i).Interface(), options...)
 	}
 	for ; t.Kind() == reflect.Ptr && !v.IsNil(); v = v.Elem() {
 		t = t.Elem()
@@ -118,15 +118,15 @@ func (this *Methods) AddMethods(obj interface{}, options ...interface{}) {
 				for ; f.Kind() == reflect.Ptr && !f.IsNil(); f = f.Elem() {
 				}
 				if f.Kind() == reflect.Func && !f.IsNil() {
-					this.AddFunction(t.Field(i).Name, f.Interface(), options...)
+					methods.AddFunction(t.Field(i).Name, f.Interface(), options...)
 				}
 			}
 		}
 	}
 }
 
-func (this *Methods) AddMissingMethod(method MissingMethod, options ...interface{}) {
-	this.AddFunction("*", method, options...)
+func (methods *Methods) AddMissingMethod(method MissingMethod, options ...interface{}) {
+	methods.AddFunction("*", method, options...)
 }
 
 type BaseService struct {
