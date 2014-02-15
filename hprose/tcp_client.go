@@ -234,8 +234,10 @@ func (t *TcpTransporter) GetInvokeContext(uri string) (context interface{}, err 
 			}
 		}
 		if t.keepAlivePeriod != nil {
-			if err = conn.(*net.TCPConn).SetKeepAlivePeriod(t.keepAlivePeriod.(time.Duration)); err != nil {
-				return nil, err
+			if kap, ok := conn.(iKeepAlivePeriod); ok {
+				if err = kap.SetKeepAlivePeriod(t.keepAlivePeriod.(time.Duration)); err != nil {
+					return nil, err
+				}
 			}
 		}
 		if t.linger != nil {

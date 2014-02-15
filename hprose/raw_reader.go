@@ -13,7 +13,7 @@
  *                                                        *
  * hprose RawReader for Go.                               *
  *                                                        *
- * LastModified: Feb 8, 2014                              *
+ * LastModified: Feb 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -23,7 +23,6 @@ package hprose
 import (
 	"bytes"
 	"errors"
-	"strings"
 )
 
 type RawReader struct {
@@ -212,8 +211,8 @@ func (r *RawReader) readUTF8String(length int) (string, error) {
 func unexpectedTag(tag byte, expectTags []byte) error {
 	if t := string([]byte{tag}); expectTags == nil {
 		return errors.New("Unexpected serialize tag '" + t + "' in stream")
-	} else if e := string(expectTags); strings.IndexByte(e, tag) < 0 {
-		return errors.New("Tag '" + e + "' expected, but '" + t + "' found in stream")
+	} else if bytes.IndexByte(expectTags, tag) < 0 {
+		return errors.New("Tag '" + string(expectTags) + "' expected, but '" + t + "' found in stream")
 	}
 	return nil
 }

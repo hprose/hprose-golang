@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Feb 3, 2014                              *
+ * LastModified: Feb 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -143,8 +143,10 @@ func (server *TcpServer) Start() (err error) {
 			}
 		}
 		if server.keepAlivePeriod != nil {
-			if err := conn.SetKeepAlivePeriod(server.keepAlivePeriod.(time.Duration)); err != nil {
-				return err
+			if kap, ok := (net.Conn(conn)).(iKeepAlivePeriod); ok {
+				if err := kap.SetKeepAlivePeriod(server.keepAlivePeriod.(time.Duration)); err != nil {
+					return err
+				}
 			}
 		}
 		if server.linger != nil {
