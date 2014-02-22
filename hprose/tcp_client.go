@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Feb 12, 2014                             *
+ * LastModified: Feb 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -291,6 +291,7 @@ func (t *TcpTransporter) SendData(context interface{}, data []byte, success bool
 			t.connPool.Free(connEntry)
 		}
 	} else {
+		connEntry.Close()
 		t.connPool.Free(connEntry)
 	}
 	return err
