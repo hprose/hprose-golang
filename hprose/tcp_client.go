@@ -21,8 +21,8 @@
 package hprose
 
 import (
-	"bufio"
 	"crypto/tls"
+	"io"
 	"net"
 	"net/url"
 	"sync"
@@ -44,25 +44,19 @@ type TcpClient struct {
 }
 
 type TcpConnEntry struct {
-	uri    string
-	conn   net.Conn
-	reader BufReader
-	free   bool
-	valid  bool
+	uri   string
+	conn  net.Conn
+	free  bool
+	valid bool
 }
 
 func (connEntry *TcpConnEntry) Get() net.Conn {
 	return connEntry.conn
 }
 
-func (connEntry *TcpConnEntry) GetBufReader() BufReader {
-	return connEntry.reader
-}
-
 func (connEntry *TcpConnEntry) Set(conn net.Conn) {
 	if conn != nil {
 		connEntry.conn = conn
-		connEntry.reader = bufio.NewReader(conn)
 	}
 }
 
@@ -92,7 +86,7 @@ func (connPool *TcpConnPool) Get(uri string) *TcpConnEntry {
 			}
 		}
 	}
-	entry := &TcpConnEntry{uri, nil, nil, false, false}
+	entry := &TcpConnEntry{uri, nil, false, false}
 	connPool.pool = append(connPool.pool, entry)
 	return entry
 }
@@ -112,7 +106,6 @@ func (connPool *TcpConnPool) Close(uri string) {
 			if entry.free && entry.valid {
 				conns = append(conns, entry.conn)
 				entry.conn = nil
-				entry.reader = nil
 				entry.uri = ""
 			} else {
 				entry.Close()
@@ -128,7 +121,6 @@ func (connPool *TcpConnPool) Free(entry *TcpConnEntry) {
 			entry.conn.Close()
 			entry.conn = nil
 		}
-		entry.reader = nil
 		entry.uri = ""
 	}
 	connPool.Lock()
@@ -286,19 +278,35 @@ func (t *TcpTransporter) GetInvokeContext(uri string) (context interface{}, err 
 func (t *TcpTransporter) SendData(context interface{}, data []byte, success bool) (err error) {
 	connEntry := context.(*TcpConnEntry)
 	if success {
-		if _, err = connEntry.conn.Write(data); err != nil {
-			connEntry.Close()
-			t.connPool.Free(connEntry)
+		if err = writeContentLength(connEntry.conn, len(data)); err == nil {
+			_, err = connEntry.conn.Write(data)
 		}
-	} else {
+		if err != nil {
+			success = false
+		}
+	}
+	if !success {
 		connEntry.Close()
 		t.connPool.Free(connEntry)
 	}
 	return err
 }
 
-func (t *TcpTransporter) GetInputStream(context interface{}) (BufReader, error) {
-	return context.(*TcpConnEntry).GetBufReader(), nil
+func (t *TcpTransporter) GetInputStream(context interface{}) ([]byte, error) {
+	connEntry := context.(*TcpConnEntry)
+	conn := connEntry.conn
+	n, err := readContentLength(conn)
+	if err != nil {
+		connEntry.Close()
+		t.connPool.Free(connEntry)
+		return nil, err
+	}
+	data := make([]byte, n)
+	if _, err = io.ReadAtLeast(conn, data, n); err != nil {
+		connEntry.Close()
+		t.connPool.Free(connEntry)
+	}
+	return data, err
 }
 
 func (t *TcpTransporter) EndInvoke(context interface{}, success bool) error {

@@ -13,7 +13,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Feb 2, 2014                              *
+ * LastModified: Feb 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -21,10 +21,9 @@
 package hprose
 
 import (
-	"bufio"
-	"bytes"
 	"crypto/tls"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -45,7 +44,7 @@ type HttpTransporter struct {
 
 type HttpContext struct {
 	uri  string
-	body io.ReadCloser
+	data []byte
 }
 
 func NewHttpClient(uri string) Client {
@@ -137,14 +136,29 @@ func newHttpTransporter() *HttpTransporter {
 	return &HttpTransporter{&http.Client{Jar: cookieJar}, true, 300}
 }
 
+func (h *HttpTransporter) readAll(response *http.Response) (data []byte, err error) {
+	if response.ContentLength > 0 {
+		data = make([]byte, response.ContentLength)
+		_, err = io.ReadFull(response.Body, data)
+		return data, err
+	}
+	if response.ContentLength < 0 {
+		return ioutil.ReadAll(response.Body)
+	}
+	return make([]byte, 0), nil
+}
+
 func (h *HttpTransporter) GetInvokeContext(uri string) (interface{}, error) {
-	return &HttpContext{uri: uri}, nil
+	context := new(HttpContext)
+	context.uri = uri
+	return context, nil
 }
 
 func (h *HttpTransporter) SendData(context interface{}, data []byte, success bool) error {
 	if success {
 		context := context.(*HttpContext)
-		req, err := http.NewRequest("POST", context.uri, bytes.NewReader(data))
+		req, err := http.NewRequest("POST", context.uri, NewBytesReader(data))
+		req.ContentLength = int64(len(data))
 		if err != nil {
 			return err
 		}
@@ -157,15 +171,19 @@ func (h *HttpTransporter) SendData(context interface{}, data []byte, success boo
 		if err != nil {
 			return err
 		}
-		context.body = resp.Body
+		context.data, err = h.readAll(resp)
+		if err != nil {
+			return err
+		}
+		return resp.Body.Close()
 	}
 	return nil
 }
 
-func (h *HttpTransporter) GetInputStream(context interface{}) (BufReader, error) {
-	return bufio.NewReader(context.(*HttpContext).body), nil
+func (h *HttpTransporter) GetInputStream(context interface{}) ([]byte, error) {
+	return context.(*HttpContext).data, nil
 }
 
 func (h *HttpTransporter) EndInvoke(context interface{}, success bool) error {
-	return context.(*HttpContext).body.Close()
+	return nil
 }

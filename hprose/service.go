@@ -13,7 +13,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Feb 14, 2014                             *
+ * LastModified: Feb 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -24,7 +24,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"reflect"
 	"strings"
 )
@@ -133,46 +132,41 @@ type BaseService struct {
 	*Methods
 	ServiceEvent
 	Filter
-	IOError error
 }
 
 func NewBaseService() *BaseService {
 	return &BaseService{Methods: NewMethods()}
 }
 
-func (service *BaseService) responseEnd(ostream io.Writer, buf []byte, err error) {
+func (service *BaseService) responseEnd(buf []byte) []byte {
 	defer recover()
 	if service.Filter != nil {
 		buf = service.OutputFilter(buf)
 	}
-	if err != nil && service.ServiceEvent != nil {
-		service.OnSendError(err)
-	}
-	if _, err := ostream.Write(buf); err != nil {
-		service.IOError = err
-	}
+	return buf
 }
 
-func (service *BaseService) sendError(ostream io.Writer, err error) {
-	defer recover()
+func (service *BaseService) sendError(err error) []byte {
 	buf := new(bytes.Buffer)
 	writer := NewWriter(buf, true)
 	writer.Stream().WriteByte(TagError)
 	writer.WriteString(err.Error())
 	writer.Stream().WriteByte(TagEnd)
-	service.responseEnd(ostream, buf.Bytes(), err)
+	if err != nil && service.ServiceEvent != nil {
+		service.OnSendError(err)
+	}
+	return service.responseEnd(buf.Bytes())
 }
 
-func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err error) {
+func (service *BaseService) doInvoke(data []byte) []byte {
+	istream := NewBytesReader(data)
 	reader := NewReader(istream, false)
 	buf := new(bytes.Buffer)
 	for {
 		reader.Reset()
-		var name string
-		name, err = reader.ReadString()
+		name, err := reader.ReadString()
 		if err != nil {
-			service.IOError = err
-			return err
+			return service.sendError(err)
 		}
 		alias := strings.ToLower(name)
 		remoteMethod := service.RemoteMethods[alias]
@@ -181,14 +175,12 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 		byref := false
 		var tag byte
 		if tag, err = reader.CheckTags([]byte{TagList, TagEnd, TagCall}); err != nil {
-			service.IOError = err
-			return err
+			return service.sendError(err)
 		}
 		if tag == TagList {
 			reader.Reset()
 			if count, err = reader.ReadInteger(TagOpenbrace); err != nil {
-				service.IOError = err
-				return err
+				return service.sendError(err)
 			}
 			args = make([]reflect.Value, count)
 			if remoteMethod == nil {
@@ -197,8 +189,7 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 					args[i] = reflect.ValueOf(&e).Elem()
 				}
 				if err = reader.ReadArray(args); err != nil {
-					service.IOError = err
-					return err
+					return service.sendError(err)
 				}
 			} else {
 				ft := remoteMethod.Function.Type()
@@ -216,8 +207,7 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 							args[i] = reflect.New(t).Elem()
 						}
 						if err = reader.ReadArray(args); err != nil {
-							service.IOError = err
-							return err
+							return service.sendError(err)
 						}
 					} else {
 						for i := n; i < count; i++ {
@@ -225,8 +215,7 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 							args[i] = reflect.ValueOf(&e).Elem()
 						}
 						if err = reader.ReadArray(args); err != nil {
-							service.IOError = err
-							return err
+							return service.sendError(err)
 						}
 						args = args[:n]
 					}
@@ -235,20 +224,17 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 						args[i] = reflect.New(ft.In(i)).Elem()
 					}
 					if err = reader.ReadArray(args[0:count]); err != nil {
-						service.IOError = err
-						return err
+						return service.sendError(err)
 					}
 				}
 			}
 			if tag, err = reader.CheckTags([]byte{TagTrue, TagEnd, TagCall}); err != nil {
-				service.IOError = err
-				return err
+				return service.sendError(err)
 			}
 			if tag == TagTrue {
 				byref = true
 				if tag, err = reader.CheckTags([]byte{TagEnd, TagCall}); err != nil {
-					service.IOError = err
-					return err
+					return service.sendError(err)
 				}
 			}
 		} else {
@@ -278,7 +264,7 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 				return remoteMethod.Function.Call(args), nil
 			}
 		}(); err != nil {
-			return err
+			return service.sendError(err)
 		}
 		if service.ServiceEvent != nil {
 			service.OnAfterInvoke(name, args, byref, result)
@@ -288,17 +274,16 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 			t := remoteMethod.Function.Type().Out(resultLength - 1)
 			if t.Implements(reflect.TypeOf(&err).Elem()) {
 				if err, ok := result[resultLength-1].Interface().(error); ok {
-					return err
+					return service.sendError(err)
 				} else {
 					resultLength--
 					result = result[:resultLength]
 				}
 			}
 		}
-		var data []byte
 		if remoteMethod.ResultMode != Normal {
 			if resultLength == 0 {
-				return errors.New("can't find the result value")
+				return service.sendError(errors.New("can't find the result value"))
 			} else {
 				switch r := result[0].Interface().(type) {
 				case []byte:
@@ -314,12 +299,11 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 				case *string:
 					data = []byte(*r)
 				default:
-					return errors.New("the result type is wrong")
+					return service.sendError(errors.New("the result type is wrong"))
 				}
 			}
 			if remoteMethod.ResultMode == RawWithEndTag {
-				service.responseEnd(ostream, data, nil)
-				return nil
+				return service.responseEnd(data)
 			}
 		}
 		if remoteMethod.ResultMode == Raw {
@@ -329,7 +313,7 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 			writer.Stream().WriteByte(TagResult)
 			if remoteMethod.ResultMode == Serialized {
 				if _, err = writer.Stream().Write(data); err != nil {
-					return err
+					return service.sendError(err)
 				}
 			} else {
 				switch resultLength {
@@ -341,14 +325,14 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 					err = writer.WriteArray(result)
 				}
 				if err != nil {
-					return err
+					return service.sendError(err)
 				}
 			}
 			if byref {
 				writer.Stream().WriteByte(TagArgument)
 				writer.Reset()
 				if err = writer.WriteArray(args); err != nil {
-					return err
+					return service.sendError(err)
 				}
 			}
 		}
@@ -357,47 +341,39 @@ func (service *BaseService) doInvoke(istream BufReader, ostream io.Writer) (err 
 		}
 	}
 	buf.WriteByte(TagEnd)
-	service.responseEnd(ostream, buf.Bytes(), nil)
-	return nil
+	return service.responseEnd(buf.Bytes())
 }
 
-func (service *BaseService) doFunctionList(ostream io.Writer) error {
+func (service *BaseService) doFunctionList() []byte {
 	buf := new(bytes.Buffer)
 	writer := NewWriter(buf, true)
 	writer.Stream().WriteByte(TagFunctions)
 	if err := writer.Serialize(service.MethodNames); err != nil {
-		return err
+		return service.sendError(err)
 	}
 	writer.Stream().WriteByte(TagEnd)
-	service.responseEnd(ostream, buf.Bytes(), nil)
-	return nil
+	return service.responseEnd(buf.Bytes())
 }
 
-func (service *BaseService) Handle(istream BufReader, ostream io.Writer) {
-	var err error
+func (service *BaseService) Handle(data []byte) (output []byte) {
 	defer func() {
-		if e := recover(); e != nil && err == nil {
-			err = fmt.Errorf("%v", e)
-		}
-		if err != nil {
-			service.sendError(ostream, err)
+		if e := recover(); e != nil {
+			output = service.sendError(fmt.Errorf("%v", e))
 		}
 	}()
 	if service.Filter != nil {
-		istream = service.InputFilter(istream)
+		data = service.InputFilter(data)
 	}
-	buf := []byte{0}
-	if _, err = istream.Read(buf); err == nil {
-		tag := buf[0]
-		switch tag {
-		case TagCall:
-			err = service.doInvoke(istream, ostream)
-		case TagEnd:
-			err = service.doFunctionList(ostream)
-		default:
-			err = errors.New("Unknown Tag: " + string(buf))
-		}
-	} else {
-		service.IOError = err
+	if len(data) == 0 {
+		return service.sendError(errors.New("no Hprose RPC request"))
+	}
+	tag := data[0]
+	switch tag {
+	case TagCall:
+		return service.doInvoke(data[1:])
+	case TagEnd:
+		return service.doFunctionList()
+	default:
+		return service.sendError(errors.New("Wrong Reqeust: \r\n" + string(data)))
 	}
 }

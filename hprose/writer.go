@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: Feb 11, 2014                             *
+ * LastModified: Feb 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -21,6 +21,7 @@
 package hprose
 
 import (
+	"bytes"
 	"container/list"
 	"errors"
 	"math"
@@ -77,13 +78,13 @@ type field struct {
 }
 
 type cacheType struct {
-	fields            []field
+	fields            []*field
 	hasAnonymousField bool
 }
 
 var fieldCache struct {
 	sync.RWMutex
-	cache map[reflect.Type]cacheType
+	cache map[reflect.Type]*cacheType
 }
 
 type writerRefer interface {
@@ -138,7 +139,7 @@ func (r *realWriterRefer) resetRef() {
 type Writer struct {
 	stream    BufWriter
 	classref  map[string]int
-	fieldsref [][]field
+	fieldsref [][]*field
 	writerRefer
 	numbuf [20]byte
 }
@@ -1223,11 +1224,11 @@ func (w *Writer) writeMap(v interface{}, rv reflect.Value) (err error) {
 			if err = w.writeInt(count); err == nil {
 				if err = s.WriteByte(TagOpenbrace); err == nil {
 					keys := rv.MapKeys()
-					for _, key := range keys {
-						if err = w.WriteValue(key); err != nil {
+					for i := range keys {
+						if err = w.WriteValue(keys[i]); err != nil {
 							return err
 						}
-						if err = w.WriteValue(rv.MapIndex(key)); err != nil {
+						if err = w.WriteValue(rv.MapIndex(keys[i])); err != nil {
 							return err
 						}
 					}
@@ -1249,40 +1250,37 @@ func (w *Writer) writeMapWithRef(v interface{}, rv reflect.Value) error {
 	}
 }
 
-func (w *Writer) writeObjectAsMap(v reflect.Value, fields []field) (err error) {
+func (w *Writer) writeObjectAsMap(v reflect.Value, fields []*field) (err error) {
 	s := w.Stream()
-	length := len(fields)
-	elements := make([]reflect.Value, 0, length)
-	names := make([]string, 0, length)
+	buf := new(bytes.Buffer)
+	w.stream = buf
+	count := 0
 NEXT:
-	for i := 0; i < length; i++ {
-		f := fields[i]
+	for _, f := range fields {
 		e := v.Field(f.Index[0])
 		n := len(f.Index)
 		if n > 1 {
-			for j := 1; j < n; j++ {
+			for i := 1; i < n; i++ {
 				if e.Kind() == reflect.Ptr && e.IsNil() {
 					continue NEXT
 				}
-				e = reflect.Indirect(e).Field(f.Index[j])
+				e = reflect.Indirect(e).Field(f.Index[i])
 			}
 		}
-		elements = append(elements, e)
-		names = append(names, f.Name)
+		if err = w.writeStringWithRef(f.Name, f.Name); err != nil {
+			return err
+		}
+		if err = w.WriteValue(e); err != nil {
+			return err
+		}
+		count++
 	}
-	count := len(elements)
+	w.stream = s
 	if err = s.WriteByte(TagMap); err == nil {
 		if count > 0 {
 			if err = w.writeInt(count); err == nil {
 				if err = s.WriteByte(TagOpenbrace); err == nil {
-					for i, name := range names {
-						if err = w.writeStringWithRef(name, name); err != nil {
-							return err
-						}
-						if err = w.WriteValue(elements[i]); err != nil {
-							return err
-						}
-					}
+					buf.WriteTo(s)
 					err = s.WriteByte(TagClosebrace)
 				}
 			}
@@ -1303,10 +1301,10 @@ func (w *Writer) writeObject(v interface{}, rv reflect.Value) (err error) {
 	}
 	if w.classref == nil {
 		w.classref = make(map[string]int)
-		w.fieldsref = make([][]field, 0)
+		w.fieldsref = make([][]*field, 0)
 	}
 	index, found := w.classref[classname]
-	var fields []field
+	var fields []*field
 	if found {
 		fields = w.fieldsref[index]
 	} else {
@@ -1316,17 +1314,17 @@ func (w *Writer) writeObject(v interface{}, rv reflect.Value) (err error) {
 		if !found {
 			fieldCache.Lock()
 			if fieldCache.cache == nil {
-				fieldCache.cache = make(map[reflect.Type]cacheType)
+				fieldCache.cache = make(map[reflect.Type]*cacheType)
 			}
-			fields = make([]field, 0)
+			fields = make([]*field, 0)
 			hasAnonymousField := false
 			getFieldsFunc(t, func(f reflect.StructField) {
 				if len(f.Index) > 1 {
 					hasAnonymousField = true
 				}
-				fields = append(fields, field{firstLetterToLower(f.Name), f.Index})
+				fields = append(fields, &field{firstLetterToLower(f.Name), f.Index})
 			})
-			cache = cacheType{fields, hasAnonymousField}
+			cache = &cacheType{fields, hasAnonymousField}
 			fieldCache.cache[t] = cache
 			fieldCache.Unlock()
 		} else {
@@ -1345,8 +1343,8 @@ func (w *Writer) writeObject(v interface{}, rv reflect.Value) (err error) {
 	if err = s.WriteByte(TagObject); err == nil {
 		if err = w.writeInt(index); err == nil {
 			if err = s.WriteByte(TagOpenbrace); err == nil {
-				for _, f := range fields {
-					if err = w.WriteValue(rv.FieldByIndex(f.Index)); err != nil {
+				for i := range fields {
+					if err = w.WriteValue(rv.FieldByIndex(fields[i].Index)); err != nil {
 						return err
 					}
 				}
@@ -1365,7 +1363,7 @@ func (w *Writer) writeObjectWithRef(v interface{}, rv reflect.Value) error {
 	}
 }
 
-func (w *Writer) writeClass(classname string, fields []field) (index int, err error) {
+func (w *Writer) writeClass(classname string, fields []*field) (index int, err error) {
 	s := w.stream
 	count := len(fields)
 	if err = s.WriteByte(TagClass); err != nil {
@@ -1390,8 +1388,8 @@ func (w *Writer) writeClass(classname string, fields []field) (index int, err er
 		if err = s.WriteByte(TagOpenbrace); err != nil {
 			return -1, err
 		}
-		for _, f := range fields {
-			if err = w.WriteString(f.Name); err != nil {
+		for i := range fields {
+			if err = w.WriteString(fields[i].Name); err != nil {
 				return -1, err
 			}
 		}

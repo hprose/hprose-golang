@@ -13,7 +13,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: Feb 2, 2014                              *
+ * LastModified: Feb 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -21,7 +21,7 @@
 package hprose
 
 import (
-	"bufio"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -155,6 +155,18 @@ func (service *HttpService) SetClientAccessPolicyXmlContent(content []byte) {
 	service.clientAccessPolicyXmlContent = content
 }
 
+func (service *HttpService) readAll(request *http.Request) (data []byte, err error) {
+	if request.ContentLength > 0 {
+		data = make([]byte, request.ContentLength)
+		_, err = io.ReadFull(request.Body, data)
+		return data, err
+	}
+	if request.ContentLength < 0 {
+		return ioutil.ReadAll(request.Body)
+	}
+	return make([]byte, 0), nil
+}
+
 func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	if service.clientAccessPolicyXmlContent != nil && service.clientAccessPolicyXmlHandler(response, request) {
 		return
@@ -166,12 +178,16 @@ func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *htt
 	switch request.Method {
 	case "GET":
 		if service.GetEnabled {
-			service.doFunctionList(response)
+			response.Write(service.doFunctionList())
 		} else {
 			response.WriteHeader(403)
 		}
 	case "POST":
-		service.Handle(bufio.NewReader(request.Body), response)
+		data, err := service.readAll(request)
 		request.Body.Close()
+		if err != nil {
+			response.Write(service.sendError(err))
+		}
+		response.Write(service.Handle(data))
 	}
 }

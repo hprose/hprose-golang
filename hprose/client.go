@@ -13,7 +13,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Feb 8, 2014                              *
+ * LastModified: Feb 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -132,7 +132,7 @@ type Client interface {
 type Transporter interface {
 	GetInvokeContext(uri string) (interface{}, error)
 	SendData(context interface{}, data []byte, success bool) error
-	GetInputStream(context interface{}) (BufReader, error)
+	GetInputStream(context interface{}) ([]byte, error)
 	EndInvoke(context interface{}, success bool) error
 }
 
@@ -359,20 +359,20 @@ func (client *BaseClient) doIntput(context interface{}, args []reflect.Value, op
 			err = e
 		}
 	}()
-	var istream BufReader
-	if istream, err = client.GetInputStream(context); err != nil {
+	var data []byte
+	if data, err = client.GetInputStream(context); err != nil {
 		success = false
 		return err
 	}
 	if client.Filter != nil {
-		istream = client.InputFilter(istream)
+		data = client.InputFilter(data)
 	}
+	istream := NewBytesReader(data)
 	resultMode := options.ResultMode
 	buf := new(bytes.Buffer)
 	reader := NewReader(istream, false)
-	expectTags := []byte{TagResult, TagArgument, TagError, TagEnd}
 	var tag byte
-	for tag, err = reader.CheckTags(expectTags); err == nil && tag != TagEnd; tag, err = reader.CheckTags(expectTags) {
+	for tag, err = istream.ReadByte(); err == nil && tag != TagEnd; tag, err = istream.ReadByte() {
 		switch tag {
 		case TagResult:
 			switch resultMode {
@@ -484,6 +484,8 @@ func (client *BaseClient) doIntput(context interface{}, args []reflect.Value, op
 					return err
 				}
 			}
+		default:
+			return errors.New("Wrong Response: \r\n" + string(data))
 		}
 	}
 	if err != nil {
@@ -528,8 +530,8 @@ func (client *BaseClient) createStub(stub interface{}) {
 }
 
 func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField) func(in []reflect.Value) []reflect.Value {
-	name := getFuncName(sf)
-	options := &InvokeOptions{ByRef: getByRef(sf), SimpleMode: getSimpleMode(sf), ResultMode: getResultMode(sf)}
+	name := getFuncName(&sf)
+	options := &InvokeOptions{ByRef: getByRef(&sf), SimpleMode: getSimpleMode(&sf), ResultMode: getResultMode(&sf)}
 	return func(in []reflect.Value) []reflect.Value {
 		inlen := len(in)
 		varlen := 0
@@ -666,20 +668,20 @@ func setResult(result reflect.Value, buf *bytes.Buffer) error {
 	return nil
 }
 
-func getFuncName(sf reflect.StructField) string {
+func getFuncName(sf *reflect.StructField) string {
 	keys := []string{"name", "Name", "funcname", "funcName", "FuncName"}
-	for _, key := range keys {
-		if name := sf.Tag.Get(key); name != "" {
+	for i := range keys {
+		if name := sf.Tag.Get(keys[i]); name != "" {
 			return name
 		}
 	}
 	return sf.Name
 }
 
-func getByRef(sf reflect.StructField) interface{} {
+func getByRef(sf *reflect.StructField) interface{} {
 	keys := []string{"byref", "byRef", "Byref", "ByRef"}
-	for _, key := range keys {
-		switch strings.ToLower(sf.Tag.Get(key)) {
+	for i := range keys {
+		switch strings.ToLower(sf.Tag.Get(keys[i])) {
 		case "true", "t", "1":
 			return true
 		case "false", "f", "0":
@@ -689,10 +691,10 @@ func getByRef(sf reflect.StructField) interface{} {
 	return nil
 }
 
-func getSimpleMode(sf reflect.StructField) interface{} {
+func getSimpleMode(sf *reflect.StructField) interface{} {
 	keys := []string{"simple", "Simple", "simpleMode", "SimpleMode"}
-	for _, key := range keys {
-		switch strings.ToLower(sf.Tag.Get(key)) {
+	for i := range keys {
+		switch strings.ToLower(sf.Tag.Get(keys[i])) {
 		case "true", "t", "1":
 			return true
 		case "false", "f", "0":
@@ -702,10 +704,10 @@ func getSimpleMode(sf reflect.StructField) interface{} {
 	return nil
 }
 
-func getResultMode(sf reflect.StructField) ResultMode {
+func getResultMode(sf *reflect.StructField) ResultMode {
 	keys := []string{"result", "Result", "resultMode", "ResultMode"}
-	for _, key := range keys {
-		switch strings.ToLower(sf.Tag.Get(key)) {
+	for i := range keys {
+		switch strings.ToLower(sf.Tag.Get(keys[i])) {
 		case "normal":
 			return Normal
 		case "serialized":

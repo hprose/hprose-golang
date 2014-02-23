@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Reader for Go.                                  *
  *                                                        *
- * LastModified: Feb 8, 2014                              *
+ * LastModified: Feb 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -26,16 +26,16 @@ import (
 	"unicode/utf8"
 )
 
-type bufReader struct {
+type BytesReader struct {
 	s []byte
 	i int
 }
 
-func NewBufReader(b []byte) BufReader {
-	return &bufReader{b, 0}
+func NewBytesReader(b []byte) *BytesReader {
+	return &BytesReader{b, 0}
 }
 
-func (r *bufReader) Read(b []byte) (n int, err error) {
+func (r *BytesReader) Read(b []byte) (n int, err error) {
 	if len(b) == 0 {
 		return 0, nil
 	}
@@ -44,10 +44,10 @@ func (r *bufReader) Read(b []byte) (n int, err error) {
 	}
 	n = copy(b, r.s[r.i:])
 	r.i += n
-	return
+	return n, nil
 }
 
-func (r *bufReader) ReadByte() (b byte, err error) {
+func (r *BytesReader) ReadByte() (b byte, err error) {
 	if r.i >= len(r.s) {
 		return 0, io.EOF
 	}
@@ -56,7 +56,7 @@ func (r *bufReader) ReadByte() (b byte, err error) {
 	return
 }
 
-func (r *bufReader) ReadRune() (ch rune, size int, err error) {
+func (r *BytesReader) ReadRune() (ch rune, size int, err error) {
 	if r.i >= len(r.s) {
 		return 0, 0, io.EOF
 	}
@@ -69,7 +69,7 @@ func (r *bufReader) ReadRune() (ch rune, size int, err error) {
 	return
 }
 
-func (r *bufReader) ReadString(delim byte) (line string, err error) {
+func (r *BytesReader) ReadString(delim byte) (line string, err error) {
 	i := bytes.IndexByte(r.s[r.i:], delim)
 	end := r.i + i + 1
 	if i < 0 {
@@ -93,7 +93,7 @@ func Marshal(v interface{}) ([]byte, error) {
 }
 
 func Unserialize(b []byte, p interface{}, simple bool) error {
-	buf := NewBufReader(b)
+	buf := NewBytesReader(b)
 	reader := NewReader(buf, simple)
 	return reader.Unserialize(p)
 }
