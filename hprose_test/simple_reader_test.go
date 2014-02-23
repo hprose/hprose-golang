@@ -36,6 +36,7 @@ func TestSimpleReaderInt(t *testing.T) {
 	writer := NewWriter(b, true)
 	writer.Serialize(-1)
 	writer.Serialize(math.MaxInt16)
+	writer.Serialize(math.MinInt64)
 	var f32 float32 = math.MaxFloat32
 	writer.Serialize(f32)
 	writer.Serialize("1234567890")
@@ -62,6 +63,12 @@ func TestSimpleReaderInt(t *testing.T) {
 		t.Error(*p)
 	}
 	var i64 int64
+	if err = reader.Unserialize(&i64); err != nil {
+		t.Error(err.Error())
+	}
+	if i64 != math.MinInt64 {
+		t.Error(i64)
+	}
 	if err = reader.Unserialize(&i64); err != nil {
 		t.Error(err.Error())
 	}

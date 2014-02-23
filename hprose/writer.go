@@ -65,6 +65,12 @@ var serializeType = [...]bool{
 	false, // UnsafePointer
 }
 
+var minInt64Buf = [...]byte{
+	'-', '9', '2', '2', '3',
+	'3', '7', '2', '0', '3',
+	'6', '8', '5', '4', '7',
+	'7', '5', '8', '0', '8'}
+
 type BufWriter interface {
 	Write(p []byte) (n int, err error)
 	WriteByte(c byte) error
@@ -1413,24 +1419,27 @@ func (w *Writer) writeClass(classname string, fields []*field) (index int, err e
 func (w *Writer) writeInt64(i int64) error {
 	if i >= 0 && i <= 9 {
 		return w.stream.WriteByte((byte)(i + '0'))
-	} else {
-		off := 20
-		sign := int64(1)
-		if i < 0 {
-			sign = -sign
-		}
-		for i != 0 {
-			off--
-			w.numbuf[off] = (byte)((i%10)*sign + '0')
-			i /= 10
-		}
-		if sign == -1 {
-			off--
-			w.numbuf[off] = '-'
-		}
-		_, err := w.stream.Write(w.numbuf[off:])
+	} else if i == math.MinInt64 {
+		_, err := w.stream.Write(minInt64Buf[:])
 		return err
 	}
+	off := 20
+	sign := int64(1)
+	if i < 0 {
+		sign = -sign
+		i = -i
+	}
+	for i != 0 {
+		off--
+		w.numbuf[off] = (byte)((i % 10) + '0')
+		i /= 10
+	}
+	if sign == -1 {
+		off--
+		w.numbuf[off] = '-'
+	}
+	_, err := w.stream.Write(w.numbuf[off:])
+	return err
 }
 
 func (w *Writer) writeUint64(i uint64) error {

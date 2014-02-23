@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Client Test for Go.                             *
  *                                                        *
- * LastModified: Feb 1, 2014                              *
+ * LastModified: Feb 24, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -21,9 +21,9 @@
 package hprose_test
 
 import (
-	"fmt"
-	. "github.com/hprose/hprose-go/hprose"
-	"testing"
+	//"fmt"
+	//. "github.com/hprose/hprose-go/hprose"
+	//"testing"
 	"time"
 )
 
@@ -48,6 +48,7 @@ type testRemoteObject struct {
 	GetUserList         func() []testUser
 }
 
+/*
 func TestRemoteObject(t *testing.T) {
 	//client := NewClient("http://127.0.0.1/")
 	client := NewClient("http://www.hprose.com/example/")
@@ -164,3 +165,4 @@ func TestClient(t *testing.T) {
 	}
 	fmt.Println(string(<-r5))
 }
+*/
