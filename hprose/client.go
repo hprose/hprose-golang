@@ -13,7 +13,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Feb 23, 2014                             *
+ * LastModified: Feb 25, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -130,10 +130,7 @@ type Client interface {
 }
 
 type Transporter interface {
-	GetInvokeContext(uri string) (interface{}, error)
-	SendData(context interface{}, data []byte, success bool) error
-	GetInputStream(context interface{}) ([]byte, error)
-	EndInvoke(context interface{}, success bool) error
+	SendAndReceive(uri string, data []byte) ([]byte, error)
 }
 
 type BaseClient struct {
@@ -269,16 +266,17 @@ func (client *BaseClient) invoke(name string, args []reflect.Value, options *Inv
 }
 
 func (client *BaseClient) syncInvoke(name string, args []reflect.Value, options *InvokeOptions, result []reflect.Value) (err error) {
-	context, err := client.GetInvokeContext(client.Uri())
 	defer func() {
 		if e := recover(); e != nil && err == nil {
 			err = fmt.Errorf("%v", e)
 		}
 	}()
-	if err == nil {
-		if err = client.doOutput(context, name, args, options); err == nil {
-			err = client.doIntput(context, args, options, result)
-		}
+	if odata, e := client.doOutput(name, args, options); e != nil {
+		err = e
+	} else if idata, e := client.SendAndReceive(client.Uri(), odata); e != nil {
+		err = e
+	} else if e := client.doIntput(idata, args, options, result); e != nil {
+		err = e
 	}
 	return err
 }
@@ -305,20 +303,8 @@ func (client *BaseClient) asyncInvoke(name string, args []reflect.Value, options
 	return errChan
 }
 
-func (client *BaseClient) doOutput(context interface{}, name string, args []reflect.Value, options *InvokeOptions) (err error) {
-	success := false
+func (client *BaseClient) doOutput(name string, args []reflect.Value, options *InvokeOptions) (data []byte, err error) {
 	buf := new(bytes.Buffer)
-	defer func() {
-		data := buf.Bytes()
-		if err == nil {
-			if client.Filter != nil {
-				data = client.OutputFilter(data)
-			}
-		}
-		if e := client.SendData(context, data, success); err == nil {
-			err = e
-		}
-	}()
 	simple := client.SimpleMode
 	if s, ok := options.SimpleMode.(bool); ok {
 		simple = s
@@ -329,47 +315,51 @@ func (client *BaseClient) doOutput(context interface{}, name string, args []refl
 	}
 	writer := NewWriter(buf, simple)
 	if err = writer.Stream().WriteByte(TagCall); err != nil {
-		return err
+		return nil, err
 	}
 	if err = writer.WriteString(name); err != nil {
-		return err
+		return nil, err
 	}
 	if args != nil && (len(args) > 0 || byref) {
 		writer.Reset()
 		if err = writer.WriteArray(args); err != nil {
-			return err
+			return nil, err
 		}
 		if byref {
 			if err = writer.WriteBool(true); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
-	if err = writer.Stream().WriteByte(TagEnd); err == nil {
-		success = true
+	if err = writer.Stream().WriteByte(TagEnd); err != nil {
+		return nil, err
 	}
-	return err
+	data = buf.Bytes()
+	if client.Filter != nil {
+		data = client.OutputFilter(data)
+	}
+	return data, nil
 }
 
-func (client *BaseClient) doIntput(context interface{}, args []reflect.Value, options *InvokeOptions, result []reflect.Value) (err error) {
-	success := true
-	defer func() {
-		e := client.EndInvoke(context, success)
-		if err == nil {
-			err = e
-		}
-	}()
-	var data []byte
-	if data, err = client.GetInputStream(context); err != nil {
-		success = false
-		return err
-	}
+func (client *BaseClient) doIntput(data []byte, args []reflect.Value, options *InvokeOptions, result []reflect.Value) (err error) {
 	if client.Filter != nil {
 		data = client.InputFilter(data)
 	}
-	istream := NewBytesReader(data)
 	resultMode := options.ResultMode
-	buf := new(bytes.Buffer)
+	if last := len(data) - 1; data[last] == TagEnd {
+		if resultMode == Raw {
+			data = data[:last]
+		}
+	} else {
+		return errors.New("Wrong Response: \r\n" + string(data))
+	}
+	if resultMode == RawWithEndTag || resultMode == Raw {
+		if err = setResult(result[0], data); err != nil {
+			return err
+		}
+		return nil
+	}
+	istream := NewBytesReader(data)
 	reader := NewReader(istream, false)
 	var tag byte
 	for tag, err = istream.ReadByte(); err == nil && tag != TagEnd; tag, err = istream.ReadByte() {
@@ -402,105 +392,52 @@ func (client *BaseClient) doIntput(context interface{}, args []reflect.Value, op
 					}
 				}
 				if err != nil {
-					success = false
 					return err
 				}
 			case Serialized:
-				if err = reader.ReadRawTo(buf); err != nil {
-					success = false
+				var buf []byte
+				if buf, err = reader.ReadRaw(); err != nil {
 					return err
 				}
 				if err = setResult(result[0], buf); err != nil {
 					return err
 				}
-			default:
-				if err = buf.WriteByte(TagResult); err != nil {
-					return err
-				}
-				if err = reader.ReadRawTo(buf); err != nil {
-					success = false
-					return err
-				}
 			}
 		case TagArgument:
-			switch resultMode {
-			case Normal, Serialized:
-				reader.Reset()
-				if err = reader.CheckTag(TagList); err == nil {
-					length := len(args)
-					var count int
-					if count, err = reader.ReadInteger(TagOpenbrace); err == nil {
-						a := make([]reflect.Value, count)
-						if count <= length {
-							for i := 0; i < count; i++ {
-								a[i] = args[i].Elem()
-							}
-						} else {
-							for i := 0; i < length; i++ {
-								a[i] = args[i].Elem()
-							}
-							for i := length; i < count; i++ {
-								var e interface{}
-								a[i] = reflect.ValueOf(&e).Elem()
-							}
+			reader.Reset()
+			if err = reader.CheckTag(TagList); err == nil {
+				length := len(args)
+				var count int
+				if count, err = reader.ReadInteger(TagOpenbrace); err == nil {
+					a := make([]reflect.Value, count)
+					if count <= length {
+						for i := 0; i < count; i++ {
+							a[i] = args[i].Elem()
 						}
-						err = reader.ReadArray(a)
+					} else {
+						for i := 0; i < length; i++ {
+							a[i] = args[i].Elem()
+						}
+						for i := length; i < count; i++ {
+							var e interface{}
+							a[i] = reflect.ValueOf(&e).Elem()
+						}
 					}
+					err = reader.ReadArray(a)
 				}
-				if err != nil {
-					success = false
-					return err
-				}
-			default:
-				if err = buf.WriteByte(TagArgument); err != nil {
-					return err
-				}
-				if err = reader.ReadRawTo(buf); err != nil {
-					success = false
-					return err
-				}
+			}
+			if err != nil {
+				return err
 			}
 		case TagError:
-			switch resultMode {
-			case Normal, Serialized:
-				reader.Reset()
-				var e string
-				if e, err = reader.ReadString(); err == nil {
-					err = errors.New(e)
-					if e := reader.CheckTag(TagEnd); e != nil {
-						success = false
-						err = e
-					}
-				} else {
-					success = false
-				}
-				return err
-			default:
-				if err = buf.WriteByte(TagError); err != nil {
-					return err
-				}
-				if err = reader.ReadRawTo(buf); err != nil {
-					success = false
-					return err
-				}
+			reader.Reset()
+			var e string
+			if e, err = reader.ReadString(); err == nil {
+				err = errors.New(e)
 			}
+			return err
 		default:
 			return errors.New("Wrong Response: \r\n" + string(data))
-		}
-	}
-	if err != nil {
-		success = false
-		return err
-	}
-	switch resultMode {
-	case RawWithEndTag:
-		if err = buf.WriteByte(TagEnd); err != nil {
-			return err
-		}
-		fallthrough
-	case Raw:
-		if err = setResult(result[0], buf); err != nil {
-			return err
 		}
 	}
 	return err
@@ -656,12 +593,12 @@ func checkRefArgs(args []reflect.Value) bool {
 	return true
 }
 
-func setResult(result reflect.Value, buf *bytes.Buffer) error {
+func setResult(result reflect.Value, buf []byte) error {
 	switch result.Interface().(type) {
-	case *bytes.Buffer:
-		result.Set(reflect.ValueOf(buf))
 	case []byte, interface{}:
-		result.Set(reflect.ValueOf(buf.Bytes()))
+		result.Set(reflect.ValueOf(buf))
+	case *bytes.Buffer:
+		result.Set(reflect.ValueOf(bytes.NewBuffer(buf)))
 	default:
 		return errors.New("The argument result must be a *[]byte or **bytes.Buffer if the ResultMode is different from Normal.")
 	}

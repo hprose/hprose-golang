@@ -13,7 +13,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Feb 23, 2014                             *
+ * LastModified: Feb 25, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,7 +27,6 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"strconv"
 )
 
 var cookieJar, _ = cookiejar.New(nil)
@@ -38,13 +37,6 @@ type HttpClient struct {
 
 type HttpTransporter struct {
 	*http.Client
-	keepAlive        bool
-	keepAliveTimeout int
-}
-
-type HttpContext struct {
-	uri  string
-	data []byte
 }
 
 func NewHttpClient(uri string) Client {
@@ -82,22 +74,13 @@ func (client *HttpClient) KeepAlive() bool {
 	if transport, ok := client.Http().Transport.(*http.Transport); ok {
 		return !transport.DisableKeepAlives
 	}
-	return client.Transporter.(*HttpTransporter).keepAlive
+	return true
 }
 
 func (client *HttpClient) SetKeepAlive(enable bool) {
 	if transport, ok := client.Http().Transport.(*http.Transport); ok {
 		transport.DisableKeepAlives = !enable
-		client.Transporter.(*HttpTransporter).keepAlive = enable
 	}
-}
-
-func (client *HttpClient) KeepAliveTimeout() int {
-	return client.Transporter.(*HttpTransporter).keepAliveTimeout
-}
-
-func (client *HttpClient) SetKeepAliveTimeout(timeout int) {
-	client.Transporter.(*HttpTransporter).keepAliveTimeout = timeout
 }
 
 func (client *HttpClient) Compression() bool {
@@ -133,7 +116,7 @@ func (client *HttpClient) Http() *http.Client {
 }
 
 func newHttpTransporter() *HttpTransporter {
-	return &HttpTransporter{&http.Client{Jar: cookieJar}, true, 300}
+	return &HttpTransporter{&http.Client{Jar: cookieJar}}
 }
 
 func (h *HttpTransporter) readAll(response *http.Response) (data []byte, err error) {
@@ -148,42 +131,20 @@ func (h *HttpTransporter) readAll(response *http.Response) (data []byte, err err
 	return make([]byte, 0), nil
 }
 
-func (h *HttpTransporter) GetInvokeContext(uri string) (interface{}, error) {
-	context := new(HttpContext)
-	context.uri = uri
-	return context, nil
-}
-
-func (h *HttpTransporter) SendData(context interface{}, data []byte, success bool) error {
-	if success {
-		context := context.(*HttpContext)
-		req, err := http.NewRequest("POST", context.uri, NewBytesReader(data))
-		req.ContentLength = int64(len(data))
-		if err != nil {
-			return err
-		}
-		req.Header.Set("Content-Type", "application/hprose")
-		if h.keepAlive {
-			req.Header.Set("Connection", "keep-alive")
-			req.Header.Set("Keep-Alive", strconv.Itoa(h.keepAliveTimeout))
-		}
-		resp, err := h.Do(req)
-		if err != nil {
-			return err
-		}
-		context.data, err = h.readAll(resp)
-		if err != nil {
-			return err
-		}
-		return resp.Body.Close()
+func (h *HttpTransporter) SendAndReceive(uri string, data []byte) ([]byte, error) {
+	req, err := http.NewRequest("POST", uri, NewBytesReader(data))
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
-
-func (h *HttpTransporter) GetInputStream(context interface{}) ([]byte, error) {
-	return context.(*HttpContext).data, nil
-}
-
-func (h *HttpTransporter) EndInvoke(context interface{}, success bool) error {
-	return nil
+	req.ContentLength = int64(len(data))
+	req.Header.Set("Content-Type", "application/hprose")
+	resp, err := h.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	data, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return data, resp.Body.Close()
 }

@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Feb 23, 2014                             *
+ * LastModified: Feb 25, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -199,7 +199,7 @@ func (client *TcpClient) SetTLSConfig(config *tls.Config) {
 	client.config = config
 }
 
-func (t *TcpTransporter) GetInvokeContext(uri string) (context interface{}, err error) {
+func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
 	connEntry := t.connPool.Get(uri)
 	defer func() {
 		if err != nil {
@@ -272,48 +272,20 @@ func (t *TcpTransporter) GetInvokeContext(uri string) (context interface{}, err 
 		}
 		connEntry.Set(conn)
 	}
-	return connEntry, err
-}
-
-func (t *TcpTransporter) SendData(context interface{}, data []byte, success bool) (err error) {
-	connEntry := context.(*TcpConnEntry)
-	if success {
-		if err = writeContentLength(connEntry.conn, len(data)); err == nil {
-			_, err = connEntry.conn.Write(data)
-		}
-		if err != nil {
-			success = false
-		}
-	}
-	if !success {
-		connEntry.Close()
-		t.connPool.Free(connEntry)
-	}
-	return err
-}
-
-func (t *TcpTransporter) GetInputStream(context interface{}) ([]byte, error) {
-	connEntry := context.(*TcpConnEntry)
-	conn := connEntry.conn
-	n, err := readContentLength(conn)
-	if err != nil {
-		connEntry.Close()
-		t.connPool.Free(connEntry)
+	if err = writeContentLength(conn, len(odata)); err != nil {
 		return nil, err
 	}
-	data := make([]byte, n)
-	if _, err = io.ReadAtLeast(conn, data, n); err != nil {
-		connEntry.Close()
-		t.connPool.Free(connEntry)
+	if _, err = conn.Write(odata); err != nil {
+		return nil, err
 	}
-	return data, err
-}
-
-func (t *TcpTransporter) EndInvoke(context interface{}, success bool) error {
-	connEntry := context.(*TcpConnEntry)
-	if !success {
-		connEntry.Close()
+	var n int
+	if n, err = readContentLength(conn); err != nil {
+		return nil, err
+	}
+	idata = make([]byte, n)
+	if _, err = io.ReadAtLeast(conn, idata, n); err != nil {
+		return nil, err
 	}
 	t.connPool.Free(connEntry)
-	return nil
+	return idata, nil
 }
