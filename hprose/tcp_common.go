@@ -22,54 +22,55 @@ package hprose
 
 import (
 	"io"
-	"net"
 )
 
-func sendDataOverTcp(conn net.Conn, data []byte) (err error) {
+func sendDataOverTcp(w io.Writer, data []byte) (err error) {
 	n := len(data)
-	var buflen int
-	if n > 1024 {
-		buflen = 2048
-	} else if n > 512 {
-		buflen = 1024
-	} else {
-		buflen = 512
+	var len int
+	switch {
+	case n > 1024:
+		len = 2048
+	case n > 512:
+		len = 1024
+	default:
+		len = 512
 	}
-	buf := make([]byte, buflen)
+	buf := make([]byte, len)
 	buf[0] = byte((n >> 24) & 0xff)
 	buf[1] = byte((n >> 16) & 0xff)
 	buf[2] = byte((n >> 8) & 0xff)
 	buf[3] = byte(n & 0xff)
-	if n <= buflen-4 {
+	p := len - 4
+	if n <= p {
 		copy(buf[4:], data)
-		_, err = conn.Write(buf[:n+4])
+		_, err = w.Write(buf[:n+4])
 	} else {
-		copy(buf[4:], data[:buflen-4])
-		_, err = conn.Write(buf)
+		copy(buf[4:], data[:p])
+		_, err = w.Write(buf[:])
 		if err != nil {
 			return err
 		}
-		_, err = conn.Write(data[buflen-4:])
+		_, err = w.Write(data[p:])
 	}
 	return err
 }
 
-func receiveDataOverTcp(conn net.Conn) ([]byte, error) {
-	var buf [2048]byte
-	n, err := io.ReadAtLeast(conn, buf[:], 4)
+func receiveDataOverTcp(r io.Reader) ([]byte, error) {
+	var buf [512]byte
+	n, err := io.ReadAtLeast(r, buf[:], 4)
 	if err != nil {
 		return nil, err
 	}
 	length := (int(buf[0])<<24 | int(buf[1])<<16 | int(buf[2])<<8 | int(buf[3]))
 	size := length - (n - 4)
-	if length <= 2044 {
+	if length <= 508 {
 		if size > 0 {
-			_, err = io.ReadAtLeast(conn, buf[n:], size)
+			_, err = io.ReadAtLeast(r, buf[n:], size)
 		}
 		return buf[4 : length+4], err
 	}
 	data := make([]byte, length)
 	copy(data, buf[4:n])
-	_, err = io.ReadAtLeast(conn, data[n-4:], size)
+	_, err = io.ReadAtLeast(r, data[n-4:], size)
 	return data, err
 }
