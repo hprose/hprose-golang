@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Feb 23, 2014                             *
+ * LastModified: Feb 25, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -22,7 +22,6 @@ package hprose
 
 import (
 	"crypto/tls"
-	"io"
 	"net"
 	"net/url"
 	"time"
@@ -39,15 +38,9 @@ func NewTcpService() *TcpService {
 func (service *TcpService) ServeTCP(conn net.Conn) {
 	go func() {
 		for {
-			contentLength, err := readContentLength(conn)
+			data, err := receiveDataOverTcp(conn)
 			if err == nil {
-				data := make([]byte, contentLength)
-				if _, err = io.ReadAtLeast(conn, data, contentLength); err == nil {
-					data = service.Handle(data)
-					if err = writeContentLength(conn, len(data)); err == nil {
-						conn.Write(data)
-					}
-				}
+				err = sendDataOverTcp(conn, service.Handle(data))
 			}
 			if err != nil {
 				conn.Close()

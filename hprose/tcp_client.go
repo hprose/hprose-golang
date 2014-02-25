@@ -22,7 +22,6 @@ package hprose
 
 import (
 	"crypto/tls"
-	"io"
 	"net"
 	"net/url"
 	"sync"
@@ -272,18 +271,10 @@ func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte,
 		}
 		connEntry.Set(conn)
 	}
-	if err = writeContentLength(conn, len(odata)); err != nil {
+	if err = sendDataOverTcp(conn, odata); err != nil {
 		return nil, err
 	}
-	if _, err = conn.Write(odata); err != nil {
-		return nil, err
-	}
-	var n int
-	if n, err = readContentLength(conn); err != nil {
-		return nil, err
-	}
-	idata = make([]byte, n)
-	if _, err = io.ReadAtLeast(conn, idata, n); err != nil {
+	if idata, err = receiveDataOverTcp(conn); err != nil {
 		return nil, err
 	}
 	t.connPool.Free(connEntry)
