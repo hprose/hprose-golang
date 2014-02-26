@@ -28,9 +28,9 @@ func sendDataOverTcp(w io.Writer, data []byte) (err error) {
 	n := len(data)
 	var len int
 	switch {
-	case n > 1024:
+	case n > 1020 && n <= 1400:
 		len = 2048
-	case n > 512:
+	case n > 508:
 		len = 1024
 	default:
 		len = 512
@@ -46,7 +46,7 @@ func sendDataOverTcp(w io.Writer, data []byte) (err error) {
 		_, err = w.Write(buf[:n+4])
 	} else {
 		copy(buf[4:], data[:p])
-		_, err = w.Write(buf[:])
+		_, err = w.Write(buf)
 		if err != nil {
 			return err
 		}
