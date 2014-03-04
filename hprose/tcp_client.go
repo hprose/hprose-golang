@@ -42,11 +42,18 @@ type TcpClient struct {
 	config          *tls.Config
 }
 
+type tcpConnStatus int
+
+const (
+	free = tcpConnStatus(iota)
+	using
+	closing
+)
+
 type TcpConnEntry struct {
-	uri   string
-	conn  net.Conn
-	free  bool
-	valid bool
+	uri    string
+	conn   net.Conn
+	status tcpConnStatus
 }
 
 func (connEntry *TcpConnEntry) Get() net.Conn {
@@ -60,8 +67,7 @@ func (connEntry *TcpConnEntry) Set(conn net.Conn) {
 }
 
 func (connEntry *TcpConnEntry) Close() {
-	connEntry.free = true
-	connEntry.valid = false
+	connEntry.status = closing
 }
 
 type TcpConnPool struct {
@@ -73,24 +79,23 @@ func (connPool *TcpConnPool) Get(uri string) *TcpConnEntry {
 	connPool.Lock()
 	defer connPool.Unlock()
 	for _, entry := range connPool.pool {
-		if entry.free && entry.valid {
+		if entry.status == free {
 			if entry.uri == uri {
-				entry.free = false
+				entry.status = using
 				return entry
 			} else if entry.uri == "" {
-				entry.free = false
-				entry.valid = false
+				entry.status = using
 				entry.uri = uri
 				return entry
 			}
 		}
 	}
-	entry := &TcpConnEntry{uri, nil, false, false}
+	entry := &TcpConnEntry{uri, nil, using}
 	connPool.pool = append(connPool.pool, entry)
 	return entry
 }
 
-func (connPool *TcpConnPool) freeConns(conns []net.Conn) {
+func freeConns(conns []net.Conn) {
 	for _, conn := range conns {
 		conn.Close()
 	}
@@ -102,7 +107,7 @@ func (connPool *TcpConnPool) Close(uri string) {
 	conns := make([]net.Conn, 0, len(connPool.pool))
 	for _, entry := range connPool.pool {
 		if entry.uri == uri {
-			if entry.free && entry.valid {
+			if entry.status == free {
 				conns = append(conns, entry.conn)
 				entry.conn = nil
 				entry.uri = ""
@@ -111,21 +116,18 @@ func (connPool *TcpConnPool) Close(uri string) {
 			}
 		}
 	}
-	go connPool.freeConns(conns)
+	go freeConns(conns)
 }
 
 func (connPool *TcpConnPool) Free(entry *TcpConnEntry) {
-	if entry.free && !entry.valid {
+	if entry.status == closing {
 		if entry.conn != nil {
-			entry.conn.Close()
+			go entry.conn.Close()
 			entry.conn = nil
 		}
 		entry.uri = ""
 	}
-	connPool.Lock()
-	entry.free = true
-	entry.valid = true
-	connPool.Unlock()
+	entry.status = free
 }
 
 type TcpTransporter struct {
