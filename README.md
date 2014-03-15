@@ -538,9 +538,9 @@ Hprose defines a `ServiceEvent` interface.
 
 ```go
 type ServiceEvent interface {
-    OnBeforeInvoke(name string, args []reflect.Value, byref bool)
-    OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value)
-    OnSendError(err error)
+    OnBeforeInvoke(name string, args []reflect.Value, byref bool, context interface{})
+    OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context interface{})
+    OnSendError(err error, context interface{})
 }
 ```
 
@@ -562,15 +562,15 @@ func hello(name string) string {
 
 type myServiceEvent struct{}
 
-func (myServiceEvent) OnBeforeInvoke(name string, args []reflect.Value, byref bool) {
+func (myServiceEvent) OnBeforeInvoke(name string, args []reflect.Value, byref bool, context interface{}) {
     fmt.Println(name, args, byref)
 }
 
-func (myServiceEvent) OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value) {
+func (myServiceEvent) OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context interface{}) {
     fmt.Println(name, args, byref, result)
 }
 
-func (myServiceEvent) OnSendError(err error) {
+func (myServiceEvent) OnSendError(err error, context interface{}) {
     fmt.Println(err)
 }
 
