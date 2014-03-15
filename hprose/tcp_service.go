@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Feb 25, 2014                             *
+ * LastModified: Mar 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -22,6 +22,7 @@ package hprose
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/url"
 	"time"
@@ -130,63 +131,75 @@ func (server *TcpServer) SetTLSConfig(config *tls.Config) {
 	server.config = config
 }
 
-func (server *TcpServer) Start() (err error) {
-	for {
-		var conn *net.TCPConn
-		if conn, err = server.TCPListener.AcceptTCP(); err != nil {
+func (server *TcpServer) handle() (err error) {
+	defer func() {
+		if e := recover(); e != nil && err == nil {
+			err = fmt.Errorf("%v", e)
+		}
+	}()
+	var conn *net.TCPConn
+	if conn, err = server.TCPListener.AcceptTCP(); err != nil {
+		return err
+	}
+	if server.keepAlive != nil {
+		if err = conn.SetKeepAlive(server.keepAlive.(bool)); err != nil {
 			return err
 		}
-		if server.keepAlive != nil {
-			if err := conn.SetKeepAlive(server.keepAlive.(bool)); err != nil {
+	}
+	if server.keepAlivePeriod != nil {
+		if kap, ok := (net.Conn(conn)).(iKeepAlivePeriod); ok {
+			if err = kap.SetKeepAlivePeriod(server.keepAlivePeriod.(time.Duration)); err != nil {
 				return err
 			}
 		}
-		if server.keepAlivePeriod != nil {
-			if kap, ok := (net.Conn(conn)).(iKeepAlivePeriod); ok {
-				if err := kap.SetKeepAlivePeriod(server.keepAlivePeriod.(time.Duration)); err != nil {
-					return err
-				}
-			}
+	}
+	if server.linger != nil {
+		if err = conn.SetLinger(server.linger.(int)); err != nil {
+			return err
 		}
-		if server.linger != nil {
-			if err := conn.SetLinger(server.linger.(int)); err != nil {
-				return err
-			}
+	}
+	if server.noDelay != nil {
+		if err = conn.SetNoDelay(server.noDelay.(bool)); err != nil {
+			return err
 		}
-		if server.noDelay != nil {
-			if err := conn.SetNoDelay(server.noDelay.(bool)); err != nil {
-				return err
-			}
+	}
+	if server.readBuffer != nil {
+		if err = conn.SetReadBuffer(server.readBuffer.(int)); err != nil {
+			return err
 		}
-		if server.readBuffer != nil {
-			if err := conn.SetReadBuffer(server.readBuffer.(int)); err != nil {
-				return err
-			}
+	}
+	if server.writerBuffer != nil {
+		if err = conn.SetWriteBuffer(server.writerBuffer.(int)); err != nil {
+			return err
 		}
-		if server.writerBuffer != nil {
-			if err := conn.SetWriteBuffer(server.writerBuffer.(int)); err != nil {
-				return err
-			}
+	}
+	if server.deadline != nil {
+		if err = conn.SetDeadline(server.deadline.(time.Time)); err != nil {
+			return err
 		}
-		if server.deadline != nil {
-			if err := conn.SetDeadline(server.deadline.(time.Time)); err != nil {
-				return err
-			}
+	}
+	if server.readDeadline != nil {
+		if err = conn.SetReadDeadline(server.readDeadline.(time.Time)); err != nil {
+			return err
 		}
-		if server.readDeadline != nil {
-			if err := conn.SetReadDeadline(server.readDeadline.(time.Time)); err != nil {
-				return err
-			}
+	}
+	if server.writerDeadline != nil {
+		if err = conn.SetWriteDeadline(server.writerDeadline.(time.Time)); err != nil {
+			return err
 		}
-		if server.writerDeadline != nil {
-			if err := conn.SetWriteDeadline(server.writerDeadline.(time.Time)); err != nil {
-				return err
-			}
-		}
-		if server.config != nil {
-			server.ServeTCP(tls.Client(conn, server.config))
-		} else {
-			server.ServeTCP(conn)
+	}
+	if server.config != nil {
+		server.ServeTCP(tls.Client(conn, server.config))
+	} else {
+		server.ServeTCP(conn)
+	}
+	return nil
+}
+
+func (server *TcpServer) Start() {
+	for {
+		if err := server.handle(); err != nil {
+			server.fireErrorEvent(err)
 		}
 	}
 }

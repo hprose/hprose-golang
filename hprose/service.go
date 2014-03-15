@@ -13,7 +13,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Feb 24, 2014                             *
+ * LastModified: Mar 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -146,15 +146,19 @@ func (service *BaseService) responseEnd(buf []byte) []byte {
 	return buf
 }
 
+func (service *BaseService) fireErrorEvent(err error) {
+	if service.ServiceEvent != nil {
+		service.OnSendError(err)
+	}
+}
+
 func (service *BaseService) sendError(err error) []byte {
 	buf := new(bytes.Buffer)
 	writer := NewWriter(buf, true)
 	writer.Stream().WriteByte(TagError)
 	writer.WriteString(err.Error())
 	writer.Stream().WriteByte(TagEnd)
-	if service.ServiceEvent != nil {
-		service.OnSendError(err)
-	}
+	service.fireErrorEvent(err)
 	return service.responseEnd(buf.Bytes())
 }
 
