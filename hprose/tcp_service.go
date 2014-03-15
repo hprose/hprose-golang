@@ -202,6 +202,18 @@ func (server *TcpServer) handle() (err error) {
 	return nil
 }
 
+func (server *TcpServer) start() {
+	for {
+		if server.listener != nil {
+			if err := server.handle(); err != nil {
+				server.fireErrorEvent(err, nil)
+			}
+		} else {
+			break
+		}
+	}
+}
+
 func (server *TcpServer) Start() (err error) {
 	if server.listener == nil {
 		var u *url.URL
@@ -217,17 +229,7 @@ func (server *TcpServer) Start() (err error) {
 		}
 		server.URL = u.Scheme + "://" + server.listener.Addr().String()
 		for i := 0; i < server.ThreadCount; i++ {
-			go func() {
-				for {
-					if server.listener != nil {
-						if err := server.handle(); err != nil {
-							server.fireErrorEvent(err, nil)
-						}
-					} else {
-						break
-					}
-				}
-			}()
+			go server.start()
 		}
 	}
 	return nil
