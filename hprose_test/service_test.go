@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Service Test for Go.                            *
  *                                                        *
- * LastModified: Feb 5, 2014                              *
+ * LastModified: Mar 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -100,8 +100,8 @@ func TestTcpService(t *testing.T) {
 	server := hprose.NewTcpServer("")
 	server.AddFunction("hello", hello)
 	server.AddMethods(new(testServe))
-	go server.Start()
-	defer server.Close()
+	server.Start()
+	defer server.Stop()
 	client := hprose.NewClient(server.URL)
 	var ro *testRemoteObject2
 	client.UseService(&ro)
@@ -143,8 +143,8 @@ func TestTcpServiceAsync(t *testing.T) {
 	server := hprose.NewTcpServer("")
 	server.AddFunction("hello", hello)
 	server.AddMethods(new(testServe))
-	go server.Start()
-	defer server.Close()
+	server.Start()
+	defer server.Stop()
 	client := hprose.NewClient(server.URL)
 	var ro *testRemoteObject3
 	client.UseService(&ro)

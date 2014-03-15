@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"runtime"
 	"time"
 )
 
@@ -53,8 +54,9 @@ func (service *TcpService) ServeTCP(conn net.Conn) {
 
 type TcpServer struct {
 	*TcpService
-	URL string
-	*net.TCPListener
+	URL             string
+	ThreadCount     int
+	listener        *net.TCPListener
 	deadline        interface{}
 	keepAlive       interface{}
 	keepAlivePeriod interface{}
@@ -71,23 +73,12 @@ func NewTcpServer(uri string) *TcpServer {
 	if uri == "" {
 		uri = "tcp://127.0.0.1:0"
 	}
-	var u *url.URL
-	var err error
-	if u, err = url.Parse(uri); err != nil {
-		panic(err.Error())
-	}
-	var addr *net.TCPAddr
-	if addr, err = net.ResolveTCPAddr(u.Scheme, u.Host); err != nil {
-		panic(err.Error())
-	}
-	var listener *net.TCPListener
-	if listener, err = net.ListenTCP(u.Scheme, addr); err != nil {
-		panic(err.Error())
-	}
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	return &TcpServer{
 		TcpService:  NewTcpService(),
-		URL:         u.Scheme + "://" + listener.Addr().String(),
-		TCPListener: listener,
+		URL:         uri,
+		ThreadCount: runtime.NumCPU(),
+		listener:    nil,
 	}
 }
 
@@ -137,8 +128,11 @@ func (server *TcpServer) handle() (err error) {
 			err = fmt.Errorf("%v", e)
 		}
 	}()
+	if server.listener == nil {
+		return nil
+	}
 	var conn *net.TCPConn
-	if conn, err = server.TCPListener.AcceptTCP(); err != nil {
+	if conn, err = server.listener.AcceptTCP(); err != nil {
 		return err
 	}
 	if server.keepAlive != nil {
@@ -196,10 +190,41 @@ func (server *TcpServer) handle() (err error) {
 	return nil
 }
 
-func (server *TcpServer) Start() {
-	for {
-		if err := server.handle(); err != nil {
-			server.fireErrorEvent(err)
+func (server *TcpServer) Start() (err error) {
+	if server.listener == nil {
+		var u *url.URL
+		if u, err = url.Parse(server.URL); err != nil {
+			return err
 		}
+		var addr *net.TCPAddr
+		if addr, err = net.ResolveTCPAddr(u.Scheme, u.Host); err != nil {
+			return err
+		}
+		if server.listener, err = net.ListenTCP(u.Scheme, addr); err != nil {
+			return err
+		}
+		server.URL = u.Scheme + "://" + server.listener.Addr().String()
+		for i := 0; i < server.ThreadCount; i++ {
+			go func() {
+				for {
+					if server.listener != nil {
+						if err := server.handle(); err != nil {
+							server.fireErrorEvent(err)
+						}
+					} else {
+						break
+					}
+				}
+			}()
+		}
+	}
+	return nil
+}
+
+func (server *TcpServer) Stop() {
+	if server.listener != nil {
+		listener := server.listener
+		server.listener = nil
+		listener.Close()
 	}
 }
