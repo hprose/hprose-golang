@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"reflect"
 	"runtime"
 	"time"
 )
@@ -33,8 +34,19 @@ type TcpService struct {
 	*BaseService
 }
 
+type tcpArgsFixed struct{}
+
+func (tcpArgsFixed) FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
+	if conn, ok := context.(net.Conn); ok && lastParamType.String() == "net.Conn" {
+		args = append(args, reflect.ValueOf(conn))
+	}
+	return args
+}
+
 func NewTcpService() *TcpService {
-	return &TcpService{NewBaseService()}
+	service := &TcpService{NewBaseService()}
+	service.ArgsFixer = tcpArgsFixed{}
+	return service
 }
 
 func (service *TcpService) ServeTCP(conn net.Conn) {
@@ -42,7 +54,7 @@ func (service *TcpService) ServeTCP(conn net.Conn) {
 		for {
 			data, err := receiveDataOverTcp(conn)
 			if err == nil {
-				err = sendDataOverTcp(conn, service.Handle(data))
+				err = sendDataOverTcp(conn, service.Handle(data, conn))
 			}
 			if err != nil {
 				conn.Close()
@@ -209,7 +221,7 @@ func (server *TcpServer) Start() (err error) {
 				for {
 					if server.listener != nil {
 						if err := server.handle(); err != nil {
-							server.fireErrorEvent(err)
+							server.fireErrorEvent(err, nil)
 						}
 					} else {
 						break

@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hprose/hprose-go/hprose"
+	"net"
 	"net/http/httptest"
 	"testing"
 )
@@ -53,10 +54,15 @@ func (*testServe) PanicTest() {
 	panic("I'm crazy")
 }
 
+func getIP(conn net.Conn) string {
+	return conn.RemoteAddr().String()
+}
+
 type testRemoteObject2 struct {
 	Hello     func(string) (string, error)
 	Swap      func(int, int) (int, int, error)
 	Sum       func(...int) (int, error)
+	GetIP     func() string
 	PanicTest func() error
 }
 
@@ -100,6 +106,7 @@ func TestTcpService(t *testing.T) {
 	server := hprose.NewTcpServer("")
 	server.AddFunction("hello", hello)
 	server.AddMethods(new(testServe))
+	server.AddFunction("getIP", getIP)
 	server.Start()
 	defer server.Stop()
 	client := hprose.NewClient(server.URL)
@@ -125,6 +132,7 @@ func TestTcpService(t *testing.T) {
 	} else {
 		fmt.Println(sum)
 	}
+	fmt.Println(ro.GetIP())
 	if err := ro.PanicTest(); err != nil {
 		fmt.Println(err.Error())
 	} else {
