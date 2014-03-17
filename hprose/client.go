@@ -13,7 +13,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Feb 25, 2014                             *
+ * LastModified: Mar 17, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -336,14 +336,14 @@ func (client *BaseClient) doOutput(name string, args []reflect.Value, options *I
 	}
 	data = buf.Bytes()
 	if client.Filter != nil {
-		data = client.OutputFilter(data)
+		data = client.OutputFilter(data, client)
 	}
 	return data, nil
 }
 
 func (client *BaseClient) doIntput(data []byte, args []reflect.Value, options *InvokeOptions, result []reflect.Value) (err error) {
 	if client.Filter != nil {
-		data = client.InputFilter(data)
+		data = client.InputFilter(data, client)
 	}
 	resultMode := options.ResultMode
 	if last := len(data) - 1; data[last] == TagEnd {

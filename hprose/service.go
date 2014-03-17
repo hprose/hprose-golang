@@ -13,7 +13,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Mar 15, 2014                             *
+ * LastModified: Mar 17, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -143,10 +143,10 @@ func NewBaseService() *BaseService {
 	return &BaseService{Methods: NewMethods()}
 }
 
-func (service *BaseService) responseEnd(buf []byte) []byte {
+func (service *BaseService) responseEnd(buf []byte, context interface{}) []byte {
 	defer recover()
 	if service.Filter != nil {
-		buf = service.OutputFilter(buf)
+		buf = service.OutputFilter(buf, context)
 	}
 	return buf
 }
@@ -164,7 +164,7 @@ func (service *BaseService) sendError(err error, context interface{}) []byte {
 	writer.WriteString(err.Error())
 	writer.Stream().WriteByte(TagEnd)
 	service.fireErrorEvent(err, context)
-	return service.responseEnd(buf.Bytes())
+	return service.responseEnd(buf.Bytes(), context)
 }
 
 func (service *BaseService) doInvoke(data []byte, context interface{}) []byte {
@@ -321,7 +321,7 @@ func (service *BaseService) doInvoke(data []byte, context interface{}) []byte {
 				}
 			}
 			if remoteMethod.ResultMode == RawWithEndTag {
-				return service.responseEnd(data)
+				return service.responseEnd(data, context)
 			}
 		}
 		if remoteMethod.ResultMode == Raw {
@@ -359,7 +359,7 @@ func (service *BaseService) doInvoke(data []byte, context interface{}) []byte {
 		}
 	}
 	buf.WriteByte(TagEnd)
-	return service.responseEnd(buf.Bytes())
+	return service.responseEnd(buf.Bytes(), context)
 }
 
 func (service *BaseService) doFunctionList(context interface{}) []byte {
@@ -370,7 +370,7 @@ func (service *BaseService) doFunctionList(context interface{}) []byte {
 		return service.sendError(err, context)
 	}
 	writer.Stream().WriteByte(TagEnd)
-	return service.responseEnd(buf.Bytes())
+	return service.responseEnd(buf.Bytes(), context)
 }
 
 func (service *BaseService) Handle(data []byte, context interface{}) (output []byte) {
@@ -380,7 +380,7 @@ func (service *BaseService) Handle(data []byte, context interface{}) (output []b
 		}
 	}()
 	if service.Filter != nil {
-		data = service.InputFilter(data)
+		data = service.InputFilter(data, context)
 	}
 	if len(data) == 0 {
 		return service.sendError(errors.New("no Hprose RPC request"), context)
