@@ -13,7 +13,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Mar 17, 2014                             *
+ * LastModified: Mar 18, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -130,6 +130,13 @@ func (methods *Methods) AddMissingMethod(method MissingMethod, options ...interf
 
 type ArgsFixer interface {
 	FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value
+}
+
+func fixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
+	if lastParamType.String() == "interface {}" {
+		args = append(args, reflect.ValueOf(context))
+	}
+	return args
 }
 
 type BaseService struct {

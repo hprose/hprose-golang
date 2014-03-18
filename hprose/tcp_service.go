@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Mar 15, 2014                             *
+ * LastModified: Mar 18, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -34,18 +34,18 @@ type TcpService struct {
 	*BaseService
 }
 
-type tcpArgsFixed struct{}
+type tcpArgsFixer struct{}
 
-func (tcpArgsFixed) FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
+func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
 	if conn, ok := context.(net.Conn); ok && lastParamType.String() == "net.Conn" {
-		args = append(args, reflect.ValueOf(conn))
+		return append(args, reflect.ValueOf(conn))
 	}
-	return args
+	return fixArgs(args, lastParamType, context)
 }
 
 func NewTcpService() *TcpService {
 	service := &TcpService{NewBaseService()}
-	service.ArgsFixer = tcpArgsFixed{}
+	service.ArgsFixer = tcpArgsFixer{}
 	return service
 }
 

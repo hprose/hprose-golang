@@ -13,7 +13,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: Mar 15, 2014                             *
+ * LastModified: Mar 18, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -49,13 +49,13 @@ type HttpService struct {
 	clientAccessPolicyXmlContent []byte
 }
 
-type httpArgsFixed struct{}
+type httpArgsFixer struct{}
 
-func (httpArgsFixed) FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
+func (httpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
 	if request, ok := context.(*http.Request); ok && lastParamType.String() == "*http.Request" {
-		args = append(args, reflect.ValueOf(request))
+		return append(args, reflect.ValueOf(request))
 	}
-	return args
+	return fixArgs(args, lastParamType, context)
 }
 
 func NewHttpService() *HttpService {
@@ -69,7 +69,7 @@ func NewHttpService() *HttpService {
 		lastModified:       t.Format(time.RFC1123),
 		etag:               `"` + strconv.FormatInt(rand.Int63(), 16) + `"`,
 	}
-	service.ArgsFixer = httpArgsFixed{}
+	service.ArgsFixer = httpArgsFixer{}
 	return service
 }
 
