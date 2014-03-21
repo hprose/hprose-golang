@@ -13,7 +13,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Mar 17, 2014                             *
+ * LastModified: Mar 21, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -135,7 +135,7 @@ type Transporter interface {
 
 type BaseClient struct {
 	Transporter
-	Filter
+	Filters    []Filter
 	ByRef      bool
 	SimpleMode bool
 	uri        *url.URL
@@ -144,7 +144,7 @@ type BaseClient struct {
 var clientFactories = make(map[string]func(string) Client)
 
 func NewBaseClient(trans Transporter) *BaseClient {
-	return &BaseClient{Transporter: trans}
+	return &BaseClient{Transporter: trans, Filters: []Filter{}}
 }
 
 func NewClient(uri string) Client {
@@ -335,15 +335,16 @@ func (client *BaseClient) doOutput(name string, args []reflect.Value, options *I
 		return nil, err
 	}
 	data = buf.Bytes()
-	if client.Filter != nil {
-		data = client.OutputFilter(data, client)
+	n := len(client.Filters)
+	for i := 0; i < n; i++ {
+		data = client.Filters[i].OutputFilter(data, client)
 	}
 	return data, nil
 }
 
 func (client *BaseClient) doIntput(data []byte, args []reflect.Value, options *InvokeOptions, result []reflect.Value) (err error) {
-	if client.Filter != nil {
-		data = client.InputFilter(data, client)
+	for i := len(client.Filters) - 1; i >= 0; i-- {
+		data = client.Filters[i].InputFilter(data, client)
 	}
 	resultMode := options.ResultMode
 	if last := len(data) - 1; data[last] == TagEnd {

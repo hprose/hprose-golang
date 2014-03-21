@@ -13,7 +13,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Mar 18, 2014                             *
+ * LastModified: Mar 21, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -142,18 +142,19 @@ func fixArgs(args []reflect.Value, lastParamType reflect.Type, context interface
 type BaseService struct {
 	*Methods
 	ServiceEvent
-	Filter
+	Filters []Filter
 	ArgsFixer
 }
 
 func NewBaseService() *BaseService {
-	return &BaseService{Methods: NewMethods()}
+	return &BaseService{Methods: NewMethods(), Filters: []Filter{}}
 }
 
 func (service *BaseService) responseEnd(buf []byte, context interface{}) []byte {
 	defer recover()
-	if service.Filter != nil {
-		buf = service.OutputFilter(buf, context)
+	n := len(service.Filters)
+	for i := 0; i < n; i++ {
+		buf = service.Filters[i].OutputFilter(buf, context)
 	}
 	return buf
 }
@@ -386,8 +387,8 @@ func (service *BaseService) Handle(data []byte, context interface{}) (output []b
 			output = service.sendError(fmt.Errorf("%v", e), context)
 		}
 	}()
-	if service.Filter != nil {
-		data = service.InputFilter(data, context)
+	for i := len(service.Filters) - 1; i >= 0; i-- {
+		data = service.Filters[i].InputFilter(data, context)
 	}
 	if len(data) == 0 {
 		return service.sendError(errors.New("no Hprose RPC request"), context)
