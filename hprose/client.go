@@ -13,7 +13,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Mar 21, 2014                             *
+ * LastModified: Mar 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -135,16 +135,16 @@ type Transporter interface {
 
 type BaseClient struct {
 	Transporter
-	Filters    []Filter
 	ByRef      bool
 	SimpleMode bool
 	uri        *url.URL
+	filters    []Filter
 }
 
 var clientFactories = make(map[string]func(string) Client)
 
 func NewBaseClient(trans Transporter) *BaseClient {
-	return &BaseClient{Transporter: trans, Filters: []Filter{}}
+	return &BaseClient{Transporter: trans, filters: []Filter{}}
 }
 
 func NewClient(uri string) Client {
@@ -170,6 +170,38 @@ func (client *BaseClient) SetUri(uri string) {
 		client.uri = u
 	} else {
 		panic("The uri can't be parsed.")
+	}
+}
+
+func (client *BaseClient) GetFilter() Filter {
+	if len(client.filters) == 0 {
+		return nil
+	}
+	return client.filters[0]
+}
+
+func (client *BaseClient) SetFilter(filter Filter) {
+	client.filters = []Filter{}
+	if filter != nil {
+		client.filters = append(client.filters, filter)
+	}
+}
+
+func (client *BaseClient) AddFilter(filter Filter) {
+	client.filters = append(client.filters, filter)
+}
+
+func (client *BaseClient) RemoveFilter(filter Filter) {
+	n := len(client.filters)
+	for i := 0; i < n; i++ {
+		if client.filters[i] == filter {
+			if i == n-1 {
+				client.filters = client.filters[:i]
+			} else {
+				client.filters = append(client.filters[:i], client.filters[i+1:]...)
+			}
+			return
+		}
 	}
 }
 
@@ -335,16 +367,16 @@ func (client *BaseClient) doOutput(name string, args []reflect.Value, options *I
 		return nil, err
 	}
 	data = buf.Bytes()
-	n := len(client.Filters)
+	n := len(client.filters)
 	for i := 0; i < n; i++ {
-		data = client.Filters[i].OutputFilter(data, client)
+		data = client.filters[i].OutputFilter(data, client)
 	}
 	return data, nil
 }
 
 func (client *BaseClient) doIntput(data []byte, args []reflect.Value, options *InvokeOptions, result []reflect.Value) (err error) {
-	for i := len(client.Filters) - 1; i >= 0; i-- {
-		data = client.Filters[i].InputFilter(data, client)
+	for i := len(client.filters) - 1; i >= 0; i-- {
+		data = client.filters[i].InputFilter(data, client)
 	}
 	resultMode := options.ResultMode
 	if last := len(data) - 1; data[last] == TagEnd {

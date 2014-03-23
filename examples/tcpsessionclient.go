@@ -38,7 +38,7 @@ func (filter MyClientFilter) OutputFilter(data []byte, context interface{}) []by
 
 func main() {
 	client := hprose.NewClient("tcp4://127.0.0.1:4321/").(*hprose.TcpClient)
-	client.Filters = append(client.Filters, MyClientFilter{})
+	client.AddFilter(MyClientFilter{})
 	var stub Stub
 	client.UseService(&stub)
 	go fmt.Println(stub.Inc())

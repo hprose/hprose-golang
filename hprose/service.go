@@ -13,7 +13,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Mar 21, 2014                             *
+ * LastModified: Mar 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -142,19 +142,51 @@ func fixArgs(args []reflect.Value, lastParamType reflect.Type, context interface
 type BaseService struct {
 	*Methods
 	ServiceEvent
-	Filters []Filter
+	filters []Filter
 	ArgsFixer
 }
 
 func NewBaseService() *BaseService {
-	return &BaseService{Methods: NewMethods(), Filters: []Filter{}}
+	return &BaseService{Methods: NewMethods(), filters: []Filter{}}
+}
+
+func (service *BaseService) GetFilter() Filter {
+	if len(service.filters) == 0 {
+		return nil
+	}
+	return service.filters[0]
+}
+
+func (service *BaseService) SetFilter(filter Filter) {
+	service.filters = []Filter{}
+	if filter != nil {
+		service.filters = append(service.filters, filter)
+	}
+}
+
+func (service *BaseService) AddFilter(filter Filter) {
+	service.filters = append(service.filters, filter)
+}
+
+func (service *BaseService) RemoveFilter(filter Filter) {
+	n := len(service.filters)
+	for i := 0; i < n; i++ {
+		if service.filters[i] == filter {
+			if i == n-1 {
+				service.filters = service.filters[:i]
+			} else {
+				service.filters = append(service.filters[:i], service.filters[i+1:]...)
+			}
+			return
+		}
+	}
 }
 
 func (service *BaseService) responseEnd(buf []byte, context interface{}) []byte {
 	defer recover()
-	n := len(service.Filters)
+	n := len(service.filters)
 	for i := 0; i < n; i++ {
-		buf = service.Filters[i].OutputFilter(buf, context)
+		buf = service.filters[i].OutputFilter(buf, context)
 	}
 	return buf
 }
@@ -387,8 +419,8 @@ func (service *BaseService) Handle(data []byte, context interface{}) (output []b
 			output = service.sendError(fmt.Errorf("%v", e), context)
 		}
 	}()
-	for i := len(service.Filters) - 1; i >= 0; i-- {
-		data = service.Filters[i].InputFilter(data, context)
+	for i := len(service.filters) - 1; i >= 0; i-- {
+		data = service.filters[i].InputFilter(data, context)
 	}
 	if len(data) == 0 {
 		return service.sendError(errors.New("no Hprose RPC request"), context)

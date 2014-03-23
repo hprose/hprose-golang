@@ -55,7 +55,7 @@ func inc(context interface{}) int {
 
 func main() {
 	server := hprose.NewTcpServer("tcp4://:4321/")
-	server.Filters = append(server.Filters, MyServerFilter{})
+	server.AddFilter(MyServerFilter{})
 	server.AddFunction("inc", inc)
 	server.ThreadCount = 16
 	server.Start()
