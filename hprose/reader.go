@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Reader for Go.                                  *
  *                                                        *
- * LastModified: Feb 14, 2014                             *
+ * LastModified: Mar 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -106,7 +106,7 @@ func (r *realReaderRefer) readRef(i int, err error) (interface{}, error) {
 
 func (r *realReaderRefer) resetRef() {
 	if r.ref != nil {
-		r.ref = nil
+		r.ref = r.ref[:0]
 	}
 }
 
@@ -1554,8 +1554,8 @@ func (r *Reader) ReadObjectWithoutTag(p interface{}) error {
 
 func (r *Reader) Reset() {
 	if r.classref != nil {
-		r.classref = nil
-		r.fieldsref = nil
+		r.classref = r.classref[:0]
+		r.fieldsref = r.fieldsref[:0]
 	}
 	r.resetRef()
 }

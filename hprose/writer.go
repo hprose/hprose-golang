@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: Feb 23, 2014                             *
+ * LastModified: Mar 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -138,7 +138,9 @@ func (r *realWriterRefer) writeRef(w *Writer, v interface{}) (success bool, err 
 
 func (r *realWriterRefer) resetRef() {
 	if r.ref != nil {
-		r.ref = nil
+		for k, _ := range r.ref {
+			delete(r.ref, k)
+		}
 	}
 }
 
@@ -307,8 +309,10 @@ func (w *Writer) WriteArray(v []reflect.Value) (err error) {
 
 func (w *Writer) Reset() {
 	if w.classref != nil {
-		w.classref = nil
-		w.fieldsref = nil
+		for k, _ := range w.classref {
+			delete(w.classref, k)
+		}
+		w.fieldsref = w.fieldsref[:0]
 	}
 	w.resetRef()
 }
