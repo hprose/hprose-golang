@@ -10,7 +10,7 @@ func hello(name string) string {
 }
 
 func main() {
-	server := hprose.NewTcpServer("tcp4://:4321/")
+	server := hprose.NewTcpServer("tcp4://0.0.0.0:4321/")
 	server.AddFunction("hello", hello)
 	server.Start()
 	b := make([]byte, 1)

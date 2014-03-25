@@ -13,7 +13,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: Mar 18, 2014                             *
+ * LastModified: Mar 25, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -34,6 +34,11 @@ import (
 type HttpServiceEvent interface {
 	ServiceEvent
 	OnSendHeader(response http.ResponseWriter, request *http.Request)
+}
+
+type HttpContext struct {
+	response http.ResponseWriter
+	request  *http.Request
 }
 
 type HttpService struct {
@@ -186,10 +191,11 @@ func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 	service.sendHeader(response, request)
+	context := &HttpContext{response: response, request: request}
 	switch request.Method {
 	case "GET":
 		if service.GetEnabled {
-			response.Write(service.doFunctionList(request))
+			response.Write(service.doFunctionList(context))
 		} else {
 			response.WriteHeader(403)
 		}
@@ -197,8 +203,8 @@ func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *htt
 		data, err := service.readAll(request)
 		request.Body.Close()
 		if err != nil {
-			response.Write(service.sendError(err, request))
+			response.Write(service.sendError(err, context))
 		}
-		response.Write(service.Handle(data, request))
+		response.Write(service.Handle(data, context))
 	}
 }
