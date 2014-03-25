@@ -37,8 +37,8 @@ type HttpServiceEvent interface {
 }
 
 type HttpContext struct {
-	response http.ResponseWriter
-	request  *http.Request
+	Response http.ResponseWriter
+	Request  *http.Request
 }
 
 type HttpService struct {
@@ -57,7 +57,7 @@ type HttpService struct {
 type httpArgsFixer struct{}
 
 func (httpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
-	if request, ok := context.(*http.Request); ok && lastParamType.String() == "*http.Request" {
+	if request, ok := context.(*HttpContext); ok && lastParamType.String() == "*hprose.HttpContext" {
 		return append(args, reflect.ValueOf(request))
 	}
 	return fixArgs(args, lastParamType, context)
@@ -191,7 +191,7 @@ func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 	service.sendHeader(response, request)
-	context := &HttpContext{response: response, request: request}
+	context := &HttpContext{Response: response, Request: request}
 	switch request.Method {
 	case "GET":
 		if service.GetEnabled {

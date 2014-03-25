@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-func hello(name string) string {
-	return "Hello " + name + "!"
+func hello(name string, context *hprose.HttpContext) string {
+	return "Hello " + name + "!  -  " + context.Request.RemoteAddr
 }
 
 func main() {
