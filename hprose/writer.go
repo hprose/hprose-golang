@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: Mar 23, 2014                             *
+ * LastModified: Mar 27, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -1328,11 +1328,22 @@ func (w *Writer) writeObject(v interface{}, rv reflect.Value) (err error) {
 			}
 			fields = make([]*field, 0)
 			hasAnonymousField := false
-			getFieldsFunc(t, func(f reflect.StructField) {
+			getFieldsFunc(t, func(f *reflect.StructField) {
 				if len(f.Index) > 1 {
 					hasAnonymousField = true
 				}
-				fields = append(fields, &field{firstLetterToLower(f.Name), f.Index})
+				tag := ClassManager.GetTag(t)
+				if tag == "" {
+					fields = append(fields, &field{firstLetterToLower(f.Name), f.Index})
+				} else {
+					name := f.Tag.Get(tag)
+					if name == "" {
+						fields = append(fields, &field{firstLetterToLower(f.Name), f.Index})
+					} else if name != "-" {
+						fields = append(fields, &field{name, f.Index})
+					}
+
+				}
 			})
 			cache = &cacheType{fields, hasAnonymousField}
 			fieldCache.cache[t] = cache
@@ -1546,14 +1557,14 @@ func firstLetterToLower(s string) string {
 	return string(b)
 }
 
-func getFieldsFunc(class reflect.Type, set func(reflect.StructField)) {
+func getFieldsFunc(class reflect.Type, set func(*reflect.StructField)) {
 	count := class.NumField()
 	for i := 0; i < count; i++ {
 		if f := class.Field(i); serializeType[f.Type.Kind()] {
 			if !f.Anonymous {
 				b := f.Name[0]
 				if 'A' <= b && b <= 'Z' {
-					set(f)
+					set(&f)
 				}
 			} else {
 				ft := f.Type
@@ -1568,7 +1579,7 @@ func getFieldsFunc(class reflect.Type, set func(reflect.StructField)) {
 	}
 }
 
-func getAnonymousFieldsFunc(class reflect.Type, index []int, set func(reflect.StructField)) {
+func getAnonymousFieldsFunc(class reflect.Type, index []int, set func(*reflect.StructField)) {
 	count := class.NumField()
 	for i := 0; i < count; i++ {
 		if f := class.Field(i); serializeType[f.Type.Kind()] {
@@ -1576,7 +1587,7 @@ func getAnonymousFieldsFunc(class reflect.Type, index []int, set func(reflect.St
 			if !f.Anonymous {
 				b := f.Name[0]
 				if 'A' <= b && b <= 'Z' {
-					set(f)
+					set(&f)
 				}
 			} else {
 				ft := f.Type

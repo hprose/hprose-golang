@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Reader for Go.                                  *
  *                                                        *
- * LastModified: Mar 23, 2014                             *
+ * LastModified: Mar 27, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -2745,8 +2745,18 @@ func getIndexCache(class reflect.Type) map[string][]int {
 			indexCache.cache = make(map[reflect.Type]map[string][]int)
 		}
 		indexMap = make(map[string][]int)
-		getFieldsFunc(class, func(f reflect.StructField) {
-			indexMap[strings.ToLower(f.Name)] = f.Index
+		getFieldsFunc(class, func(f *reflect.StructField) {
+			tag := ClassManager.GetTag(class)
+			if tag == "" {
+				indexMap[strings.ToLower(f.Name)] = f.Index
+			} else {
+				name := f.Tag.Get(tag)
+				if name == "" {
+					indexMap[strings.ToLower(f.Name)] = f.Index
+				} else if name != "-" {
+					indexMap[strings.ToLower(name)] = f.Index
+				}
+			}
 		})
 		indexCache.cache[class] = indexMap
 		indexCache.Unlock()
