@@ -13,7 +13,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: Mar 27, 2014                             *
+ * LastModified: Mar 28, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -474,11 +474,16 @@ func (w *Writer) fastSerialize(v interface{}, rv reflect.Value, n int) error {
 func (w *Writer) slowSerialize(v interface{}, rv reflect.Value, n int) error {
 	kind := rv.Kind()
 	switch kind {
-	case reflect.Ptr, reflect.Interface:
+	case reflect.Ptr:
 		if rv.IsNil() {
 			return w.WriteNull()
 		}
 		return w.slowSerialize(v, rv.Elem(), n+1)
+	case reflect.Interface:
+		if rv.IsNil() {
+			return w.WriteNull()
+		}
+		return w.fastSerialize(rv.Elem().Interface(), rv.Elem(), n)
 	case reflect.Struct:
 		switch x := rv.Interface().(type) {
 		case big.Int:

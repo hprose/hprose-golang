@@ -1,16 +1,45 @@
 package main
 
 import (
+	"fmt"
 	"github.com/hprose/hprose-go/hprose"
 	"net/http"
+	"reflect"
+	"runtime/debug"
 )
 
 func hello(name string, context *hprose.HttpContext) string {
 	return "Hello " + name + "!  -  " + context.Request.RemoteAddr
 }
 
+type A struct {
+	S string `json:"str"`
+}
+
+func getEmptySlice() interface{} {
+	s := make([]A, 100)
+	return s
+}
+
+type ServerEvent struct{}
+
+func (e *ServerEvent) OnBeforeInvoke(name string, args []reflect.Value, byref bool, context interface{}) {
+	fmt.Println("Before OK")
+}
+
+func (e *ServerEvent) OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context interface{}) {
+	fmt.Println("After OK")
+}
+func (e *ServerEvent) OnSendError(err error, context interface{}) {
+	fmt.Println(err)
+	debug.PrintStack()
+}
+
 func main() {
+	hprose.ClassManager.Register(reflect.TypeOf(A{}), "A", "json")
 	service := hprose.NewHttpService()
+	service.ServiceEvent = &ServerEvent{}
 	service.AddFunction("hello", hello)
+	service.AddFunction("getEmptySlice", getEmptySlice)
 	http.ListenAndServe(":8080", service)
 }
