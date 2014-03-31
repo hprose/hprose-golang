@@ -13,7 +13,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Mar 23, 2014                             *
+ * LastModified: Mar 31, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"runtime/debug"
 	"strings"
 )
 
@@ -142,8 +143,9 @@ func fixArgs(args []reflect.Value, lastParamType reflect.Type, context interface
 type BaseService struct {
 	*Methods
 	ServiceEvent
-	filters []Filter
-	ArgsFixer
+	DebugEnabled bool
+	filters      []Filter
+	argsfixer    ArgsFixer
 }
 
 func NewBaseService() *BaseService {
@@ -183,7 +185,6 @@ func (service *BaseService) RemoveFilter(filter Filter) {
 }
 
 func (service *BaseService) responseEnd(buf []byte, context interface{}) []byte {
-	defer recover()
 	n := len(service.filters)
 	for i := 0; i < n; i++ {
 		buf = service.filters[i].OutputFilter(buf, context)
@@ -276,7 +277,7 @@ func (service *BaseService) doInvoke(data []byte, context interface{}) []byte {
 						return service.sendError(err, context)
 					}
 					if count+1 == n {
-						args = service.FixArgs(args, ft.In(count), context)
+						args = service.argsfixer.FixArgs(args, ft.In(count), context)
 					}
 				}
 			}
@@ -294,7 +295,7 @@ func (service *BaseService) doInvoke(data []byte, context interface{}) []byte {
 			if remoteMethod != nil {
 				ft := remoteMethod.Function.Type()
 				if ft.NumIn() == 1 && !ft.IsVariadic() {
-					args = service.FixArgs(args, ft.In(0), context)
+					args = service.argsfixer.FixArgs(args, ft.In(0), context)
 				}
 			}
 		}
@@ -305,7 +306,11 @@ func (service *BaseService) doInvoke(data []byte, context interface{}) []byte {
 		if result, err = func() (out []reflect.Value, err error) {
 			defer func() {
 				if e := recover(); e != nil && err == nil {
-					err = fmt.Errorf("%v", e)
+					if service.DebugEnabled {
+						err = fmt.Errorf("%v\r\n%s", e, debug.Stack())
+					} else {
+						err = fmt.Errorf("%v", e)
+					}
 				}
 			}()
 			if remoteMethod == nil {
@@ -416,7 +421,13 @@ func (service *BaseService) doFunctionList(context interface{}) []byte {
 func (service *BaseService) Handle(data []byte, context interface{}) (output []byte) {
 	defer func() {
 		if e := recover(); e != nil {
-			output = service.sendError(fmt.Errorf("%v", e), context)
+			var err error
+			if service.DebugEnabled {
+				err = fmt.Errorf("%v\r\n%s", e, debug.Stack())
+			} else {
+				err = fmt.Errorf("%v", e)
+			}
+			output = service.sendError(err, context)
 		}
 	}()
 	for i := len(service.filters) - 1; i >= 0; i-- {

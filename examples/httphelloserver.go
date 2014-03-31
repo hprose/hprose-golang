@@ -5,7 +5,6 @@ import (
 	"github.com/hprose/hprose-go/hprose"
 	"net/http"
 	"reflect"
-	"runtime/debug"
 )
 
 func hello(name string, context *hprose.HttpContext) string {
@@ -32,13 +31,13 @@ func (e *ServerEvent) OnAfterInvoke(name string, args []reflect.Value, byref boo
 }
 func (e *ServerEvent) OnSendError(err error, context interface{}) {
 	fmt.Println(err)
-	debug.PrintStack()
 }
 
 func main() {
 	hprose.ClassManager.Register(reflect.TypeOf(A{}), "A", "json")
 	service := hprose.NewHttpService()
 	service.ServiceEvent = &ServerEvent{}
+	service.DebugEnabled = true
 	service.AddFunction("hello", hello)
 	service.AddFunction("getEmptySlice", getEmptySlice)
 	http.ListenAndServe(":8080", service)

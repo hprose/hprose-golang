@@ -13,7 +13,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Mar 23, 2014                             *
+ * LastModified: Mar 31, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -113,6 +113,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"runtime/debug"
 	"strings"
 )
 
@@ -135,10 +136,11 @@ type Transporter interface {
 
 type BaseClient struct {
 	Transporter
-	ByRef      bool
-	SimpleMode bool
-	uri        *url.URL
-	filters    []Filter
+	ByRef        bool
+	SimpleMode   bool
+	DebugEnabled bool
+	uri          *url.URL
+	filters      []Filter
 }
 
 var clientFactories = make(map[string]func(string) Client)
@@ -300,7 +302,11 @@ func (client *BaseClient) invoke(name string, args []reflect.Value, options *Inv
 func (client *BaseClient) syncInvoke(name string, args []reflect.Value, options *InvokeOptions, result []reflect.Value) (err error) {
 	defer func() {
 		if e := recover(); e != nil && err == nil {
-			err = fmt.Errorf("%v", e)
+			if client.DebugEnabled {
+				err = fmt.Errorf("%v\r\n%s", e, debug.Stack())
+			} else {
+				err = fmt.Errorf("%v", e)
+			}
 		}
 	}()
 	if odata, e := client.doOutput(name, args, options); e != nil {

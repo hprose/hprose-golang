@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Mar 18, 2014                             *
+ * LastModified: Mar 31, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,6 +27,7 @@ import (
 	"net/url"
 	"reflect"
 	"runtime"
+	"runtime/debug"
 	"time"
 )
 
@@ -45,7 +46,7 @@ func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, co
 
 func NewTcpService() *TcpService {
 	service := &TcpService{NewBaseService()}
-	service.ArgsFixer = tcpArgsFixer{}
+	service.argsfixer = tcpArgsFixer{}
 	return service
 }
 
@@ -137,7 +138,11 @@ func (server *TcpServer) SetTLSConfig(config *tls.Config) {
 func (server *TcpServer) handle() (err error) {
 	defer func() {
 		if e := recover(); e != nil && err == nil {
-			err = fmt.Errorf("%v", e)
+			if server.DebugEnabled {
+				err = fmt.Errorf("%v\r\n%s", e, debug.Stack())
+			} else {
+				err = fmt.Errorf("%v", e)
+			}
 		}
 	}()
 	if server.listener == nil {

@@ -74,7 +74,7 @@ func NewHttpService() *HttpService {
 		lastModified:       t.Format(time.RFC1123),
 		etag:               `"` + strconv.FormatInt(rand.Int63(), 16) + `"`,
 	}
-	service.ArgsFixer = httpArgsFixer{}
+	service.argsfixer = httpArgsFixer{}
 	return service
 }
 
