@@ -13,7 +13,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Mar 31, 2014                             *
+ * LastModified: Apr 3, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -109,6 +109,7 @@ package hprose
 
 import (
 	"bytes"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/url"
@@ -128,6 +129,14 @@ type Client interface {
 	Invoke(string, []interface{}, *InvokeOptions, interface{}) <-chan error
 	Uri() string
 	SetUri(string)
+	GetFilter() Filter
+	SetFilter(filter Filter)
+	AddFilter(filter Filter)
+	RemoveFilter(filter Filter)
+	TLSClientConfig() *tls.Config
+	SetTLSClientConfig(config *tls.Config)
+	SetKeepAlive(enable bool)
+	Close()
 }
 
 type Transporter interface {
@@ -206,6 +215,14 @@ func (client *BaseClient) RemoveFilter(filter Filter) {
 		}
 	}
 }
+
+func (client *BaseClient) TLSClientConfig() *tls.Config { return nil }
+
+func (client *BaseClient) SetTLSClientConfig(config *tls.Config) {}
+
+func (client *BaseClient) SetKeepAlive(enable bool) {}
+
+func (client *BaseClient) Close() {}
 
 // UseService(uri string)
 // UseService(remoteObject interface{})

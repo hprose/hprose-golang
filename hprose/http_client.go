@@ -13,7 +13,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Feb 25, 2014                             *
+ * LastModified: Apr 3, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -62,12 +62,10 @@ func (client *HttpClient) TLSClientConfig() *tls.Config {
 	return nil
 }
 
-func (client *HttpClient) SetTLSClientConfig(config *tls.Config) bool {
-	transport, ok := client.Http().Transport.(*http.Transport)
-	if ok {
+func (client *HttpClient) SetTLSClientConfig(config *tls.Config) {
+	if transport, ok := client.Http().Transport.(*http.Transport); ok {
 		transport.TLSClientConfig = config
 	}
-	return ok
 }
 
 func (client *HttpClient) KeepAlive() bool {

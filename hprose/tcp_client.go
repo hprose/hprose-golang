@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Feb 25, 2014                             *
+ * LastModified: Apr 3, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -196,7 +196,11 @@ func (client *TcpClient) SetWriteDeadline(t time.Time) {
 	client.writerDeadline = t
 }
 
-func (client *TcpClient) SetTLSConfig(config *tls.Config) {
+func (client *TcpClient) TLSClientConfig() *tls.Config {
+	return client.config
+}
+
+func (client *TcpClient) SetTLSClientConfig(config *tls.Config) {
 	client.config = config
 }
 
