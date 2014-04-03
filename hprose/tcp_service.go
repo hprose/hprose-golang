@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Mar 31, 2014                             *
+ * LastModified: Apr 3, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -200,7 +200,9 @@ func (server *TcpServer) handle() (err error) {
 		}
 	}
 	if server.config != nil {
-		server.ServeTCP(tls.Client(conn, server.config))
+		tlsConn := tls.Server(conn, server.config)
+		tlsConn.Handshake()
+		server.ServeTCP(tlsConn)
 	} else {
 		server.ServeTCP(conn)
 	}
