@@ -216,14 +216,6 @@ func (client *BaseClient) RemoveFilter(filter Filter) {
 	}
 }
 
-func (client *BaseClient) TLSClientConfig() *tls.Config { return nil }
-
-func (client *BaseClient) SetTLSClientConfig(config *tls.Config) {}
-
-func (client *BaseClient) SetKeepAlive(enable bool) {}
-
-func (client *BaseClient) Close() {}
-
 // UseService(uri string)
 // UseService(remoteObject interface{})
 // UseService(uri string, remoteObject interface{})

@@ -39,7 +39,7 @@ type TcpClient struct {
 	readDeadline    interface{}
 	writerBuffer    interface{}
 	writerDeadline  interface{}
-	config          *tls.Config
+	tlsConfig       *tls.Config
 }
 
 type tcpConnStatus int
@@ -137,7 +137,7 @@ type TcpTransporter struct {
 
 func NewTcpClient(uri string) Client {
 	trans := &TcpTransporter{connPool: &TcpConnPool{pool: make([]*TcpConnEntry, 0)}}
-	client := &TcpClient{BaseClient: NewBaseClient(trans)}
+	client := &TcpClient{BaseClient: NewBaseClient(trans), tlsConfig: &tls.Config{InsecureSkipVerify: true}}
 	trans.TcpClient = client
 	client.SetUri(uri)
 	return client
@@ -197,11 +197,11 @@ func (client *TcpClient) SetWriteDeadline(t time.Time) {
 }
 
 func (client *TcpClient) TLSClientConfig() *tls.Config {
-	return client.config
+	return client.tlsConfig
 }
 
 func (client *TcpClient) SetTLSClientConfig(config *tls.Config) {
-	client.config = config
+	client.tlsConfig = config
 }
 
 func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
@@ -272,8 +272,8 @@ func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte,
 				return nil, err
 			}
 		}
-		if t.config != nil {
-			conn = tls.Client(conn, t.config)
+		if t.tlsConfig != nil {
+			conn = tls.Client(conn, t.tlsConfig)
 		}
 		connEntry.Set(conn)
 	}

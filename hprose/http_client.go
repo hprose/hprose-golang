@@ -46,6 +46,8 @@ func NewHttpClient(uri string) Client {
 	return client
 }
 
+func (client *HttpClient) Close() {}
+
 func (client *HttpClient) SetUri(uri string) {
 	if u, err := url.Parse(uri); err == nil {
 		if u.Scheme != "http" && u.Scheme != "https" {
@@ -55,66 +57,53 @@ func (client *HttpClient) SetUri(uri string) {
 	client.BaseClient.SetUri(uri)
 }
 
-func (client *HttpClient) TLSClientConfig() *tls.Config {
-	if transport, ok := client.Http().Transport.(*http.Transport); ok {
-		return transport.TLSClientConfig
-	}
-	return nil
-}
-
-func (client *HttpClient) SetTLSClientConfig(config *tls.Config) {
-	if transport, ok := client.Http().Transport.(*http.Transport); ok {
-		transport.TLSClientConfig = config
-	}
-}
-
-func (client *HttpClient) KeepAlive() bool {
-	if transport, ok := client.Http().Transport.(*http.Transport); ok {
-		return !transport.DisableKeepAlives
-	}
-	return true
-}
-
-func (client *HttpClient) SetKeepAlive(enable bool) {
-	if transport, ok := client.Http().Transport.(*http.Transport); ok {
-		transport.DisableKeepAlives = !enable
-	}
-}
-
-func (client *HttpClient) Compression() bool {
-	if transport, ok := client.Http().Transport.(*http.Transport); ok {
-		return !transport.DisableCompression
-	}
-	return false
-}
-
-func (client *HttpClient) SetCompression(enable bool) {
-	if transport, ok := client.Http().Transport.(*http.Transport); ok {
-		transport.DisableCompression = !enable
-	}
-}
-
-func (client *HttpClient) MaxIdleConnsPerHost() int {
-	if transport, ok := client.Http().Transport.(*http.Transport); ok {
-		return transport.MaxIdleConnsPerHost
-	}
-	return http.DefaultMaxIdleConnsPerHost
-}
-
-func (client *HttpClient) SetMaxIdleConnsPerHost(value int) bool {
-	transport, ok := client.Http().Transport.(*http.Transport)
-	if ok {
-		transport.MaxIdleConnsPerHost = value
-	}
-	return ok
-}
-
 func (client *HttpClient) Http() *http.Client {
 	return client.Transporter.(*HttpTransporter).Client
 }
 
+func (client *HttpClient) transport() *http.Transport {
+	return client.Http().Transport.(*http.Transport)
+}
+
+func (client *HttpClient) TLSClientConfig() *tls.Config {
+	return client.transport().TLSClientConfig
+}
+
+func (client *HttpClient) SetTLSClientConfig(config *tls.Config) {
+	client.transport().TLSClientConfig = config
+}
+
+func (client *HttpClient) KeepAlive() bool {
+	return !client.transport().DisableKeepAlives
+}
+
+func (client *HttpClient) SetKeepAlive(enable bool) {
+	client.transport().DisableKeepAlives = !enable
+}
+
+func (client *HttpClient) Compression() bool {
+	return !client.transport().DisableCompression
+}
+
+func (client *HttpClient) SetCompression(enable bool) {
+	client.transport().DisableCompression = !enable
+}
+
+func (client *HttpClient) MaxIdleConnsPerHost() int {
+	return client.transport().MaxIdleConnsPerHost
+}
+
+func (client *HttpClient) SetMaxIdleConnsPerHost(value int) {
+	client.transport().MaxIdleConnsPerHost = value
+}
+
 func newHttpTransporter() *HttpTransporter {
-	return &HttpTransporter{&http.Client{Jar: cookieJar}}
+	tr := &http.Transport{
+		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+		DisableCompression:  true,
+		DisableKeepAlives:   false,
+		MaxIdleConnsPerHost: 4}
+	return &HttpTransporter{&http.Client{Jar: cookieJar, Transport: tr}}
 }
 
 func (h *HttpTransporter) readAll(response *http.Response) (data []byte, err error) {
