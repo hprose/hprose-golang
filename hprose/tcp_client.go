@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Apr 3, 2014                              *
+ * LastModified: Apr 4, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -51,9 +51,10 @@ const (
 )
 
 type TcpConnEntry struct {
-	uri    string
-	conn   net.Conn
-	status tcpConnStatus
+	uri          string
+	conn         net.Conn
+	status       tcpConnStatus
+	lastUsedTime time.Time
 }
 
 func (connEntry *TcpConnEntry) Get() net.Conn {
@@ -72,7 +73,50 @@ func (connEntry *TcpConnEntry) Close() {
 
 type TcpConnPool struct {
 	sync.Mutex
-	pool []*TcpConnEntry
+	pool    []*TcpConnEntry
+	timer   *time.Ticker
+	timeout time.Duration
+}
+
+func freeConns(conns []net.Conn) {
+	for _, conn := range conns {
+		conn.Close()
+	}
+}
+
+func (connPool *TcpConnPool) Timeout() time.Duration {
+	return connPool.timeout
+}
+
+func (connPool *TcpConnPool) SetTimeout(d time.Duration) {
+	if connPool.timer != nil {
+		connPool.timer.Stop()
+		connPool.timer = nil
+	}
+	connPool.timeout = d
+	if d > 0 {
+		connPool.timer = time.NewTicker(d)
+		go connPool.closeTimeoutConns()
+	}
+}
+
+func (connPool *TcpConnPool) closeTimeoutConns() {
+	for t := range connPool.timer.C {
+		connPool.Lock()
+		defer connPool.Unlock()
+		conns := make([]net.Conn, 0, len(connPool.pool))
+		for _, entry := range connPool.pool {
+			if entry.uri != "" &&
+				entry.status == free &&
+				entry.conn != nil &&
+				t.After(entry.lastUsedTime.Add(connPool.timeout)) {
+				conns = append(conns, entry.conn)
+				entry.conn = nil
+				entry.uri = ""
+			}
+		}
+		go freeConns(conns)
+	}
 }
 
 func (connPool *TcpConnPool) Get(uri string) *TcpConnEntry {
@@ -90,15 +134,9 @@ func (connPool *TcpConnPool) Get(uri string) *TcpConnEntry {
 			}
 		}
 	}
-	entry := &TcpConnEntry{uri, nil, using}
+	entry := &TcpConnEntry{uri, nil, using, time.Now()}
 	connPool.pool = append(connPool.pool, entry)
 	return entry
-}
-
-func freeConns(conns []net.Conn) {
-	for _, conn := range conns {
-		conn.Close()
-	}
 }
 
 func (connPool *TcpConnPool) Close(uri string) {
@@ -127,6 +165,7 @@ func (connPool *TcpConnPool) Free(entry *TcpConnEntry) {
 		}
 		entry.uri = ""
 	}
+	entry.lastUsedTime = time.Now()
 	entry.status = free
 }
 
@@ -137,7 +176,7 @@ type TcpTransporter struct {
 
 func NewTcpClient(uri string) Client {
 	trans := &TcpTransporter{connPool: &TcpConnPool{pool: make([]*TcpConnEntry, 0)}}
-	client := &TcpClient{BaseClient: NewBaseClient(trans), tlsConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &TcpClient{BaseClient: NewBaseClient(trans)}
 	trans.TcpClient = client
 	client.SetUri(uri)
 	return client
@@ -145,8 +184,12 @@ func NewTcpClient(uri string) Client {
 
 func (client *TcpClient) SetUri(uri string) {
 	if u, err := url.Parse(uri); err == nil {
-		if u.Scheme != "tcp" && u.Scheme != "tcp4" && u.Scheme != "tcp6" {
+		if u.Scheme != "tcp" && u.Scheme != "tcp4" && u.Scheme != "tcp6" &&
+			u.Scheme != "tcps" && u.Scheme != "tcps4" && u.Scheme != "tcps6" {
 			panic("This client desn't support " + u.Scheme + " scheme.")
+		}
+		if u.Scheme == "tcps" || u.Scheme == "tcps4" || u.Scheme == "tcps6" {
+			client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 		}
 	}
 	client.Close()
@@ -158,6 +201,14 @@ func (client *TcpClient) Close() {
 	if uri == "" {
 		client.Transporter.(*TcpTransporter).connPool.Close(uri)
 	}
+}
+
+func (client *TcpClient) Timeout() time.Duration {
+	return client.Transporter.(*TcpTransporter).connPool.Timeout()
+}
+
+func (client *TcpClient) SetTimeout(d time.Duration) {
+	client.Transporter.(*TcpTransporter).connPool.SetTimeout(d)
 }
 
 func (client *TcpClient) SetDeadline(t time.Time) {

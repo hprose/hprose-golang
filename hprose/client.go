@@ -13,7 +13,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Apr 3, 2014                              *
+ * LastModified: Apr 4, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -712,5 +712,8 @@ func init() {
 	RegisterClientFactory("tcp", NewTcpClient)
 	RegisterClientFactory("tcp4", NewTcpClient)
 	RegisterClientFactory("tcp6", NewTcpClient)
+	RegisterClientFactory("tcps", NewTcpClient)
+	RegisterClientFactory("tcps4", NewTcpClient)
+	RegisterClientFactory("tcps6", NewTcpClient)
 	//RegisterClientFactory("ws", NewWebSocketClient)
 }

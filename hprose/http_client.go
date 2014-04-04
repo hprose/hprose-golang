@@ -13,7 +13,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Apr 3, 2014                              *
+ * LastModified: Apr 4, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -52,6 +52,9 @@ func (client *HttpClient) SetUri(uri string) {
 	if u, err := url.Parse(uri); err == nil {
 		if u.Scheme != "http" && u.Scheme != "https" {
 			panic("This client desn't support " + u.Scheme + " scheme.")
+		}
+		if u.Scheme == "https" {
+			client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 		}
 	}
 	client.BaseClient.SetUri(uri)
@@ -99,7 +102,6 @@ func (client *HttpClient) SetMaxIdleConnsPerHost(value int) {
 
 func newHttpTransporter() *HttpTransporter {
 	tr := &http.Transport{
-		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
 		DisableCompression:  true,
 		DisableKeepAlives:   false,
 		MaxIdleConnsPerHost: 4}
