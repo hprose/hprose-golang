@@ -184,12 +184,8 @@ func NewTcpClient(uri string) Client {
 
 func (client *TcpClient) SetUri(uri string) {
 	if u, err := url.Parse(uri); err == nil {
-		if u.Scheme != "tcp" && u.Scheme != "tcp4" && u.Scheme != "tcp6" &&
-			u.Scheme != "tcps" && u.Scheme != "tcps4" && u.Scheme != "tcps6" {
+		if u.Scheme != "tcp" && u.Scheme != "tcp4" && u.Scheme != "tcp6" {
 			panic("This client desn't support " + u.Scheme + " scheme.")
-		}
-		if u.Scheme == "tcps" || u.Scheme == "tcps4" || u.Scheme == "tcps6" {
-			client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 		}
 	}
 	client.Close()

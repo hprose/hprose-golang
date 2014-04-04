@@ -712,8 +712,5 @@ func init() {
 	RegisterClientFactory("tcp", NewTcpClient)
 	RegisterClientFactory("tcp4", NewTcpClient)
 	RegisterClientFactory("tcp6", NewTcpClient)
-	RegisterClientFactory("tcps", NewTcpClient)
-	RegisterClientFactory("tcps4", NewTcpClient)
-	RegisterClientFactory("tcps6", NewTcpClient)
 	//RegisterClientFactory("ws", NewWebSocketClient)
 }
