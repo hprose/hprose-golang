@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Apr 3, 2014                              *
+ * LastModified: Apr 14, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -33,6 +33,16 @@ import (
 
 type TcpService struct {
 	*BaseService
+	timeout         interface{}
+	keepAlive       interface{}
+	keepAlivePeriod interface{}
+	linger          interface{}
+	noDelay         interface{}
+	readTimeout     interface{}
+	readBuffer      interface{}
+	writeTimeout    interface{}
+	writeBuffer     interface{}
+	config          *tls.Config
 }
 
 type tcpArgsFixer struct{}
@@ -45,41 +55,127 @@ func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, co
 }
 
 func NewTcpService() *TcpService {
-	service := &TcpService{NewBaseService()}
+	service := &TcpService{BaseService: NewBaseService()}
 	service.argsfixer = tcpArgsFixer{}
 	return service
 }
 
-func (service *TcpService) ServeTCP(conn net.Conn) {
-	go func() {
+func (service *TcpService) SetTimeout(d time.Duration) {
+	service.timeout = d
+}
+
+func (service *TcpService) SetKeepAlive(keepalive bool) {
+	service.keepAlive = keepalive
+}
+
+func (service *TcpService) SetKeepAlivePeriod(d time.Duration) {
+	service.keepAlivePeriod = d
+}
+
+func (service *TcpService) SetLinger(sec int) {
+	service.linger = sec
+}
+
+func (service *TcpService) SetNoDelay(noDelay bool) {
+	service.noDelay = noDelay
+}
+
+func (service *TcpService) SetReadTimeout(d time.Duration) {
+	service.readTimeout = d
+}
+
+func (service *TcpService) SetReadBuffer(bytes int) {
+	service.readBuffer = bytes
+}
+
+func (service *TcpService) SetWriteTimeout(d time.Duration) {
+	service.writeTimeout = d
+}
+
+func (service *TcpService) SetWriteBuffer(bytes int) {
+	service.writeBuffer = bytes
+}
+
+func (service *TcpService) SetTLSConfig(config *tls.Config) {
+	service.config = config
+}
+
+func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
+	if service.keepAlive != nil {
+		if err = conn.SetKeepAlive(service.keepAlive.(bool)); err != nil {
+			return err
+		}
+	}
+	if service.keepAlivePeriod != nil {
+		if kap, ok := (net.Conn(conn)).(iKeepAlivePeriod); ok {
+			if err = kap.SetKeepAlivePeriod(service.keepAlivePeriod.(time.Duration)); err != nil {
+				return err
+			}
+		}
+	}
+	if service.linger != nil {
+		if err = conn.SetLinger(service.linger.(int)); err != nil {
+			return err
+		}
+	}
+	if service.noDelay != nil {
+		if err = conn.SetNoDelay(service.noDelay.(bool)); err != nil {
+			return err
+		}
+	}
+	if service.readBuffer != nil {
+		if err = conn.SetReadBuffer(service.readBuffer.(int)); err != nil {
+			return err
+		}
+	}
+	if service.writeBuffer != nil {
+		if err = conn.SetWriteBuffer(service.writeBuffer.(int)); err != nil {
+			return err
+		}
+	}
+	if service.timeout != nil {
+		if err = conn.SetDeadline(time.Now().Add(service.timeout.(time.Duration))); err != nil {
+			return err
+		}
+	}
+	go func(conn net.Conn) {
+		if service.config != nil {
+			tlsConn := tls.Server(conn, service.config)
+			tlsConn.Handshake()
+			conn = tlsConn
+		}
+		var data []byte
+		var err error
 		for {
-			data, err := receiveDataOverTcp(conn)
+			if service.readTimeout != nil {
+				err = conn.SetReadDeadline(time.Now().Add(service.readTimeout.(time.Duration)))
+			}
 			if err == nil {
-				err = sendDataOverTcp(conn, service.Handle(data, conn))
+				data, err = receiveDataOverTcp(conn)
+			}
+			if err == nil {
+				data = service.Handle(data, conn)
+				if service.writeTimeout != nil {
+					err = conn.SetWriteDeadline(time.Now().Add(service.writeTimeout.(time.Duration)))
+				}
+				if err == nil {
+					err = sendDataOverTcp(conn, data)
+				}
 			}
 			if err != nil {
 				conn.Close()
 				break
 			}
 		}
-	}()
+	}(conn)
+	return nil
 }
 
 type TcpServer struct {
 	*TcpService
-	URL             string
-	ThreadCount     int
-	listener        *net.TCPListener
-	deadline        interface{}
-	keepAlive       interface{}
-	keepAlivePeriod interface{}
-	linger          interface{}
-	noDelay         interface{}
-	readBuffer      interface{}
-	readDeadline    interface{}
-	writerBuffer    interface{}
-	writerDeadline  interface{}
-	config          *tls.Config
+	URL         string
+	ThreadCount int
+	listener    *net.TCPListener
 }
 
 func NewTcpServer(uri string) *TcpServer {
@@ -93,46 +189,6 @@ func NewTcpServer(uri string) *TcpServer {
 		ThreadCount: runtime.NumCPU(),
 		listener:    nil,
 	}
-}
-
-func (server *TcpServer) SetDeadline(t time.Time) {
-	server.deadline = t
-}
-
-func (server *TcpServer) SetKeepAlive(keepalive bool) {
-	server.keepAlive = keepalive
-}
-
-func (server *TcpServer) SetKeepAlivePeriod(d time.Duration) {
-	server.keepAlivePeriod = d
-}
-
-func (server *TcpServer) SetLinger(sec int) {
-	server.linger = sec
-}
-
-func (server *TcpServer) SetNoDelay(noDelay bool) {
-	server.noDelay = noDelay
-}
-
-func (server *TcpServer) SetReadBuffer(bytes int) {
-	server.readBuffer = bytes
-}
-
-func (server *TcpServer) SetReadDeadline(t time.Time) {
-	server.readDeadline = t
-}
-
-func (server *TcpServer) SetWriteBuffer(bytes int) {
-	server.writerBuffer = bytes
-}
-
-func (server *TcpServer) SetWriteDeadline(t time.Time) {
-	server.writerDeadline = t
-}
-
-func (server *TcpServer) SetTLSConfig(config *tls.Config) {
-	server.config = config
 }
 
 func (server *TcpServer) handle() (err error) {
@@ -152,61 +208,7 @@ func (server *TcpServer) handle() (err error) {
 	if conn, err = server.listener.AcceptTCP(); err != nil {
 		return err
 	}
-	if server.keepAlive != nil {
-		if err = conn.SetKeepAlive(server.keepAlive.(bool)); err != nil {
-			return err
-		}
-	}
-	if server.keepAlivePeriod != nil {
-		if kap, ok := (net.Conn(conn)).(iKeepAlivePeriod); ok {
-			if err = kap.SetKeepAlivePeriod(server.keepAlivePeriod.(time.Duration)); err != nil {
-				return err
-			}
-		}
-	}
-	if server.linger != nil {
-		if err = conn.SetLinger(server.linger.(int)); err != nil {
-			return err
-		}
-	}
-	if server.noDelay != nil {
-		if err = conn.SetNoDelay(server.noDelay.(bool)); err != nil {
-			return err
-		}
-	}
-	if server.readBuffer != nil {
-		if err = conn.SetReadBuffer(server.readBuffer.(int)); err != nil {
-			return err
-		}
-	}
-	if server.writerBuffer != nil {
-		if err = conn.SetWriteBuffer(server.writerBuffer.(int)); err != nil {
-			return err
-		}
-	}
-	if server.deadline != nil {
-		if err = conn.SetDeadline(server.deadline.(time.Time)); err != nil {
-			return err
-		}
-	}
-	if server.readDeadline != nil {
-		if err = conn.SetReadDeadline(server.readDeadline.(time.Time)); err != nil {
-			return err
-		}
-	}
-	if server.writerDeadline != nil {
-		if err = conn.SetWriteDeadline(server.writerDeadline.(time.Time)); err != nil {
-			return err
-		}
-	}
-	if server.config != nil {
-		tlsConn := tls.Server(conn, server.config)
-		tlsConn.Handshake()
-		server.ServeTCP(tlsConn)
-	} else {
-		server.ServeTCP(conn)
-	}
-	return nil
+	return server.ServeTCP(conn)
 }
 
 func (server *TcpServer) start() {

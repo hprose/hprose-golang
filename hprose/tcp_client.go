@@ -13,7 +13,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Apr 4, 2014                              *
+ * LastModified: Apr 14, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,15 +30,15 @@ import (
 
 type TcpClient struct {
 	*BaseClient
-	deadline        interface{}
+	timeout         interface{}
 	keepAlive       interface{}
 	keepAlivePeriod interface{}
 	linger          interface{}
 	noDelay         interface{}
 	readBuffer      interface{}
-	readDeadline    interface{}
-	writerBuffer    interface{}
-	writerDeadline  interface{}
+	readTimeout     interface{}
+	writeBuffer     interface{}
+	writeTimeout    interface{}
 	tlsConfig       *tls.Config
 }
 
@@ -204,11 +204,8 @@ func (client *TcpClient) Timeout() time.Duration {
 }
 
 func (client *TcpClient) SetTimeout(d time.Duration) {
+	client.timeout = d
 	client.Transporter.(*TcpTransporter).connPool.SetTimeout(d)
-}
-
-func (client *TcpClient) SetDeadline(t time.Time) {
-	client.deadline = t
 }
 
 func (client *TcpClient) SetKeepAlive(keepalive bool) {
@@ -231,16 +228,16 @@ func (client *TcpClient) SetReadBuffer(bytes int) {
 	client.readBuffer = bytes
 }
 
-func (client *TcpClient) SetReadDeadline(t time.Time) {
-	client.readDeadline = t
+func (client *TcpClient) SetReadTimeout(d time.Duration) {
+	client.readTimeout = d
 }
 
 func (client *TcpClient) SetWriteBuffer(bytes int) {
-	client.writerBuffer = bytes
+	client.writeBuffer = bytes
 }
 
-func (client *TcpClient) SetWriteDeadline(t time.Time) {
-	client.writerDeadline = t
+func (client *TcpClient) SetWriteTimeout(d time.Duration) {
+	client.writeTimeout = d
 }
 
 func (client *TcpClient) TLSClientConfig() *tls.Config {
@@ -299,23 +296,13 @@ func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte,
 				return nil, err
 			}
 		}
-		if t.writerBuffer != nil {
-			if err = conn.(*net.TCPConn).SetWriteBuffer(t.writerBuffer.(int)); err != nil {
+		if t.writeBuffer != nil {
+			if err = conn.(*net.TCPConn).SetWriteBuffer(t.writeBuffer.(int)); err != nil {
 				return nil, err
 			}
 		}
-		if t.deadline != nil {
-			if err = conn.SetDeadline(t.deadline.(time.Time)); err != nil {
-				return nil, err
-			}
-		}
-		if t.readDeadline != nil {
-			if err = conn.SetReadDeadline(t.readDeadline.(time.Time)); err != nil {
-				return nil, err
-			}
-		}
-		if t.writerDeadline != nil {
-			if err = conn.SetWriteDeadline(t.writerDeadline.(time.Time)); err != nil {
+		if t.timeout != nil {
+			if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
 				return nil, err
 			}
 		}
@@ -324,8 +311,18 @@ func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte,
 		}
 		connEntry.Set(conn)
 	}
+	if t.writeTimeout != nil {
+		if err = conn.SetWriteDeadline(time.Now().Add(t.writeTimeout.(time.Duration))); err != nil {
+			return nil, err
+		}
+	}
 	if err = sendDataOverTcp(conn, odata); err != nil {
 		return nil, err
+	}
+	if t.readTimeout != nil {
+		if err = conn.SetReadDeadline(time.Now().Add(t.readTimeout.(time.Duration))); err != nil {
+			return nil, err
+		}
 	}
 	if idata, err = receiveDataOverTcp(conn); err != nil {
 		return nil, err

@@ -6,7 +6,7 @@ import (
 )
 
 type Stub struct {
-	Hello func(string) string
+	Hello func(string) (string, error)
 }
 
 func main() {
