@@ -13,7 +13,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: Mar 25, 2014                             *
+ * LastModified: Apr 16, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -46,6 +46,7 @@ type HttpService struct {
 	P3PEnabled                   bool
 	GetEnabled                   bool
 	CrossDomainEnabled           bool
+	accessControlAllowOrigins    map[string]bool
 	lastModified                 string
 	etag                         string
 	crossDomainXmlFile           string
@@ -127,12 +128,22 @@ func (service *HttpService) sendHeader(response http.ResponseWriter, request *ht
 	if service.CrossDomainEnabled {
 		origin := request.Header.Get("origin")
 		if origin != "" && origin != "null" {
-			response.Header().Set("Access-Control-Allow-Origin", origin)
-			response.Header().Set("Access-Control-Allow-Credentials", "true")
+			if len(service.accessControlAllowOrigins) == 0 || service.accessControlAllowOrigins[origin] {
+				response.Header().Set("Access-Control-Allow-Origin", origin)
+				response.Header().Set("Access-Control-Allow-Credentials", "true")
+			}
 		} else {
 			response.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 	}
+}
+
+func (service *HttpService) AddAccessControlAllowOrigin(origin string) {
+	service.accessControlAllowOrigins[origin] = true
+}
+
+func (service *HttpService) RemoveAccessControlAllowOrigin(origin string) {
+	delete(service.accessControlAllowOrigins, origin)
 }
 
 func (service *HttpService) CrossDomainXmlFile() string {
