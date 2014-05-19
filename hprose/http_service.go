@@ -13,7 +13,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: Apr 16, 2014                             *
+ * LastModified: May 19, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -68,12 +68,13 @@ func NewHttpService() *HttpService {
 	t := time.Now().UTC()
 	rand.Seed(t.UnixNano())
 	service := &HttpService{
-		BaseService:        NewBaseService(),
-		P3PEnabled:         true,
-		GetEnabled:         true,
-		CrossDomainEnabled: true,
-		lastModified:       t.Format(time.RFC1123),
-		etag:               `"` + strconv.FormatInt(rand.Int63(), 16) + `"`,
+		BaseService:               NewBaseService(),
+		P3PEnabled:                true,
+		GetEnabled:                true,
+		CrossDomainEnabled:        true,
+		accessControlAllowOrigins: make(map[string]bool),
+		lastModified:              t.Format(time.RFC1123),
+		etag:                      `"` + strconv.FormatInt(rand.Int63(), 16) + `"`,
 	}
 	service.argsfixer = httpArgsFixer{}
 	return service
