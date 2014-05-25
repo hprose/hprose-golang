@@ -13,7 +13,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Apr 4, 2014                              *
+ * LastModified: May 25, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -233,7 +233,7 @@ func (client *BaseClient) UseService(args ...interface{}) {
 			return
 		default:
 			if isStructPointer(arg0) {
-				client.createStub(arg0)
+				client.createStub(arg0, "")
 				return
 			}
 		}
@@ -252,7 +252,7 @@ func (client *BaseClient) UseService(args ...interface{}) {
 			panic("The arguments can't be nil.")
 		}
 		if isStructPointer(args[1]) {
-			client.createStub(args[1])
+			client.createStub(args[1], "")
 		}
 	}
 	panic("Wrong arguments.")
@@ -491,7 +491,7 @@ func (client *BaseClient) doIntput(data []byte, args []reflect.Value, options *I
 	return err
 }
 
-func (client *BaseClient) createStub(stub interface{}) {
+func (client *BaseClient) createStub(stub interface{}, ns string) {
 	v := reflect.ValueOf(stub).Elem()
 	t := v.Type()
 	et := t
@@ -503,8 +503,25 @@ func (client *BaseClient) createStub(stub interface{}) {
 	count := obj.NumField()
 	for i := 0; i < count; i++ {
 		f := obj.Field(i)
-		if f.Kind() == reflect.Func {
-			f.Set(reflect.MakeFunc(f.Type(), client.remoteMethod(f.Type(), et.Field(i))))
+		ft := f.Type()
+		if ft.Kind() == reflect.Func {
+			f.Set(reflect.MakeFunc(ft, client.remoteMethod(ft, et.Field(i), ns)))
+		} else if ft.Kind() == reflect.Ptr {
+			ft = ft.Elem()
+		}
+		if ft.Kind() == reflect.Struct {
+			fp := reflect.New(ft)
+			sf := et.Field(i)
+			if sf.Anonymous {
+				client.createStub(fp.Interface(), "")
+			} else {
+				client.createStub(fp.Interface(), sf.Name)
+			}
+			if f.Kind() == reflect.Ptr {
+				f.Set(fp)
+			} else {
+				f.Set(fp.Elem())
+			}
 		}
 	}
 	if t.Kind() == reflect.Ptr {
@@ -514,8 +531,11 @@ func (client *BaseClient) createStub(stub interface{}) {
 	}
 }
 
-func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField) func(in []reflect.Value) []reflect.Value {
+func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, ns string) func(in []reflect.Value) []reflect.Value {
 	name := getFuncName(&sf)
+	if ns != "" {
+		name = ns + "_" + name
+	}
 	options := &InvokeOptions{ByRef: getByRef(&sf), SimpleMode: getSimpleMode(&sf), ResultMode: getResultMode(&sf)}
 	return func(in []reflect.Value) []reflect.Value {
 		inlen := len(in)
