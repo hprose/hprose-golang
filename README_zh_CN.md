@@ -1,5 +1,7 @@
 # Hprose for Golang
 
+[![Build Status](https://drone.io/github.com/hprose/hprose-go/status.png)](https://drone.io/github.com/hprose/hprose-go/latest)
+
 > ---
 - **[简介](#简介)**
 - **[安装](#安装)**
