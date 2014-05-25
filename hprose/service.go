@@ -13,7 +13,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Mar 31, 2014                             *
+ * LastModified: May 25, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -119,6 +119,65 @@ func (methods *Methods) AddMethods(obj interface{}, options ...interface{}) {
 				}
 				if f.Kind() == reflect.Func && !f.IsNil() {
 					methods.AddFunction(t.Field(i).Name, f.Interface(), options...)
+				}
+			}
+		}
+	}
+}
+
+// AddAllMethods will publish all methods and non-nil function fields on the obj self
+// and on its anonymous or non-anonymous struct fields (or pointer to pointer ...
+// to pointer struct fields). This is a recursive operation.
+// So it's a pit, if you do not know what you are doing, do not step on.
+func (methods *Methods) AddAllMethods(obj interface{}, options ...interface{}) {
+	if obj == nil {
+		panic("obj can't be nil")
+	}
+	v := reflect.ValueOf(obj)
+	t := v.Type()
+	n := t.NumMethod()
+	for i := 0; i < n; i++ {
+		methods.AddFunction(t.Method(i).Name, v.Method(i).Interface(), options...)
+	}
+	for ; t.Kind() == reflect.Ptr && !v.IsNil(); v = v.Elem() {
+		t = t.Elem()
+	}
+	if t.Kind() == reflect.Struct {
+		n = t.NumField()
+		for i := 0; i < n; i++ {
+			f := v.Field(i)
+			if f.IsValid() {
+				for ; f.Kind() == reflect.Ptr && !f.IsNil(); f = f.Elem() {
+				}
+				if f.Kind() == reflect.Func && !f.IsNil() {
+					methods.AddFunction(t.Field(i).Name, f.Interface(), options...)
+				} else if f.Kind() == reflect.Struct {
+					fs := t.Field(i)
+					if fs.Anonymous {
+						methods.AddAllMethods(f.Interface(), options...)
+					} else {
+						prefix := ""
+						k := -1
+						count := len(options)
+						for j := 0; j < count; j++ {
+							switch opt := options[i].(type) {
+							case string:
+								prefix = opt
+								k = j
+							}
+						}
+						if prefix == "" {
+							prefix = fs.Name
+						} else {
+							prefix = prefix + "_" + fs.Name
+						}
+						if k >= 0 {
+							options[k] = prefix
+						} else {
+							options = append(options, prefix)
+						}
+						methods.AddAllMethods(f.Interface(), options...)
+					}
 				}
 			}
 		}
