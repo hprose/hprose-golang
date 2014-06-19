@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Writer Test for Go.                             *
  *                                                        *
- * LastModified: Feb 14, 2014                             *
+ * LastModified: Jun 19, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -216,10 +216,12 @@ func TestReaderMap(t *testing.T) {
 	writer.Serialize(&m)
 	var mm interface{} = &m
 	writer.Serialize(mm)
-	s := `m3{s4"name"s3"马秉尧"s3"age"i33;s4"male"t}m3{r1;r2;r3;i33;r4;t}r5;`
-	if b.String() != s {
-		t.Error(b.String())
-	}
+	/*
+		s := `m3{s4"name"s3"马秉尧"s3"age"i33;s4"male"t}m3{r1;r2;r3;i33;r4;t}r5;`
+		if b.String() != s {
+			t.Error(b.String())
+		}
+	*/
 	reader := NewReader(b, false)
 	var x map[string]interface{}
 	if err := reader.Unserialize(&x); err != nil {
