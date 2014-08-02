@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-// go 1.1 didn't have SetKeepAlivePeriod in TCPConn, so we should to check it.
+// go 1.1 didn't have SetKeepAlivePeriod in TCPConn, so we should check it.
 type iKeepAlivePeriod interface {
 	SetKeepAlivePeriod(time.Duration) error
 }
