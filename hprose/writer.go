@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: Mar 28, 2014                             *
+ * LastModified: Aug 3, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -140,6 +140,7 @@ func (r *realWriterRefer) resetRef() {
 		for k, _ := range r.ref {
 			delete(r.ref, k)
 		}
+		r.refcount = 0
 	}
 }
 
