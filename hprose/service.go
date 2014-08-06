@@ -12,7 +12,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: May 25, 2014                             *
+ * LastModified: Aug 6, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -104,7 +104,9 @@ func (methods *Methods) AddMethods(obj interface{}, options ...interface{}) {
 	t := v.Type()
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
-		methods.AddFunction(t.Method(i).Name, v.Method(i).Interface(), options...)
+		if v.Method(i).CanInterface() {
+			methods.AddFunction(t.Method(i).Name, v.Method(i).Interface(), options...)
+		}
 	}
 	for ; t.Kind() == reflect.Ptr && !v.IsNil(); v = v.Elem() {
 		t = t.Elem()
@@ -113,7 +115,7 @@ func (methods *Methods) AddMethods(obj interface{}, options ...interface{}) {
 		n = t.NumField()
 		for i := 0; i < n; i++ {
 			f := v.Field(i)
-			if f.IsValid() {
+			if f.CanInterface() && f.IsValid() {
 				for ; f.Kind() == reflect.Ptr && !f.IsNil(); f = f.Elem() {
 				}
 				if f.Kind() == reflect.Func && !f.IsNil() {
@@ -136,7 +138,9 @@ func (methods *Methods) AddAllMethods(obj interface{}, options ...interface{}) {
 	t := v.Type()
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
-		methods.AddFunction(t.Method(i).Name, v.Method(i).Interface(), options...)
+		if v.Method(i).CanInterface() {
+			methods.AddFunction(t.Method(i).Name, v.Method(i).Interface(), options...)
+		}
 	}
 	for ; t.Kind() == reflect.Ptr && !v.IsNil(); v = v.Elem() {
 		t = t.Elem()
@@ -145,7 +149,7 @@ func (methods *Methods) AddAllMethods(obj interface{}, options ...interface{}) {
 		n = t.NumField()
 		for i := 0; i < n; i++ {
 			f := v.Field(i)
-			if f.IsValid() {
+			if f.CanInterface() && f.IsValid() {
 				for ; f.Kind() == reflect.Ptr && !f.IsNil(); f = f.Elem() {
 				}
 				if f.Kind() == reflect.Func && !f.IsNil() {
