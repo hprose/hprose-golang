@@ -104,8 +104,10 @@ func (methods *Methods) AddMethods(obj interface{}, options ...interface{}) {
 	t := v.Type()
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
-		if v.Method(i).CanInterface() {
-			methods.AddFunction(t.Method(i).Name, v.Method(i).Interface(), options...)
+		name := t.Method(i).Name
+		method := v.Method(i)
+		if method.CanInterface() && 'A' <= name[0] && name[0] <= 'Z' {
+			methods.AddFunction(name, method.Interface(), options...)
 		}
 	}
 	for ; t.Kind() == reflect.Ptr && !v.IsNil(); v = v.Elem() {
@@ -115,11 +117,12 @@ func (methods *Methods) AddMethods(obj interface{}, options ...interface{}) {
 		n = t.NumField()
 		for i := 0; i < n; i++ {
 			f := v.Field(i)
-			if f.CanInterface() && f.IsValid() {
+			name := t.Field(i).Name
+			if name != "" && f.CanInterface() && 'A' <= name[0] && name[0] <= 'Z' && f.IsValid() {
 				for ; f.Kind() == reflect.Ptr && !f.IsNil(); f = f.Elem() {
 				}
 				if f.Kind() == reflect.Func && !f.IsNil() {
-					methods.AddFunction(t.Field(i).Name, f.Interface(), options...)
+					methods.AddFunction(name, f.Interface(), options...)
 				}
 			}
 		}
@@ -138,8 +141,10 @@ func (methods *Methods) AddAllMethods(obj interface{}, options ...interface{}) {
 	t := v.Type()
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
-		if v.Method(i).CanInterface() {
-			methods.AddFunction(t.Method(i).Name, v.Method(i).Interface(), options...)
+		name := t.Method(i).Name
+		method := v.Method(i)
+		if method.CanInterface() && 'A' <= name[0] && name[0] <= 'Z' {
+			methods.AddFunction(name, method.Interface(), options...)
 		}
 	}
 	for ; t.Kind() == reflect.Ptr && !v.IsNil(); v = v.Elem() {
@@ -149,16 +154,17 @@ func (methods *Methods) AddAllMethods(obj interface{}, options ...interface{}) {
 		n = t.NumField()
 		for i := 0; i < n; i++ {
 			f := v.Field(i)
+			fs := t.Field(i)
+			name := fs.Name
 			if f.CanInterface() && f.IsValid() {
 				for ; f.Kind() == reflect.Ptr && !f.IsNil(); f = f.Elem() {
 				}
-				if f.Kind() == reflect.Func && !f.IsNil() {
-					methods.AddFunction(t.Field(i).Name, f.Interface(), options...)
+				if f.Kind() == reflect.Func && 'A' <= name[0] && name[0] <= 'Z' && !f.IsNil() {
+					methods.AddFunction(name, f.Interface(), options...)
 				} else if f.Kind() == reflect.Struct {
-					fs := t.Field(i)
 					if fs.Anonymous {
 						methods.AddAllMethods(f.Interface(), options...)
-					} else {
+					} else if 'A' <= name[0] && name[0] <= 'Z' {
 						prefix := ""
 						k := -1
 						count := len(options)
@@ -170,9 +176,9 @@ func (methods *Methods) AddAllMethods(obj interface{}, options ...interface{}) {
 							}
 						}
 						if prefix == "" {
-							prefix = fs.Name
+							prefix = name
 						} else {
-							prefix = prefix + "_" + fs.Name
+							prefix = prefix + "_" + name
 						}
 						if k >= 0 {
 							options[k] = prefix
