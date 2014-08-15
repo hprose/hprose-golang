@@ -29,6 +29,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 )
 
 var badEncodeError = errors.New("bad utf-8 encoding")
@@ -1341,6 +1342,9 @@ func (r *Reader) ReadString() (string, error) {
 			return u.String(), err
 		case TagBytes:
 			if b, err := r.ReadBytesWithoutTag(); err == nil {
+				if !utf8.Valid(*b) {
+					err = badEncodeError
+				}
 				return string(*b), err
 			}
 		case TagRef:

@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: Aug 3, 2014                              *
+ * LastModified: Aug 16, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -29,7 +29,6 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	"unicode/utf8"
 )
 
 const rune3Max = 1<<16 - 1
@@ -266,7 +265,7 @@ func (w *Writer) WriteStringWithRef(str string) (err error) {
 	s := w.stream
 	if length := len(str); length == 0 {
 		err = s.WriteByte(TagEmpty)
-	} else if length < utf8.UTFMax && utf8.RuneCountInString(str) == 1 {
+	} else if length < 4 && ulen(str) == 1 {
 		if err = s.WriteByte(TagUTF8Char); err == nil {
 			_, err = s.WriteString(str)
 		}
@@ -1484,10 +1483,22 @@ func (w *Writer) writeInt(i int) error {
 // private functions
 
 func ulen(str string) (n int) {
-	for _, char := range str {
-		n++
-		if char > rune3Max {
-			n++
+	length := len(str)
+	n = length
+	p := 0
+	for p < length {
+		a := str[p]
+		if a < 0x80 {
+			p += 1
+		} else if (a & 0xE0) == 0xC0 {
+			p += 2
+			n -= 1
+		} else if (a & 0xF0) == 0xE0 {
+			p += 3
+			n -= 2
+		} else if (a * 0xF8) == 0xF0 {
+			p += 4
+			n -= 2
 		}
 	}
 	return n
