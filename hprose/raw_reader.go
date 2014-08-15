@@ -12,7 +12,7 @@
  *                                                        *
  * hprose RawReader for Go.                               *
  *                                                        *
- * LastModified: Aug 15, 2014                             *
+ * LastModified: Aug 16, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -26,7 +26,6 @@ import (
 
 type RawReader struct {
 	stream BufReader
-	strbuf [64]byte
 }
 
 func NewRawReader(stream BufReader) *RawReader {
@@ -108,9 +107,9 @@ func (r *RawReader) readDateTimeRaw(ostream BufWriter) (err error) {
 }
 
 func (r *RawReader) readUTF8CharRaw(ostream BufWriter) (err error) {
-	var c rune
-	if c, _, err = r.stream.ReadRune(); err == nil {
-		_, err = ostream.WriteRune(c)
+	var str string
+	if str, err = r.readUTF8String(1); err == nil {
+		_, err = ostream.WriteString(str)
 	}
 	return err
 }
@@ -187,31 +186,54 @@ func (r *RawReader) readComplexRaw(ostream BufWriter) (err error) {
 }
 
 func (r *RawReader) readUTF8String(length int) (string, error) {
-	switch length {
-	case 0:
+	if length == 0 {
 		return "", nil
-	case 1:
-		s := r.stream
-		c, _, err := s.ReadRune()
-		if err == nil {
-			return string(c), nil
-		}
-		return "", err
-	default:
-		s := r.stream
-		buf := bytes.NewBuffer(r.strbuf[:0])
-		for i := 0; i < length; i++ {
-			if r, n, err := s.ReadRune(); err != nil {
-				return "", err
-			} else {
-				buf.WriteRune(r)
-				if n > 3 {
-					i++
-				}
-			}
-		}
-		return string(buf.Bytes()), nil
 	}
+	s := r.stream
+	buffer := make([]byte, 0, length*3)
+	for i := 0; i < length; i += 1 {
+		b, err := s.ReadByte()
+		if err != nil {
+			return "", err
+		}
+		buffer = append(buffer, b)
+		if (b & 0xE0) == 0xC0 {
+			b, err = s.ReadByte()
+			if err != nil {
+				return "", err
+			}
+			buffer = append(buffer, b)
+		} else if (b & 0xF0) == 0xE0 {
+			b, err = s.ReadByte()
+			if err != nil {
+				return "", err
+			}
+			buffer = append(buffer, b)
+			b, err = s.ReadByte()
+			if err != nil {
+				return "", err
+			}
+			buffer = append(buffer, b)
+		} else if (b & 0xF8) == 0xF0 {
+			b, err = s.ReadByte()
+			if err != nil {
+				return "", err
+			}
+			buffer = append(buffer, b)
+			b, err = s.ReadByte()
+			if err != nil {
+				return "", err
+			}
+			buffer = append(buffer, b)
+			b, err = s.ReadByte()
+			if err != nil {
+				return "", err
+			}
+			buffer = append(buffer, b)
+			i += 1
+		}
+	}
+	return string(buffer), nil
 }
 
 // private functions

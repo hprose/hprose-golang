@@ -29,7 +29,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 )
 
 var badEncodeError = errors.New("bad utf-8 encoding")
@@ -468,9 +467,9 @@ func (r *Reader) ReadInt() (int, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				i, err := strconv.ParseInt(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				i, err := strconv.ParseInt(str, 10, 64)
 				return int(i), err
 			}
 		case TagString:
@@ -519,9 +518,9 @@ func (r *Reader) ReadUint() (uint, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				i, err := strconv.ParseUint(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				i, err := strconv.ParseUint(str, 10, 64)
 				return uint(i), err
 			}
 		case TagString:
@@ -570,9 +569,9 @@ func (r *Reader) ReadInt64() (int64, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				return strconv.ParseInt(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				return strconv.ParseInt(str, 10, 64)
 			}
 		case TagString:
 			var str string
@@ -618,9 +617,9 @@ func (r *Reader) ReadUint64() (uint64, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				return strconv.ParseUint(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				return strconv.ParseUint(str, 10, 64)
 			}
 		case TagString:
 			var str string
@@ -666,9 +665,9 @@ func (r *Reader) ReadInt8() (int8, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				i, err := strconv.ParseInt(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				i, err := strconv.ParseInt(str, 10, 64)
 				return int8(i), err
 			}
 		case TagString:
@@ -717,9 +716,9 @@ func (r *Reader) ReadUint8() (uint8, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				i, err := strconv.ParseUint(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				i, err := strconv.ParseUint(str, 10, 64)
 				return uint8(i), err
 			}
 		case TagString:
@@ -768,9 +767,9 @@ func (r *Reader) ReadInt16() (int16, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				i, err := strconv.ParseInt(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				i, err := strconv.ParseInt(str, 10, 64)
 				return int16(i), err
 			}
 		case TagString:
@@ -819,9 +818,9 @@ func (r *Reader) ReadUint16() (uint16, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				i, err := strconv.ParseUint(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				i, err := strconv.ParseUint(str, 10, 64)
 				return uint16(i), err
 			}
 		case TagString:
@@ -870,9 +869,9 @@ func (r *Reader) ReadInt32() (int32, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				i, err := strconv.ParseInt(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				i, err := strconv.ParseInt(str, 10, 64)
 				return int32(i), err
 			}
 		case TagString:
@@ -921,9 +920,9 @@ func (r *Reader) ReadUint32() (uint32, error) {
 		case TagTrue:
 			return 1, nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				i, err := strconv.ParseUint(string(r), 10, 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				i, err := strconv.ParseUint(str, 10, 64)
 				return uint32(i), err
 			}
 		case TagString:
@@ -972,9 +971,9 @@ func (r *Reader) ReadBigInt() (*big.Int, error) {
 		case TagTrue:
 			return big.NewInt(1), nil
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				return stringToBigInt(string(r))
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				return stringToBigInt(str)
 			}
 		case TagString:
 			var str string
@@ -1050,9 +1049,9 @@ func (r *Reader) ReadFloat32() (float32, error) {
 			f, err := r.readInfinity()
 			return float32(f), err
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				f, err := strconv.ParseFloat(string(r), 32)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				f, err := strconv.ParseFloat(str, 32)
 				return float32(f), err
 			}
 		case TagString:
@@ -1108,9 +1107,9 @@ func (r *Reader) ReadFloat64() (float64, error) {
 		case TagInfinity:
 			return r.readInfinity()
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				return strconv.ParseFloat(string(r), 64)
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				return strconv.ParseFloat(str, 64)
 			}
 		case TagString:
 			var str string
@@ -1167,9 +1166,9 @@ func (r *Reader) ReadBool() (bool, error) {
 			_, err = r.readInfinity()
 			return true, err
 		case TagUTF8Char:
-			var r rune
-			if r, _, err = s.ReadRune(); err == nil {
-				return strconv.ParseBool(string(r))
+			var str string
+			if str, err = r.readUTF8String(1); err == nil {
+				return strconv.ParseBool(str)
 			}
 		case TagString:
 			var str string
@@ -1342,9 +1341,6 @@ func (r *Reader) ReadString() (string, error) {
 			return u.String(), err
 		case TagBytes:
 			if b, err := r.ReadBytesWithoutTag(); err == nil {
-				if !utf8.Valid(*b) {
-					err = badEncodeError
-				}
 				return string(*b), err
 			}
 		case TagRef:
