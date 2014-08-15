@@ -12,7 +12,7 @@
  *                                                        *
  * hprose RawReader for Go.                               *
  *                                                        *
- * LastModified: Feb 15, 2014                             *
+ * LastModified: Aug 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -187,22 +187,31 @@ func (r *RawReader) readComplexRaw(ostream BufWriter) (err error) {
 }
 
 func (r *RawReader) readUTF8String(length int) (string, error) {
-	s := r.stream
-	if length == 0 {
+	switch length {
+	case 0:
 		return "", nil
-	}
-	buf := bytes.NewBuffer(r.strbuf[:0])
-	for i := 0; i < length; i++ {
-		if r, n, err := s.ReadRune(); err != nil {
-			return "", err
-		} else {
-			buf.WriteRune(r)
-			if n > 3 {
-				i++
+	case 1:
+		s := r.stream
+		c, _, err := s.ReadRune()
+		if err == nil {
+			return string(c), nil
+		}
+		return "", err
+	default:
+		s := r.stream
+		buf := bytes.NewBuffer(r.strbuf[:0])
+		for i := 0; i < length; i++ {
+			if r, n, err := s.ReadRune(); err != nil {
+				return "", err
+			} else {
+				buf.WriteRune(r)
+				if n > 3 {
+					i++
+				}
 			}
 		}
+		return string(buf.Bytes()), nil
 	}
-	return string(buf.Bytes()), nil
 }
 
 // private functions

@@ -12,7 +12,7 @@
  *                                                        *
  * hprose SimpleReader Test for Go.                       *
  *                                                        *
- * LastModified: Feb 15, 2014                             *
+ * LastModified: Aug 16, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -83,7 +83,7 @@ func TestSimpleReaderInt(t *testing.T) {
 	if err = reader.Unserialize(&i); err != nil {
 		t.Error(err.Error())
 	}
-	if i != 49 {
+	if i != 1 {
 		t.Error(i)
 	}
 	if err = reader.Unserialize(&i); err != nil {
@@ -187,7 +187,7 @@ func TestSimpleReaderUint(t *testing.T) {
 	if err = reader.Unserialize(&i); err != nil {
 		t.Error(err.Error())
 	}
-	if i != 49 {
+	if i != 1 {
 		t.Error(i)
 	}
 	if err = reader.Unserialize(&i); err != nil {
@@ -385,7 +385,7 @@ func TestSimpleReaderBigInt(t *testing.T) {
 	if err = reader.Unserialize(&i); err != nil {
 		t.Error(err.Error())
 	}
-	if i.Cmp(big.NewInt(49)) != 0 {
+	if i.Cmp(big.NewInt(1)) != 0 {
 		t.Error(i)
 	}
 	if err = reader.Unserialize(&i); err != nil {
@@ -459,7 +459,7 @@ func TestSimpleReaderFloat32(t *testing.T) {
 	if err = reader.Unserialize(&i); err != nil {
 		t.Error(err.Error())
 	}
-	if i != 49 {
+	if i != 1 {
 		t.Error(i)
 	}
 	if err = reader.Unserialize(&i); err != nil {
@@ -533,7 +533,7 @@ func TestSimpleReaderFloat64(t *testing.T) {
 	if err = reader.Unserialize(&i); err != nil {
 		t.Error(err.Error())
 	}
-	if i != 49 {
+	if i != 1 {
 		t.Error(i)
 	}
 	if err = reader.Unserialize(&i); err != nil {
