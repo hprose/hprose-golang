@@ -31,9 +31,9 @@ import (
 type MissingMethod func(name string, args []reflect.Value) (result []reflect.Value)
 
 type ServiceEvent interface {
-	OnBeforeInvoke(name string, args []reflect.Value, byref bool, context interface{})
-	OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context interface{})
-	OnSendError(err error, context interface{})
+	OnBeforeInvoke(name string, args []reflect.Value, byref bool, context Context)
+	OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context Context)
+	OnSendError(err error, context Context)
 }
 
 type Method struct {
@@ -198,11 +198,12 @@ func (methods *Methods) AddMissingMethod(method MissingMethod, options ...interf
 }
 
 type ArgsFixer interface {
-	FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value
+	FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value
 }
 
-func fixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
-	if lastParamType.String() == "interface {}" {
+func fixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value {
+	if lastParamType.String() == "interface {}" ||
+		lastParamType.String() == "hprose.Context" {
 		args = append(args, reflect.ValueOf(context))
 	}
 	return args
@@ -252,7 +253,7 @@ func (service *BaseService) RemoveFilter(filter Filter) {
 	}
 }
 
-func (service *BaseService) responseEnd(buf []byte, context interface{}) []byte {
+func (service *BaseService) responseEnd(buf []byte, context Context) []byte {
 	n := len(service.filters)
 	for i := 0; i < n; i++ {
 		buf = service.filters[i].OutputFilter(buf, context)
@@ -260,13 +261,13 @@ func (service *BaseService) responseEnd(buf []byte, context interface{}) []byte 
 	return buf
 }
 
-func (service *BaseService) fireErrorEvent(err error, context interface{}) {
+func (service *BaseService) fireErrorEvent(err error, context Context) {
 	if service.ServiceEvent != nil {
 		service.OnSendError(err, context)
 	}
 }
 
-func (service *BaseService) sendError(err error, context interface{}) []byte {
+func (service *BaseService) sendError(err error, context Context) []byte {
 	buf := new(bytes.Buffer)
 	writer := NewWriter(buf, true)
 	writer.Stream().WriteByte(TagError)
@@ -276,7 +277,7 @@ func (service *BaseService) sendError(err error, context interface{}) []byte {
 	return service.responseEnd(buf.Bytes(), context)
 }
 
-func (service *BaseService) doInvoke(data []byte, context interface{}) []byte {
+func (service *BaseService) doInvoke(data []byte, context Context) []byte {
 	istream := NewBytesReader(data)
 	reader := NewReader(istream, false)
 	buf := new(bytes.Buffer)
@@ -475,7 +476,7 @@ func (service *BaseService) doInvoke(data []byte, context interface{}) []byte {
 	return service.responseEnd(buf.Bytes(), context)
 }
 
-func (service *BaseService) doFunctionList(context interface{}) []byte {
+func (service *BaseService) doFunctionList(context Context) []byte {
 	buf := new(bytes.Buffer)
 	writer := NewWriter(buf, true)
 	writer.Stream().WriteByte(TagFunctions)
@@ -486,7 +487,7 @@ func (service *BaseService) doFunctionList(context interface{}) []byte {
 	return service.responseEnd(buf.Bytes(), context)
 }
 
-func (service *BaseService) Handle(data []byte, context interface{}) (output []byte) {
+func (service *BaseService) Handle(data []byte, context Context) (output []byte) {
 	defer func() {
 		if e := recover(); e != nil {
 			var err error

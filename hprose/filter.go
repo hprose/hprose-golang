@@ -20,6 +20,6 @@
 package hprose
 
 type Filter interface {
-	InputFilter(data []byte, context interface{}) []byte
-	OutputFilter(data []byte, context interface{}) []byte
+	InputFilter(data []byte, context Context) []byte
+	OutputFilter(data []byte, context Context) []byte
 }

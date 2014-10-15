@@ -45,13 +45,13 @@ type TcpService struct {
 }
 
 type TcpContext struct {
+	*BaseContext
 	net.Conn
-	UserData map[string]interface{}
 }
 
 type tcpArgsFixer struct{}
 
-func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
+func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value {
 	if c, ok := context.(*TcpContext); ok {
 		if lastParamType.String() == "*hprose.TcpContext" {
 			return append(args, reflect.ValueOf(c))
@@ -162,7 +162,7 @@ func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
 				data, err = receiveDataOverTcp(conn)
 			}
 			if err == nil {
-				data = service.Handle(data, &TcpContext{Conn: conn, UserData: make(map[string]interface{})})
+				data = service.Handle(data, &TcpContext{BaseContext: NewBaseContext(), Conn: conn})
 				if service.writeTimeout != nil {
 					err = conn.SetWriteDeadline(time.Now().Add(service.writeTimeout.(time.Duration)))
 				}

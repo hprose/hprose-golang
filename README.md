@@ -540,9 +540,9 @@ Hprose defines a `ServiceEvent` interface.
 
 ```go
 type ServiceEvent interface {
-    OnBeforeInvoke(name string, args []reflect.Value, byref bool, context interface{})
-    OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context interface{})
-    OnSendError(err error, context interface{})
+    OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context)
+    OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context)
+    OnSendError(err error, context hprose.Context)
 }
 ```
 
@@ -564,15 +564,15 @@ func hello(name string) string {
 
 type myServiceEvent struct{}
 
-func (myServiceEvent) OnBeforeInvoke(name string, args []reflect.Value, byref bool, context interface{}) {
+func (myServiceEvent) OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context) {
     fmt.Println(name, args, byref)
 }
 
-func (myServiceEvent) OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context interface{}) {
+func (myServiceEvent) OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context) {
     fmt.Println(name, args, byref, result)
 }
 
-func (myServiceEvent) OnSendError(err error, context interface{}) {
+func (myServiceEvent) OnSendError(err error, context hprose.Context) {
     fmt.Println(err)
 }
 
@@ -591,6 +591,6 @@ For hprose HTTP Service, you can implement `HttpServiceEvent` instead of `Servic
 ```go
 type HttpServiceEvent interface {
     ServiceEvent
-    OnSendHeader(response http.ResponseWriter, request *http.Request)
+    OnSendHeader(context *hprose.HttpContext)
 }
 ```

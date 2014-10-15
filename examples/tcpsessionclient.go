@@ -13,7 +13,7 @@ type MyClientFilter struct {
 	SessionID int
 }
 
-func (filter *MyClientFilter) InputFilter(data []byte, context interface{}) []byte {
+func (filter *MyClientFilter) InputFilter(data []byte, context hprose.Context) []byte {
 	if len(data) > 7 && data[0] == 's' && data[1] == 'i' && data[2] == 'd' {
 		filter.SessionID = int(data[3])<<24 | int(data[4])<<16 | int(data[5])<<8 | int(data[6])
 		data = data[7:]
@@ -21,7 +21,7 @@ func (filter *MyClientFilter) InputFilter(data []byte, context interface{}) []by
 	return data
 }
 
-func (filter MyClientFilter) OutputFilter(data []byte, context interface{}) []byte {
+func (filter MyClientFilter) OutputFilter(data []byte, context hprose.Context) []byte {
 	if filter.SessionID >= 0 {
 		buf := make([]byte, 7+len(data))
 		buf[0] = 's'

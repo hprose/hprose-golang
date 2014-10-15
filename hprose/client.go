@@ -139,8 +139,8 @@ type Client interface {
 }
 
 type ClientContext struct {
+	*BaseContext
 	Client
-	UserData map[string]interface{}
 }
 
 type Transporter interface {
@@ -304,7 +304,7 @@ func (client *BaseClient) invoke(name string, args []reflect.Value, options *Inv
 	if byref && !checkRefArgs(args) {
 		panic("The elements in args must be pointer when options.ByRef is true.")
 	}
-	context := &ClientContext{Client: client.Client, UserData: make(map[string]interface{})}
+	context := &ClientContext{BaseContext: NewBaseContext(), Client: client.Client}
 	if async {
 		return client.asyncInvoke(name, args, options, result, context)
 	} else {

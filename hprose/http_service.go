@@ -31,9 +31,9 @@ import (
 )
 
 type HttpContext struct {
+	*BaseContext
 	Response http.ResponseWriter
 	Request  *http.Request
-	UserData map[string]interface{}
 }
 
 type HttpServiceEvent interface {
@@ -57,9 +57,13 @@ type HttpService struct {
 
 type httpArgsFixer struct{}
 
-func (httpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
-	if request, ok := context.(*HttpContext); ok && lastParamType.String() == "*hprose.HttpContext" {
-		return append(args, reflect.ValueOf(request))
+func (httpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value {
+	if c, ok := context.(*HttpContext); ok {
+		if lastParamType.String() == "*hprose.HttpContext" {
+			return append(args, reflect.ValueOf(c))
+		} else if lastParamType.String() == "*http.Request" {
+			return append(args, reflect.ValueOf(c.Request))
+		}
 	}
 	return fixArgs(args, lastParamType, context)
 }
@@ -202,7 +206,7 @@ func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *htt
 	if service.crossDomainXmlContent != nil && service.crossDomainXmlHandler(response, request) {
 		return
 	}
-	context := &HttpContext{Response: response, Request: request, UserData: make(map[string]interface{})}
+	context := &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}
 	service.sendHeader(context)
 	switch request.Method {
 	case "GET":

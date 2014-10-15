@@ -22,14 +22,14 @@ func getEmptySlice() interface{} {
 
 type ServerEvent struct{}
 
-func (e *ServerEvent) OnBeforeInvoke(name string, args []reflect.Value, byref bool, context interface{}) {
+func (e *ServerEvent) OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context) {
 	fmt.Println("Before OK")
 }
 
-func (e *ServerEvent) OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context interface{}) {
+func (e *ServerEvent) OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context) {
 	fmt.Println("After OK")
 }
-func (e *ServerEvent) OnSendError(err error, context interface{}) {
+func (e *ServerEvent) OnSendError(err error, context hprose.Context) {
 	fmt.Println(err)
 }
 

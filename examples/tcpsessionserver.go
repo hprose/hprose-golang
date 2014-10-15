@@ -7,25 +7,25 @@ import (
 
 var Session []map[string]interface{}
 
-func GetSession(context *hprose.TcpContext) map[string]interface{} {
-	return Session[context.UserData["sessionid"].(int)]
+func GetSession(context hprose.Context) map[string]interface{} {
+	return Session[context.GetInt("sessionid")]
 }
 
 type MyServerFilter struct{}
 
-func (MyServerFilter) InputFilter(data []byte, context interface{}) []byte {
+func (MyServerFilter) InputFilter(data []byte, context hprose.Context) []byte {
 	if len(data) > 7 && data[0] == 's' && data[1] == 'i' && data[2] == 'd' {
-		context.(*hprose.TcpContext).UserData["sessionid"] = int(data[3])<<24 | int(data[4])<<16 | int(data[5])<<8 | int(data[6])
+		context.SetInt("sessionid", int(data[3])<<24|int(data[4])<<16|int(data[5])<<8|int(data[6]))
 		data = data[7:]
 	} else {
-		context.(*hprose.TcpContext).UserData["sessionid"] = len(Session)
+		context.SetInt("sessionid", len(Session))
 		Session = append(Session, make(map[string]interface{}))
 	}
 	return data
 }
 
-func (MyServerFilter) OutputFilter(data []byte, context interface{}) []byte {
-	sessionid := context.(*hprose.TcpContext).UserData["sessionid"].(int)
+func (MyServerFilter) OutputFilter(data []byte, context hprose.Context) []byte {
+	sessionid := context.GetInt("sessionid")
 	buf := make([]byte, 7+len(data))
 	buf[0] = 's'
 	buf[1] = 'i'
@@ -38,7 +38,7 @@ func (MyServerFilter) OutputFilter(data []byte, context interface{}) []byte {
 	return buf
 }
 
-func inc(context *hprose.TcpContext) int {
+func inc(context hprose.Context) int {
 	session := GetSession(context)
 	n, ok := session["n"]
 	if !ok {
