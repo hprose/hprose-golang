@@ -21,14 +21,14 @@ package hprose
 
 type Context interface {
 	UserData() map[string]interface{}
-	GetInt(key string) int
-	GetUInt(key string) uint
-	GetInt64(key string) int64
-	GetUInt64(key string) uint64
-	GetFloat(key string) float64
-	GetBool(key string) bool
-	GetString(key string) string
-	GetInterface(key string) interface{}
+	GetInt(key string) (value int, ok bool)
+	GetUInt(key string) (value uint, ok bool)
+	GetInt64(key string) (value int64, ok bool)
+	GetUInt64(key string) (value uint64, ok bool)
+	GetFloat(key string) (value float64, ok bool)
+	GetBool(key string) (value bool, ok bool)
+	GetString(key string) (value string, ok bool)
+	GetInterface(key string) (value interface{}, ok bool)
 	SetInt(key string, value int)
 	SetUInt(key string, value uint)
 	SetInt64(key string, value int64)
@@ -51,36 +51,74 @@ func (context *BaseContext) UserData() map[string]interface{} {
 	return context.userData
 }
 
-func (context *BaseContext) GetInt(key string) int {
-	return context.userData[key].(int)
+func (context *BaseContext) GetInt(key string) (value int, ok bool) {
+	if value, ok := context.userData[key]; ok {
+		if value, ok := value.(int); ok {
+			return value, true
+		}
+	}
+	return 0, false
 }
 
-func (context *BaseContext) GetUInt(key string) uint {
-	return context.userData[key].(uint)
+func (context *BaseContext) GetUInt(key string) (value uint, ok bool) {
+	if value, ok := context.userData[key]; ok {
+		if value, ok := value.(uint); ok {
+			return value, true
+		}
+	}
+	return 0, false
 }
 
-func (context *BaseContext) GetInt64(key string) int64 {
-	return context.userData[key].(int64)
+func (context *BaseContext) GetInt64(key string) (value int64, ok bool) {
+	if value, ok := context.userData[key]; ok {
+		if value, ok := value.(int64); ok {
+			return value, true
+		}
+	}
+	return 0, false
 }
 
-func (context *BaseContext) GetUInt64(key string) uint64 {
-	return context.userData[key].(uint64)
+func (context *BaseContext) GetUInt64(key string) (value uint64, ok bool) {
+	if value, ok := context.userData[key]; ok {
+		if value, ok := value.(uint64); ok {
+			return value, true
+		}
+	}
+	return 0, false
 }
 
-func (context *BaseContext) GetFloat(key string) float64 {
-	return context.userData[key].(float64)
+func (context *BaseContext) GetFloat(key string) (value float64, ok bool) {
+	if value, ok := context.userData[key]; ok {
+		if value, ok := value.(float64); ok {
+			return value, true
+		}
+	}
+	return 0, false
 }
 
-func (context *BaseContext) GetBool(key string) bool {
-	return context.userData[key].(bool)
+func (context *BaseContext) GetBool(key string) (value bool, ok bool) {
+	if value, ok := context.userData[key]; ok {
+		if value, ok := value.(bool); ok {
+			return value, true
+		}
+	}
+	return false, false
 }
 
-func (context *BaseContext) GetString(key string) string {
-	return context.userData[key].(string)
+func (context *BaseContext) GetString(key string) (value string, ok bool) {
+	if value, ok := context.userData[key]; ok {
+		if value, ok := value.(string); ok {
+			return value, true
+		}
+	}
+	return "", false
 }
 
-func (context *BaseContext) GetInterface(key string) interface{} {
-	return context.userData[key]
+func (context *BaseContext) GetInterface(key string) (value interface{}, ok bool) {
+	if value, ok := context.userData[key]; ok {
+		return value, true
+	}
+	return nil, false
 }
 
 func (context *BaseContext) SetInt(key string, value int) {

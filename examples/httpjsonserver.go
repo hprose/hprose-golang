@@ -20,5 +20,6 @@ func main() {
 	hprose.ClassManager.Register(reflect.TypeOf(User{}), "User", "json")
 	service := hprose.NewHttpService()
 	service.AddFunction("getUser", getUser)
+	service.SetFilter(hprose.JSONRPCServiceFilter{})
 	http.ListenAndServe(":8080", service)
 }

@@ -8,7 +8,8 @@ import (
 var Session []map[string]interface{}
 
 func GetSession(context hprose.Context) map[string]interface{} {
-	return Session[context.GetInt("sessionid")]
+	sessionid, _ := context.GetInt("sessionid")
+	return Session[sessionid]
 }
 
 type MyServerFilter struct{}
@@ -25,7 +26,7 @@ func (MyServerFilter) InputFilter(data []byte, context hprose.Context) []byte {
 }
 
 func (MyServerFilter) OutputFilter(data []byte, context hprose.Context) []byte {
-	sessionid := context.GetInt("sessionid")
+	sessionid, _ := context.GetInt("sessionid")
 	buf := make([]byte, 7+len(data))
 	buf[0] = 's'
 	buf[1] = 'i'
