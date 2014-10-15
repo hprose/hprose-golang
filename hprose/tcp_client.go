@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Apr 14, 2014                             *
+ * LastModified: Oct 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -176,6 +176,7 @@ type TcpTransporter struct {
 func NewTcpClient(uri string) Client {
 	trans := &TcpTransporter{connPool: &TcpConnPool{pool: make([]*TcpConnEntry, 0)}}
 	client := &TcpClient{BaseClient: NewBaseClient(trans)}
+	client.Client = client
 	trans.TcpClient = client
 	client.SetUri(uri)
 	return client

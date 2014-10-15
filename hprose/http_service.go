@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: May 19, 2014                             *
+ * LastModified: Oct 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,14 +30,15 @@ import (
 	"time"
 )
 
-type HttpServiceEvent interface {
-	ServiceEvent
-	OnSendHeader(response http.ResponseWriter, request *http.Request)
-}
-
 type HttpContext struct {
 	Response http.ResponseWriter
 	Request  *http.Request
+	UserData map[string]interface{}
+}
+
+type HttpServiceEvent interface {
+	ServiceEvent
+	OnSendHeader(context *HttpContext)
 }
 
 type HttpService struct {
@@ -113,27 +114,27 @@ func (service *HttpService) clientAccessPolicyXmlHandler(response http.ResponseW
 	return false
 }
 
-func (service *HttpService) sendHeader(response http.ResponseWriter, request *http.Request) {
+func (service *HttpService) sendHeader(context *HttpContext) {
 	if service.ServiceEvent != nil {
 		if event, ok := service.ServiceEvent.(HttpServiceEvent); ok {
-			event.OnSendHeader(response, request)
+			event.OnSendHeader(context)
 		}
 	}
-	response.Header().Set("Content-Type", "text/plain")
+	context.Response.Header().Set("Content-Type", "text/plain")
 	if service.P3PEnabled {
-		response.Header().Set("P3P", `CP="CAO DSP COR CUR ADM DEV TAI PSA PSD IVAi IVDi `+
+		context.Response.Header().Set("P3P", `CP="CAO DSP COR CUR ADM DEV TAI PSA PSD IVAi IVDi `+
 			`CONi TELo OTPi OUR DELi SAMi OTRi UNRi PUBi IND PHY ONL `+
 			`UNI PUR FIN COM NAV INT DEM CNT STA POL HEA PRE GOV"`)
 	}
 	if service.CrossDomainEnabled {
-		origin := request.Header.Get("origin")
+		origin := context.Request.Header.Get("origin")
 		if origin != "" && origin != "null" {
 			if len(service.accessControlAllowOrigins) == 0 || service.accessControlAllowOrigins[origin] {
-				response.Header().Set("Access-Control-Allow-Origin", origin)
-				response.Header().Set("Access-Control-Allow-Credentials", "true")
+				context.Response.Header().Set("Access-Control-Allow-Origin", origin)
+				context.Response.Header().Set("Access-Control-Allow-Credentials", "true")
 			}
 		} else {
-			response.Header().Set("Access-Control-Allow-Origin", "*")
+			context.Response.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 	}
 }
@@ -201,8 +202,8 @@ func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *htt
 	if service.crossDomainXmlContent != nil && service.crossDomainXmlHandler(response, request) {
 		return
 	}
-	service.sendHeader(response, request)
-	context := &HttpContext{Response: response, Request: request}
+	context := &HttpContext{Response: response, Request: request, UserData: make(map[string]interface{})}
+	service.sendHeader(context)
 	switch request.Method {
 	case "GET":
 		if service.GetEnabled {

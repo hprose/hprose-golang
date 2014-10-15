@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Apr 4, 2014                              *
+ * LastModified: Oct 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -40,6 +40,7 @@ type HttpTransporter struct {
 
 func NewHttpClient(uri string) Client {
 	client := &HttpClient{NewBaseClient(newHttpTransporter())}
+	client.Client = client
 	client.SetUri(uri)
 	client.SetKeepAlive(true)
 	return client

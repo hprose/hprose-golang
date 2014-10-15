@@ -12,7 +12,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: May 25, 2014                             *
+ * LastModified: Oct 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -138,12 +138,18 @@ type Client interface {
 	Close()
 }
 
+type ClientContext struct {
+	Client
+	UserData map[string]interface{}
+}
+
 type Transporter interface {
 	SendAndReceive(uri string, data []byte) ([]byte, error)
 }
 
 type BaseClient struct {
 	Transporter
+	Client
 	ByRef        bool
 	SimpleMode   bool
 	DebugEnabled bool
@@ -298,16 +304,17 @@ func (client *BaseClient) invoke(name string, args []reflect.Value, options *Inv
 	if byref && !checkRefArgs(args) {
 		panic("The elements in args must be pointer when options.ByRef is true.")
 	}
+	context := &ClientContext{Client: client.Client, UserData: make(map[string]interface{})}
 	if async {
-		return client.asyncInvoke(name, args, options, result)
+		return client.asyncInvoke(name, args, options, result, context)
 	} else {
 		err := make(chan error, 1)
-		err <- client.syncInvoke(name, args, options, result)
+		err <- client.syncInvoke(name, args, options, result, context)
 		return err
 	}
 }
 
-func (client *BaseClient) syncInvoke(name string, args []reflect.Value, options *InvokeOptions, result []reflect.Value) (err error) {
+func (client *BaseClient) syncInvoke(name string, args []reflect.Value, options *InvokeOptions, result []reflect.Value, context *ClientContext) (err error) {
 	defer func() {
 		if e := recover(); e != nil && err == nil {
 			if client.DebugEnabled {
@@ -317,17 +324,17 @@ func (client *BaseClient) syncInvoke(name string, args []reflect.Value, options 
 			}
 		}
 	}()
-	if odata, e := client.doOutput(name, args, options); e != nil {
+	if odata, e := client.doOutput(name, args, options, context); e != nil {
 		err = e
 	} else if idata, e := client.SendAndReceive(client.Uri(), odata); e != nil {
 		err = e
-	} else if e := client.doIntput(idata, args, options, result); e != nil {
+	} else if e := client.doIntput(idata, args, options, result, context); e != nil {
 		err = e
 	}
 	return err
 }
 
-func (client *BaseClient) asyncInvoke(name string, args []reflect.Value, options *InvokeOptions, result []reflect.Value) <-chan error {
+func (client *BaseClient) asyncInvoke(name string, args []reflect.Value, options *InvokeOptions, result []reflect.Value, context *ClientContext) <-chan error {
 	length := len(result)
 	sender := make([]reflect.Value, length)
 	out := make([]reflect.Value, length)
@@ -340,7 +347,7 @@ func (client *BaseClient) asyncInvoke(name string, args []reflect.Value, options
 	}
 	errChan := make(chan error, 1)
 	go func() {
-		err := client.syncInvoke(name, args, options, out)
+		err := client.syncInvoke(name, args, options, out, context)
 		for i := 0; i < length; i++ {
 			sender[i].Send(out[i])
 		}
@@ -349,7 +356,7 @@ func (client *BaseClient) asyncInvoke(name string, args []reflect.Value, options
 	return errChan
 }
 
-func (client *BaseClient) doOutput(name string, args []reflect.Value, options *InvokeOptions) (data []byte, err error) {
+func (client *BaseClient) doOutput(name string, args []reflect.Value, options *InvokeOptions, context *ClientContext) (data []byte, err error) {
 	buf := new(bytes.Buffer)
 	simple := client.SimpleMode
 	if s, ok := options.SimpleMode.(bool); ok {
@@ -383,14 +390,14 @@ func (client *BaseClient) doOutput(name string, args []reflect.Value, options *I
 	data = buf.Bytes()
 	n := len(client.filters)
 	for i := 0; i < n; i++ {
-		data = client.filters[i].OutputFilter(data, client)
+		data = client.filters[i].OutputFilter(data, context)
 	}
 	return data, nil
 }
 
-func (client *BaseClient) doIntput(data []byte, args []reflect.Value, options *InvokeOptions, result []reflect.Value) (err error) {
+func (client *BaseClient) doIntput(data []byte, args []reflect.Value, options *InvokeOptions, result []reflect.Value, context *ClientContext) (err error) {
 	for i := len(client.filters) - 1; i >= 0; i-- {
-		data = client.filters[i].InputFilter(data, client)
+		data = client.filters[i].InputFilter(data, context)
 	}
 	resultMode := options.ResultMode
 	if last := len(data) - 1; data[last] == TagEnd {

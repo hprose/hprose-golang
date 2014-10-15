@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Apr 14, 2014                             *
+ * LastModified: Oct 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -44,11 +44,20 @@ type TcpService struct {
 	config          *tls.Config
 }
 
+type TcpContext struct {
+	net.Conn
+	UserData map[string]interface{}
+}
+
 type tcpArgsFixer struct{}
 
 func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context interface{}) []reflect.Value {
-	if conn, ok := context.(net.Conn); ok && lastParamType.String() == "net.Conn" {
-		return append(args, reflect.ValueOf(conn))
+	if c, ok := context.(*TcpContext); ok {
+		if lastParamType.String() == "*hprose.TcpContext" {
+			return append(args, reflect.ValueOf(c))
+		} else if lastParamType.String() == "net.Conn" {
+			return append(args, reflect.ValueOf(c.Conn))
+		}
 	}
 	return fixArgs(args, lastParamType, context)
 }
@@ -153,7 +162,7 @@ func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
 				data, err = receiveDataOverTcp(conn)
 			}
 			if err == nil {
-				data = service.Handle(data, conn)
+				data = service.Handle(data, &TcpContext{Conn: conn, UserData: make(map[string]interface{})})
 				if service.writeTimeout != nil {
 					err = conn.SetWriteDeadline(time.Now().Add(service.writeTimeout.(time.Duration)))
 				}
