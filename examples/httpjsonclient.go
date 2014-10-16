@@ -13,15 +13,16 @@ type User struct {
 }
 
 type Stub struct {
-	GetUser func() *User
+	GetUser func(name string, age int) *User
 }
 
 func main() {
 	hprose.ClassManager.Register(reflect.TypeOf(User{}), "User", "json")
 	client := hprose.NewClient("http://127.0.0.1:8080/")
+	client.SetFilter(hprose.NewJSONRPCClientFilter("2.0"))
 	var stub *Stub
 	client.UseService(&stub)
-	user := stub.GetUser()
+	user := stub.GetUser("Jerry", 16)
 	fmt.Println(user.Name)
 	fmt.Println(user.Age)
 	fmt.Println(user.HaHa)

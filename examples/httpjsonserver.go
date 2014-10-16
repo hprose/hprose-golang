@@ -12,8 +12,8 @@ type User struct {
 	HaHa string `json:"-"`
 }
 
-func getUser() *User {
-	return &User{Name: "Tom", Age: 28, HaHa: "Don't Serialize Me!"}
+func getUser(name string, age int) *User {
+	return &User{Name: name, Age: age, HaHa: "Don't Serialize Me!"}
 }
 
 func main() {
