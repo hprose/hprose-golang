@@ -209,7 +209,7 @@ func (service *HttpService) Serve(response http.ResponseWriter, request *http.Re
 	context := &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}
 	if userData != nil {
 		for k, v := range userData {
-			context.setInterface(k, v);
+			context.SetInterface(k, v);
 		}
 	}
 	service.sendHeader(context)
@@ -231,5 +231,5 @@ func (service *HttpService) Serve(response http.ResponseWriter, request *http.Re
 }
 
 func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	Serve(response, request, nil)
+	service.Serve(response, request, nil)
 }
