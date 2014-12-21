@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: Oct 15, 2014                             *
+ * LastModified: Dec 21, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -199,7 +199,7 @@ func (service *HttpService) readAll(request *http.Request) (data []byte, err err
 	return make([]byte, 0), nil
 }
 
-func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+func (service *HttpService) Serve(response http.ResponseWriter, request *http.Request, userData map[string]interface{}) {
 	if service.clientAccessPolicyXmlContent != nil && service.clientAccessPolicyXmlHandler(response, request) {
 		return
 	}
@@ -207,6 +207,11 @@ func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 	context := &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}
+	if userData != nil {
+		for k, v := range userData {
+			context.setInterface(k, v);
+		}
+	}
 	service.sendHeader(context)
 	switch request.Method {
 	case "GET":
@@ -223,4 +228,8 @@ func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *htt
 		}
 		response.Write(service.Handle(data, context))
 	}
+}
+
+func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+	Serve(response, request, nil)
 }
