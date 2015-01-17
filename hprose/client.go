@@ -515,7 +515,7 @@ func (client *BaseClient) createStub(stub interface{}, ns string) {
 		} else if ft.Kind() == reflect.Ptr {
 			ft = ft.Elem()
 		}
-		if ft.Kind() == reflect.Struct {
+		if ft.Kind() == reflect.Struct && f.CanSet() {
 			fp := reflect.New(ft)
 			sf := et.Field(i)
 			if sf.Anonymous {
