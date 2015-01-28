@@ -26,7 +26,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hprose/hprose-go/hprose"
+	"../hprose"
 )
 
 func hello(name string) string {
