@@ -8,9 +8,9 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * hprose/tcp_client.go                                   *
+ * hprose/unix_client.go                                   *
  *                                                        *
- * hprose tcp client for Go.                              *
+ * hprose unix client for Go.                              *
  *                                                        *
  * LastModified: Oct 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
@@ -20,74 +20,54 @@
 package hprose
 
 import (
-	"crypto/tls"
 	"net"
-	"net/url"
+	"strings"
 	"sync"
 	"time"
 )
 
-type TcpClient struct {
+type UnixClient struct {
 	*BaseClient
-	timeout         interface{}
-	keepAlive       interface{}
-	keepAlivePeriod interface{}
-	linger          interface{}
-	noDelay         interface{}
-	readBuffer      interface{}
-	readTimeout     interface{}
-	writeBuffer     interface{}
-	writeTimeout    interface{}
-	tlsConfig       *tls.Config
+	timeout      interface{}
+	readBuffer   interface{}
+	readTimeout  interface{}
+	writeBuffer  interface{}
+	writeTimeout interface{}
 }
 
-type sockConnStatus int
-
-const (
-	free = sockConnStatus(iota)
-	using
-	closing
-)
-
-type TcpConnEntry struct {
+type UnixConnEntry struct {
 	uri          string
 	conn         net.Conn
 	status       sockConnStatus
 	lastUsedTime time.Time
 }
 
-func (connEntry *TcpConnEntry) Get() net.Conn {
+func (connEntry *UnixConnEntry) Get() net.Conn {
 	return connEntry.conn
 }
 
-func (connEntry *TcpConnEntry) Set(conn net.Conn) {
+func (connEntry *UnixConnEntry) Set(conn net.Conn) {
 	if conn != nil {
 		connEntry.conn = conn
 	}
 }
 
-func (connEntry *TcpConnEntry) Close() {
+func (connEntry *UnixConnEntry) Close() {
 	connEntry.status = closing
 }
 
-type TcpConnPool struct {
+type UnixConnPool struct {
 	sync.Mutex
-	pool    []*TcpConnEntry
+	pool    []*UnixConnEntry
 	timer   *time.Ticker
 	timeout time.Duration
 }
 
-func freeConns(conns []net.Conn) {
-	for _, conn := range conns {
-		conn.Close()
-	}
-}
-
-func (connPool *TcpConnPool) Timeout() time.Duration {
+func (connPool *UnixConnPool) Timeout() time.Duration {
 	return connPool.timeout
 }
 
-func (connPool *TcpConnPool) SetTimeout(d time.Duration) {
+func (connPool *UnixConnPool) SetTimeout(d time.Duration) {
 	if connPool.timer != nil {
 		connPool.timer.Stop()
 		connPool.timer = nil
@@ -99,7 +79,7 @@ func (connPool *TcpConnPool) SetTimeout(d time.Duration) {
 	}
 }
 
-func (connPool *TcpConnPool) closeTimeoutConns() {
+func (connPool *UnixConnPool) closeTimeoutConns() {
 	for t := range connPool.timer.C {
 		connPool.Lock()
 		defer connPool.Unlock()
@@ -118,7 +98,7 @@ func (connPool *TcpConnPool) closeTimeoutConns() {
 	}
 }
 
-func (connPool *TcpConnPool) Get(uri string) *TcpConnEntry {
+func (connPool *UnixConnPool) Get(uri string) *UnixConnEntry {
 	connPool.Lock()
 	defer connPool.Unlock()
 	for _, entry := range connPool.pool {
@@ -133,12 +113,12 @@ func (connPool *TcpConnPool) Get(uri string) *TcpConnEntry {
 			}
 		}
 	}
-	entry := &TcpConnEntry{uri, nil, using, time.Now()}
+	entry := &UnixConnEntry{uri, nil, using, time.Now()}
 	connPool.pool = append(connPool.pool, entry)
 	return entry
 }
 
-func (connPool *TcpConnPool) Close(uri string) {
+func (connPool *UnixConnPool) Close(uri string) {
 	connPool.Lock()
 	defer connPool.Unlock()
 	conns := make([]net.Conn, 0, len(connPool.pool))
@@ -156,7 +136,7 @@ func (connPool *TcpConnPool) Close(uri string) {
 	go freeConns(conns)
 }
 
-func (connPool *TcpConnPool) Free(entry *TcpConnEntry) {
+func (connPool *UnixConnPool) Free(entry *UnixConnEntry) {
 	if entry.status == closing {
 		if entry.conn != nil {
 			go entry.conn.Close()
@@ -168,87 +148,67 @@ func (connPool *TcpConnPool) Free(entry *TcpConnEntry) {
 	entry.status = free
 }
 
-type TcpTransporter struct {
-	connPool *TcpConnPool
-	*TcpClient
+type UnixTransporter struct {
+	connPool *UnixConnPool
+	*UnixClient
 }
 
-func NewTcpClient(uri string) Client {
-	trans := &TcpTransporter{connPool: &TcpConnPool{pool: make([]*TcpConnEntry, 0)}}
-	client := &TcpClient{BaseClient: NewBaseClient(trans)}
+func NewUnixClient(uri string) Client {
+	trans := &UnixTransporter{connPool: &UnixConnPool{pool: make([]*UnixConnEntry, 0)}}
+	client := &UnixClient{BaseClient: NewBaseClient(trans)}
 	client.Client = client
-	trans.TcpClient = client
+	trans.UnixClient = client
 	client.SetUri(uri)
 	return client
 }
 
-func (client *TcpClient) SetUri(uri string) {
-	if u, err := url.Parse(uri); err == nil {
-		if u.Scheme != "tcp" && u.Scheme != "tcp4" && u.Scheme != "tcp6" {
-			panic("This client desn't support " + u.Scheme + " scheme.")
-		}
+func (client *UnixClient) SetUri(uri string) {
+	scheme := strings.Split(uri, ":")[0]
+	if scheme != "unix" && scheme != "unixpacket" {
+		panic("This client desn't support " + scheme + " scheme.")
 	}
 	client.Close()
 	client.BaseClient.SetUri(uri)
 }
 
-func (client *TcpClient) Close() {
+func (client *UnixClient) Close() {
 	uri := client.Uri()
 	if uri == "" {
-		client.Transporter.(*TcpTransporter).connPool.Close(uri)
+		client.Transporter.(*UnixTransporter).connPool.Close(uri)
 	}
 }
 
-func (client *TcpClient) Timeout() time.Duration {
-	return client.Transporter.(*TcpTransporter).connPool.Timeout()
+func (client *UnixClient) Timeout() time.Duration {
+	return client.Transporter.(*UnixTransporter).connPool.Timeout()
 }
 
-func (client *TcpClient) SetTimeout(d time.Duration) {
+func (client *UnixClient) SetTimeout(d time.Duration) {
 	client.timeout = d
-	client.Transporter.(*TcpTransporter).connPool.SetTimeout(d)
+	client.Transporter.(*UnixTransporter).connPool.SetTimeout(d)
 }
 
-func (client *TcpClient) SetKeepAlive(keepalive bool) {
-	client.keepAlive = keepalive
-}
-
-func (client *TcpClient) SetKeepAlivePeriod(d time.Duration) {
-	client.keepAlivePeriod = d
-}
-
-func (client *TcpClient) SetLinger(sec int) {
-	client.linger = sec
-}
-
-func (client *TcpClient) SetNoDelay(noDelay bool) {
-	client.noDelay = noDelay
-}
-
-func (client *TcpClient) SetReadBuffer(bytes int) {
+func (client *UnixClient) SetReadBuffer(bytes int) {
 	client.readBuffer = bytes
 }
 
-func (client *TcpClient) SetReadTimeout(d time.Duration) {
+func (client *UnixClient) SetReadTimeout(d time.Duration) {
 	client.readTimeout = d
 }
 
-func (client *TcpClient) SetWriteBuffer(bytes int) {
+func (client *UnixClient) SetWriteBuffer(bytes int) {
 	client.writeBuffer = bytes
 }
 
-func (client *TcpClient) SetWriteTimeout(d time.Duration) {
+func (client *UnixClient) SetWriteTimeout(d time.Duration) {
 	client.writeTimeout = d
 }
 
-func (client *TcpClient) TLSClientConfig() *tls.Config {
-	return client.tlsConfig
+func parseUnixUri(uri string) (scheme, path string) {
+	t := strings.Split(uri, ":")
+	return t[0], t[1]
 }
 
-func (client *TcpClient) SetTLSClientConfig(config *tls.Config) {
-	client.tlsConfig = config
-}
-
-func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
+func (t *UnixTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
 	connEntry := t.connPool.Get(uri)
 	defer func() {
 		if err != nil {
@@ -258,46 +218,21 @@ func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte,
 	}()
 	conn := connEntry.Get()
 	if conn == nil {
-		var u *url.URL
-		if u, err = url.Parse(uri); err != nil {
+		scheme, path := parseUnixUri(uri)
+		var unixaddr *net.UnixAddr
+		if unixaddr, err = net.ResolveUnixAddr(scheme, path); err != nil {
 			return nil, err
 		}
-		var tcpaddr *net.TCPAddr
-		if tcpaddr, err = net.ResolveTCPAddr(u.Scheme, u.Host); err != nil {
+		if conn, err = net.DialUnix("unix", nil, unixaddr); err != nil {
 			return nil, err
-		}
-		if conn, err = net.DialTCP("tcp", nil, tcpaddr); err != nil {
-			return nil, err
-		}
-		if t.keepAlive != nil {
-			if err = conn.(*net.TCPConn).SetKeepAlive(t.keepAlive.(bool)); err != nil {
-				return nil, err
-			}
-		}
-		if t.keepAlivePeriod != nil {
-			if kap, ok := conn.(iKeepAlivePeriod); ok {
-				if err = kap.SetKeepAlivePeriod(t.keepAlivePeriod.(time.Duration)); err != nil {
-					return nil, err
-				}
-			}
-		}
-		if t.linger != nil {
-			if err = conn.(*net.TCPConn).SetLinger(t.linger.(int)); err != nil {
-				return nil, err
-			}
-		}
-		if t.noDelay != nil {
-			if err = conn.(*net.TCPConn).SetNoDelay(t.noDelay.(bool)); err != nil {
-				return nil, err
-			}
 		}
 		if t.readBuffer != nil {
-			if err = conn.(*net.TCPConn).SetReadBuffer(t.readBuffer.(int)); err != nil {
+			if err = conn.(*net.UnixConn).SetReadBuffer(t.readBuffer.(int)); err != nil {
 				return nil, err
 			}
 		}
 		if t.writeBuffer != nil {
-			if err = conn.(*net.TCPConn).SetWriteBuffer(t.writeBuffer.(int)); err != nil {
+			if err = conn.(*net.UnixConn).SetWriteBuffer(t.writeBuffer.(int)); err != nil {
 				return nil, err
 			}
 		}
@@ -305,9 +240,6 @@ func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte,
 			if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
 				return nil, err
 			}
-		}
-		if t.tlsConfig != nil {
-			conn = tls.Client(conn, t.tlsConfig)
 		}
 		connEntry.Set(conn)
 	}
