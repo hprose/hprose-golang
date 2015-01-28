@@ -31,16 +31,11 @@ import (
 )
 
 type TcpService struct {
-	*BaseService
-	timeout         interface{}
+	*StreamService
 	keepAlive       interface{}
 	keepAlivePeriod interface{}
 	linger          interface{}
 	noDelay         interface{}
-	readTimeout     interface{}
-	readBuffer      interface{}
-	writeTimeout    interface{}
-	writeBuffer     interface{}
 	config          *tls.Config
 }
 
@@ -63,13 +58,9 @@ func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, co
 }
 
 func NewTcpService() *TcpService {
-	service := &TcpService{BaseService: NewBaseService()}
+	service := &TcpService{StreamService: newStreamService()}
 	service.argsfixer = tcpArgsFixer{}
 	return service
-}
-
-func (service *TcpService) SetTimeout(d time.Duration) {
-	service.timeout = d
 }
 
 func (service *TcpService) SetKeepAlive(keepalive bool) {
@@ -86,22 +77,6 @@ func (service *TcpService) SetLinger(sec int) {
 
 func (service *TcpService) SetNoDelay(noDelay bool) {
 	service.noDelay = noDelay
-}
-
-func (service *TcpService) SetReadTimeout(d time.Duration) {
-	service.readTimeout = d
-}
-
-func (service *TcpService) SetReadBuffer(bytes int) {
-	service.readBuffer = bytes
-}
-
-func (service *TcpService) SetWriteTimeout(d time.Duration) {
-	service.writeTimeout = d
-}
-
-func (service *TcpService) SetWriteBuffer(bytes int) {
-	service.writeBuffer = bytes
 }
 
 func (service *TcpService) SetTLSConfig(config *tls.Config) {

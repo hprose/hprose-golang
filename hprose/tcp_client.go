@@ -23,159 +23,26 @@ import (
 	"crypto/tls"
 	"net"
 	"net/url"
-	"sync"
 	"time"
 )
 
 type TcpClient struct {
-	*BaseClient
-	timeout         interface{}
+	*StreamClient
 	keepAlive       interface{}
 	keepAlivePeriod interface{}
 	linger          interface{}
 	noDelay         interface{}
-	readBuffer      interface{}
-	readTimeout     interface{}
-	writeBuffer     interface{}
-	writeTimeout    interface{}
 	tlsConfig       *tls.Config
 }
 
-type sockConnStatus int
-
-const (
-	free = sockConnStatus(iota)
-	using
-	closing
-)
-
-type TcpConnEntry struct {
-	uri          string
-	conn         net.Conn
-	status       sockConnStatus
-	lastUsedTime time.Time
-}
-
-func (connEntry *TcpConnEntry) Get() net.Conn {
-	return connEntry.conn
-}
-
-func (connEntry *TcpConnEntry) Set(conn net.Conn) {
-	if conn != nil {
-		connEntry.conn = conn
-	}
-}
-
-func (connEntry *TcpConnEntry) Close() {
-	connEntry.status = closing
-}
-
-type TcpConnPool struct {
-	sync.Mutex
-	pool    []*TcpConnEntry
-	timer   *time.Ticker
-	timeout time.Duration
-}
-
-func freeConns(conns []net.Conn) {
-	for _, conn := range conns {
-		conn.Close()
-	}
-}
-
-func (connPool *TcpConnPool) Timeout() time.Duration {
-	return connPool.timeout
-}
-
-func (connPool *TcpConnPool) SetTimeout(d time.Duration) {
-	if connPool.timer != nil {
-		connPool.timer.Stop()
-		connPool.timer = nil
-	}
-	connPool.timeout = d
-	if d > 0 {
-		connPool.timer = time.NewTicker(d)
-		go connPool.closeTimeoutConns()
-	}
-}
-
-func (connPool *TcpConnPool) closeTimeoutConns() {
-	for t := range connPool.timer.C {
-		connPool.Lock()
-		defer connPool.Unlock()
-		conns := make([]net.Conn, 0, len(connPool.pool))
-		for _, entry := range connPool.pool {
-			if entry.uri != "" &&
-				entry.status == free &&
-				entry.conn != nil &&
-				t.After(entry.lastUsedTime.Add(connPool.timeout)) {
-				conns = append(conns, entry.conn)
-				entry.conn = nil
-				entry.uri = ""
-			}
-		}
-		go freeConns(conns)
-	}
-}
-
-func (connPool *TcpConnPool) Get(uri string) *TcpConnEntry {
-	connPool.Lock()
-	defer connPool.Unlock()
-	for _, entry := range connPool.pool {
-		if entry.status == free {
-			if entry.uri == uri {
-				entry.status = using
-				return entry
-			} else if entry.uri == "" {
-				entry.status = using
-				entry.uri = uri
-				return entry
-			}
-		}
-	}
-	entry := &TcpConnEntry{uri, nil, using, time.Now()}
-	connPool.pool = append(connPool.pool, entry)
-	return entry
-}
-
-func (connPool *TcpConnPool) Close(uri string) {
-	connPool.Lock()
-	defer connPool.Unlock()
-	conns := make([]net.Conn, 0, len(connPool.pool))
-	for _, entry := range connPool.pool {
-		if entry.uri == uri {
-			if entry.status == free {
-				conns = append(conns, entry.conn)
-				entry.conn = nil
-				entry.uri = ""
-			} else {
-				entry.Close()
-			}
-		}
-	}
-	go freeConns(conns)
-}
-
-func (connPool *TcpConnPool) Free(entry *TcpConnEntry) {
-	if entry.status == closing {
-		if entry.conn != nil {
-			go entry.conn.Close()
-			entry.conn = nil
-		}
-		entry.uri = ""
-	}
-	entry.lastUsedTime = time.Now()
-	entry.status = free
-}
-
 type TcpTransporter struct {
-	connPool *TcpConnPool
+	connPool *StreamConnPool
 	*TcpClient
 }
 
 func NewTcpClient(uri string) Client {
-	trans := &TcpTransporter{connPool: &TcpConnPool{pool: make([]*TcpConnEntry, 0)}}
-	client := &TcpClient{BaseClient: NewBaseClient(trans)}
+	trans := &TcpTransporter{connPool: &StreamConnPool{pool: make([]*StreamConnEntry, 0)}}
+	client := &TcpClient{StreamClient: newStreamClient(trans)}
 	client.Client = client
 	trans.TcpClient = client
 	client.SetUri(uri)
@@ -222,22 +89,6 @@ func (client *TcpClient) SetLinger(sec int) {
 
 func (client *TcpClient) SetNoDelay(noDelay bool) {
 	client.noDelay = noDelay
-}
-
-func (client *TcpClient) SetReadBuffer(bytes int) {
-	client.readBuffer = bytes
-}
-
-func (client *TcpClient) SetReadTimeout(d time.Duration) {
-	client.readTimeout = d
-}
-
-func (client *TcpClient) SetWriteBuffer(bytes int) {
-	client.writeBuffer = bytes
-}
-
-func (client *TcpClient) SetWriteTimeout(d time.Duration) {
-	client.writeTimeout = d
 }
 
 func (client *TcpClient) TLSClientConfig() *tls.Config {

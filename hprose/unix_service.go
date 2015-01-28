@@ -29,12 +29,7 @@ import (
 )
 
 type UnixService struct {
-	*BaseService
-	timeout      interface{}
-	readTimeout  interface{}
-	readBuffer   interface{}
-	writeTimeout interface{}
-	writeBuffer  interface{}
+	*StreamService
 }
 
 type UnixContext struct {
@@ -56,29 +51,9 @@ func (unixArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, c
 }
 
 func NewUnixService() *UnixService {
-	service := &UnixService{BaseService: NewBaseService()}
+	service := &UnixService{StreamService: newStreamService()}
 	service.argsfixer = unixArgsFixer{}
 	return service
-}
-
-func (service *UnixService) SetTimeout(d time.Duration) {
-	service.timeout = d
-}
-
-func (service *UnixService) SetReadTimeout(d time.Duration) {
-	service.readTimeout = d
-}
-
-func (service *UnixService) SetReadBuffer(bytes int) {
-	service.readBuffer = bytes
-}
-
-func (service *UnixService) SetWriteTimeout(d time.Duration) {
-	service.writeTimeout = d
-}
-
-func (service *UnixService) SetWriteBuffer(bytes int) {
-	service.writeBuffer = bytes
 }
 
 func (service *UnixService) ServeUnix(conn *net.UnixConn) (err error) {
