@@ -8,12 +8,12 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * hprose/stream_client.go                                   *
+ * hprose/stream_client.go                                *
  *                                                        *
- * hprose stream client for Go.                              *
+ * hprose stream client for Go.                           *
  *                                                        *
- * LastModified: Oct 15, 2014                             *
- * Author: Ma Bingyao <andot@hprose.com>                  *
+ * LastModified: Jan 28, 2015                             *
+ * Author: Ore_Ash <nanohugh@gmail.com>                   *
  *                                                        *
 \**********************************************************/
 

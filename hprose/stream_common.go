@@ -8,12 +8,12 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * hprose/stream_common.go                                   *
+ * hprose/stream_common.go                                *
  *                                                        *
- * hprose stream common for Go.                              *
+ * hprose stream common for Go.                           *
  *                                                        *
- * LastModified: Feb 25, 2014                             *
- * Author: Ma Bingyao <andot@hprose.com>                  *
+ * LastModified: Jan 28, 2015                             *
+ * Author: Ore_Ash <nanohugh@gmail.com>                   *
  *                                                        *
 \**********************************************************/
 
