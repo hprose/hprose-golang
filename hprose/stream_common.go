@@ -8,12 +8,12 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * hprose/tcp_common.go                                   *
+ * hprose/stream_common.go                                *
  *                                                        *
- * hprose tcp common for Go.                              *
+ * hprose stream common for Go.                           *
  *                                                        *
- * LastModified: Feb 25, 2014                             *
- * Author: Ma Bingyao <andot@hprose.com>                  *
+ * LastModified: Jan 28, 2015                             *
+ * Author: Ore_Ash <nanohugh@gmail.com>                   *
  *                                                        *
 \**********************************************************/
 
@@ -23,7 +23,7 @@ import (
 	"io"
 )
 
-func sendDataOverTcp(w io.Writer, data []byte) (err error) {
+func sendDataOverStream(w io.Writer, data []byte) (err error) {
 	n := len(data)
 	var len int
 	switch {
@@ -54,7 +54,7 @@ func sendDataOverTcp(w io.Writer, data []byte) (err error) {
 	return err
 }
 
-func receiveDataOverTcp(r io.Reader) ([]byte, error) {
+func receiveDataOverStream(r io.Reader) ([]byte, error) {
 	var buf [512]byte
 	n, err := io.ReadAtLeast(r, buf[:], 4)
 	if err != nil {

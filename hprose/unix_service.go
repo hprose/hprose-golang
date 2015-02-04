@@ -8,9 +8,9 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * hprose/tcp_service.go                                  *
+ * hprose/unix_service.go                                 *
  *                                                        *
- * hprose tcp service for Go.                             *
+ * hprose unix service for Go.                            *
  *                                                        *
  * LastModified: Jan 28, 2015                             *
  * Author: Ore_Ash <nanohugh@gmail.com>                   *
@@ -20,35 +20,28 @@
 package hprose
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net"
-	"net/url"
 	"reflect"
 	"runtime"
 	"runtime/debug"
 	"time"
 )
 
-type TcpService struct {
+type UnixService struct {
 	*StreamService
-	keepAlive       interface{}
-	keepAlivePeriod interface{}
-	linger          interface{}
-	noDelay         interface{}
-	config          *tls.Config
 }
 
-type TcpContext struct {
+type UnixContext struct {
 	*BaseContext
 	net.Conn
 }
 
-type tcpArgsFixer struct{}
+type unixArgsFixer struct{}
 
-func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value {
-	if c, ok := context.(*TcpContext); ok {
-		if lastParamType.String() == "*hprose.TcpContext" {
+func (unixArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value {
+	if c, ok := context.(*UnixContext); ok {
+		if lastParamType.String() == "*hprose.UnixContext" {
 			return append(args, reflect.ValueOf(c))
 		} else if lastParamType.String() == "net.Conn" {
 			return append(args, reflect.ValueOf(c.Conn))
@@ -57,55 +50,13 @@ func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, co
 	return fixArgs(args, lastParamType, context)
 }
 
-func NewTcpService() *TcpService {
-	service := &TcpService{StreamService: newStreamService()}
-	service.argsfixer = tcpArgsFixer{}
+func NewUnixService() *UnixService {
+	service := &UnixService{StreamService: newStreamService()}
+	service.argsfixer = unixArgsFixer{}
 	return service
 }
 
-func (service *TcpService) SetKeepAlive(keepalive bool) {
-	service.keepAlive = keepalive
-}
-
-func (service *TcpService) SetKeepAlivePeriod(d time.Duration) {
-	service.keepAlivePeriod = d
-}
-
-func (service *TcpService) SetLinger(sec int) {
-	service.linger = sec
-}
-
-func (service *TcpService) SetNoDelay(noDelay bool) {
-	service.noDelay = noDelay
-}
-
-func (service *TcpService) SetTLSConfig(config *tls.Config) {
-	service.config = config
-}
-
-func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
-	if service.keepAlive != nil {
-		if err = conn.SetKeepAlive(service.keepAlive.(bool)); err != nil {
-			return err
-		}
-	}
-	if service.keepAlivePeriod != nil {
-		if kap, ok := (net.Conn(conn)).(iKeepAlivePeriod); ok {
-			if err = kap.SetKeepAlivePeriod(service.keepAlivePeriod.(time.Duration)); err != nil {
-				return err
-			}
-		}
-	}
-	if service.linger != nil {
-		if err = conn.SetLinger(service.linger.(int)); err != nil {
-			return err
-		}
-	}
-	if service.noDelay != nil {
-		if err = conn.SetNoDelay(service.noDelay.(bool)); err != nil {
-			return err
-		}
-	}
+func (service *UnixService) ServeUnix(conn *net.UnixConn) (err error) {
 	if service.readBuffer != nil {
 		if err = conn.SetReadBuffer(service.readBuffer.(int)); err != nil {
 			return err
@@ -122,11 +73,6 @@ func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
 		}
 	}
 	go func(conn net.Conn) {
-		if service.config != nil {
-			tlsConn := tls.Server(conn, service.config)
-			tlsConn.Handshake()
-			conn = tlsConn
-		}
 		var data []byte
 		var err error
 		for {
@@ -137,7 +83,7 @@ func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
 				data, err = receiveDataOverStream(conn)
 			}
 			if err == nil {
-				data = service.Handle(data, &TcpContext{BaseContext: NewBaseContext(), Conn: conn})
+				data = service.Handle(data, &UnixContext{BaseContext: NewBaseContext(), Conn: conn})
 				if service.writeTimeout != nil {
 					err = conn.SetWriteDeadline(time.Now().Add(service.writeTimeout.(time.Duration)))
 				}
@@ -154,27 +100,27 @@ func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
 	return nil
 }
 
-type TcpServer struct {
-	*TcpService
+type UnixServer struct {
+	*UnixService
 	URL         string
 	ThreadCount int
-	listener    *net.TCPListener
+	listener    *net.UnixListener
 }
 
-func NewTcpServer(uri string) *TcpServer {
+func NewUnixServer(uri string) *UnixServer {
 	if uri == "" {
-		uri = "tcp://127.0.0.1:0"
+		uri = "unix:/tmp/hprose.sock"
 	}
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	return &TcpServer{
-		TcpService:  NewTcpService(),
+	return &UnixServer{
+		UnixService: NewUnixService(),
 		URL:         uri,
 		ThreadCount: runtime.NumCPU(),
 		listener:    nil,
 	}
 }
 
-func (server *TcpServer) handle() (err error) {
+func (server *UnixServer) handle() (err error) {
 	defer func() {
 		if e := recover(); e != nil && err == nil {
 			if server.DebugEnabled {
@@ -187,14 +133,14 @@ func (server *TcpServer) handle() (err error) {
 	if server.listener == nil {
 		return nil
 	}
-	var conn *net.TCPConn
-	if conn, err = server.listener.AcceptTCP(); err != nil {
+	var conn *net.UnixConn
+	if conn, err = server.listener.AcceptUnix(); err != nil {
 		return err
 	}
-	return server.ServeTCP(conn)
+	return server.ServeUnix(conn)
 }
 
-func (server *TcpServer) start() {
+func (server *UnixServer) start() {
 	for {
 		if server.listener != nil {
 			if err := server.handle(); err != nil {
@@ -206,20 +152,17 @@ func (server *TcpServer) start() {
 	}
 }
 
-func (server *TcpServer) Start() (err error) {
+func (server *UnixServer) Start() (err error) {
 	if server.listener == nil {
-		var u *url.URL
-		if u, err = url.Parse(server.URL); err != nil {
+		scheme, path := parseUnixUri(server.URL)
+		var addr *net.UnixAddr
+		if addr, err = net.ResolveUnixAddr(scheme, path); err != nil {
 			return err
 		}
-		var addr *net.TCPAddr
-		if addr, err = net.ResolveTCPAddr(u.Scheme, u.Host); err != nil {
+		if server.listener, err = net.ListenUnix(scheme, addr); err != nil {
 			return err
 		}
-		if server.listener, err = net.ListenTCP(u.Scheme, addr); err != nil {
-			return err
-		}
-		server.URL = u.Scheme + "://" + server.listener.Addr().String()
+		server.URL = scheme + ":" + server.listener.Addr().String()
 		for i := 0; i < server.ThreadCount; i++ {
 			go server.start()
 		}
@@ -227,7 +170,7 @@ func (server *TcpServer) Start() (err error) {
 	return nil
 }
 
-func (server *TcpServer) Stop() {
+func (server *UnixServer) Stop() {
 	if server.listener != nil {
 		listener := server.listener
 		server.listener = nil

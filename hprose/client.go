@@ -164,6 +164,13 @@ func NewBaseClient(trans Transporter) *BaseClient {
 }
 
 func NewClient(uri string) Client {
+	if strings.HasPrefix(uri, "unix") {
+		scheme := strings.Split(uri, ":")[0]
+		if newClient, ok := clientFactories[scheme]; ok {
+			return newClient(uri)
+		}
+		panic("The " + scheme + "client isn't implemented.")
+	}
 	if u, err := url.Parse(uri); err == nil {
 		if newClient, ok := clientFactories[u.Scheme]; ok {
 			return newClient(uri)
@@ -738,5 +745,6 @@ func init() {
 	RegisterClientFactory("tcp", NewTcpClient)
 	RegisterClientFactory("tcp4", NewTcpClient)
 	RegisterClientFactory("tcp6", NewTcpClient)
+	RegisterClientFactory("unix", NewUnixClient)
 	//RegisterClientFactory("ws", NewWebSocketClient)
 }

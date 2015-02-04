@@ -22,10 +22,11 @@ package hprose_test
 import (
 	"errors"
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
 	"net"
 	"net/http/httptest"
 	"testing"
+
+	"../hprose"
 )
 
 func hello(name string) string {
@@ -139,6 +140,46 @@ func TestTcpService(t *testing.T) {
 	}
 }
 
+func TestUnixService(t *testing.T) {
+	server := hprose.NewUnixServer("")
+	server.AddFunction("hello", hello)
+	server.AddMethods(new(testServe))
+	server.AddFunction("getIP", getIP)
+	if err := server.Start(); err != nil {
+		t.Error(err)
+	}
+	defer server.Stop()
+	client := hprose.NewClient(server.URL)
+	var ro *testRemoteObject2
+	client.UseService(&ro)
+	if s, err := ro.Hello("World"); err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Println(s)
+	}
+	if a, b, err := ro.Swap(1, 2); err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Println(a, b)
+	}
+	if sum, err := ro.Sum(1); err != nil {
+		fmt.Println(err.Error())
+	} else {
+		t.Error(sum)
+	}
+	if sum, err := ro.Sum(1, 2, 3, 4, 5); err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Println(sum)
+	}
+	fmt.Println(ro.GetIP())
+	if err := ro.PanicTest(); err != nil {
+		fmt.Println(err.Error())
+	} else {
+		t.Error("missing panic")
+	}
+}
+
 type testRemoteObject3 struct {
 	Hello     func(string) (<-chan string, <-chan error)
 	Swap      func(int, int) (<-chan int, <-chan int, <-chan error)
@@ -151,6 +192,49 @@ func TestTcpServiceAsync(t *testing.T) {
 	server.AddFunction("hello", hello)
 	server.AddMethods(new(testServe))
 	server.Start()
+	defer server.Stop()
+	client := hprose.NewClient(server.URL)
+	var ro *testRemoteObject3
+	client.UseService(&ro)
+	s, err1 := ro.Hello("World")
+	a, b, err2 := ro.Swap(1, 2)
+	sum1, err3 := ro.Sum(1)
+	if err := <-err1; err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Println(<-s)
+	}
+	if err := <-err2; err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Println(<-a, <-b)
+	}
+	if err := <-err3; err != nil {
+		fmt.Println(err.Error())
+	} else {
+		t.Error(<-sum1)
+	}
+	sum2, err4 := ro.Sum(1, 2, 3, 4, 5)
+	err5 := ro.PanicTest()
+	if err := <-err4; err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Println(<-sum2)
+	}
+	if err := <-err5; err != nil {
+		fmt.Println(err.Error())
+	} else {
+		t.Error("missing panic")
+	}
+}
+
+func TestUnixServiceAsync(t *testing.T) {
+	server := hprose.NewUnixServer("")
+	server.AddFunction("hello", hello)
+	server.AddMethods(new(testServe))
+	if err := server.Start(); err != nil {
+		t.Error(err)
+	}
 	defer server.Stop()
 	client := hprose.NewClient(server.URL)
 	var ro *testRemoteObject3
