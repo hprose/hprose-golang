@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Oct 15, 2014                             *
+ * LastModified: Feb 8, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -29,6 +29,8 @@ import (
 )
 
 var cookieJar, _ = cookiejar.New(nil)
+
+var DisableGlobalCookie = false
 
 type HttpClient struct {
 	*BaseClient
@@ -105,7 +107,11 @@ func newHttpTransporter() *HttpTransporter {
 		DisableCompression:  true,
 		DisableKeepAlives:   false,
 		MaxIdleConnsPerHost: 4}
-	return &HttpTransporter{&http.Client{Jar: cookieJar, Transport: tr}}
+	jar := cookieJar
+	if DisableGlobalCookie {
+		jar, _ = cookiejar.New(nil)
+	}
+	return &HttpTransporter{&http.Client{Jar: jar, Transport: tr}}
 }
 
 func (h *HttpTransporter) readAll(response *http.Response) (data []byte, err error) {
