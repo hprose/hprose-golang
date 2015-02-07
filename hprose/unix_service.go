@@ -12,8 +12,9 @@
  *                                                        *
  * hprose unix service for Go.                            *
  *                                                        *
- * LastModified: Jan 28, 2015                             *
- * Author: Ore_Ash <nanohugh@gmail.com>                   *
+ * LastModified: Feb 7, 2015                              *
+ * Authors: Ma Bingyao <andot@hprose.com>                 *
+ *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
 \**********************************************************/
 
@@ -28,14 +29,9 @@ import (
 	"time"
 )
 
-type UnixService struct {
-	*StreamService
-}
+type UnixService StreamService
 
-type UnixContext struct {
-	*BaseContext
-	net.Conn
-}
+type UnixContext StreamContext
 
 type unixArgsFixer struct{}
 
@@ -43,6 +39,8 @@ func (unixArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, c
 	if c, ok := context.(*UnixContext); ok {
 		if lastParamType.String() == "*hprose.UnixContext" {
 			return append(args, reflect.ValueOf(c))
+		} else if lastParamType.String() == "*hprose.StreamContext" {
+			return append(args, reflect.ValueOf((*StreamContext)(c)))
 		} else if lastParamType.String() == "net.Conn" {
 			return append(args, reflect.ValueOf(c.Conn))
 		}
@@ -51,7 +49,7 @@ func (unixArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, c
 }
 
 func NewUnixService() *UnixService {
-	service := &UnixService{StreamService: newStreamService()}
+	service := (*UnixService)(newStreamService())
 	service.argsfixer = unixArgsFixer{}
 	return service
 }

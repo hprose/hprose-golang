@@ -13,7 +13,8 @@
  * hprose tcp client for Go.                              *
  *                                                        *
  * LastModified: Jan 28, 2015                             *
- * Author: Ore_Ash <nanohugh@gmail.com>                   *
+ * Authors: Ma Bingyao <andot@hprose.com>                 *
+ *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
 \**********************************************************/
 

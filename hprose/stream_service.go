@@ -12,14 +12,18 @@
  *                                                        *
  * hprose stream service for Go.                          *
  *                                                        *
- * LastModified: Jan 28, 2015                             *
- * Author: Ore_Ash <nanohugh@gmail.com>                   *
+ * LastModified: Feb 7, 2015                              *
+ * Authors: Ma Bingyao <andot@hprose.com>                 *
+ *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
 \**********************************************************/
 
 package hprose
 
-import "time"
+import (
+	"net"
+	"time"
+)
 
 type StreamService struct {
 	*BaseService
@@ -28,6 +32,11 @@ type StreamService struct {
 	readBuffer   interface{}
 	writeTimeout interface{}
 	writeBuffer  interface{}
+}
+
+type StreamContext struct {
+	*BaseContext
+	net.Conn
 }
 
 func newStreamService() *StreamService {
