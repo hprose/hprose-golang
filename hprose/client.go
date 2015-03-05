@@ -228,9 +228,9 @@ func (client *BaseClient) RemoveFilter(filter Filter) {
 	}
 }
 
-// UseService(uri string)
-// UseService(remoteObject interface{})
-// UseService(uri string, remoteObject interface{})
+// UseService (uri string)
+// UseService (remoteObject interface{})
+// UseService (uri string, remoteObject interface{})
 func (client *BaseClient) UseService(args ...interface{}) {
 	switch len(args) {
 	case 1:
@@ -314,11 +314,10 @@ func (client *BaseClient) invoke(name string, args []reflect.Value, options *Inv
 	context := &ClientContext{BaseContext: NewBaseContext(), Client: client.Client}
 	if async {
 		return client.asyncInvoke(name, args, options, result, context)
-	} else {
-		err := make(chan error, 1)
-		err <- client.syncInvoke(name, args, options, result, context)
-		return err
 	}
+	err := make(chan error, 1)
+	err <- client.syncInvoke(name, args, options, result, context)
+	return err
 }
 
 func (client *BaseClient) syncInvoke(name string, args []reflect.Value, options *InvokeOptions, result []reflect.Value, context *ClientContext) (err error) {
@@ -580,9 +579,8 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 			var result interface{}
 			if err := <-client.invoke(name, args, options, []reflect.Value{reflect.ValueOf(&result).Elem()}); err == nil {
 				return out
-			} else {
-				panic(err.Error())
 			}
+			panic(err.Error())
 		case 1:
 			rt0 := t.Out(0)
 			if rt0.Kind() == reflect.Chan {
@@ -591,26 +589,22 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 					err := client.invoke(name, args, options, []reflect.Value{reflect.ValueOf(&result).Elem()})
 					out[0] = reflect.ValueOf(&err).Elem()
 					return out
-				} else {
-					out[0] = reflect.New(rt0).Elem()
-					client.invoke(name, args, options, out)
-					return out
 				}
-			} else {
-				if rt0.Kind() == reflect.Interface && rt0.Name() == "error" {
-					var result interface{}
-					err := <-client.invoke(name, args, options, []reflect.Value{reflect.ValueOf(&result).Elem()})
-					out[0] = reflect.ValueOf(&err).Elem()
-					return out
-				} else {
-					out[0] = reflect.New(rt0).Elem()
-					if err := <-client.invoke(name, args, options, out); err == nil {
-						return out
-					} else {
-						panic(err.Error())
-					}
-				}
+				out[0] = reflect.New(rt0).Elem()
+				client.invoke(name, args, options, out)
+				return out
 			}
+			if rt0.Kind() == reflect.Interface && rt0.Name() == "error" {
+				var result interface{}
+				err := <-client.invoke(name, args, options, []reflect.Value{reflect.ValueOf(&result).Elem()})
+				out[0] = reflect.ValueOf(&err).Elem()
+				return out
+			}
+			out[0] = reflect.New(rt0).Elem()
+			if err := <-client.invoke(name, args, options, out); err == nil {
+				return out
+			}
+			panic(err.Error())
 		default:
 			last := numout - 1
 			rtlast := t.Out(last)
@@ -634,13 +628,11 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 			if t.Out(0).Kind() == reflect.Chan {
 				client.invoke(name, args, options, out)
 				return out
-			} else {
-				if err := <-client.invoke(name, args, options, out); err == nil {
-					return out
-				} else {
-					panic(err.Error())
-				}
 			}
+			if err := <-client.invoke(name, args, options, out); err == nil {
+				return out
+			}
+			panic(err.Error())
 		}
 		return out
 	}
