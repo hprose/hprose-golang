@@ -577,7 +577,8 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 		switch numout {
 		case 0:
 			var result interface{}
-			if err := <-client.invoke(name, args, options, []reflect.Value{reflect.ValueOf(&result).Elem()}); err == nil {
+			err := <-client.invoke(name, args, options, []reflect.Value{reflect.ValueOf(&result).Elem()})
+			if err == nil {
 				return out
 			}
 			panic(err.Error())
@@ -601,7 +602,8 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 				return out
 			}
 			out[0] = reflect.New(rt0).Elem()
-			if err := <-client.invoke(name, args, options, out); err == nil {
+			err := <-client.invoke(name, args, options, out)
+			if err == nil {
 				return out
 			}
 			panic(err.Error())
@@ -629,7 +631,8 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 				client.invoke(name, args, options, out)
 				return out
 			}
-			if err := <-client.invoke(name, args, options, out); err == nil {
+			err := <-client.invoke(name, args, options, out)
+			if err == nil {
 				return out
 			}
 			panic(err.Error())
