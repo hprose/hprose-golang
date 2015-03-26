@@ -19,6 +19,7 @@
     - **[Simple Mode](#simple-mode)**
     - **[Missing Method](#missing-method)**
     - **[TCP Server and Client](#tcp-server-and-client)**
+    - **[Unix Server and Client](#unix-server-and-client)**
     - **[Service Event](#service-event)**
 
 >---
@@ -533,6 +534,32 @@ To create a hprose TCP client is the same as HTTP client:
 ```
 
 You can also specify `tcp4://` scheme to using ipv4 or `tcp6://` scheme to using ipv6.
+
+### Unix Server and Client
+
+Hprose for Golang supports Unix Socket Server and Client. Like TcpServer, it is very easy to use.
+
+To create a hprose Unix server, you can use `NewUnixService` or `NewUnixServer`.
+
+To use `NewUnixService`, you need call the ServeUnix method and passing the Unix Connection to it.
+
+using `NewUnixServer` is easier than `NewUserService`. For example:
+
+```go
+    ...
+    server := hprose.NewUnixServer("unix:///tmp/my.sock")
+    server.AddFunction("hello", hello)
+    server.Start()
+    ...
+```
+
+To create a hprose TCP client is the same as HTTP client:
+
+```go
+    ...
+    client := hprose.NewUnixClient("unix:///tmp/my.sock")
+    ...
+```
 
 ### Service Event
 

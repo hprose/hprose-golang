@@ -19,6 +19,7 @@
 	- **[简单模式](#简单模式)**
 	- **[缺失的方法](#缺失的方法)**
 	- **[TCP 服务器和客户端](#tcp-服务器和客户端)**
+	- **[Unix 服务器和客户端](#unix-服务器和客户端)**
 	- **[服务事件](#服务事件)**
 
 > ---
@@ -542,6 +543,32 @@ Hprose for Golang 已经支持 TCP 的服务器和客户端。它跟 HTTP 版本
 ```
 
 你也可以指定 `tcp4://` 方案来使用 ipv4 或 `tcp6://` 方案来使用 ipv6。
+
+### TCP 服务器和客户端
+
+Hprose for Golang 已经支持 Unix 的服务器和客户端。它跟 HTTP 版本的服务器和客户端在使用上一样简单。
+
+你可以使用 `NewUnixService` 或 `NewUnixServer`，来创建 Hprose 的 Unix 服务器。
+
+使用 `NewUnixService`，你需要调用它的 `ServeUnix` 方法传入 Unix 连接。
+
+使用 `NewUnixServer` 比 `NewUnixService` 则要简单的多。例如：
+
+```go
+    ...
+    server := hprose.NewUnixServer("unix:///tmp/my.sock")
+    server.AddFunction("hello", hello)
+    server.Start()
+    ...
+```
+
+创建 Hprose 的 Unix 客户端跟 TCP 客户端是一样的方式：
+
+```go
+    ...
+    client := hprose.NewUnixClient("unix:///tmp/my.sock")
+    ...
+```
 
 ### 服务事件
 
