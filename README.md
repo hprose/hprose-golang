@@ -14,6 +14,8 @@
         - [Asynchronous Exception Handling](#asynchronous-exception-handling)
         - [Function Alias](#function-alias)
         - [Passing by reference parameters](#passing-by-reference-parameters)
+    - **[Custom Struct](#custom-struct)**
+		- [Field Alias of Custom Struct](#field-alias-of-custom-struct)
     - **[Hprose Proxy](#hprose-proxy)**
         - [Better Proxy](#better-proxy)
     - **[Simple Mode](#simple-mode)**
@@ -290,6 +292,70 @@ func main() {
 
 The server of this example was written in PHP. In fact, You can use any language which hprose supported to write the server.
 
+### Custom Struct
+
+You can transfer custom struct objects between hprose client and hprose server directly.
+
+Using the `ClassManager.Register` method to register your custom struct is the the only thing you need to do. For example:
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/hprose/hprose-go/hprose"
+)
+
+type TestUser struct {
+    Name     string
+    Sex      int
+    Birthday time.Time
+    Age      int
+    Married  bool
+}
+
+type remoteObject struct {
+    GetUserList         func() []TestUser
+}
+
+func main() {
+    ClassManager.Register(reflect.TypeOf(TestUser{}), "User")
+    client := NewClient("http://www.hprose.com/example/")
+    var ro *remoteObject
+    client.UseService(&ro)
+
+    fmt.Println(ro.GetUserList())
+}
+```
+
+The first argument of `ClassManager.Register` is the type of your custom struct. The second argument is the alias of your custom struct.
+
+The real name of your custom struct can be different between the client and the server, as long as they registered the same alias.
+
+The server of this example was written in PHP. In fact, You can use custom struct with go server too.
+
+#### Field Alias of Custom Struct
+
+The first letter of the field name will be lowercased automatically when it is serialized. So we don't need to define a tag to implement this feature like Json serialization when we interact with the other languages.
+
+But it doesn't mean that hprose can't support to define field alias by tag. In fact, it can not only, and it can be compatible with the field alias definition in Json serialization way. For example:
+
+```go
+...
+type User struct {
+	Name string `json:"n"`
+	Age  int    `json:"a"`
+	OOXX string `json:"-"`
+}
+...
+hprose.ClassManager.Register(reflect.TypeOf(User{}), "User", "json")
+...
+```
+
+The struct above is defined for Json serialization. But when we called `ClassManager.Register` by passing the third argument `"json"`, we can use the fields aliases defined in `json` tags for hprose serialization. If the field alias is `"-"`, it will be not serialized.
+
+You can change the `json` tag to be anything else in the struct definition, such as `hprose`, as long as it is the same with the value of the `ClassManager.Register` third argument.
+
 ### Hprose Proxy
 
 You can use hprose server and client to create a hprose proxy server. All requests sent to the hprose proxy server will be forwarded to the backend hprose server. For example:
@@ -553,11 +619,11 @@ using `NewUnixServer` is easier than `NewUserService`. For example:
     ...
 ```
 
-To create a hprose TCP client is the same as HTTP client:
+To create a hprose Unix client is the same as TCP client:
 
 ```go
     ...
-    client := hprose.NewUnixClient("unix:///tmp/my.sock")
+    client := hprose.NewClient("unix:///tmp/my.sock")
     ...
 ```
 

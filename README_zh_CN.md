@@ -14,6 +14,8 @@
 		- [异步异常处理](#异步异常处理)
 		- [函数方法别名](#函数方法别名)
 		- [引用参数传递](#引用参数传递)
+	- **[自定义结构体](#自定义结构体)**
+		- [自定义结构体的字段别名](#自定义结构体的字段别名)
 	- **[Hprose 代理](#hprose-代理)**
 		- [更好的代理](#更好的代理)
 	- **[简单模式](#简单模式)**
@@ -289,7 +291,71 @@ func main() {
 }
 ```
 
-这个例子中的服务器是用PHP编写的。实际上，你可以使用任何 Hprose 支持的语言来编写服务器，对于客户端调用上没有区别。
+这个例子中的服务器是用 PHP 编写的。实际上，你可以使用任何 Hprose 支持的语言来编写服务器，对于客户端调用上没有区别。
+
+### 自定义结构体
+
+你可以在 Hprose 客户端和服务器之间直接传输自定义结构体的对象。
+
+你唯一需要做的事情是使用 `ClassManager.Register` 方法来注册一下你的自定义结构体。例如：
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/hprose/hprose-go/hprose"
+)
+
+type TestUser struct {
+    Name     string
+    Sex      int
+    Birthday time.Time
+    Age      int
+    Married  bool
+}
+
+type remoteObject struct {
+    GetUserList         func() []TestUser
+}
+
+func main() {
+    hprose.ClassManager.Register(reflect.TypeOf(TestUser{}), "User")
+    client := hprose.NewClient("http://www.hprose.com/example/")
+    var ro *remoteObject
+    client.UseService(&ro)
+
+    fmt.Println(ro.GetUserList())
+}
+```
+
+`ClassManager.Register` 的第一个参数是你的自定义结构体的类型。第二个参数是自定义结构体的别名。
+
+客户端和服务器两端的自定义结构体的真实名字可以不同，只要它们注册相同的别名就可以了。
+
+这个例子中的服务器是用 PHP 编写的。实际上，你同样可以在 go 服务器端使用自定义结构体。
+
+#### 自定义结构体的字段别名
+
+字段名在序列化时，会自动小写开头字母，所以不需要像 Json 序列化那样为了跟其他语言交互需要通过定义 `json` 标签才能实现这个功能。
+
+但是这并不代表 hprose 不支持通过定义标签的方式来定义字段别名。事实上，它不但可以，而且它可以兼容你为 Json 序列化而定义的字段别名。例如：
+
+```go
+...
+type User struct {
+	Name string `json:"n"`
+	Age  int    `json:"a"`
+	OOXX string `json:"-"`
+}
+...
+hprose.ClassManager.Register(reflect.TypeOf(User{}), "User", "json")
+...
+```
+
+上面的结构体是一个为 Json 序列化而定义的结构体，只要在调用 `ClassManager.Register` 时，加上第三个参数 `json`，就可以使用 `json` 标签中定义的别名来做 hprose 序列化了，如果标签中定义的别名为 "-"，则自动忽略这个字段。
+
+当然你也可以把结构体中的 `json` 标签换成别的什么东西，比如 `hprose`，只要跟 `ClassManager.Register` 的第三个参数值一致就可以了。
 
 ### Hprose 代理
 
@@ -544,9 +610,9 @@ Hprose for Golang 已经支持 TCP 的服务器和客户端。它跟 HTTP 版本
 
 你也可以指定 `tcp4://` 方案来使用 ipv4 或 `tcp6://` 方案来使用 ipv6。
 
-### TCP 服务器和客户端
+### Unix 服务器和客户端
 
-Hprose for Golang 已经支持 Unix 的服务器和客户端。它跟 HTTP 版本的服务器和客户端在使用上一样简单。
+Hprose for Golang 已经支持 Unix 的服务器和客户端。它跟 TCP 版本的服务器和客户端在使用上一样简单。
 
 你可以使用 `NewUnixService` 或 `NewUnixServer`，来创建 Hprose 的 Unix 服务器。
 
@@ -566,7 +632,7 @@ Hprose for Golang 已经支持 Unix 的服务器和客户端。它跟 HTTP 版�
 
 ```go
     ...
-    client := hprose.NewUnixClient("unix:///tmp/my.sock")
+    client := hprose.NewClient("unix:///tmp/my.sock")
     ...
 ```
 
