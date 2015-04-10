@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Jan 28, 2015                             *
+ * LastModified: Apr 10, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -108,6 +108,7 @@ func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte,
 			t.connPool.Free(connEntry)
 		}
 	}()
+begin:
 	conn := connEntry.Get()
 	if conn == nil {
 		var u *url.URL
@@ -153,15 +154,19 @@ func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte,
 				return nil, err
 			}
 		}
-		if t.timeout != nil {
-			if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
-				return nil, err
-			}
-		}
 		if t.tlsConfig != nil {
 			conn = tls.Client(conn, t.tlsConfig)
 		}
 		connEntry.Set(conn)
+	}
+	if t.timeout != nil {
+		if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
+			err = nil;
+			connEntry.Close()
+			t.connPool.Free(connEntry)
+			connEntry = t.connPool.Get(uri)
+			goto begin
+		}
 	}
 	if t.writeTimeout != nil {
 		if err = conn.SetWriteDeadline(time.Now().Add(t.writeTimeout.(time.Duration))); err != nil {

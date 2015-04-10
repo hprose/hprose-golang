@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix client for Go.                             *
  *                                                        *
- * LastModified: Jan 28, 2015                             *
+ * LastModified: Apr 10, 2015                             *
  * Author: Ore_Ash <nanohugh@gmail.com>                   *
  *                                                        *
 \**********************************************************/
@@ -81,6 +81,7 @@ func (t *UnixTransporter) SendAndReceive(uri string, odata []byte) (idata []byte
 			t.connPool.Free(connEntry)
 		}
 	}()
+begin:
 	conn := connEntry.Get()
 	if conn == nil {
 		scheme, path := parseUnixUri(uri)
@@ -101,12 +102,16 @@ func (t *UnixTransporter) SendAndReceive(uri string, odata []byte) (idata []byte
 				return nil, err
 			}
 		}
-		if t.timeout != nil {
-			if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
-				return nil, err
-			}
-		}
 		connEntry.Set(conn)
+	}
+	if t.timeout != nil {
+		if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
+			err = nil;
+			connEntry.Close()
+			t.connPool.Free(connEntry)
+			connEntry = t.connPool.Get(uri)
+			goto begin
+		}
 	}
 	if t.writeTimeout != nil {
 		if err = conn.SetWriteDeadline(time.Now().Add(t.writeTimeout.(time.Duration))); err != nil {
