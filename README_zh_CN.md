@@ -622,7 +622,7 @@ Hprose for Golang 已经支持 Unix 的服务器和客户端。它跟 TCP 版本
 
 ```go
     ...
-    server := hprose.NewUnixServer("unix:///tmp/my.sock")
+    server := hprose.NewUnixServer("unix:/tmp/my.sock")
     server.AddFunction("hello", hello)
     server.Start()
     ...
@@ -632,7 +632,7 @@ Hprose for Golang 已经支持 Unix 的服务器和客户端。它跟 TCP 版本
 
 ```go
     ...
-    client := hprose.NewClient("unix:///tmp/my.sock")
+    client := hprose.NewClient("unix:/tmp/my.sock")
     ...
 ```
 

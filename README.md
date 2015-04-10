@@ -613,7 +613,7 @@ using `NewUnixServer` is easier than `NewUserService`. For example:
 
 ```go
     ...
-    server := hprose.NewUnixServer("unix:///tmp/my.sock")
+    server := hprose.NewUnixServer("unix:/tmp/my.sock")
     server.AddFunction("hello", hello)
     server.Start()
     ...
@@ -623,7 +623,7 @@ To create a hprose Unix client is the same as TCP client:
 
 ```go
     ...
-    client := hprose.NewClient("unix:///tmp/my.sock")
+    client := hprose.NewClient("unix:/tmp/my.sock")
     ...
 ```
 
