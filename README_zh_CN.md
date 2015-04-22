@@ -62,6 +62,16 @@
 go get github.com/hprose/hprose-go/hprose
 ```
 
+如果你遇到
+
+```
+package github.com/hprose/hprose-go/hprose
+		imports golang.org/x/net/websocket: unrecognized import path "golang.org/x/net/websocket"
+```
+
+的提示，说明你被墙了。翻墙之后问题即可解决。
+
+
 ## 使用
 
 ### Http 服务器
