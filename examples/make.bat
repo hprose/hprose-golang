@@ -5,6 +5,8 @@ go build httpjsonclient.go
 go build httpjsonserver.go
 go build tcphelloclient.go
 go build tcphelloserver.go
+go build tcpfileclient.go
+go build tcpfileserver.go
 go build tcpsessionclient.go
 go build tcpsessionserver.go
 go build wshelloserver.go
