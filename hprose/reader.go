@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Reader for Go.                                  *
  *                                                        *
- * LastModified: Aug 16, 2014                             *
+ * LastModified: May 1, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -1774,16 +1774,10 @@ func (r *Reader) readInterface() (interface{}, error) {
 
 func (r *Reader) readUntil(tag byte) (string, error) {
 	if s, err := r.stream.ReadString(tag); err == nil {
-		b := []byte(s)
-		return string(b[:len(b)-1]), nil
+		return s[:len(s)-1], nil
 	} else {
 		return s, err
 	}
-}
-
-func (r *Reader) skipUntil(tag byte) error {
-	_, err := r.stream.ReadString(tag)
-	return err
 }
 
 func (r *Reader) readInt(tag byte) (int64, error) {
