@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Feb 8, 2015                              *
+ * LastModified: May 13, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -38,6 +38,7 @@ type HttpClient struct {
 
 type HttpTransporter struct {
 	*http.Client
+	Header *http.Header
 }
 
 func NewHttpClient(uri string) Client {
@@ -64,6 +65,10 @@ func (client *HttpClient) SetUri(uri string) {
 
 func (client *HttpClient) Http() *http.Client {
 	return client.Transporter.(*HttpTransporter).Client
+}
+
+func (client *HttpClient) Header() *http.Header {
+	return client.Transporter.(*HttpTransporter).Header
 }
 
 func (client *HttpClient) transport() *http.Transport {
@@ -111,7 +116,7 @@ func newHttpTransporter() *HttpTransporter {
 	if DisableGlobalCookie {
 		jar, _ = cookiejar.New(nil)
 	}
-	return &HttpTransporter{&http.Client{Jar: jar, Transport: tr}}
+	return &HttpTransporter{&http.Client{Jar: jar, Transport: tr}, &http.Header{}}
 }
 
 func (h *HttpTransporter) readAll(response *http.Response) (data []byte, err error) {
@@ -130,6 +135,11 @@ func (h *HttpTransporter) SendAndReceive(uri string, data []byte) ([]byte, error
 	req, err := http.NewRequest("POST", uri, NewBytesReader(data))
 	if err != nil {
 		return nil, err
+	}
+	for key, values := range *h.Header {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
 	}
 	req.ContentLength = int64(len(data))
 	req.Header.Set("Content-Type", "application/hprose")
