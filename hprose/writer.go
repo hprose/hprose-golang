@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: Aug 16, 2014                             *
+ * LastModified: May 13, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -576,10 +576,14 @@ func (w *Writer) writeTimeWithRef(v interface{}, t time.Time) error {
 }
 
 func (w *Writer) writeString(v interface{}, str string) (err error) {
+	length := ulen(str)
+	if length < 0 {
+		return w.writeBytes(v, []byte(str))
+	}
 	w.setRef(v)
 	s := w.stream
 	if err = s.WriteByte(TagString); err == nil {
-		if length := ulen(str); length > 0 {
+		if length > 0 {
 			if err = w.writeInt(length); err == nil {
 				if err = s.WriteByte(TagQuote); err == nil {
 					if _, err = s.WriteString(str); err == nil {
@@ -1499,6 +1503,8 @@ func ulen(str string) (n int) {
 		} else if (a * 0xF8) == 0xF0 {
 			p += 4
 			n -= 2
+		} else {
+			return -1
 		}
 	}
 	return n
