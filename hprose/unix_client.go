@@ -12,8 +12,9 @@
  *                                                        *
  * hprose unix client for Go.                             *
  *                                                        *
- * LastModified: Apr 10, 2015                             *
- * Author: Ore_Ash <nanohugh@gmail.com>                   *
+ * LastModified: May 16, 2015                             *
+ * Authors: Ma Bingyao <andot@hprose.com>                 *
+ *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
 \**********************************************************/
 
@@ -34,13 +35,19 @@ type UnixTransporter struct {
 	*UnixClient
 }
 
+var globalUnixConnPool = NewStreamConnPool(64)
+
 func NewUnixClient(uri string) Client {
-	trans := &UnixTransporter{connPool: &StreamConnPool{pool: make([]*StreamConnEntry, 0)}}
+	trans := &UnixTransporter{connPool: globalUnixConnPool}
 	client := &UnixClient{StreamClient: newStreamClient(trans)}
 	client.Client = client
 	trans.UnixClient = client
 	client.SetUri(uri)
 	return client
+}
+
+func (client *UnixClient) SetConnPool(connPool *StreamConnPool) {
+	client.Transporter.(*UnixTransporter).connPool = connPool
 }
 
 func (client *UnixClient) SetUri(uri string) {
@@ -54,7 +61,7 @@ func (client *UnixClient) SetUri(uri string) {
 
 func (client *UnixClient) Close() {
 	uri := client.Uri()
-	if uri == "" {
+	if uri != "" {
 		client.Transporter.(*UnixTransporter).connPool.Close(uri)
 	}
 }
@@ -106,7 +113,7 @@ begin:
 	}
 	if t.timeout != nil {
 		if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
-			err = nil;
+			err = nil
 			connEntry.Close()
 			t.connPool.Free(connEntry)
 			connEntry = t.connPool.Get(uri)

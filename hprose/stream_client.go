@@ -12,7 +12,7 @@
  *                                                        *
  * hprose stream client for Go.                           *
  *                                                        *
- * LastModified: Jan 28, 2015                             *
+ * LastModified: May 16, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -75,6 +75,10 @@ type StreamConnPool struct {
 	pool    []*StreamConnEntry
 	timer   *time.Ticker
 	timeout time.Duration
+}
+
+func NewStreamConnPool(num int) *StreamConnPool {
+	return &StreamConnPool{pool: make([]*StreamConnEntry, 0, num)}
 }
 
 func freeConns(conns []net.Conn) {

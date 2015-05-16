@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Apr 10, 2015                             *
+ * LastModified: May 16, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -41,13 +41,19 @@ type TcpTransporter struct {
 	*TcpClient
 }
 
+var globalTcpConnPool = NewStreamConnPool(64)
+
 func NewTcpClient(uri string) Client {
-	trans := &TcpTransporter{connPool: &StreamConnPool{pool: make([]*StreamConnEntry, 0)}}
+	trans := &TcpTransporter{connPool: globalTcpConnPool}
 	client := &TcpClient{StreamClient: newStreamClient(trans)}
 	client.Client = client
 	trans.TcpClient = client
 	client.SetUri(uri)
 	return client
+}
+
+func (client *TcpClient) SetConnPool(connPool *StreamConnPool) {
+	client.Transporter.(*TcpTransporter).connPool = connPool
 }
 
 func (client *TcpClient) SetUri(uri string) {
@@ -62,7 +68,7 @@ func (client *TcpClient) SetUri(uri string) {
 
 func (client *TcpClient) Close() {
 	uri := client.Uri()
-	if uri == "" {
+	if uri != "" {
 		client.Transporter.(*TcpTransporter).connPool.Close(uri)
 	}
 }
@@ -161,7 +167,7 @@ begin:
 	}
 	if t.timeout != nil {
 		if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
-			err = nil;
+			err = nil
 			connEntry.Close()
 			t.connPool.Free(connEntry)
 			connEntry = t.connPool.Get(uri)
