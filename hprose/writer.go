@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: May 13, 2015                             *
+ * LastModified: May 20, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -170,6 +170,9 @@ func (w *Writer) Serialize(v interface{}) (err error) {
 }
 
 func (w *Writer) WriteValue(v reflect.Value) (err error) {
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return w.WriteNull()
+	}
 	return w.fastSerialize(v.Interface(), v, 0)
 }
 

@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Writer Test for Go.                             *
  *                                                        *
- * LastModified: Jun 19, 2014                             *
+ * LastModified: May 20, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -22,12 +22,13 @@ package hprose_test
 import (
 	"bytes"
 	"container/list"
-	. "../hprose"
 	"math"
 	"math/big"
 	"strings"
 	"testing"
 	"time"
+
+	. "../hprose"
 )
 
 func TestWriterNil(t *testing.T) {
@@ -38,6 +39,26 @@ func TestWriterNil(t *testing.T) {
 		t.Error(err.Error())
 	}
 	if b.String() != "n" {
+		t.Error(b.String())
+	}
+}
+
+type testNil struct {
+	I *int
+	S *string
+	M *map[string]interface{}
+	P *interface{}
+	X interface{}
+}
+
+func TestWriterNil2(t *testing.T) {
+	b := new(bytes.Buffer)
+	writer := NewWriter(b, false)
+	err := writer.Serialize(&testNil{})
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if b.String() != `c7"testNil"5{s1"i"s1"s"s1"m"s1"p"s1"x"}o0{nnnnn}` {
 		t.Error(b.String())
 	}
 }
