@@ -12,7 +12,7 @@
  *                                                        *
  * jsonrpc client filter for Go.                          *
  *                                                        *
- * LastModified: Oct 16, 2014                             *
+ * LastModified: May 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -26,18 +26,20 @@ import (
 
 var id = 1
 
+// JSONRPCClientFilter is a JSONRPC Client Filter
 type JSONRPCClientFilter struct {
 	Version string
 }
 
+// NewJSONRPCClientFilter is a constructor for JSONRPCClientFilter
 func NewJSONRPCClientFilter(version string) JSONRPCClientFilter {
 	if version == "1.0" || version == "1.1" || version == "2.0" {
 		return JSONRPCClientFilter{Version: version}
-	} else {
-		panic("version must be 1.0, 1.1 or 2.0 in string format.")
 	}
+	panic("version must be 1.0, 1.1 or 2.0 in string format.")
 }
 
+// InputFilter for JSONRPC Client
 func (filter JSONRPCClientFilter) InputFilter(data []byte, context Context) []byte {
 	var response map[string]interface{}
 	if err := json.Unmarshal(data, &response); err != nil {
@@ -60,6 +62,7 @@ func (filter JSONRPCClientFilter) InputFilter(data []byte, context Context) []by
 	return data
 }
 
+// OutputFilter for JSONRPC Client
 func (filter JSONRPCClientFilter) OutputFilter(data []byte, context Context) []byte {
 	request := make(map[string]interface{})
 	if filter.Version == "1.1" {
@@ -69,6 +72,7 @@ func (filter JSONRPCClientFilter) OutputFilter(data []byte, context Context) []b
 	}
 	istream := NewBytesReader(data)
 	reader := NewReader(istream, false)
+	reader.JSONCompatible = true
 	tag, _ := istream.ReadByte()
 	if tag == TagCall {
 		request["method"], _ = reader.ReadString()

@@ -12,7 +12,7 @@
  *                                                        *
  * jsonrpc service filter for Go.                         *
  *                                                        *
- * LastModified: Oct 15, 2014                             *
+ * LastModified: May 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -24,8 +24,10 @@ import (
 	"encoding/json"
 )
 
+// JSONRPCServiceFilter is a JSONRPC Service Filter
 type JSONRPCServiceFilter struct{}
 
+// InputFilter for JSONRPC Service
 func (filter JSONRPCServiceFilter) InputFilter(data []byte, context Context) []byte {
 	if len(data) > 0 && data[0] == '{' {
 		context.SetString("format", "jsonrpc")
@@ -66,6 +68,7 @@ func (filter JSONRPCServiceFilter) InputFilter(data []byte, context Context) []b
 	return data
 }
 
+// OutputFilter for JSONRPC Service
 func (filter JSONRPCServiceFilter) OutputFilter(data []byte, context Context) []byte {
 	if format, ok := context.GetString("format"); ok && format == "jsonrpc" {
 		response := make(map[string]interface{})
@@ -85,6 +88,7 @@ func (filter JSONRPCServiceFilter) OutputFilter(data []byte, context Context) []
 		}
 		istream := NewBytesReader(data)
 		reader := NewReader(istream, false)
+		reader.JSONCompatible = true
 		for tag, err := istream.ReadByte(); err == nil && tag != TagEnd; tag, err = istream.ReadByte() {
 			switch tag {
 			case TagResult:

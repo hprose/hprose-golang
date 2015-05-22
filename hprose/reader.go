@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Reader for Go.                                  *
  *                                                        *
- * LastModified: May 1, 2015                              *
+ * LastModified: May 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -32,9 +32,11 @@ import (
 	"unicode/utf8"
 )
 
-var badEncodeError = errors.New("bad utf-8 encoding")
-var NilError = errors.New("nil")
-var refError = unexpectedTag(TagRef, nil)
+// ErrorNil is a error of nil
+var ErrorNil = errors.New("nil")
+
+var errBadEncode = errors.New("bad utf-8 encoding")
+var errRef = unexpectedTag(TagRef, nil)
 
 var bigDigit = [...]*big.Int{
 	big.NewInt(0),
@@ -62,6 +64,7 @@ var indexCache struct {
 	cache map[reflect.Type]map[string][]int
 }
 
+// BufReader is buffer reader interface, Hprose Reader use it as input stream.
 type BufReader interface {
 	Read(p []byte) (n int, err error)
 	ReadByte() (c byte, err error)
@@ -80,7 +83,7 @@ type fakeReaderRefer struct{}
 func (r fakeReaderRefer) setRef(p interface{}) {}
 
 func (r fakeReaderRefer) readRef(i int, err error) (interface{}, error) {
-	return nil, refError
+	return nil, errRef
 }
 
 func (r fakeReaderRefer) resetRef() {}
@@ -109,13 +112,17 @@ func (r *realReaderRefer) resetRef() {
 	}
 }
 
+// Reader is a fine-grained operation struct for Hprose unserialization
+// when JSONCompatible is true, the Map data will unserialize to map[string]interface as the default type
 type Reader struct {
 	*RawReader
 	classref  []interface{}
 	fieldsref [][]string
 	readerRefer
+	JSONCompatible bool
 }
 
+// NewReader is the constructor for Hprose Reader
 func NewReader(stream BufReader, simple bool) *Reader {
 	r := &Reader{RawReader: &RawReader{stream: stream}}
 	if simple {
@@ -126,10 +133,12 @@ func NewReader(stream BufReader, simple bool) *Reader {
 	return r
 }
 
+// Stream is the data stream being operated.
 func (r *Reader) Stream() BufReader {
 	return r.stream
 }
 
+// CheckTag the next byte in stream is the expected tag
 func (r *Reader) CheckTag(expectTag byte) error {
 	tag, err := r.stream.ReadByte()
 	if err == nil {
@@ -138,6 +147,7 @@ func (r *Reader) CheckTag(expectTag byte) error {
 	return err
 }
 
+// CheckTags the next byte in stream in the expected tags
 func (r *Reader) CheckTags(expectTags []byte) (tag byte, err error) {
 	tag, err = r.stream.ReadByte()
 	if err == nil {
@@ -148,62 +158,63 @@ func (r *Reader) CheckTags(expectTags []byte) (tag byte, err error) {
 	return 0, err
 }
 
+// Unserialize a data from stream
 func (r *Reader) Unserialize(p interface{}) (err error) {
 	switch p := p.(type) {
 	case nil:
 		return errors.New("argument p must be non-null pointer")
 	case *int:
-		if *p, err = r.ReadInt(); err == NilError {
+		if *p, err = r.ReadInt(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *uint:
-		if *p, err = r.ReadUint(); err == NilError {
+		if *p, err = r.ReadUint(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *int8:
-		if *p, err = r.ReadInt8(); err == NilError {
+		if *p, err = r.ReadInt8(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *uint8:
-		if *p, err = r.ReadUint8(); err == NilError {
+		if *p, err = r.ReadUint8(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *int16:
-		if *p, err = r.ReadInt16(); err == NilError {
+		if *p, err = r.ReadInt16(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *uint16:
-		if *p, err = r.ReadUint16(); err == NilError {
+		if *p, err = r.ReadUint16(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *int32:
-		if *p, err = r.ReadInt32(); err == NilError {
+		if *p, err = r.ReadInt32(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *uint32:
-		if *p, err = r.ReadUint32(); err == NilError {
+		if *p, err = r.ReadUint32(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *int64:
-		if *p, err = r.ReadInt64(); err == NilError {
+		if *p, err = r.ReadInt64(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *uint64:
-		if *p, err = r.ReadUint64(); err == NilError {
+		if *p, err = r.ReadUint64(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *big.Int:
-		if x, err := r.ReadBigInt(); err == NilError {
+		if x, err := r.ReadBigInt(); err == ErrorNil {
 			err = nil
 			*p = *x
 		} else {
@@ -211,32 +222,32 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case *float32:
-		if *p, err = r.ReadFloat32(); err == NilError {
+		if *p, err = r.ReadFloat32(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *float64:
-		if *p, err = r.ReadFloat64(); err == NilError {
+		if *p, err = r.ReadFloat64(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *bool:
-		if *p, err = r.ReadBool(); err == NilError {
+		if *p, err = r.ReadBool(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *time.Time:
-		if *p, err = r.ReadDateTime(); err == NilError {
+		if *p, err = r.ReadDateTime(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *string:
-		if *p, err = r.ReadString(); err == NilError {
+		if *p, err = r.ReadString(); err == ErrorNil {
 			err = nil
 		}
 		return err
 	case *[]byte:
-		if x, err := r.ReadBytes(); err == NilError {
+		if x, err := r.ReadBytes(); err == ErrorNil {
 			*p = *x
 			err = nil
 		} else {
@@ -244,7 +255,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case *UUID:
-		if x, err := r.ReadUUID(); err == NilError {
+		if x, err := r.ReadUUID(); err == ErrorNil {
 			*p = *x
 			err = nil
 		} else {
@@ -252,7 +263,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case *list.List:
-		if x, err := r.ReadList(); err == NilError {
+		if x, err := r.ReadList(); err == ErrorNil {
 			*p = *x
 			err = nil
 		} else {
@@ -260,7 +271,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int:
-		if x, err := r.ReadInt(); err == NilError {
+		if x, err := r.ReadInt(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -268,7 +279,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint:
-		if x, err := r.ReadUint(); err == NilError {
+		if x, err := r.ReadUint(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -276,7 +287,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int8:
-		if x, err := r.ReadInt8(); err == NilError {
+		if x, err := r.ReadInt8(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -284,7 +295,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint8:
-		if x, err := r.ReadUint8(); err == NilError {
+		if x, err := r.ReadUint8(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -292,7 +303,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int16:
-		if x, err := r.ReadInt16(); err == NilError {
+		if x, err := r.ReadInt16(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -300,7 +311,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint16:
-		if x, err := r.ReadUint16(); err == NilError {
+		if x, err := r.ReadUint16(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -308,7 +319,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int32:
-		if x, err := r.ReadInt32(); err == NilError {
+		if x, err := r.ReadInt32(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -316,7 +327,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint32:
-		if x, err := r.ReadUint32(); err == NilError {
+		if x, err := r.ReadUint32(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -324,7 +335,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int64:
-		if x, err := r.ReadInt64(); err == NilError {
+		if x, err := r.ReadInt64(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -332,7 +343,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint64:
-		if x, err := r.ReadUint64(); err == NilError {
+		if x, err := r.ReadUint64(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -340,13 +351,13 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **big.Int:
-		if *p, err = r.ReadBigInt(); err == NilError {
+		if *p, err = r.ReadBigInt(); err == ErrorNil {
 			*p = nil
 			err = nil
 		}
 		return err
 	case **float32:
-		if x, err := r.ReadFloat32(); err == NilError {
+		if x, err := r.ReadFloat32(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -354,7 +365,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **float64:
-		if x, err := r.ReadFloat64(); err == NilError {
+		if x, err := r.ReadFloat64(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -362,7 +373,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **bool:
-		if x, err := r.ReadBool(); err == NilError {
+		if x, err := r.ReadBool(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -370,7 +381,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **time.Time:
-		if x, err := r.ReadDateTime(); err == NilError {
+		if x, err := r.ReadDateTime(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -378,7 +389,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **string:
-		if x, err := r.ReadString(); err == NilError {
+		if x, err := r.ReadString(); err == ErrorNil {
 			*p = nil
 			err = nil
 		} else {
@@ -386,25 +397,25 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **[]byte:
-		if *p, err = r.ReadBytes(); err == NilError {
+		if *p, err = r.ReadBytes(); err == ErrorNil {
 			*p = nil
 			err = nil
 		}
 		return err
 	case **UUID:
-		if *p, err = r.ReadUUID(); err == NilError {
+		if *p, err = r.ReadUUID(); err == ErrorNil {
 			*p = nil
 			err = nil
 		}
 		return err
 	case **list.List:
-		if *p, err = r.ReadList(); err == NilError {
+		if *p, err = r.ReadList(); err == ErrorNil {
 			*p = nil
 			err = nil
 		}
 		return err
 	case *interface{}:
-		if *p, err = r.readInterface(); err == NilError {
+		if *p, err = r.readInterface(); err == ErrorNil {
 			*p = nil
 			err = nil
 		}
@@ -418,6 +429,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 	return err
 }
 
+// ReadInteger from stream
 func (r *Reader) ReadInteger(tag byte) (int, error) {
 	s := r.stream
 	i := 0
@@ -444,11 +456,13 @@ func (r *Reader) ReadInteger(tag byte) (int, error) {
 	return i, err
 }
 
+// ReadUinteger from stream
 func (r *Reader) ReadUinteger(tag byte) (uint, error) {
 	i, err := r.ReadInteger(tag)
 	return uint(i), err
 }
 
+// ReadInt from stream
 func (r *Reader) ReadInt() (int, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -462,7 +476,7 @@ func (r *Reader) ReadInt() (int, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -496,10 +510,12 @@ func (r *Reader) ReadInt() (int, error) {
 	return 0, err
 }
 
+// ReadIntWithoutTag from stream
 func (r *Reader) ReadIntWithoutTag() (int, error) {
 	return r.ReadInteger(TagSemicolon)
 }
 
+// ReadUint from stream
 func (r *Reader) ReadUint() (uint, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -513,7 +529,7 @@ func (r *Reader) ReadUint() (uint, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -547,10 +563,12 @@ func (r *Reader) ReadUint() (uint, error) {
 	return 0, err
 }
 
+// ReadUintWithoutTag from stream
 func (r *Reader) ReadUintWithoutTag() (uint, error) {
 	return r.ReadUinteger(TagSemicolon)
 }
 
+// ReadInt64 from stream
 func (r *Reader) ReadInt64() (int64, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -564,7 +582,7 @@ func (r *Reader) ReadInt64() (int64, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int64(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -595,10 +613,12 @@ func (r *Reader) ReadInt64() (int64, error) {
 	return 0, err
 }
 
+// ReadInt64WithoutTag from stream
 func (r *Reader) ReadInt64WithoutTag() (int64, error) {
 	return r.readInt(TagSemicolon)
 }
 
+// ReadUint64 from stream
 func (r *Reader) ReadUint64() (uint64, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -612,7 +632,7 @@ func (r *Reader) ReadUint64() (uint64, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint64(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -643,10 +663,12 @@ func (r *Reader) ReadUint64() (uint64, error) {
 	return 0, err
 }
 
+// ReadUint64WithoutTag from stream
 func (r *Reader) ReadUint64WithoutTag() (uint64, error) {
 	return r.readUint(TagSemicolon)
 }
 
+// ReadInt8 from stream
 func (r *Reader) ReadInt8() (int8, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -660,7 +682,7 @@ func (r *Reader) ReadInt8() (int8, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int8(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -694,10 +716,12 @@ func (r *Reader) ReadInt8() (int8, error) {
 	return 0, err
 }
 
+// ReadInt8WithoutTag from stream
 func (r *Reader) ReadInt8WithoutTag() (int8, error) {
 	return r.readInt8(TagSemicolon)
 }
 
+// ReadUint8 from stream
 func (r *Reader) ReadUint8() (uint8, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -711,7 +735,7 @@ func (r *Reader) ReadUint8() (uint8, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint8(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -745,10 +769,12 @@ func (r *Reader) ReadUint8() (uint8, error) {
 	return 0, err
 }
 
+// ReadUint8WithoutTag from stream
 func (r *Reader) ReadUint8WithoutTag() (uint8, error) {
 	return r.readUint8(TagSemicolon)
 }
 
+// ReadInt16 from stream
 func (r *Reader) ReadInt16() (int16, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -762,7 +788,7 @@ func (r *Reader) ReadInt16() (int16, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int16(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -796,10 +822,12 @@ func (r *Reader) ReadInt16() (int16, error) {
 	return 0, err
 }
 
+// ReadInt16WithoutTag from stream
 func (r *Reader) ReadInt16WithoutTag() (int16, error) {
 	return r.readInt16(TagSemicolon)
 }
 
+// ReadUint16 from stream
 func (r *Reader) ReadUint16() (uint16, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -813,7 +841,7 @@ func (r *Reader) ReadUint16() (uint16, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint16(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -847,10 +875,12 @@ func (r *Reader) ReadUint16() (uint16, error) {
 	return 0, err
 }
 
+// ReadUint16WithoutTag from stream
 func (r *Reader) ReadUint16WithoutTag() (uint16, error) {
 	return r.readUint16(TagSemicolon)
 }
 
+// ReadInt32 from stream
 func (r *Reader) ReadInt32() (int32, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -864,7 +894,7 @@ func (r *Reader) ReadInt32() (int32, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int32(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -898,10 +928,12 @@ func (r *Reader) ReadInt32() (int32, error) {
 	return 0, err
 }
 
+// ReadInt32WithoutTag from stream
 func (r *Reader) ReadInt32WithoutTag() (int32, error) {
 	return r.readInt32(TagSemicolon)
 }
 
+// ReadUint32 from stream
 func (r *Reader) ReadUint32() (uint32, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -915,7 +947,7 @@ func (r *Reader) ReadUint32() (uint32, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint32(f), err
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -949,10 +981,12 @@ func (r *Reader) ReadUint32() (uint32, error) {
 	return 0, err
 }
 
+// ReadUint32WithoutTag from stream
 func (r *Reader) ReadUint32WithoutTag() (uint32, error) {
 	return r.readUint32(TagSemicolon)
 }
 
+// ReadBigInt from stream
 func (r *Reader) ReadBigInt() (*big.Int, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -966,7 +1000,7 @@ func (r *Reader) ReadBigInt() (*big.Int, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return big.NewInt(int64(f)), err
 		case TagNull:
-			return big.NewInt(0), NilError
+			return big.NewInt(0), ErrorNil
 		case TagEmpty, TagFalse:
 			return big.NewInt(0), nil
 		case TagTrue:
@@ -997,6 +1031,7 @@ func (r *Reader) ReadBigInt() (*big.Int, error) {
 	return nil, err
 }
 
+// ReadBigIntWithoutTag from stream
 func (r *Reader) ReadBigIntWithoutTag() (*big.Int, error) {
 	s := r.stream
 	tag := TagSemicolon
@@ -1027,6 +1062,7 @@ func (r *Reader) ReadBigIntWithoutTag() (*big.Int, error) {
 	return i, err
 }
 
+// ReadFloat32 from stream
 func (r *Reader) ReadFloat32() (float32, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -1039,7 +1075,7 @@ func (r *Reader) ReadFloat32() (float32, error) {
 		case TagDouble:
 			return r.ReadFloat32WithoutTag()
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -1078,14 +1114,17 @@ func (r *Reader) ReadFloat32() (float32, error) {
 	return 0, err
 }
 
+// ReadFloat32WithoutTag from stream
 func (r *Reader) ReadFloat32WithoutTag() (float32, error) {
-	if str, err := r.readUntil(TagSemicolon); err == nil {
-		f, _ := strconv.ParseFloat(str, 32)
-		return float32(f), nil
-	} else {
+	str, err := r.readUntil(TagSemicolon)
+	if err != nil {
 		return float32(math.NaN()), err
 	}
+	f, _ := strconv.ParseFloat(str, 32)
+	return float32(f), nil
 }
+
+// ReadFloat64 from stream
 func (r *Reader) ReadFloat64() (float64, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -1098,7 +1137,7 @@ func (r *Reader) ReadFloat64() (float64, error) {
 		case TagDouble:
 			return r.ReadFloat64WithoutTag()
 		case TagNull:
-			return 0, NilError
+			return 0, ErrorNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -1133,15 +1172,17 @@ func (r *Reader) ReadFloat64() (float64, error) {
 	return 0, err
 }
 
+// ReadFloat64WithoutTag from stream
 func (r *Reader) ReadFloat64WithoutTag() (float64, error) {
-	if str, err := r.readUntil(TagSemicolon); err == nil {
-		f, _ := strconv.ParseFloat(str, 64)
-		return f, nil
-	} else {
+	str, err := r.readUntil(TagSemicolon)
+	if err != nil {
 		return math.NaN(), err
 	}
+	f, _ := strconv.ParseFloat(str, 64)
+	return f, nil
 }
 
+// ReadBool from stream
 func (r *Reader) ReadBool() (bool, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -1158,7 +1199,7 @@ func (r *Reader) ReadBool() (bool, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return f != 0, err
 		case TagNull:
-			return false, NilError
+			return false, ErrorNil
 		case TagEmpty, TagFalse:
 			return false, nil
 		case TagTrue, TagNaN:
@@ -1192,6 +1233,7 @@ func (r *Reader) ReadBool() (bool, error) {
 	return false, err
 }
 
+// ReadDateTime from stream
 func (r *Reader) ReadDateTime() (time.Time, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -1200,7 +1242,7 @@ func (r *Reader) ReadDateTime() (time.Time, error) {
 		case '0', TagEmpty:
 			return timeZero, nil
 		case TagNull:
-			return timeZero, NilError
+			return timeZero, ErrorNil
 		case TagString:
 			var str string
 			if str, err = r.ReadStringWithoutTag(); err == nil {
@@ -1230,6 +1272,7 @@ func (r *Reader) ReadDateTime() (time.Time, error) {
 	return timeZero, err
 }
 
+// ReadDateWithoutTag from stream
 func (r *Reader) ReadDateWithoutTag() (time.Time, error) {
 	s := r.stream
 	var year, month, day, hour, min, sec, nsec int
@@ -1285,6 +1328,7 @@ func (r *Reader) ReadDateWithoutTag() (time.Time, error) {
 	return d, nil
 }
 
+// ReadTimeWithoutTag from stream
 func (r *Reader) ReadTimeWithoutTag() (time.Time, error) {
 	hour, min, sec, nsec, tag, err := r.readTime()
 	if err != nil {
@@ -1303,6 +1347,7 @@ func (r *Reader) ReadTimeWithoutTag() (time.Time, error) {
 	return t, nil
 }
 
+// ReadString from stream
 func (r *Reader) ReadString() (string, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -1313,7 +1358,7 @@ func (r *Reader) ReadString() (string, error) {
 		case TagInteger, TagLong, TagDouble:
 			return r.readUntil(TagSemicolon)
 		case TagNull:
-			return "", NilError
+			return "", ErrorNil
 		case TagEmpty:
 			return "", nil
 		case TagTrue:
@@ -1343,7 +1388,7 @@ func (r *Reader) ReadString() (string, error) {
 		case TagBytes:
 			if b, err := r.ReadBytesWithoutTag(); err == nil {
 				if !utf8.Valid(*b) {
-					err = badEncodeError
+					err = errBadEncode
 				}
 				return string(*b), err
 			}
@@ -1363,6 +1408,7 @@ func (r *Reader) ReadString() (string, error) {
 	return "", err
 }
 
+// ReadStringWithoutTag from stream
 func (r *Reader) ReadStringWithoutTag() (str string, err error) {
 	if str, err = r.readStringWithoutTag(); err == nil {
 		r.setRef(str)
@@ -1370,14 +1416,15 @@ func (r *Reader) ReadStringWithoutTag() (str string, err error) {
 	return str, err
 }
 
+// ReadBytes from stream
 func (r *Reader) ReadBytes() (*[]byte, error) {
-	var bytes []byte = nil
+	var bytes []byte
 	s := r.stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
 		case TagNull:
-			return &bytes, NilError
+			return &bytes, ErrorNil
 		case TagEmpty:
 			return new([]byte), nil
 		case TagUTF8Char:
@@ -1413,28 +1460,30 @@ func (r *Reader) ReadBytes() (*[]byte, error) {
 	return &bytes, err
 }
 
+// ReadBytesWithoutTag from stream
 func (r *Reader) ReadBytesWithoutTag() (*[]byte, error) {
 	s := r.stream
-	if length, err := r.ReadInteger(TagQuote); err == nil {
-		b := make([]byte, length)
-		if _, err = s.Read(b); err == nil {
-			err = r.CheckTag(TagQuote)
-		}
-		r.setRef(&b)
-		return &b, err
-	} else {
+	length, err := r.ReadInteger(TagQuote)
+	if err != nil {
 		return new([]byte), err
 	}
+	b := make([]byte, length)
+	if _, err = s.Read(b); err == nil {
+		err = r.CheckTag(TagQuote)
+	}
+	r.setRef(&b)
+	return &b, err
 }
 
+// ReadUUID from stream
 func (r *Reader) ReadUUID() (*UUID, error) {
-	var nilUUID UUID = nil
+	var nilUUID UUID
 	s := r.stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
 		case TagNull:
-			return &nilUUID, NilError
+			return &nilUUID, ErrorNil
 		case TagString:
 			str, err := r.ReadStringWithoutTag()
 			u := ToUUID(str)
@@ -1466,6 +1515,7 @@ func (r *Reader) ReadUUID() (*UUID, error) {
 	return &nilUUID, err
 }
 
+// ReadUUIDWithoutTag from stream
 func (r *Reader) ReadUUIDWithoutTag() (*UUID, error) {
 	s := r.stream
 	err := r.CheckTag(TagOpenbrace)
@@ -1478,10 +1528,11 @@ func (r *Reader) ReadUUIDWithoutTag() (*UUID, error) {
 			return &u, err
 		}
 	}
-	var nilUUID UUID = nil
+	var nilUUID UUID
 	return &nilUUID, err
 }
 
+// ReadList from stream
 func (r *Reader) ReadList() (*list.List, error) {
 	l := list.New()
 	s := r.stream
@@ -1489,7 +1540,7 @@ func (r *Reader) ReadList() (*list.List, error) {
 	if err == nil {
 		switch tag {
 		case TagNull:
-			return l, NilError
+			return l, ErrorNil
 		case TagList:
 			return r.ReadListWithoutTag()
 		case TagRef:
@@ -1508,6 +1559,7 @@ func (r *Reader) ReadList() (*list.List, error) {
 	return l, err
 }
 
+// ReadListWithoutTag from stream
 func (r *Reader) ReadListWithoutTag() (*list.List, error) {
 	l := list.New()
 	r.setRef(l)
@@ -1527,6 +1579,7 @@ func (r *Reader) ReadListWithoutTag() (*list.List, error) {
 	return l, err
 }
 
+// ReadArray from stream
 func (r *Reader) ReadArray(a []reflect.Value) error {
 	length := len(a)
 	r.setRef(&a)
@@ -1538,6 +1591,7 @@ func (r *Reader) ReadArray(a []reflect.Value) error {
 	return r.CheckTag(TagClosebrace)
 }
 
+// ReadSlice from stream
 func (r *Reader) ReadSlice(p interface{}) error {
 	v, err := r.checkPointer(p)
 	if err == nil {
@@ -1546,6 +1600,7 @@ func (r *Reader) ReadSlice(p interface{}) error {
 	return err
 }
 
+// ReadSliceWithoutTag from stream
 func (r *Reader) ReadSliceWithoutTag(p interface{}) error {
 	v, err := r.checkPointer(p)
 	if err == nil {
@@ -1554,6 +1609,7 @@ func (r *Reader) ReadSliceWithoutTag(p interface{}) error {
 	return err
 }
 
+// ReadMap from stream
 func (r *Reader) ReadMap(p interface{}) error {
 	v, err := r.checkPointer(p)
 	if err == nil {
@@ -1562,6 +1618,7 @@ func (r *Reader) ReadMap(p interface{}) error {
 	return err
 }
 
+// ReadMapWithoutTag from stream
 func (r *Reader) ReadMapWithoutTag(p interface{}) error {
 	v, err := r.checkPointer(p)
 	if err == nil {
@@ -1570,6 +1627,7 @@ func (r *Reader) ReadMapWithoutTag(p interface{}) error {
 	return err
 }
 
+// ReadObject from stream
 func (r *Reader) ReadObject(p interface{}) error {
 	v, err := r.checkPointer(p)
 	if err == nil {
@@ -1578,6 +1636,7 @@ func (r *Reader) ReadObject(p interface{}) error {
 	return err
 }
 
+// ReadObjectWithoutTag from stream
 func (r *Reader) ReadObjectWithoutTag(p interface{}) error {
 	v, err := r.checkPointer(p)
 	if err == nil {
@@ -1586,6 +1645,7 @@ func (r *Reader) ReadObjectWithoutTag(p interface{}) error {
 	return err
 }
 
+// Reset from stream
 func (r *Reader) Reset() {
 	if r.classref != nil {
 		r.classref = r.classref[:0]
@@ -1594,16 +1654,7 @@ func (r *Reader) Reset() {
 	r.resetRef()
 }
 
-// private methods
-
-func (r *Reader) checkPointer(p interface{}) (v reflect.Value, err error) {
-	v = reflect.ValueOf(p)
-	if v.Kind() != reflect.Ptr {
-		return v, errors.New("argument p must be a pointer")
-	}
-	return v, nil
-}
-
+// ReadValue from stream
 func (r *Reader) ReadValue(v reflect.Value) error {
 	t := v.Type()
 	switch t.Kind() {
@@ -1707,6 +1758,16 @@ func (r *Reader) ReadValue(v reflect.Value) error {
 	return errors.New("unsupported Type:" + t.String())
 }
 
+// private methods
+
+func (r *Reader) checkPointer(p interface{}) (v reflect.Value, err error) {
+	v = reflect.ValueOf(p)
+	if v.Kind() != reflect.Ptr {
+		return v, errors.New("argument p must be a pointer")
+	}
+	return v, nil
+}
+
 func (r *Reader) readInterface() (interface{}, error) {
 	s := r.stream
 	tag, err := s.ReadByte()
@@ -1749,6 +1810,11 @@ func (r *Reader) readInterface() (interface{}, error) {
 			err := r.ReadSliceWithoutTag(&e)
 			return e, err
 		case TagMap:
+			if r.JSONCompatible {
+				var e *map[string]interface{}
+				err := r.ReadMapWithoutTag(&e)
+				return e, err
+			}
 			var e *map[interface{}]interface{}
 			err := r.ReadMapWithoutTag(&e)
 			return e, err
@@ -1773,11 +1839,11 @@ func (r *Reader) readInterface() (interface{}, error) {
 }
 
 func (r *Reader) readUntil(tag byte) (string, error) {
-	if s, err := r.stream.ReadString(tag); err == nil {
-		return s[:len(s)-1], nil
-	} else {
+	s, err := r.stream.ReadString(tag)
+	if err != nil {
 		return s, err
 	}
+	return s[:len(s)-1], nil
 }
 
 func (r *Reader) readInt(tag byte) (int64, error) {
@@ -2041,123 +2107,124 @@ func (r *Reader) readStringWithoutTag() (str string, err error) {
 }
 
 func (r *Reader) readInt64(v reflect.Value) error {
-	if x, err := r.ReadInt64(); err == nil || err == NilError {
+	x, err := r.ReadInt64()
+	if err == nil || err == ErrorNil {
 		v.SetInt(x)
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readUint64(v reflect.Value) error {
-	if x, err := r.ReadUint64(); err == nil || err == NilError {
+	x, err := r.ReadUint64()
+	if err == nil || err == ErrorNil {
 		v.SetUint(x)
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readBool(v reflect.Value) error {
-	if x, err := r.ReadBool(); err == nil || err == NilError {
+	x, err := r.ReadBool()
+	if err == nil || err == ErrorNil {
 		v.SetBool(x)
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readFloat32(v reflect.Value) error {
-	if x, err := r.ReadFloat32(); err == nil || err == NilError {
+	x, err := r.ReadFloat32()
+	if err == nil || err == ErrorNil {
 		v.SetFloat(float64(x))
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readFloat64(v reflect.Value) error {
-	if x, err := r.ReadFloat64(); err == nil || err == NilError {
+	x, err := r.ReadFloat64()
+	if err == nil || err == ErrorNil {
 		v.SetFloat(x)
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readBigInt(v reflect.Value) error {
-	if x, err := r.ReadBigInt(); err == nil || err == NilError {
+	x, err := r.ReadBigInt()
+	if err == nil || err == ErrorNil {
 		v.Set(reflect.ValueOf(*x))
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readDateTime(v reflect.Value) error {
-	if x, err := r.ReadDateTime(); err == nil || err == NilError {
+	x, err := r.ReadDateTime()
+	if err == nil || err == ErrorNil {
 		v.Set(reflect.ValueOf(x))
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readString(v reflect.Value) error {
-	if x, err := r.ReadString(); err == nil || err == NilError {
+	x, err := r.ReadString()
+	if err == nil || err == ErrorNil {
 		v.SetString(x)
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readBytes(v reflect.Value) error {
-	if x, err := r.ReadBytes(); err == nil || err == NilError {
+	x, err := r.ReadBytes()
+	if err == nil || err == ErrorNil {
 		v.Set(reflect.ValueOf(*x))
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readUUID(v reflect.Value) error {
-	if x, err := r.ReadUUID(); err == nil || err == NilError {
+	x, err := r.ReadUUID()
+	if err == nil || err == ErrorNil {
 		v.Set(reflect.ValueOf(*x))
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) readList(v reflect.Value) error {
-	if x, err := r.ReadList(); err == nil || err == NilError {
+	x, err := r.ReadList()
+	if err == nil || err == ErrorNil {
 		v.Set(reflect.ValueOf(*x))
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (r *Reader) getRef(v reflect.Value) error {
 	t := v.Type()
-	if ref, err := r.readRef(r.ReadInteger(TagSemicolon)); err == nil {
-		refValue := reflect.ValueOf(ref)
-		refType := refValue.Type()
-		if refType.Kind() == reflect.Ptr {
-			if refType.AssignableTo(t) {
-				v.Set(refValue)
-				return nil
-			} else if refType.Elem().AssignableTo(t) {
-				v.Set(refValue.Elem())
-				return nil
-			}
-		}
-		return errors.New("cannot convert type " +
-			refType.String() + " to type " + t.String())
-	} else {
+	ref, err := r.readRef(r.ReadInteger(TagSemicolon))
+	if err != nil {
 		return err
 	}
+	refValue := reflect.ValueOf(ref)
+	refType := refValue.Type()
+	if refType.Kind() == reflect.Ptr {
+		if refType.AssignableTo(t) {
+			v.Set(refValue)
+			return nil
+		}
+		if refType.Elem().AssignableTo(t) {
+			v.Set(refValue.Elem())
+			return nil
+		}
+	}
+	return errors.New("cannot convert type " +
+		refType.String() + " to type " + t.String())
 }
 
 func (r *Reader) readSlice(v reflect.Value) error {
@@ -2310,9 +2377,8 @@ func (r *Reader) readMap(v reflect.Value) error {
 		case TagClass:
 			if err = r.readClass(); err == nil {
 				return r.readMap(v)
-			} else {
-				return err
 			}
+			return err
 		case TagObject:
 			return r.readObjectWithoutTag(v)
 		case TagRef:
@@ -2453,9 +2519,8 @@ func (r *Reader) readObject(v reflect.Value) error {
 		case TagClass:
 			if err = r.readClass(); err == nil {
 				return r.readObject(v)
-			} else {
-				return err
 			}
+			return err
 		case TagObject:
 			return r.readObjectWithoutTag(v)
 		case TagRef:
@@ -2623,7 +2688,7 @@ func (r *Reader) readPointer(v reflect.Value, getValue func() (interface{}, erro
 			setValue(v, x)
 		}
 		return nil
-	} else if err == NilError {
+	} else if err == ErrorNil {
 		v.Set(reflect.Zero(v.Type()))
 		return nil
 	} else {
@@ -2700,11 +2765,11 @@ func (r *Reader) readListPointer(v reflect.Value) error {
 // private functions
 
 func convertError(tag byte, dst string) error {
-	if src, err := tagToString(tag); err == nil {
+	src, err := tagToString(tag)
+	if err == nil {
 		return errors.New("cannot convert type " + src + " to type " + dst)
-	} else {
-		return err
 	}
+	return err
 }
 
 func tagToString(tag byte) (string, error) {
