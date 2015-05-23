@@ -12,7 +12,7 @@
  *                                                        *
  * hprose stream service for Go.                          *
  *                                                        *
- * LastModified: Feb 7, 2015                              *
+ * LastModified: May 23, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -25,6 +25,7 @@ import (
 	"time"
 )
 
+// StreamService is the base service for TcpService and UnixService
 type StreamService struct {
 	*BaseService
 	timeout      interface{}
@@ -34,6 +35,7 @@ type StreamService struct {
 	writeBuffer  interface{}
 }
 
+// StreamContext is the hprose stream context for service
 type StreamContext struct {
 	*BaseContext
 	net.Conn
@@ -43,22 +45,27 @@ func newStreamService() *StreamService {
 	return &StreamService{BaseService: NewBaseService()}
 }
 
+// SetTimeout for stream service
 func (service *StreamService) SetTimeout(d time.Duration) {
 	service.timeout = d
 }
 
+// SetReadTimeout for stream service
 func (service *StreamService) SetReadTimeout(d time.Duration) {
 	service.readTimeout = d
 }
 
+// SetReadBuffer for stream service
 func (service *StreamService) SetReadBuffer(bytes int) {
 	service.readBuffer = bytes
 }
 
+// SetWriteTimeout for stream service
 func (service *StreamService) SetWriteTimeout(d time.Duration) {
 	service.writeTimeout = d
 }
 
+// SetWriteBuffer for stream service
 func (service *StreamService) SetWriteBuffer(bytes int) {
 	service.writeBuffer = bytes
 }

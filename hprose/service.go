@@ -28,29 +28,38 @@ import (
 	"strings"
 )
 
+// MissingMethod is missing method
 type MissingMethod func(name string, args []reflect.Value) (result []reflect.Value)
 
+// ServiceEvent is the service event
 type ServiceEvent interface {
 	OnBeforeInvoke(name string, args []reflect.Value, byref bool, context Context)
 	OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context Context)
 	OnSendError(err error, context Context)
 }
 
+// Method is the publish service method
 type Method struct {
 	Function   reflect.Value
 	ResultMode ResultMode
 	SimpleMode bool
 }
 
+// Methods is the publish service methods
 type Methods struct {
 	MethodNames   []string
 	RemoteMethods map[string]*Method
 }
 
+// NewMethods is the constructor for Methods
 func NewMethods() *Methods {
 	return &Methods{make([]string, 0, 64), make(map[string]*Method)}
 }
 
+// AddFunction publish a func or bound method
+// name is the method name
+// function is a func or bound method
+// options is ResultMode, SimpleMode and prefix
 func (methods *Methods) AddFunction(name string, function interface{}, options ...interface{}) {
 	if name == "" {
 		panic("name can't be empty")
@@ -86,6 +95,10 @@ func (methods *Methods) AddFunction(name string, function interface{}, options .
 	methods.RemoteMethods[strings.ToLower(name)] = m
 }
 
+// AddFunctions ...
+// names are method names
+// functions are funcs or bound methods
+// options is the same as AddFuntion
 func (methods *Methods) AddFunctions(names []string, functions []interface{}, options ...interface{}) {
 	if len(names) != len(functions) {
 		panic("names and functions must have the same length")
@@ -96,6 +109,9 @@ func (methods *Methods) AddFunctions(names []string, functions []interface{}, op
 	}
 }
 
+// AddMethods ...
+// obj is service object. all the public method and func field will be published
+// options is the same as AddFuntion
 func (methods *Methods) AddMethods(obj interface{}, options ...interface{}) {
 	if obj == nil {
 		panic("obj can't be nil")
@@ -193,10 +209,13 @@ func (methods *Methods) AddAllMethods(obj interface{}, options ...interface{}) {
 	}
 }
 
+// AddMissingMethod ...
+// All methods not explicitly published will be redirected to the method.
 func (methods *Methods) AddMissingMethod(method MissingMethod, options ...interface{}) {
 	methods.AddFunction("*", method, options...)
 }
 
+// ArgsFixer ...
 type ArgsFixer interface {
 	FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value
 }
@@ -209,6 +228,7 @@ func fixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) 
 	return args
 }
 
+// BaseService is the hprose base service
 type BaseService struct {
 	*Methods
 	ServiceEvent
@@ -217,10 +237,12 @@ type BaseService struct {
 	argsfixer    ArgsFixer
 }
 
+// NewBaseService is the constructor for BaseService
 func NewBaseService() *BaseService {
 	return &BaseService{Methods: NewMethods(), filters: []Filter{}}
 }
 
+// GetFilter return the first filter
 func (service *BaseService) GetFilter() Filter {
 	if len(service.filters) == 0 {
 		return nil
@@ -228,6 +250,7 @@ func (service *BaseService) GetFilter() Filter {
 	return service.filters[0]
 }
 
+// SetFilter set the only filter
 func (service *BaseService) SetFilter(filter Filter) {
 	service.filters = []Filter{}
 	if filter != nil {
@@ -235,10 +258,12 @@ func (service *BaseService) SetFilter(filter Filter) {
 	}
 }
 
+// AddFilter add a filter
 func (service *BaseService) AddFilter(filter Filter) {
 	service.filters = append(service.filters, filter)
 }
 
+// RemoveFilter remove a filter
 func (service *BaseService) RemoveFilter(filter Filter) {
 	n := len(service.filters)
 	for i := 0; i < n; i++ {
@@ -389,12 +414,10 @@ func (service *BaseService) doInvoke(data []byte, context Context) []byte {
 				}
 				if missingMethod, ok := remoteMethod.Function.Interface().(MissingMethod); ok {
 					return missingMethod(name, args), nil
-				} else {
-					return nil, errors.New("Can't find this method " + name)
 				}
-			} else {
-				return remoteMethod.Function.Call(args), nil
+				return nil, errors.New("Can't find this method " + name)
 			}
+			return remoteMethod.Function.Call(args), nil
 		}(); err != nil {
 			return service.sendError(err, context)
 		}
@@ -407,32 +430,30 @@ func (service *BaseService) doInvoke(data []byte, context Context) []byte {
 			if t.Implements(reflect.TypeOf(&err).Elem()) {
 				if err, ok := result[resultLength-1].Interface().(error); ok {
 					return service.sendError(err, context)
-				} else {
-					resultLength--
-					result = result[:resultLength]
 				}
+				resultLength--
+				result = result[:resultLength]
 			}
 		}
 		if remoteMethod.ResultMode != Normal {
 			if resultLength == 0 {
 				return service.sendError(errors.New("can't find the result value"), context)
-			} else {
-				switch r := result[0].Interface().(type) {
-				case []byte:
-					data = r
-				case *[]byte:
-					data = *r
-				case bytes.Buffer:
-					data = r.Bytes()
-				case *bytes.Buffer:
-					data = r.Bytes()
-				case string:
-					data = []byte(r)
-				case *string:
-					data = []byte(*r)
-				default:
-					return service.sendError(errors.New("the result type is wrong"), context)
-				}
+			}
+			switch r := result[0].Interface().(type) {
+			case []byte:
+				data = r
+			case *[]byte:
+				data = *r
+			case bytes.Buffer:
+				data = r.Bytes()
+			case *bytes.Buffer:
+				data = r.Bytes()
+			case string:
+				data = []byte(r)
+			case *string:
+				data = []byte(*r)
+			default:
+				return service.sendError(errors.New("the result type is wrong"), context)
 			}
 			if remoteMethod.ResultMode == RawWithEndTag {
 				return service.responseEnd(data, context)
@@ -487,6 +508,7 @@ func (service *BaseService) doFunctionList(context Context) []byte {
 	return service.responseEnd(buf.Bytes(), context)
 }
 
+// Handle the hprose request and return the hprose response
 func (service *BaseService) Handle(data []byte, context Context) (output []byte) {
 	defer func() {
 		if e := recover(); e != nil {

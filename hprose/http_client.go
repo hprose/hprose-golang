@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: May 13, 2015                             *
+ * LastModified: May 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,17 +30,21 @@ import (
 
 var cookieJar, _ = cookiejar.New(nil)
 
+// DisableGlobalCookie is a flag to disable global cookie
 var DisableGlobalCookie = false
 
+// HttpClient is hprose http client
 type HttpClient struct {
 	*BaseClient
 }
 
+// HttpTransporter is hprose http transporter
 type HttpTransporter struct {
 	*http.Client
 	Header *http.Header
 }
 
+// NewHttpClient is the constructor of HttpClient
 func NewHttpClient(uri string) Client {
 	client := &HttpClient{NewBaseClient(newHttpTransporter())}
 	client.Client = client
@@ -49,8 +53,10 @@ func NewHttpClient(uri string) Client {
 	return client
 }
 
+// Close the client
 func (client *HttpClient) Close() {}
 
+// SetUri set the uri of hprose client
 func (client *HttpClient) SetUri(uri string) {
 	if u, err := url.Parse(uri); err == nil {
 		if u.Scheme != "http" && u.Scheme != "https" {
@@ -63,10 +69,12 @@ func (client *HttpClient) SetUri(uri string) {
 	client.BaseClient.SetUri(uri)
 }
 
+// Http return the http.Client in hprose client
 func (client *HttpClient) Http() *http.Client {
 	return client.Transporter.(*HttpTransporter).Client
 }
 
+// Header return the http.Header in hprose client
 func (client *HttpClient) Header() *http.Header {
 	return client.Transporter.(*HttpTransporter).Header
 }
@@ -75,34 +83,42 @@ func (client *HttpClient) transport() *http.Transport {
 	return client.Http().Transport.(*http.Transport)
 }
 
+// TLSClientConfig return the tls.Config in hprose client
 func (client *HttpClient) TLSClientConfig() *tls.Config {
 	return client.transport().TLSClientConfig
 }
 
+// SetTLSClientConfig set the tls.Config
 func (client *HttpClient) SetTLSClientConfig(config *tls.Config) {
 	client.transport().TLSClientConfig = config
 }
 
+// KeepAlive return the keepalive status of hprose client
 func (client *HttpClient) KeepAlive() bool {
 	return !client.transport().DisableKeepAlives
 }
 
+// SetKeepAlive set the keepalive status of hprose client
 func (client *HttpClient) SetKeepAlive(enable bool) {
 	client.transport().DisableKeepAlives = !enable
 }
 
+// Compression return the compression status of hprose client
 func (client *HttpClient) Compression() bool {
 	return !client.transport().DisableCompression
 }
 
+// SetCompression set the compression status of hprose client
 func (client *HttpClient) SetCompression(enable bool) {
 	client.transport().DisableCompression = !enable
 }
 
+// MaxIdleConnsPerHost return the max idle connections per host of hprose client
 func (client *HttpClient) MaxIdleConnsPerHost() int {
 	return client.transport().MaxIdleConnsPerHost
 }
 
+// SetMaxIdleConnsPerHost set the max idle connections per host of hprose client
 func (client *HttpClient) SetMaxIdleConnsPerHost(value int) {
 	client.transport().MaxIdleConnsPerHost = value
 }
@@ -131,6 +147,7 @@ func (h *HttpTransporter) readAll(response *http.Response) (data []byte, err err
 	return make([]byte, 0), nil
 }
 
+// SendAndReceive send and receive the data
 func (h *HttpTransporter) SendAndReceive(uri string, data []byte) ([]byte, error) {
 	req, err := http.NewRequest("POST", uri, NewBytesReader(data))
 	if err != nil {

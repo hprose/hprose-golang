@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix service for Go.                            *
  *                                                        *
- * LastModified: Feb 7, 2015                              *
+ * LastModified: May 23, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -29,8 +29,10 @@ import (
 	"time"
 )
 
+// UnixService is the hprose unix service
 type UnixService StreamService
 
+// UnixContext is the hprose unix context
 type UnixContext StreamContext
 
 type unixArgsFixer struct{}
@@ -48,12 +50,14 @@ func (unixArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, c
 	return fixArgs(args, lastParamType, context)
 }
 
+// NewUnixService is the constructor of UnixService
 func NewUnixService() *UnixService {
 	service := (*UnixService)(newStreamService())
 	service.argsfixer = unixArgsFixer{}
 	return service
 }
 
+// ServeUnix ...
 func (service *UnixService) ServeUnix(conn *net.UnixConn) (err error) {
 	if service.readBuffer != nil {
 		if err = conn.SetReadBuffer(service.readBuffer.(int)); err != nil {
@@ -98,6 +102,7 @@ func (service *UnixService) ServeUnix(conn *net.UnixConn) (err error) {
 	return nil
 }
 
+// UnixServer is a hprose unix server
 type UnixServer struct {
 	*UnixService
 	URL         string
@@ -105,6 +110,7 @@ type UnixServer struct {
 	listener    *net.UnixListener
 }
 
+// NewUnixServer is a constructor for UnixServer
 func NewUnixServer(uri string) *UnixServer {
 	if uri == "" {
 		uri = "unix:/tmp/hprose.sock"
@@ -150,6 +156,7 @@ func (server *UnixServer) start() {
 	}
 }
 
+// Start the hprose unix server
 func (server *UnixServer) Start() (err error) {
 	if server.listener == nil {
 		scheme, path := parseUnixUri(server.URL)
@@ -168,6 +175,7 @@ func (server *UnixServer) Start() (err error) {
 	return nil
 }
 
+// Stop the hprose unix server
 func (server *UnixServer) Stop() {
 	if server.listener != nil {
 		listener := server.listener

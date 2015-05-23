@@ -12,7 +12,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Oct 15, 2014                             *
+ * LastModified: May 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -117,12 +117,14 @@ import (
 	"strings"
 )
 
+// InvokeOptions is the invoke options of hprose client
 type InvokeOptions struct {
 	ByRef      interface{} // true, false, nil
 	SimpleMode interface{} // true, false, nil
 	ResultMode ResultMode
 }
 
+// Client is hprose client
 type Client interface {
 	UseService(...interface{})
 	Invoke(string, []interface{}, *InvokeOptions, interface{}) <-chan error
@@ -138,15 +140,18 @@ type Client interface {
 	Close()
 }
 
+// ClientContext is the hprose client context
 type ClientContext struct {
 	*BaseContext
 	Client
 }
 
+// Transporter is the hprose client transporter
 type Transporter interface {
 	SendAndReceive(uri string, data []byte) ([]byte, error)
 }
 
+// BaseClient is the hprose base client
 type BaseClient struct {
 	Transporter
 	Client
@@ -159,10 +164,12 @@ type BaseClient struct {
 
 var clientFactories = make(map[string]func(string) Client)
 
+// NewBaseClient is the constructor of BaseClient
 func NewBaseClient(trans Transporter) *BaseClient {
 	return &BaseClient{Transporter: trans, filters: []Filter{}}
 }
 
+// NewClient is the constructor of Client
 func NewClient(uri string) Client {
 	if strings.HasPrefix(uri, "unix") {
 		scheme := strings.Split(uri, ":")[0]
@@ -181,6 +188,7 @@ func NewClient(uri string) Client {
 	}
 }
 
+// Uri return the uri of hprose client
 func (client *BaseClient) Uri() string {
 	if client.uri != nil {
 		return client.uri.String()
@@ -188,6 +196,7 @@ func (client *BaseClient) Uri() string {
 	return ""
 }
 
+// SetUri set the uri of hprose client
 func (client *BaseClient) SetUri(uri string) {
 	if u, err := url.Parse(uri); err == nil {
 		client.uri = u
@@ -196,6 +205,7 @@ func (client *BaseClient) SetUri(uri string) {
 	}
 }
 
+// GetFilter return the first filter
 func (client *BaseClient) GetFilter() Filter {
 	if len(client.filters) == 0 {
 		return nil
@@ -203,6 +213,7 @@ func (client *BaseClient) GetFilter() Filter {
 	return client.filters[0]
 }
 
+// SetFilter set the only filter
 func (client *BaseClient) SetFilter(filter Filter) {
 	client.filters = []Filter{}
 	if filter != nil {
@@ -210,10 +221,12 @@ func (client *BaseClient) SetFilter(filter Filter) {
 	}
 }
 
+// AddFilter add a filter
 func (client *BaseClient) AddFilter(filter Filter) {
 	client.filters = append(client.filters, filter)
 }
 
+// RemoveFilter remove a filter
 func (client *BaseClient) RemoveFilter(filter Filter) {
 	n := len(client.filters)
 	for i := 0; i < n; i++ {
@@ -270,6 +283,7 @@ func (client *BaseClient) UseService(args ...interface{}) {
 	panic("Wrong arguments.")
 }
 
+// Invoke the remote method
 func (client *BaseClient) Invoke(name string, args []interface{}, options *InvokeOptions, result interface{}) <-chan error {
 	if result == nil {
 		panic("The argument result can't be nil")
@@ -643,6 +657,7 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 
 // public functions
 
+// RegisterClientFactory register client factory
 func RegisterClientFactory(scheme string, newClient func(string) Client) {
 	clientFactories[strings.ToLower(scheme)] = newClient
 }

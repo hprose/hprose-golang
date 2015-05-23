@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-// This type is only a UUID wrapper for hprose serialize/unserialize,
+// UUID type is only a UUID wrapper for hprose serialize/unserialize,
 // If you want to generate UUIDs, you should use other UUID package.
 type UUID []byte
 

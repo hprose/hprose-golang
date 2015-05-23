@@ -26,10 +26,12 @@ import (
 	"time"
 )
 
+// UnixClient is hprose unix client
 type UnixClient struct {
 	*StreamClient
 }
 
+// UnixTransporter is hprose unix transporter
 type UnixTransporter struct {
 	connPool *StreamConnPool
 	*UnixClient
@@ -37,6 +39,7 @@ type UnixTransporter struct {
 
 var globalUnixConnPool = NewStreamConnPool(64)
 
+// NewUnixClient is the constructor of UnixClient
 func NewUnixClient(uri string) Client {
 	trans := &UnixTransporter{connPool: globalUnixConnPool}
 	client := &UnixClient{StreamClient: newStreamClient(trans)}
@@ -46,10 +49,12 @@ func NewUnixClient(uri string) Client {
 	return client
 }
 
+// SetConnPool can set separate StreamConnPool for the client
 func (client *UnixClient) SetConnPool(connPool *StreamConnPool) {
 	client.Transporter.(*UnixTransporter).connPool = connPool
 }
 
+// SetUri set the uri of hprose client
 func (client *UnixClient) SetUri(uri string) {
 	scheme, _ := parseUnixUri(uri)
 	if scheme != "unix" {
@@ -59,6 +64,7 @@ func (client *UnixClient) SetUri(uri string) {
 	client.BaseClient.SetUri(uri)
 }
 
+// Close the client
 func (client *UnixClient) Close() {
 	uri := client.Uri()
 	if uri != "" {
@@ -66,20 +72,23 @@ func (client *UnixClient) Close() {
 	}
 }
 
+// Timeout return the timeout of the connection in client pool
 func (client *UnixClient) Timeout() time.Duration {
 	return client.Transporter.(*UnixTransporter).connPool.Timeout()
 }
 
+// SetTimeout for connection in client pool
 func (client *UnixClient) SetTimeout(d time.Duration) {
 	client.timeout = d
 	client.Transporter.(*UnixTransporter).connPool.SetTimeout(d)
 }
 
 func parseUnixUri(uri string) (scheme, path string) {
-	t := strings.Split(uri, ":")
+	t := strings.SplitN(uri, ":", 2)
 	return t[0], t[1]
 }
 
+// SendAndReceive send and receive the data
 func (t *UnixTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
 	connEntry := t.connPool.Get(uri)
 	defer func() {

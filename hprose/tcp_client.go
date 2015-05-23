@@ -27,6 +27,7 @@ import (
 	"time"
 )
 
+// TcpClient is hprose tcp client
 type TcpClient struct {
 	*StreamClient
 	keepAlive       interface{}
@@ -36,6 +37,7 @@ type TcpClient struct {
 	tlsConfig       *tls.Config
 }
 
+// TcpTransporter is hprose tcp transporter
 type TcpTransporter struct {
 	connPool *StreamConnPool
 	*TcpClient
@@ -43,6 +45,7 @@ type TcpTransporter struct {
 
 var globalTcpConnPool = NewStreamConnPool(64)
 
+// NewTcpClient is the constructor of TcpClient
 func NewTcpClient(uri string) Client {
 	trans := &TcpTransporter{connPool: globalTcpConnPool}
 	client := &TcpClient{StreamClient: newStreamClient(trans)}
@@ -52,10 +55,12 @@ func NewTcpClient(uri string) Client {
 	return client
 }
 
+// SetConnPool can set separate StreamConnPool for the client
 func (client *TcpClient) SetConnPool(connPool *StreamConnPool) {
 	client.Transporter.(*TcpTransporter).connPool = connPool
 }
 
+// SetUri set the uri of hprose client
 func (client *TcpClient) SetUri(uri string) {
 	if u, err := url.Parse(uri); err == nil {
 		if u.Scheme != "tcp" && u.Scheme != "tcp4" && u.Scheme != "tcp6" {
@@ -66,6 +71,7 @@ func (client *TcpClient) SetUri(uri string) {
 	client.BaseClient.SetUri(uri)
 }
 
+// Close the client
 func (client *TcpClient) Close() {
 	uri := client.Uri()
 	if uri != "" {
@@ -73,39 +79,54 @@ func (client *TcpClient) Close() {
 	}
 }
 
+// Timeout return the timeout of the connection in client pool
 func (client *TcpClient) Timeout() time.Duration {
 	return client.Transporter.(*TcpTransporter).connPool.Timeout()
 }
 
+// SetTimeout for connection in client pool
 func (client *TcpClient) SetTimeout(d time.Duration) {
 	client.timeout = d
 	client.Transporter.(*TcpTransporter).connPool.SetTimeout(d)
 }
 
+// SetKeepAlive sets whether the operating system should send keepalive messages on the connection.
 func (client *TcpClient) SetKeepAlive(keepalive bool) {
 	client.keepAlive = keepalive
 }
 
+// SetKeepAlivePeriod sets period between keep alives.
 func (client *TcpClient) SetKeepAlivePeriod(d time.Duration) {
 	client.keepAlivePeriod = d
 }
 
+// SetLinger sets the behavior of Close on a connection which still has data waiting to be sent or to be acknowledged.
+//
+// If sec < 0 (the default), the operating system finishes sending the data in the background.
+//
+// If sec == 0, the operating system discards any unsent or unacknowledged data.
+//
+// If sec > 0, the data is sent in the background as with sec < 0. On some operating systems after sec seconds have elapsed any remaining unsent data may be discarded.
 func (client *TcpClient) SetLinger(sec int) {
 	client.linger = sec
 }
 
+// SetNoDelay controls whether the operating system should delay packet transmission in hopes of sending fewer packets (Nagle's algorithm). The default is true (no delay), meaning that data is sent as soon as possible after a Write.
 func (client *TcpClient) SetNoDelay(noDelay bool) {
 	client.noDelay = noDelay
 }
 
+// TLSClientConfig returns the Config structure used to configure a TLS client
 func (client *TcpClient) TLSClientConfig() *tls.Config {
 	return client.tlsConfig
 }
 
+// SetTLSClientConfig sets the Config structure used to configure a TLS client
 func (client *TcpClient) SetTLSClientConfig(config *tls.Config) {
 	client.tlsConfig = config
 }
 
+// SendAndReceive send and receive the data
 func (t *TcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
 	connEntry := t.connPool.Get(uri)
 	defer func() {

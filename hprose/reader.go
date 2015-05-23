@@ -32,8 +32,8 @@ import (
 	"unicode/utf8"
 )
 
-// ErrorNil is a error of nil
-var ErrorNil = errors.New("nil")
+// ErrNil is a error of nil
+var ErrNil = errors.New("nil")
 
 var errBadEncode = errors.New("bad utf-8 encoding")
 var errRef = unexpectedTag(TagRef, nil)
@@ -164,57 +164,57 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 	case nil:
 		return errors.New("argument p must be non-null pointer")
 	case *int:
-		if *p, err = r.ReadInt(); err == ErrorNil {
+		if *p, err = r.ReadInt(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *uint:
-		if *p, err = r.ReadUint(); err == ErrorNil {
+		if *p, err = r.ReadUint(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *int8:
-		if *p, err = r.ReadInt8(); err == ErrorNil {
+		if *p, err = r.ReadInt8(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *uint8:
-		if *p, err = r.ReadUint8(); err == ErrorNil {
+		if *p, err = r.ReadUint8(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *int16:
-		if *p, err = r.ReadInt16(); err == ErrorNil {
+		if *p, err = r.ReadInt16(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *uint16:
-		if *p, err = r.ReadUint16(); err == ErrorNil {
+		if *p, err = r.ReadUint16(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *int32:
-		if *p, err = r.ReadInt32(); err == ErrorNil {
+		if *p, err = r.ReadInt32(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *uint32:
-		if *p, err = r.ReadUint32(); err == ErrorNil {
+		if *p, err = r.ReadUint32(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *int64:
-		if *p, err = r.ReadInt64(); err == ErrorNil {
+		if *p, err = r.ReadInt64(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *uint64:
-		if *p, err = r.ReadUint64(); err == ErrorNil {
+		if *p, err = r.ReadUint64(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *big.Int:
-		if x, err := r.ReadBigInt(); err == ErrorNil {
+		if x, err := r.ReadBigInt(); err == ErrNil {
 			err = nil
 			*p = *x
 		} else {
@@ -222,32 +222,32 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case *float32:
-		if *p, err = r.ReadFloat32(); err == ErrorNil {
+		if *p, err = r.ReadFloat32(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *float64:
-		if *p, err = r.ReadFloat64(); err == ErrorNil {
+		if *p, err = r.ReadFloat64(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *bool:
-		if *p, err = r.ReadBool(); err == ErrorNil {
+		if *p, err = r.ReadBool(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *time.Time:
-		if *p, err = r.ReadDateTime(); err == ErrorNil {
+		if *p, err = r.ReadDateTime(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *string:
-		if *p, err = r.ReadString(); err == ErrorNil {
+		if *p, err = r.ReadString(); err == ErrNil {
 			err = nil
 		}
 		return err
 	case *[]byte:
-		if x, err := r.ReadBytes(); err == ErrorNil {
+		if x, err := r.ReadBytes(); err == ErrNil {
 			*p = *x
 			err = nil
 		} else {
@@ -255,7 +255,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case *UUID:
-		if x, err := r.ReadUUID(); err == ErrorNil {
+		if x, err := r.ReadUUID(); err == ErrNil {
 			*p = *x
 			err = nil
 		} else {
@@ -263,7 +263,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case *list.List:
-		if x, err := r.ReadList(); err == ErrorNil {
+		if x, err := r.ReadList(); err == ErrNil {
 			*p = *x
 			err = nil
 		} else {
@@ -271,7 +271,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int:
-		if x, err := r.ReadInt(); err == ErrorNil {
+		if x, err := r.ReadInt(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -279,7 +279,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint:
-		if x, err := r.ReadUint(); err == ErrorNil {
+		if x, err := r.ReadUint(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -287,7 +287,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int8:
-		if x, err := r.ReadInt8(); err == ErrorNil {
+		if x, err := r.ReadInt8(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -295,7 +295,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint8:
-		if x, err := r.ReadUint8(); err == ErrorNil {
+		if x, err := r.ReadUint8(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -303,7 +303,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int16:
-		if x, err := r.ReadInt16(); err == ErrorNil {
+		if x, err := r.ReadInt16(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -311,7 +311,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint16:
-		if x, err := r.ReadUint16(); err == ErrorNil {
+		if x, err := r.ReadUint16(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -319,7 +319,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int32:
-		if x, err := r.ReadInt32(); err == ErrorNil {
+		if x, err := r.ReadInt32(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -327,7 +327,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint32:
-		if x, err := r.ReadUint32(); err == ErrorNil {
+		if x, err := r.ReadUint32(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -335,7 +335,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **int64:
-		if x, err := r.ReadInt64(); err == ErrorNil {
+		if x, err := r.ReadInt64(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -343,7 +343,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **uint64:
-		if x, err := r.ReadUint64(); err == ErrorNil {
+		if x, err := r.ReadUint64(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -351,13 +351,13 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **big.Int:
-		if *p, err = r.ReadBigInt(); err == ErrorNil {
+		if *p, err = r.ReadBigInt(); err == ErrNil {
 			*p = nil
 			err = nil
 		}
 		return err
 	case **float32:
-		if x, err := r.ReadFloat32(); err == ErrorNil {
+		if x, err := r.ReadFloat32(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -365,7 +365,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **float64:
-		if x, err := r.ReadFloat64(); err == ErrorNil {
+		if x, err := r.ReadFloat64(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -373,7 +373,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **bool:
-		if x, err := r.ReadBool(); err == ErrorNil {
+		if x, err := r.ReadBool(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -381,7 +381,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **time.Time:
-		if x, err := r.ReadDateTime(); err == ErrorNil {
+		if x, err := r.ReadDateTime(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -389,7 +389,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **string:
-		if x, err := r.ReadString(); err == ErrorNil {
+		if x, err := r.ReadString(); err == ErrNil {
 			*p = nil
 			err = nil
 		} else {
@@ -397,25 +397,25 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 		}
 		return err
 	case **[]byte:
-		if *p, err = r.ReadBytes(); err == ErrorNil {
+		if *p, err = r.ReadBytes(); err == ErrNil {
 			*p = nil
 			err = nil
 		}
 		return err
 	case **UUID:
-		if *p, err = r.ReadUUID(); err == ErrorNil {
+		if *p, err = r.ReadUUID(); err == ErrNil {
 			*p = nil
 			err = nil
 		}
 		return err
 	case **list.List:
-		if *p, err = r.ReadList(); err == ErrorNil {
+		if *p, err = r.ReadList(); err == ErrNil {
 			*p = nil
 			err = nil
 		}
 		return err
 	case *interface{}:
-		if *p, err = r.readInterface(); err == ErrorNil {
+		if *p, err = r.readInterface(); err == ErrNil {
 			*p = nil
 			err = nil
 		}
@@ -476,7 +476,7 @@ func (r *Reader) ReadInt() (int, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -529,7 +529,7 @@ func (r *Reader) ReadUint() (uint, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -582,7 +582,7 @@ func (r *Reader) ReadInt64() (int64, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int64(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -632,7 +632,7 @@ func (r *Reader) ReadUint64() (uint64, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint64(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -682,7 +682,7 @@ func (r *Reader) ReadInt8() (int8, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int8(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -735,7 +735,7 @@ func (r *Reader) ReadUint8() (uint8, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint8(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -788,7 +788,7 @@ func (r *Reader) ReadInt16() (int16, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int16(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -841,7 +841,7 @@ func (r *Reader) ReadUint16() (uint16, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint16(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -894,7 +894,7 @@ func (r *Reader) ReadInt32() (int32, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return int32(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -947,7 +947,7 @@ func (r *Reader) ReadUint32() (uint32, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return uint32(f), err
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -1000,7 +1000,7 @@ func (r *Reader) ReadBigInt() (*big.Int, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return big.NewInt(int64(f)), err
 		case TagNull:
-			return big.NewInt(0), ErrorNil
+			return big.NewInt(0), ErrNil
 		case TagEmpty, TagFalse:
 			return big.NewInt(0), nil
 		case TagTrue:
@@ -1075,7 +1075,7 @@ func (r *Reader) ReadFloat32() (float32, error) {
 		case TagDouble:
 			return r.ReadFloat32WithoutTag()
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -1137,7 +1137,7 @@ func (r *Reader) ReadFloat64() (float64, error) {
 		case TagDouble:
 			return r.ReadFloat64WithoutTag()
 		case TagNull:
-			return 0, ErrorNil
+			return 0, ErrNil
 		case TagEmpty, TagFalse:
 			return 0, nil
 		case TagTrue:
@@ -1199,7 +1199,7 @@ func (r *Reader) ReadBool() (bool, error) {
 			f, err := r.ReadFloat64WithoutTag()
 			return f != 0, err
 		case TagNull:
-			return false, ErrorNil
+			return false, ErrNil
 		case TagEmpty, TagFalse:
 			return false, nil
 		case TagTrue, TagNaN:
@@ -1242,7 +1242,7 @@ func (r *Reader) ReadDateTime() (time.Time, error) {
 		case '0', TagEmpty:
 			return timeZero, nil
 		case TagNull:
-			return timeZero, ErrorNil
+			return timeZero, ErrNil
 		case TagString:
 			var str string
 			if str, err = r.ReadStringWithoutTag(); err == nil {
@@ -1358,7 +1358,7 @@ func (r *Reader) ReadString() (string, error) {
 		case TagInteger, TagLong, TagDouble:
 			return r.readUntil(TagSemicolon)
 		case TagNull:
-			return "", ErrorNil
+			return "", ErrNil
 		case TagEmpty:
 			return "", nil
 		case TagTrue:
@@ -1424,7 +1424,7 @@ func (r *Reader) ReadBytes() (*[]byte, error) {
 	if err == nil {
 		switch tag {
 		case TagNull:
-			return &bytes, ErrorNil
+			return &bytes, ErrNil
 		case TagEmpty:
 			return new([]byte), nil
 		case TagUTF8Char:
@@ -1483,7 +1483,7 @@ func (r *Reader) ReadUUID() (*UUID, error) {
 	if err == nil {
 		switch tag {
 		case TagNull:
-			return &nilUUID, ErrorNil
+			return &nilUUID, ErrNil
 		case TagString:
 			str, err := r.ReadStringWithoutTag()
 			u := ToUUID(str)
@@ -1540,7 +1540,7 @@ func (r *Reader) ReadList() (*list.List, error) {
 	if err == nil {
 		switch tag {
 		case TagNull:
-			return l, ErrorNil
+			return l, ErrNil
 		case TagList:
 			return r.ReadListWithoutTag()
 		case TagRef:
@@ -1645,7 +1645,7 @@ func (r *Reader) ReadObjectWithoutTag(p interface{}) error {
 	return err
 }
 
-// Reset from stream
+// Reset the serialize reference count
 func (r *Reader) Reset() {
 	if r.classref != nil {
 		r.classref = r.classref[:0]
@@ -2108,7 +2108,7 @@ func (r *Reader) readStringWithoutTag() (str string, err error) {
 
 func (r *Reader) readInt64(v reflect.Value) error {
 	x, err := r.ReadInt64()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.SetInt(x)
 		return nil
 	}
@@ -2117,7 +2117,7 @@ func (r *Reader) readInt64(v reflect.Value) error {
 
 func (r *Reader) readUint64(v reflect.Value) error {
 	x, err := r.ReadUint64()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.SetUint(x)
 		return nil
 	}
@@ -2126,7 +2126,7 @@ func (r *Reader) readUint64(v reflect.Value) error {
 
 func (r *Reader) readBool(v reflect.Value) error {
 	x, err := r.ReadBool()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.SetBool(x)
 		return nil
 	}
@@ -2135,7 +2135,7 @@ func (r *Reader) readBool(v reflect.Value) error {
 
 func (r *Reader) readFloat32(v reflect.Value) error {
 	x, err := r.ReadFloat32()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.SetFloat(float64(x))
 		return nil
 	}
@@ -2144,7 +2144,7 @@ func (r *Reader) readFloat32(v reflect.Value) error {
 
 func (r *Reader) readFloat64(v reflect.Value) error {
 	x, err := r.ReadFloat64()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.SetFloat(x)
 		return nil
 	}
@@ -2153,7 +2153,7 @@ func (r *Reader) readFloat64(v reflect.Value) error {
 
 func (r *Reader) readBigInt(v reflect.Value) error {
 	x, err := r.ReadBigInt()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.Set(reflect.ValueOf(*x))
 		return nil
 	}
@@ -2162,7 +2162,7 @@ func (r *Reader) readBigInt(v reflect.Value) error {
 
 func (r *Reader) readDateTime(v reflect.Value) error {
 	x, err := r.ReadDateTime()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.Set(reflect.ValueOf(x))
 		return nil
 	}
@@ -2171,7 +2171,7 @@ func (r *Reader) readDateTime(v reflect.Value) error {
 
 func (r *Reader) readString(v reflect.Value) error {
 	x, err := r.ReadString()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.SetString(x)
 		return nil
 	}
@@ -2180,7 +2180,7 @@ func (r *Reader) readString(v reflect.Value) error {
 
 func (r *Reader) readBytes(v reflect.Value) error {
 	x, err := r.ReadBytes()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.Set(reflect.ValueOf(*x))
 		return nil
 	}
@@ -2189,7 +2189,7 @@ func (r *Reader) readBytes(v reflect.Value) error {
 
 func (r *Reader) readUUID(v reflect.Value) error {
 	x, err := r.ReadUUID()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.Set(reflect.ValueOf(*x))
 		return nil
 	}
@@ -2198,7 +2198,7 @@ func (r *Reader) readUUID(v reflect.Value) error {
 
 func (r *Reader) readList(v reflect.Value) error {
 	x, err := r.ReadList()
-	if err == nil || err == ErrorNil {
+	if err == nil || err == ErrNil {
 		v.Set(reflect.ValueOf(*x))
 		return nil
 	}
@@ -2688,7 +2688,7 @@ func (r *Reader) readPointer(v reflect.Value, getValue func() (interface{}, erro
 			setValue(v, x)
 		}
 		return nil
-	} else if err == ErrorNil {
+	} else if err == ErrNil {
 		v.Set(reflect.Zero(v.Type()))
 		return nil
 	} else {

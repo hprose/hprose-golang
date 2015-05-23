@@ -12,7 +12,7 @@
  *                                                        *
  * hprose websocket service for Go.                       *
  *                                                        *
- * LastModified: Apr 18, 2015                             *
+ * LastModified: May 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -20,61 +20,93 @@
 package hprose
 
 import (
+	"io"
+	"net/http"
 	"reflect"
+	"strings"
 
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 )
 
+// WebSocketContext is the hprose websocket context
 type WebSocketContext struct {
-	*BaseContext
+	*HttpContext
 	WebSocket *websocket.Conn
 }
 
+// WebSocketService is the hprose websocket service
 type WebSocketService struct {
-	*BaseService
-	Handler websocket.Handler
-	Server  websocket.Server
+	*HttpService
+	*websocket.Upgrader
 }
 
-type wsArgsFixer struct{}
+type wsArgsFixer struct {
+	httpArgsFixer
+}
 
-func (wsArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value {
+func (fixer wsArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value {
 	if c, ok := context.(*WebSocketContext); ok {
 		if lastParamType.String() == "*hprose.WebSocketContext" {
 			return append(args, reflect.ValueOf(c))
 		} else if lastParamType.String() == "*websocket.Conn" {
 			return append(args, reflect.ValueOf(c.WebSocket))
+		} else if lastParamType.String() == "*hprose.HttpContext" {
+			return append(args, reflect.ValueOf(c.HttpContext))
+		} else if lastParamType.String() == "*http.Request" {
+			return append(args, reflect.ValueOf(c.Request))
 		}
 	}
-	return fixArgs(args, lastParamType, context)
+	return fixer.httpArgsFixer.FixArgs(args, lastParamType, context)
 }
 
+// NewWebSocketService is the constructor of WebSocketService
 func NewWebSocketService() *WebSocketService {
-	service := &WebSocketService{
-		BaseService: NewBaseService(),
-	}
+	service := &WebSocketService{HttpService: NewHttpService()}
 	service.argsfixer = wsArgsFixer{}
-	service.Handler = websocket.Handler(service.ServeWebSocket)
-	service.Server = websocket.Server{websocket.Config{}, nil, service.ServeWebSocket}
+	service.Upgrader = &websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			origin := r.Header.Get("origin")
+			if origin != "" && origin != "null" {
+				if len(service.accessControlAllowOrigins) == 0 || service.accessControlAllowOrigins[origin] {
+					return true
+				}
+				return false
+			}
+			return true
+		},
+	}
 	return service
 }
 
-func (service *WebSocketService) ServeWebSocket(ws *websocket.Conn) {
-	defer ws.Close()
+// ServeHTTP ...
+func (service *WebSocketService) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+	if request.Method == "GET" && strings.ToLower(request.Header.Get("connection")) != "upgrade" || request.Method == "POST" {
+		service.HttpService.ServeHTTP(response, request)
+		return
+	}
+	conn, err := service.Upgrade(response, request, nil)
+	if err != nil {
+		context := &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}
+		service.fireErrorEvent(err, context)
+		return
+	}
+	defer conn.Close()
 	for {
-		context := &WebSocketContext{BaseContext: NewBaseContext(), WebSocket: ws}
-		var data []byte
-		if e := websocket.Message.Receive(ws, &data); e != nil {
-			service.fireErrorEvent(e, context)
+		context := &WebSocketContext{HttpContext: &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}, WebSocket: conn}
+		_, data, err := conn.ReadMessage()
+		if err != nil {
+			if err != io.EOF {
+				service.fireErrorEvent(err, context)
+			}
 			break
 		}
-		go func(ws *websocket.Conn, data []byte, context *WebSocketContext) {
+		go func(conn *websocket.Conn, data []byte, context *WebSocketContext) {
 			id := data[0:4]
 			data = append(id, service.Handle(data[4:], context)...)
-			if e := websocket.Message.Send(ws, data); e != nil {
-				service.fireErrorEvent(e, context)
-				ws.Close()
+			if err := conn.WriteMessage(websocket.BinaryMessage, data); err != nil {
+				service.fireErrorEvent(err, context)
+				conn.Close()
 			}
-		}(ws, data, context)
+		}(conn, data, context)
 	}
 }

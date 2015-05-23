@@ -31,6 +31,7 @@ import (
 	"time"
 )
 
+// TcpService is the hprose tcp service
 type TcpService struct {
 	*StreamService
 	keepAlive       interface{}
@@ -40,6 +41,7 @@ type TcpService struct {
 	config          *tls.Config
 }
 
+// TcpContext is the hprose tcp context
 type TcpContext StreamContext
 
 type tcpArgsFixer struct{}
@@ -57,32 +59,45 @@ func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, co
 	return fixArgs(args, lastParamType, context)
 }
 
+// NewTcpService is the constructor of TcpService
 func NewTcpService() *TcpService {
 	service := &TcpService{StreamService: newStreamService()}
 	service.argsfixer = tcpArgsFixer{}
 	return service
 }
 
+// SetKeepAlive sets whether the operating system should send keepalive messages on the connection.
 func (service *TcpService) SetKeepAlive(keepalive bool) {
 	service.keepAlive = keepalive
 }
 
+// SetKeepAlivePeriod sets period between keep alives.
 func (service *TcpService) SetKeepAlivePeriod(d time.Duration) {
 	service.keepAlivePeriod = d
 }
 
+// SetLinger sets the behavior of Close on a connection which still has data waiting to be sent or to be acknowledged.
+//
+// If sec < 0 (the default), the operating system finishes sending the data in the background.
+//
+// If sec == 0, the operating system discards any unsent or unacknowledged data.
+//
+// If sec > 0, the data is sent in the background as with sec < 0. On some operating systems after sec seconds have elapsed any remaining unsent data may be discarded.
 func (service *TcpService) SetLinger(sec int) {
 	service.linger = sec
 }
 
+// SetNoDelay controls whether the operating system should delay packet transmission in hopes of sending fewer packets (Nagle's algorithm). The default is true (no delay), meaning that data is sent as soon as possible after a Write.
 func (service *TcpService) SetNoDelay(noDelay bool) {
 	service.noDelay = noDelay
 }
 
+// SetTLSConfig sets the Config structure used to configure TLS service
 func (service *TcpService) SetTLSConfig(config *tls.Config) {
 	service.config = config
 }
 
+// ServeTCP ...
 func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
 	if service.keepAlive != nil {
 		if err = conn.SetKeepAlive(service.keepAlive.(bool)); err != nil {
@@ -154,6 +169,7 @@ func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
 	return nil
 }
 
+// TcpServer is a hprose tcp server
 type TcpServer struct {
 	*TcpService
 	URL         string
@@ -161,6 +177,7 @@ type TcpServer struct {
 	listener    *net.TCPListener
 }
 
+// NewTcpServer is a constructor for TcpServer
 func NewTcpServer(uri string) *TcpServer {
 	if uri == "" {
 		uri = "tcp://127.0.0.1:0"
@@ -206,6 +223,7 @@ func (server *TcpServer) start() {
 	}
 }
 
+// Start the hprose tcp server
 func (server *TcpServer) Start() (err error) {
 	if server.listener == nil {
 		var u *url.URL
@@ -227,6 +245,7 @@ func (server *TcpServer) Start() (err error) {
 	return nil
 }
 
+// Stop the hprose tcp server
 func (server *TcpServer) Stop() {
 	if server.listener != nil {
 		listener := server.listener

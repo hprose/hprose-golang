@@ -12,19 +12,24 @@
  *                                                        *
  * hprose ResultMode enum for Go.                         *
  *                                                        *
- * LastModified: Jan 21, 2014                             *
+ * LastModified: May 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 package hprose
 
+// ResultMode is result mode
 type ResultMode int
 
 const (
+	// Normal is default mode
 	Normal = ResultMode(iota)
+	// Serialized means the result is serialized
 	Serialized
+	// Raw means the result is the raw bytes data
 	Raw
+	// RawWithEndTag means the result is the raw bytes data with the end tag
 	RawWithEndTag
 )
 

@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: Dec 21, 2014                             *
+ * LastModified: May 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,17 +30,20 @@ import (
 	"time"
 )
 
+// HttpContext is the hprose http context
 type HttpContext struct {
 	*BaseContext
 	Response http.ResponseWriter
 	Request  *http.Request
 }
 
+// HttpServiceEvent is the hprose http service event
 type HttpServiceEvent interface {
 	ServiceEvent
 	OnSendHeader(context *HttpContext)
 }
 
+// HttpService is the hprose http service
 type HttpService struct {
 	*BaseService
 	P3PEnabled                   bool
@@ -68,6 +71,7 @@ func (httpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, c
 	return fixArgs(args, lastParamType, context)
 }
 
+// NewHttpService is the constructor of HttpService
 func NewHttpService() *HttpService {
 	t := time.Now().UTC()
 	rand.Seed(t.UnixNano())
@@ -143,45 +147,55 @@ func (service *HttpService) sendHeader(context *HttpContext) {
 	}
 }
 
+// AddAccessControlAllowOrigin add access control allow origin
 func (service *HttpService) AddAccessControlAllowOrigin(origin string) {
 	service.accessControlAllowOrigins[origin] = true
 }
 
+// RemoveAccessControlAllowOrigin remove access control allow origin
 func (service *HttpService) RemoveAccessControlAllowOrigin(origin string) {
 	delete(service.accessControlAllowOrigins, origin)
 }
 
+// CrossDomainXmlFile return the cross domain xml file
 func (service *HttpService) CrossDomainXmlFile() string {
 	return service.crossDomainXmlFile
 }
 
+// CrossDomainXmlContent return the cross domain xml content
 func (service *HttpService) CrossDomainXmlContent() []byte {
 	return service.crossDomainXmlContent
 }
 
+// ClientAccessPolicyXmlFile return the client access policy xml file
 func (service *HttpService) ClientAccessPolicyXmlFile() string {
 	return service.clientAccessPolicyXmlFile
 }
 
+// ClientAccessPolicyXmlContent return the client access policy xml content
 func (service *HttpService) ClientAccessPolicyXmlContent() []byte {
 	return service.clientAccessPolicyXmlContent
 }
 
+// SetCrossDomainXmlFile set the cross domain xml file
 func (service *HttpService) SetCrossDomainXmlFile(filename string) {
 	service.crossDomainXmlFile = filename
 	service.crossDomainXmlContent, _ = ioutil.ReadFile(filename)
 }
 
+// SetClientAccessPolicyXmlFile set the client access policy xml file
 func (service *HttpService) SetClientAccessPolicyXmlFile(filename string) {
 	service.clientAccessPolicyXmlFile = filename
 	service.clientAccessPolicyXmlContent, _ = ioutil.ReadFile(filename)
 }
 
+// SetCrossDomainXmlContent set the cross domain xml content
 func (service *HttpService) SetCrossDomainXmlContent(content []byte) {
 	service.crossDomainXmlFile = ""
 	service.crossDomainXmlContent = content
 }
 
+// SetClientAccessPolicyXmlContent set the client access policy xml content
 func (service *HttpService) SetClientAccessPolicyXmlContent(content []byte) {
 	service.clientAccessPolicyXmlFile = ""
 	service.clientAccessPolicyXmlContent = content
@@ -199,6 +213,7 @@ func (service *HttpService) readAll(request *http.Request) (data []byte, err err
 	return make([]byte, 0), nil
 }
 
+// Serve ...
 func (service *HttpService) Serve(response http.ResponseWriter, request *http.Request, userData map[string]interface{}) {
 	if service.clientAccessPolicyXmlContent != nil && service.clientAccessPolicyXmlHandler(response, request) {
 		return
@@ -209,7 +224,7 @@ func (service *HttpService) Serve(response http.ResponseWriter, request *http.Re
 	context := &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}
 	if userData != nil {
 		for k, v := range userData {
-			context.SetInterface(k, v);
+			context.SetInterface(k, v)
 		}
 	}
 	service.sendHeader(context)
@@ -230,6 +245,7 @@ func (service *HttpService) Serve(response http.ResponseWriter, request *http.Re
 	}
 }
 
+// ServeHTTP ...
 func (service *HttpService) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	service.Serve(response, request, nil)
 }

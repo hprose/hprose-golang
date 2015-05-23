@@ -12,13 +12,14 @@
  *                                                        *
  * hprose filter interface for Go.                        *
  *                                                        *
- * LastModified: Mar 17, 2014                             *
+ * LastModified: May 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 package hprose
 
+// Filter is hprose filter
 type Filter interface {
 	InputFilter(data []byte, context Context) []byte
 	OutputFilter(data []byte, context Context) []byte
