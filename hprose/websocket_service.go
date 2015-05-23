@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -91,6 +92,7 @@ func (service *WebSocketService) ServeHTTP(response http.ResponseWriter, request
 		return
 	}
 	defer conn.Close()
+	mutex := new(sync.Mutex)
 	for {
 		context := &WebSocketContext{HttpContext: &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}, WebSocket: conn}
 		_, data, err := conn.ReadMessage()
@@ -103,7 +105,12 @@ func (service *WebSocketService) ServeHTTP(response http.ResponseWriter, request
 		go func(conn *websocket.Conn, data []byte, context *WebSocketContext) {
 			id := data[0:4]
 			data = append(id, service.Handle(data[4:], context)...)
-			if err := conn.WriteMessage(websocket.BinaryMessage, data); err != nil {
+			err := func() error {
+				mutex.Lock()
+				defer mutex.Unlock()
+				return conn.WriteMessage(websocket.BinaryMessage, data)
+			}()
+			if err != nil {
 				service.fireErrorEvent(err, context)
 				conn.Close()
 			}
