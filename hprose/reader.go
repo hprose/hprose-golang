@@ -123,14 +123,15 @@ type Reader struct {
 }
 
 // NewReader is the constructor for Hprose Reader
-func NewReader(stream BufReader, simple bool) *Reader {
-	r := &Reader{RawReader: &RawReader{stream: stream}}
+func NewReader(stream BufReader, simple bool) (reader *Reader) {
+	reader = new(Reader)
+	reader.RawReader = NewRawReader(stream)
 	if simple {
-		r.readerRefer = fakeReaderRefer{}
+		reader.readerRefer = fakeReaderRefer{}
 	} else {
-		r.readerRefer = &realReaderRefer{}
+		reader.readerRefer = new(realReaderRefer)
 	}
-	return r
+	return
 }
 
 // Stream is the data stream being operated.
