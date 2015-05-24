@@ -166,7 +166,10 @@ var clientFactories = make(map[string]func(string) Client)
 
 // NewBaseClient is the constructor of BaseClient
 func NewBaseClient(trans Transporter) *BaseClient {
-	return &BaseClient{Transporter: trans, filters: []Filter{}}
+	client := new(BaseClient)
+	client.Transporter = trans
+	client.filters = make([]Filter, 0)
+	return client
 }
 
 // NewClient is the constructor of Client
@@ -208,7 +211,7 @@ func (client *BaseClient) GetFilter() Filter {
 
 // SetFilter set the only filter
 func (client *BaseClient) SetFilter(filter Filter) {
-	client.filters = []Filter{}
+	client.filters = make([]Filter, 0)
 	if filter != nil {
 		client.filters = append(client.filters, filter)
 	}
@@ -318,7 +321,9 @@ func (client *BaseClient) invoke(name string, args []reflect.Value, options *Inv
 	if byref && !checkRefArgs(args) {
 		panic("The elements in args must be pointer when options.ByRef is true.")
 	}
-	context := &ClientContext{BaseContext: NewBaseContext(), Client: client.Client}
+	context := new(ClientContext)
+	context.BaseContext = NewBaseContext()
+	context.Client = client.Client
 	if async {
 		return client.asyncInvoke(name, args, options, result, context)
 	}
