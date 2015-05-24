@@ -20,7 +20,6 @@
 package hprose
 
 import (
-	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -92,28 +91,30 @@ func (service *WebSocketService) ServeHTTP(response http.ResponseWriter, request
 		return
 	}
 	defer conn.Close()
-	mutex := new(sync.Mutex)
+	mutex := sync.Mutex{}
 	for {
 		context := &WebSocketContext{HttpContext: &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}, WebSocket: conn}
-		_, data, err := conn.ReadMessage()
+		msgType, data, err := conn.ReadMessage()
 		if err != nil {
-			if err != io.EOF {
-				service.fireErrorEvent(err, context)
-			}
 			break
 		}
-		go func(conn *websocket.Conn, data []byte, context *WebSocketContext) {
-			id := data[0:4]
-			data = append(id, service.Handle(data[4:], context)...)
-			err := func() error {
-				mutex.Lock()
-				defer mutex.Unlock()
-				return conn.WriteMessage(websocket.BinaryMessage, data)
-			}()
-			if err != nil {
-				service.fireErrorEvent(err, context)
-				conn.Close()
-			}
-		}(conn, data, context)
+		if msgType == websocket.BinaryMessage {
+			go func(conn *websocket.Conn, data []byte, context *WebSocketContext) {
+				id := data[0:4]
+				data = service.Handle(data[4:], context)
+				msg := make([]byte, len(data)+4)
+				copy(msg, id)
+				copy(msg[4:], data)
+				err := func() error {
+					mutex.Lock()
+					defer mutex.Unlock()
+					return conn.WriteMessage(websocket.BinaryMessage, msg)
+				}()
+				if err != nil {
+					service.fireErrorEvent(err, context)
+					conn.Close()
+				}
+			}(conn, data, context)
+		}
 	}
 }

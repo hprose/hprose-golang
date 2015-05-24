@@ -12,7 +12,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: May 22, 2015                             *
+ * LastModified: May 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -171,13 +171,6 @@ func NewBaseClient(trans Transporter) *BaseClient {
 
 // NewClient is the constructor of Client
 func NewClient(uri string) Client {
-	if strings.HasPrefix(uri, "unix") {
-		scheme := strings.Split(uri, ":")[0]
-		if newClient, ok := clientFactories[scheme]; ok {
-			return newClient(uri)
-		}
-		panic("The " + scheme + "client isn't implemented.")
-	}
 	if u, err := url.Parse(uri); err == nil {
 		if newClient, ok := clientFactories[u.Scheme]; ok {
 			return newClient(uri)
@@ -557,13 +550,13 @@ func (client *BaseClient) createStub(stub interface{}, ns string) {
 	}
 }
 
-func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, ns string) func(in []reflect.Value) []reflect.Value {
+func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, ns string) func(in []reflect.Value) (out []reflect.Value) {
 	name := getFuncName(&sf)
 	if ns != "" {
 		name = ns + "_" + name
 	}
 	options := &InvokeOptions{ByRef: getByRef(&sf), SimpleMode: getSimpleMode(&sf), ResultMode: getResultMode(&sf)}
-	return func(in []reflect.Value) []reflect.Value {
+	return func(in []reflect.Value) (out []reflect.Value) {
 		inlen := len(in)
 		varlen := 0
 		argc := inlen
@@ -587,7 +580,7 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 			}
 		}
 		numout := t.NumOut()
-		out := make([]reflect.Value, numout)
+		out = make([]reflect.Value, numout)
 		switch numout {
 		case 0:
 			var result interface{}
@@ -651,7 +644,6 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 			}
 			panic(err.Error())
 		}
-		return out
 	}
 }
 
@@ -756,5 +748,6 @@ func init() {
 	RegisterClientFactory("tcp4", NewTcpClient)
 	RegisterClientFactory("tcp6", NewTcpClient)
 	RegisterClientFactory("unix", NewUnixClient)
-	//RegisterClientFactory("ws", NewWebSocketClient)
+	RegisterClientFactory("ws", NewWebSocketClient)
+	RegisterClientFactory("wss", NewWebSocketClient)
 }
