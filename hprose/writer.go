@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: May 23, 2015                             *
+ * LastModified: May 25, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -155,14 +155,15 @@ type Writer struct {
 }
 
 // NewWriter is the constructor for Hprose Writer
-func NewWriter(stream BufWriter, simple bool) *Writer {
-	w := &Writer{stream: stream}
+func NewWriter(stream BufWriter, simple bool) (writer *Writer) {
+	writer = new(Writer)
+	writer.stream = stream
 	if simple {
-		w.writerRefer = fakeWriterRefer{}
+		writer.writerRefer = fakeWriterRefer{}
 	} else {
-		w.writerRefer = &realWriterRefer{}
+		writer.writerRefer = new(realWriterRefer)
 	}
-	return w
+	return
 }
 
 // Stream is the data stream being operated.
