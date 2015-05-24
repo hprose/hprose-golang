@@ -2301,13 +2301,23 @@ func (r *Reader) readSliceAsMap(v reflect.Value) error {
 	t := v.Type()
 	switch t.Kind() {
 	case reflect.Map:
+		break
 	case reflect.Interface:
-		t = ooMapType
+		if r.JSONCompatible {
+			t = soMapType
+		} else {
+			t = ooMapType
+		}
 	case reflect.Ptr:
 		switch t = t.Elem(); t.Kind() {
 		case reflect.Map:
+			break
 		case reflect.Interface:
-			t = ooMapType
+			if r.JSONCompatible {
+				t = soMapType
+			} else {
+				t = ooMapType
+			}
 		default:
 			return errors.New("cannot convert slice to type " + t.String())
 		}
@@ -2332,6 +2342,8 @@ func (r *Reader) readSliceAsMap(v reflect.Value) error {
 				key.SetFloat(float64(i))
 			case reflect.String:
 				key.SetString(strconv.Itoa(i))
+			case reflect.Interface:
+				key.Set(reflect.ValueOf(i))
 			default:
 				return errors.New("cannot convert int to type " + t.Key().String())
 			}
@@ -2395,15 +2407,25 @@ func (r *Reader) readMapWithoutTag(v reflect.Value) error {
 	case reflect.Struct:
 		return r.readMapAsObject(v)
 	case reflect.Map:
+		break
 	case reflect.Interface:
-		t = ooMapType
+		if r.JSONCompatible {
+			t = soMapType
+		} else {
+			t = ooMapType
+		}
 	case reflect.Ptr:
 		switch t = t.Elem(); t.Kind() {
 		case reflect.Struct:
 			return r.readMapAsObject(v)
 		case reflect.Map:
+			break
 		case reflect.Interface:
-			t = ooMapType
+			if r.JSONCompatible {
+				t = soMapType
+			} else {
+				t = ooMapType
+			}
 		default:
 			return errors.New("cannot convert map to type " + t.String())
 		}
