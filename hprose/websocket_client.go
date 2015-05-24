@@ -21,7 +21,6 @@ package hprose
 
 import (
 	"crypto/tls"
-	"errors"
 	"net/http"
 	"net/url"
 	"sync"
@@ -29,12 +28,15 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var errClosed = errors.New("connection was closed")
-
 // WebSocketClient is hprose websocket client
 type WebSocketClient struct {
 	*BaseClient
 	keepAlive bool
+}
+
+type receiveMessage struct {
+	data []byte
+	err  error
 }
 
 // WebSocketTransporter is hprose websocket transporter
@@ -47,7 +49,7 @@ type WebSocketTransporter struct {
 	id                    chan uint32
 	sendIDs               chan uint32
 	sendMsgs              map[uint32][]byte
-	recvMsgs              map[uint32](chan []byte)
+	recvMsgs              map[uint32](chan receiveMessage)
 }
 
 // NewWebSocketClient is the constructor of WebSocketClient
@@ -130,70 +132,102 @@ func (client *WebSocketClient) SetMaxConcurrentRequests(value int) {
 	client.trans().maxConcurrentRequests = value
 }
 
+func (trans *WebSocketTransporter) idLoop() {
+	defer func() {
+		close(trans.id)
+		trans.id = nil
+	}()
+	var i uint32
+	for {
+		if trans.conn == nil {
+			break
+		}
+		trans.id <- i
+		i++
+	}
+}
+
+func (trans *WebSocketTransporter) sendLoop() {
+	defer func() {
+		close(trans.sendIDs)
+		trans.sendIDs = nil
+		trans.sendMsgs = nil
+	}()
+	for {
+		if trans.conn == nil {
+			break
+		}
+		id := <-trans.sendIDs
+		msg := trans.sendMsgs[id]
+		delete(trans.sendMsgs, id)
+		err := trans.conn.WriteMessage(websocket.BinaryMessage, msg)
+		if err != nil {
+			trans.conn.Close()
+			trans.conn = nil
+			recvMsg := trans.recvMsgs[id]
+			delete(trans.recvMsgs, id)
+			recvMsg <- receiveMessage{nil, err}
+			close(recvMsg)
+		}
+	}
+}
+
+func (trans *WebSocketTransporter) recvLoop() {
+	var msgType int
+	var data []byte
+	var err error
+	defer func() {
+		for _, recvMsg := range trans.recvMsgs {
+			recvMsg <- receiveMessage{nil, err}
+			close(recvMsg)
+		}
+		trans.recvMsgs = nil
+	}()
+	for {
+		if trans.conn == nil {
+			break
+		}
+		msgType, data, err = trans.conn.ReadMessage()
+		if err != nil {
+			trans.conn.Close()
+			trans.conn = nil
+			break
+		}
+		if msgType == websocket.BinaryMessage {
+			id := (uint32(data[0])<<24 |
+				uint32(data[1])<<16 |
+				uint32(data[2])<<8 |
+				uint32(data[3]))
+			recvMsg := trans.recvMsgs[id]
+			delete(trans.recvMsgs, id)
+			recvMsg <- receiveMessage{data[4:], nil}
+			close(recvMsg)
+		}
+	}
+}
+
+func (trans *WebSocketTransporter) getConn(uri string) (err error) {
+	trans.mutex.Lock()
+	defer trans.mutex.Unlock()
+	if trans.conn == nil {
+		trans.conn, _, err = trans.dialer.Dial(uri, *trans.header)
+		if err != nil {
+			return err
+		}
+		trans.id = make(chan uint32)
+		trans.sendIDs = make(chan uint32, trans.maxConcurrentRequests)
+		trans.sendMsgs = make(map[uint32][]byte, trans.maxConcurrentRequests)
+		trans.recvMsgs = make(map[uint32](chan receiveMessage), trans.maxConcurrentRequests)
+		go trans.idLoop()
+		go trans.sendLoop()
+		go trans.recvLoop()
+	}
+	return nil
+}
+
 // SendAndReceive send and receive the data
 func (trans *WebSocketTransporter) SendAndReceive(uri string, data []byte) ([]byte, error) {
-	err := func() (err error) {
-		trans.mutex.Lock()
-		defer trans.mutex.Unlock()
-		if trans.conn == nil {
-			trans.conn, _, err = trans.dialer.Dial(uri, *trans.header)
-			if err != nil {
-				return err
-			}
-			trans.id = make(chan uint32)
-			go func() {
-				defer close(trans.id)
-				var i uint32
-				for {
-					if trans.conn == nil {
-						break
-					}
-					trans.id <- i
-					i++
-				}
-			}()
-			trans.sendIDs = make(chan uint32, trans.maxConcurrentRequests)
-			trans.sendMsgs = make(map[uint32][]byte, trans.maxConcurrentRequests)
-			go func() {
-				defer close(trans.sendIDs)
-				for {
-					if trans.conn == nil {
-						break
-					}
-					id := <-trans.sendIDs
-					msg := trans.sendMsgs[id]
-					delete(trans.sendMsgs, id)
-					trans.conn.WriteMessage(websocket.BinaryMessage, msg)
-				}
-			}()
-			trans.recvMsgs = make(map[uint32](chan []byte), trans.maxConcurrentRequests)
-			go func() {
-				for {
-					if trans.conn == nil {
-						break
-					}
-					msgType, data, err := trans.conn.ReadMessage()
-					if err != nil {
-						break
-					}
-					if msgType == websocket.BinaryMessage {
-						id := (uint32(data[0])<<24 |
-							uint32(data[1])<<16 |
-							uint32(data[2])<<8 |
-							uint32(data[3]))
-						recvMsg := trans.recvMsgs[id]
-						delete(trans.recvMsgs, id)
-						recvMsg <- data[4:]
-					}
-				}
-				for _, recvMsg := range trans.recvMsgs {
-					close(recvMsg)
-				}
-			}()
-		}
-		return nil
-	}()
-	if err != nil {
+	if err := trans.getConn(uri); err != nil {
 		return nil, err
 	}
 	id := <-trans.id
@@ -203,12 +237,10 @@ func (trans *WebSocketTransporter) SendAndReceive(uri string, data []byte) ([]by
 	msg[2] = byte((id >> 8) & 0xff)
 	msg[3] = byte(id & 0xff)
 	copy(msg[4:], data)
-	recvMsg := make(chan []byte)
+	recvMsg := make(chan receiveMessage)
 	trans.recvMsgs[id] = recvMsg
 	trans.sendMsgs[id] = msg
 	trans.sendIDs <- id
-	if result, ok := <-recvMsg; ok {
-		return result, nil
-	}
-	return nil, errClosed
+	result := <-recvMsg
+	return result.data, result.err
 }
