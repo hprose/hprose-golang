@@ -2865,7 +2865,8 @@ func getIndexCache(class reflect.Type) map[string][]int {
 			if tag == "" {
 				indexMap[strings.ToLower(f.Name)] = f.Index
 			} else {
-				name := f.Tag.Get(tag)
+				name := strings.SplitN(f.Tag.Get(tag), ",", 2)[0]
+				name = strings.TrimSpace(strings.SplitN(name, ">", 2)[0])
 				if name == "" {
 					indexMap[strings.ToLower(f.Name)] = f.Index
 				} else if name != "-" {

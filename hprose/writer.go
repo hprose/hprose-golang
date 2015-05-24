@@ -27,6 +27,7 @@ import (
 	"math/big"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -1365,7 +1366,8 @@ func (w *Writer) writeObject(v interface{}, rv reflect.Value) (err error) {
 				if tag == "" {
 					fields = append(fields, &field{firstLetterToLower(f.Name), f.Index})
 				} else {
-					name := f.Tag.Get(tag)
+					name := strings.SplitN(f.Tag.Get(tag), ",", 2)[0]
+					name = strings.TrimSpace(strings.SplitN(name, ">", 2)[0])
 					if name == "" {
 						fields = append(fields, &field{firstLetterToLower(f.Name), f.Index})
 					} else if name != "-" {
