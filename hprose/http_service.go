@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: May 22, 2015                             *
+ * LastModified: May 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -72,20 +72,19 @@ func (httpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, c
 }
 
 // NewHttpService is the constructor of HttpService
-func NewHttpService() *HttpService {
+func NewHttpService() (service *HttpService) {
 	t := time.Now().UTC()
 	rand.Seed(t.UnixNano())
-	service := &HttpService{
-		BaseService:               NewBaseService(),
-		P3PEnabled:                true,
-		GetEnabled:                true,
-		CrossDomainEnabled:        true,
-		accessControlAllowOrigins: make(map[string]bool),
-		lastModified:              t.Format(time.RFC1123),
-		etag:                      `"` + strconv.FormatInt(rand.Int63(), 16) + `"`,
-	}
+	service = new(HttpService)
+	service.BaseService = NewBaseService()
+	service.P3PEnabled = true
+	service.GetEnabled = true
+	service.CrossDomainEnabled = true
+	service.accessControlAllowOrigins = make(map[string]bool)
+	service.lastModified = t.Format(time.RFC1123)
+	service.etag = `"` + strconv.FormatInt(rand.Int63(), 16) + `"`
 	service.argsfixer = httpArgsFixer{}
-	return service
+	return
 }
 
 func (service *HttpService) crossDomainXmlHandler(response http.ResponseWriter, request *http.Request) bool {
@@ -221,7 +220,10 @@ func (service *HttpService) Serve(response http.ResponseWriter, request *http.Re
 	if service.crossDomainXmlContent != nil && service.crossDomainXmlHandler(response, request) {
 		return
 	}
-	context := &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}
+	context := new(HttpContext)
+	context.BaseContext = NewBaseContext()
+	context.Response = response
+	context.Request = request
 	if userData != nil {
 		for k, v := range userData {
 			context.SetInterface(k, v)
