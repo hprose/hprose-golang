@@ -12,7 +12,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Aug 6, 2014                              *
+ * LastModified: May 25, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -45,6 +45,15 @@ type Method struct {
 	SimpleMode bool
 }
 
+// NewMethod is the constructor for Method
+func NewMethod(f reflect.Value, mode ResultMode, simple bool) (method *Method) {
+	method = new(Method)
+	method.Function = f
+	method.ResultMode = mode
+	method.SimpleMode = simple
+	return
+}
+
 // Methods is the publish service methods
 type Methods struct {
 	MethodNames   []string
@@ -52,8 +61,11 @@ type Methods struct {
 }
 
 // NewMethods is the constructor for Methods
-func NewMethods() *Methods {
-	return &Methods{make([]string, 0, 64), make(map[string]*Method)}
+func NewMethods() (methods *Methods) {
+	methods = new(Methods)
+	methods.MethodNames = make([]string, 0, 64)
+	methods.RemoteMethods = make(map[string]*Method)
+	return
 }
 
 // AddFunction publish a func or bound method
@@ -91,8 +103,7 @@ func (methods *Methods) AddFunction(name string, function interface{}, options .
 		name = prefix + "_" + name
 	}
 	methods.MethodNames = append(methods.MethodNames, name)
-	m := &Method{Function: f, ResultMode: resultMode, SimpleMode: simpleMode}
-	methods.RemoteMethods[strings.ToLower(name)] = m
+	methods.RemoteMethods[strings.ToLower(name)] = NewMethod(f, resultMode, simpleMode)
 }
 
 // AddFunctions ...
@@ -238,8 +249,11 @@ type BaseService struct {
 }
 
 // NewBaseService is the constructor for BaseService
-func NewBaseService() *BaseService {
-	return &BaseService{Methods: NewMethods(), filters: []Filter{}}
+func NewBaseService() (service *BaseService) {
+	service = new(BaseService)
+	service.Methods = NewMethods()
+	service.filters = make([]Filter, 0)
+	return
 }
 
 // GetFilter return the first filter
@@ -252,7 +266,7 @@ func (service *BaseService) GetFilter() Filter {
 
 // SetFilter set the only filter
 func (service *BaseService) SetFilter(filter Filter) {
-	service.filters = []Filter{}
+	service.filters = make([]Filter, 0)
 	if filter != nil {
 		service.filters = append(service.filters, filter)
 	}
