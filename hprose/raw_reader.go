@@ -12,7 +12,7 @@
  *                                                        *
  * hprose RawReader for Go.                               *
  *                                                        *
- * LastModified: May 23, 2015                             *
+ * LastModified: May 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,8 +30,10 @@ type RawReader struct {
 }
 
 // NewRawReader is a constructor for RawReader
-func NewRawReader(stream BufReader) *RawReader {
-	return &RawReader{stream: stream}
+func NewRawReader(stream BufReader) (reader *RawReader) {
+	reader = new(RawReader)
+	reader.stream = stream
+	return
 }
 
 // ReadRaw from stream
