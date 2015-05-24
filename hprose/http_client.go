@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: May 22, 2015                             *
+ * LastModified: May 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -39,14 +39,15 @@ type HttpClient struct {
 }
 
 // HttpTransporter is hprose http transporter
-type HttpTransporter struct {
+type httpTransporter struct {
 	*http.Client
-	Header *http.Header
+	*http.Header
 }
 
 // NewHttpClient is the constructor of HttpClient
 func NewHttpClient(uri string) Client {
-	client := &HttpClient{NewBaseClient(newHttpTransporter())}
+	client := new(HttpClient)
+	client.BaseClient = NewBaseClient(newHttpTransporter())
 	client.Client = client
 	client.SetUri(uri)
 	client.SetKeepAlive(true)
@@ -71,12 +72,12 @@ func (client *HttpClient) SetUri(uri string) {
 
 // Http return the http.Client in hprose client
 func (client *HttpClient) Http() *http.Client {
-	return client.Transporter.(*HttpTransporter).Client
+	return client.Transporter.(*httpTransporter).Client
 }
 
 // Header return the http.Header in hprose client
 func (client *HttpClient) Header() *http.Header {
-	return client.Transporter.(*HttpTransporter).Header
+	return client.Transporter.(*httpTransporter).Header
 }
 
 func (client *HttpClient) transport() *http.Transport {
@@ -123,19 +124,25 @@ func (client *HttpClient) SetMaxIdleConnsPerHost(value int) {
 	client.transport().MaxIdleConnsPerHost = value
 }
 
-func newHttpTransporter() *HttpTransporter {
-	tr := &http.Transport{
-		DisableCompression:  true,
-		DisableKeepAlives:   false,
-		MaxIdleConnsPerHost: 4}
+func newHttpTransporter() (trans *httpTransporter) {
+	tr := new(http.Transport)
+	tr.DisableCompression = true
+	tr.DisableKeepAlives = false
+	tr.MaxIdleConnsPerHost = 4
 	jar := cookieJar
 	if DisableGlobalCookie {
 		jar, _ = cookiejar.New(nil)
 	}
-	return &HttpTransporter{&http.Client{Jar: jar, Transport: tr}, &http.Header{}}
+	client := new(http.Client)
+	client.Jar = jar
+	client.Transport = tr
+	trans = new(httpTransporter)
+	trans.Client = client
+	trans.Header = new(http.Header)
+	return
 }
 
-func (h *HttpTransporter) readAll(response *http.Response) (data []byte, err error) {
+func (h *httpTransporter) readAll(response *http.Response) (data []byte, err error) {
 	if response.ContentLength > 0 {
 		data = make([]byte, response.ContentLength)
 		_, err = io.ReadFull(response.Body, data)
@@ -148,7 +155,7 @@ func (h *HttpTransporter) readAll(response *http.Response) (data []byte, err err
 }
 
 // SendAndReceive send and receive the data
-func (h *HttpTransporter) SendAndReceive(uri string, data []byte) ([]byte, error) {
+func (h *httpTransporter) SendAndReceive(uri string, data []byte) ([]byte, error) {
 	req, err := http.NewRequest("POST", uri, NewBytesReader(data))
 	if err != nil {
 		return nil, err
