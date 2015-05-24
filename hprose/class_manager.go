@@ -12,7 +12,7 @@
  *                                                        *
  * hprose ClassManager for Go.                            *
  *                                                        *
- * LastModified: Mar 27, 2014                             *
+ * LastModified: May 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -28,7 +28,7 @@ type classManager struct {
 	classCache map[string]reflect.Type
 	aliasCache map[reflect.Type]string
 	tagCache   map[reflect.Type]string
-	mutex      *sync.Mutex
+	mutex      sync.Mutex
 }
 
 // Register class with alias.
@@ -67,8 +67,11 @@ func (cm *classManager) GetTag(class reflect.Type) (tag string) {
 }
 
 func initClassManager() *classManager {
-	cm := classManager{make(map[string]reflect.Type), make(map[reflect.Type]string), make(map[reflect.Type]string), new(sync.Mutex)}
-	return &cm
+	cm := new(classManager)
+	cm.classCache = make(map[string]reflect.Type)
+	cm.aliasCache = make(map[reflect.Type]string)
+	cm.tagCache = make(map[reflect.Type]string)
+	return cm
 }
 
 // ClassManager used to be register class with alias for hprose serialize/unserialize.
