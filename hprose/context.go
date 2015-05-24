@@ -12,7 +12,7 @@
  *                                                        *
  * hprose context for Go.                                 *
  *                                                        *
- * LastModified: May 22, 2015                             *
+ * LastModified: May 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -46,8 +46,10 @@ type BaseContext struct {
 }
 
 // NewBaseContext is the constructor of BaseContext
-func NewBaseContext() *BaseContext {
-	return &BaseContext{userData: make(map[string]interface{})}
+func NewBaseContext() (context *BaseContext) {
+	context = new(BaseContext)
+	context.userData = make(map[string]interface{})
+	return
 }
 
 // UserData return the user data
