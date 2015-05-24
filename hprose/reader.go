@@ -1478,42 +1478,42 @@ func (r *Reader) ReadBytesWithoutTag() (*[]byte, error) {
 
 // ReadUUID from stream
 func (r *Reader) ReadUUID() (*UUID, error) {
-	var nilUUID UUID
+	uuid := new(UUID)
 	s := r.stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
 		case TagNull:
-			return &nilUUID, ErrNil
+			return uuid, ErrNil
 		case TagString:
 			str, err := r.ReadStringWithoutTag()
-			u := ToUUID(str)
-			return &u, err
+			*uuid = ToUUID(str)
+			return uuid, err
 		case TagGuid:
 			return r.ReadUUIDWithoutTag()
 		case TagBytes:
 			if b, err := r.ReadBytesWithoutTag(); err == nil {
 				if len(*b) == 16 {
-					u := UUID(*b)
-					return &u, nil
+					uuid = (*UUID)(b)
+					return uuid, nil
 				}
-				return &nilUUID, convertError(TagBytes, "UUID")
+				return uuid, convertError(TagBytes, "UUID")
 			}
-			return &nilUUID, err
+			return uuid, err
 		case TagRef:
 			var ref interface{}
 			if ref, err = r.readRef(r.ReadInteger(TagSemicolon)); err == nil {
 				if ref, ok := ref.(*UUID); ok {
 					return ref, nil
 				}
-				return &nilUUID, errors.New("cannot convert type " +
+				return uuid, errors.New("cannot convert type " +
 					reflect.TypeOf(ref).String() + " to type UUID")
 			}
 		default:
-			return &nilUUID, convertError(tag, "UUID")
+			return uuid, convertError(tag, "UUID")
 		}
 	}
-	return &nilUUID, err
+	return uuid, err
 }
 
 // ReadUUIDWithoutTag from stream
@@ -1529,8 +1529,7 @@ func (r *Reader) ReadUUIDWithoutTag() (*UUID, error) {
 			return &u, err
 		}
 	}
-	var nilUUID UUID
-	return &nilUUID, err
+	return new(UUID), err
 }
 
 // ReadList from stream

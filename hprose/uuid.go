@@ -77,11 +77,11 @@ func ToUUID(s string) UUID {
 		14, 16,
 		19, 21,
 		24, 26, 28, 30, 32, 34} {
-		if v, ok := xtob(s[x:]); !ok {
+		v, ok := xtob(s[x:])
+		if !ok {
 			return nil
-		} else {
-			uuid[i] = v
 		}
+		uuid[i] = v
 	}
 	return uuid
 }
