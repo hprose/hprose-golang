@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Formatter for Go.                               *
  *                                                        *
- * LastModified: May 22, 2015                             *
+ * LastModified: May 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -32,8 +32,10 @@ type BytesReader struct {
 }
 
 // NewBytesReader is the constructor of BytesReader
-func NewBytesReader(b []byte) *BytesReader {
-	return &BytesReader{b, 0}
+func NewBytesReader(b []byte) (reader *BytesReader) {
+	reader = new(BytesReader)
+	reader.s = b
+	return
 }
 
 // Read bytes from BytesReader
