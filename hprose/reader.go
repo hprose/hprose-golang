@@ -1419,46 +1419,46 @@ func (r *Reader) ReadStringWithoutTag() (str string, err error) {
 
 // ReadBytes from stream
 func (r *Reader) ReadBytes() (*[]byte, error) {
-	var bytes []byte
+	bytes := new([]byte)
 	s := r.stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
 		case TagNull:
-			return &bytes, ErrNil
+			return bytes, ErrNil
 		case TagEmpty:
-			return new([]byte), nil
+			return bytes, nil
 		case TagUTF8Char:
 			c, err := r.readUTF8String(1)
-			b := []byte(c)
-			return &b, err
+			*bytes = []byte(c)
+			return bytes, err
 		case TagString:
 			str, err := r.ReadStringWithoutTag()
-			b := []byte(str)
-			return &b, err
+			*bytes = []byte(str)
+			return bytes, err
 		case TagGuid:
 			u, err := r.ReadUUIDWithoutTag()
-			b := []byte(*u)
-			return &b, err
+			*bytes = []byte(*u)
+			return bytes, err
 		case TagBytes:
 			return r.ReadBytesWithoutTag()
 		case TagList:
-			err = r.ReadSliceWithoutTag(&bytes)
-			return &bytes, err
+			err = r.ReadSliceWithoutTag(bytes)
+			return bytes, err
 		case TagRef:
 			var ref interface{}
 			if ref, err = r.readRef(r.ReadInteger(TagSemicolon)); err == nil {
 				if ref, ok := ref.(*[]byte); ok {
 					return ref, nil
 				}
-				return &bytes, errors.New("cannot convert type " +
+				return bytes, errors.New("cannot convert type " +
 					reflect.TypeOf(ref).String() + " to type bytes")
 			}
 		default:
-			return &bytes, convertError(tag, "bytes")
+			return bytes, convertError(tag, "bytes")
 		}
 	}
-	return &bytes, err
+	return bytes, err
 }
 
 // ReadBytesWithoutTag from stream
