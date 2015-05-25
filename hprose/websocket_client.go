@@ -12,7 +12,7 @@
  *                                                        *
  * hprose websocket client for Go.                        *
  *                                                        *
- * LastModified: May 24, 2015                             *
+ * LastModified: May 25, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -58,6 +58,7 @@ func NewWebSocketClient(uri string) Client {
 	transporter := new(WebSocketTransporter)
 	transporter.dialer = new(websocket.Dialer)
 	transporter.header = new(http.Header)
+	transporter.maxConcurrentRequests = 10
 	client.BaseClient = NewBaseClient(transporter)
 	client.Client = client
 	client.SetUri(uri)
@@ -132,7 +133,7 @@ func (client *WebSocketClient) SetMaxConcurrentRequests(value int) {
 	client.trans().maxConcurrentRequests = value
 }
 
-func (trans *WebSocketTransporter) idLoop() {
+func (trans *WebSocketTransporter) idGen() {
 	defer func() {
 		close(trans.id)
 		trans.id = nil
@@ -218,7 +219,7 @@ func (trans *WebSocketTransporter) getConn(uri string) (err error) {
 		trans.sendIDs = make(chan uint32, trans.maxConcurrentRequests)
 		trans.sendMsgs = make(map[uint32][]byte, trans.maxConcurrentRequests)
 		trans.recvMsgs = make(map[uint32](chan receiveMessage), trans.maxConcurrentRequests)
-		go trans.idLoop()
+		go trans.idGen()
 		go trans.sendLoop()
 		go trans.recvLoop()
 	}
