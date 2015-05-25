@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Feb 7, 2015                              *
+ * LastModified: May 25, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -60,10 +60,11 @@ func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, co
 }
 
 // NewTcpService is the constructor of TcpService
-func NewTcpService() *TcpService {
-	service := &TcpService{StreamService: newStreamService()}
+func NewTcpService() (service *TcpService) {
+	service = new(TcpService)
+	service.StreamService = newStreamService()
 	service.argsfixer = tcpArgsFixer{}
-	return service
+	return
 }
 
 // SetKeepAlive sets whether the operating system should send keepalive messages on the connection.
@@ -178,17 +179,16 @@ type TcpServer struct {
 }
 
 // NewTcpServer is a constructor for TcpServer
-func NewTcpServer(uri string) *TcpServer {
+func NewTcpServer(uri string) (server *TcpServer) {
 	if uri == "" {
 		uri = "tcp://127.0.0.1:0"
 	}
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	return &TcpServer{
-		TcpService:  NewTcpService(),
-		URL:         uri,
-		ThreadCount: runtime.NumCPU(),
-		listener:    nil,
-	}
+	server = new(TcpServer)
+	server.TcpService = NewTcpService()
+	server.URL = uri
+	server.ThreadCount = runtime.NumCPU()
+	return
 }
 
 func (server *TcpServer) handle() (err error) {
