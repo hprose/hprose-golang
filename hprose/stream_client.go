@@ -125,20 +125,22 @@ func (connPool *StreamConnPool) SetTimeout(d time.Duration) {
 
 func (connPool *StreamConnPool) closeTimeoutConns() {
 	for t := range connPool.timer.C {
-		connPool.Lock()
-		defer connPool.Unlock()
-		conns := make([]net.Conn, 0, len(connPool.pool))
-		for _, entry := range connPool.pool {
-			if entry.uri != "" &&
-				entry.status == free &&
-				entry.conn != nil &&
-				t.After(entry.lastUsedTime.Add(connPool.timeout)) {
-				conns = append(conns, entry.conn)
-				entry.conn = nil
-				entry.uri = ""
+		func() {
+			connPool.Lock()
+			defer connPool.Unlock()
+			conns := make([]net.Conn, 0, len(connPool.pool))
+			for _, entry := range connPool.pool {
+				if entry.uri != "" &&
+					entry.status == free &&
+					entry.conn != nil &&
+					t.After(entry.lastUsedTime.Add(connPool.timeout)) {
+					conns = append(conns, entry.conn)
+					entry.conn = nil
+					entry.uri = ""
+				}
 			}
-		}
-		go freeConns(conns)
+			go freeConns(conns)
+		}()
 	}
 }
 
