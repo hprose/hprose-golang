@@ -24,23 +24,23 @@ It is a modern, lightweight, cross-language, cross-platform, object-oriented, hi
 
 Hprose supports many programming languages, for example:
 
-* AAuto Quicker
-* ActionScript
-* ASP
-* C++
-* Dart
-* Delphi/Free Pascal
-* dotNET(C#, Visual Basic...)
-* Golang
-* Java
-* JavaScript
-* Node.js
-* Objective-C
-* Perl
-* PHP
-* Python
-* Ruby
-* ...
+        * AAuto Quicker
+        * ActionScript
+        * ASP
+        * C++
+        * Dart
+        * Delphi/Free Pascal
+        * dotNET(C#, Visual Basic...)
+        * Golang
+        * Java
+        * JavaScript
+        * Node.js
+        * Objective-C
+        * Perl
+        * PHP
+        * Python
+        * Ruby
+        * ...
 
 Through Hprose, You can conveniently and efficiently intercommunicate between those programming languages.
 
