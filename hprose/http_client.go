@@ -44,13 +44,17 @@ type httpTransporter struct {
 }
 
 // NewHttpClient is the constructor of HttpClient
-func NewHttpClient(uri string) Client {
-	client := new(HttpClient)
+func NewHttpClient(uri string) (client *HttpClient) {
+	client = new(HttpClient)
 	client.BaseClient = NewBaseClient(newHttpTransporter())
 	client.Client = client
 	client.SetUri(uri)
 	client.SetKeepAlive(true)
-	return client
+	return
+}
+
+func newHttpClient(uri string) Client {
+	return NewHttpClient(uri)
 }
 
 // Close the client

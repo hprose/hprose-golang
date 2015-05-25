@@ -39,15 +39,19 @@ type unixTransporter struct {
 var globalUnixConnPool = NewStreamConnPool(64)
 
 // NewUnixClient is the constructor of UnixClient
-func NewUnixClient(uri string) Client {
+func NewUnixClient(uri string) (client *UnixClient) {
 	trans := new(unixTransporter)
 	trans.connPool = globalUnixConnPool
-	client := new(UnixClient)
+	client = new(UnixClient)
 	client.StreamClient = newStreamClient(trans)
 	client.Client = client
 	trans.UnixClient = client
 	client.SetUri(uri)
 	return client
+}
+
+func newUnixClient(uri string) Client {
+	return NewUnixClient(uri)
 }
 
 // SetConnPool can set separate StreamConnPool for the client

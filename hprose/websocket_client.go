@@ -52,8 +52,8 @@ type webSocketTransporter struct {
 }
 
 // NewWebSocketClient is the constructor of WebSocketClient
-func NewWebSocketClient(uri string) Client {
-	client := new(WebSocketClient)
+func NewWebSocketClient(uri string) (client *WebSocketClient) {
+	client = new(WebSocketClient)
 	transporter := new(webSocketTransporter)
 	transporter.dialer = new(websocket.Dialer)
 	transporter.header = new(http.Header)
@@ -62,7 +62,11 @@ func NewWebSocketClient(uri string) Client {
 	client.Client = client
 	client.SetUri(uri)
 	client.SetKeepAlive(true)
-	return client
+	return
+}
+
+func newWebSocketClient(uri string) Client {
+	return NewWebSocketClient(uri)
 }
 
 // Close the client

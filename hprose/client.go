@@ -747,12 +747,12 @@ func getResultMode(sf *reflect.StructField) ResultMode {
 }
 
 func init() {
-	RegisterClientFactory("http", NewHttpClient)
-	RegisterClientFactory("https", NewHttpClient)
-	RegisterClientFactory("tcp", NewTcpClient)
-	RegisterClientFactory("tcp4", NewTcpClient)
-	RegisterClientFactory("tcp6", NewTcpClient)
-	RegisterClientFactory("unix", NewUnixClient)
-	RegisterClientFactory("ws", NewWebSocketClient)
-	RegisterClientFactory("wss", NewWebSocketClient)
+	RegisterClientFactory("http", newHttpClient)
+	RegisterClientFactory("https", newHttpClient)
+	RegisterClientFactory("tcp", newTcpClient)
+	RegisterClientFactory("tcp4", newTcpClient)
+	RegisterClientFactory("tcp6", newTcpClient)
+	RegisterClientFactory("unix", newUnixClient)
+	RegisterClientFactory("ws", newWebSocketClient)
+	RegisterClientFactory("wss", newWebSocketClient)
 }

@@ -45,15 +45,19 @@ type tcpTransporter struct {
 var globalTcpConnPool = NewStreamConnPool(64)
 
 // NewTcpClient is the constructor of TcpClient
-func NewTcpClient(uri string) Client {
+func NewTcpClient(uri string) (client *TcpClient) {
 	trans := new(tcpTransporter)
 	trans.connPool = globalTcpConnPool
-	client := new(TcpClient)
+	client = new(TcpClient)
 	client.StreamClient = newStreamClient(trans)
 	client.Client = client
 	trans.TcpClient = client
 	client.SetUri(uri)
-	return client
+	return
+}
+
+func newTcpClient(uri string) Client {
+	return NewTcpClient(uri)
 }
 
 // SetConnPool can set separate StreamConnPool for the client
