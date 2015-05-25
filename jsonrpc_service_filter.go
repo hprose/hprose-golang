@@ -29,7 +29,7 @@ type JSONRPCServiceFilter struct{}
 
 // InputFilter for JSONRPC Service
 func (filter JSONRPCServiceFilter) InputFilter(data []byte, context Context) []byte {
-	if len(data) > 0 && data[0] == '{' {
+	if (len(data) > 0) && (data[0] == '[' || data[0] == '{') {
 		context.SetString("format", "jsonrpc")
 		var request map[string]interface{}
 		if err := json.Unmarshal(data, &request); err != nil {

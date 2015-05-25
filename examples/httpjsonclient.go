@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
 	"reflect"
+
+	"github.com/hprose/hprose-go/hprose"
 )
 
 type User struct {
@@ -13,6 +14,7 @@ type User struct {
 }
 
 type Stub struct {
+	Hello   func(string) string
 	GetUser func(name string, age int) *User
 }
 

@@ -1,10 +1,15 @@
 package main
 
 import (
-	"github.com/hprose/hprose-go/hprose"
 	"net/http"
 	"reflect"
+
+	"github.com/hprose/hprose-go/hprose"
 )
+
+func hello(name string, context *hprose.HttpContext) string {
+	return "Hello " + name + "!  -  " + context.Request.RemoteAddr
+}
 
 type User struct {
 	Name string `json:"n"`
@@ -19,6 +24,7 @@ func getUser(name string, age int) *User {
 func main() {
 	hprose.ClassManager.Register(reflect.TypeOf(User{}), "User", "json")
 	service := hprose.NewHttpService()
+	service.AddFunction("hello", hello)
 	service.AddFunction("getUser", getUser)
 	service.SetFilter(hprose.JSONRPCServiceFilter{})
 	http.ListenAndServe(":8080", service)
