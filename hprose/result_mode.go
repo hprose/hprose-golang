@@ -1,1 +1,0 @@
-../result_mode.go
