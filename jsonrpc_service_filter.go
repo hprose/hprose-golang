@@ -12,7 +12,7 @@
  *                                                        *
  * jsonrpc service filter for Go.                         *
  *                                                        *
- * LastModified: May 22, 2015                             *
+ * LastModified: May 25, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,94 +30,121 @@ type JSONRPCServiceFilter struct{}
 // InputFilter for JSONRPC Service
 func (filter JSONRPCServiceFilter) InputFilter(data []byte, context Context) []byte {
 	if (len(data) > 0) && (data[0] == '[' || data[0] == '{') {
-		context.SetString("format", "jsonrpc")
-		var request map[string]interface{}
-		if err := json.Unmarshal(data, &request); err != nil {
-			return data
-		}
-		if id, ok := request["id"]; ok {
-			context.SetInterface("id", id)
+		var requests []map[string]interface{}
+		if data[0] == '[' {
+			if err := json.Unmarshal(data, &requests); err != nil {
+				return data
+			}
 		} else {
-			context.SetInterface("id", nil)
-		}
-		if version, ok := request["version"].(string); ok {
-			context.SetString("version", version)
-		} else if jsonrpc, ok := request["jsonrpc"].(string); ok {
-			context.SetString("version", jsonrpc)
-		} else {
-			context.SetString("version", "1.0")
+			requests = make([]map[string]interface{}, 1)
+			if err := json.Unmarshal(data, &requests[0]); err != nil {
+				return data
+			}
 		}
 		buf := new(bytes.Buffer)
 		writer := NewWriter(buf, true)
-		if method, ok := request["method"].(string); ok && method != "" {
-			if err := buf.WriteByte(TagCall); err != nil {
-				return data
+		n := len(requests)
+		jsonrpc := make([]map[string]interface{}, n)
+		for i, request := range requests {
+			j := make(map[string]interface{})
+			if id, ok := request["id"]; ok {
+				j["id"] = id
+			} else {
+				j["id"] = nil
 			}
-			if err := writer.WriteString(method); err != nil {
-				return data
+			if version, ok := request["version"]; ok {
+				j["version"] = version
+			} else if jsonrpc, ok := request["jsonrpc"]; ok {
+				j["version"] = jsonrpc
+			} else {
+				j["version"] = "1.0"
 			}
-			if params, ok := request["params"].([]interface{}); ok && params != nil && len(params) > 0 {
-				if err := writer.Serialize(params); err != nil {
-					return data
+			jsonrpc[i] = j
+			if method, ok := request["method"].(string); ok && method != "" {
+				buf.WriteByte(TagCall)
+				writer.WriteString(method)
+				if params, ok := request["params"].([]interface{}); ok && params != nil && len(params) > 0 {
+					writer.Serialize(params)
 				}
 			}
 		}
 		buf.WriteByte(TagEnd)
 		data = buf.Bytes()
+		context.SetInterface("jsonrpc", jsonrpc)
 	}
+	return data
+}
+
+func initResponse(j map[string]interface{}, err interface{}) map[string]interface{} {
+	response := make(map[string]interface{})
+	if version, ok := j["version"].(string); ok && version != "2.0" {
+		if version == "1.1" {
+			response["version"] = "1.1"
+		}
+		response["result"] = nil
+		response["error"] = err
+	} else {
+		response["jsonrpc"] = "2.0"
+	}
+	response["id"] = j["id"]
+	return response
+}
+
+func jsonrpcError(jsonrpc []map[string]interface{}, err error) []byte {
+	n := len(jsonrpc)
+	responses := make([]map[string]interface{}, n)
+	for i, j := range jsonrpc {
+		responses[i] = initResponse(j, err.Error())
+	}
+	if n == 1 {
+		data, _ := json.Marshal(responses[0])
+		return data
+	}
+	data, _ := json.Marshal(responses)
 	return data
 }
 
 // OutputFilter for JSONRPC Service
 func (filter JSONRPCServiceFilter) OutputFilter(data []byte, context Context) []byte {
-	if format, ok := context.GetString("format"); ok && format == "jsonrpc" {
-		response := make(map[string]interface{})
-		if version, ok := context.GetString("version"); ok && version != "2.0" {
-			if version == "1.1" {
-				response["version"] = "1.1"
-			}
-			response["result"] = nil
-			response["error"] = nil
-		} else {
-			response["jsonrpc"] = "2.0"
-		}
-		response["id"], _ = context.GetInterface("id")
-		if len(data) == 0 {
-			data, _ = json.Marshal(response)
-			return data
-		}
+	if jsonrpc, ok := context.GetInterface("jsonrpc"); ok {
+		jsonrpc := jsonrpc.([]map[string]interface{})
+		n := len(jsonrpc)
+		responses := make([]map[string]interface{}, n)
 		istream := NewBytesReader(data)
 		reader := NewReader(istream, false)
 		reader.JSONCompatible = true
-		for tag, err := istream.ReadByte(); err == nil && tag != TagEnd; tag, err = istream.ReadByte() {
-			switch tag {
-			case TagResult:
+		tag, err := istream.ReadByte()
+		if err != nil {
+			return jsonrpcError(jsonrpc, err)
+		}
+		i := 0
+		for {
+			response := initResponse(jsonrpc[i], nil)
+			if tag == TagResult {
 				reader.Reset()
 				var result interface{}
 				reader.Unserialize(&result)
-				if err != nil {
-					e := make(map[string]interface{})
-					e["code"] = -1
-					e["message"] = err.Error()
-					response["error"] = e
-				} else {
-					response["result"] = result
-				}
-			case TagError:
+				response["result"] = result
+				tag, _ = istream.ReadByte()
+			} else if tag == TagError {
 				reader.Reset()
 				e := make(map[string]interface{})
 				e["code"] = -1
-				if message, err := reader.ReadString(); err == nil {
-					e["message"] = message
-				} else {
-					e["message"] = err.Error()
-				}
-			default:
-				data, _ = json.Marshal(response)
-				return data
+				message, _ := reader.ReadString()
+				e["message"] = message
+				tag, _ = istream.ReadByte()
+			}
+			responses[i] = response
+			i++
+			if tag == TagEnd {
+				break
 			}
 		}
-		data, _ = json.Marshal(response)
+		if n == 1 {
+			data, _ := json.Marshal(responses[0])
+			return data
+		}
+		data, _ := json.Marshal(responses)
 		return data
 	}
 	return data
