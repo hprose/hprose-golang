@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix client for Go.                             *
  *                                                        *
- * LastModified: May 16, 2015                             *
+ * LastModified: May 25, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -31,8 +31,7 @@ type UnixClient struct {
 	*StreamClient
 }
 
-// UnixTransporter is hprose unix transporter
-type UnixTransporter struct {
+type unixTransporter struct {
 	connPool *StreamConnPool
 	*UnixClient
 }
@@ -41,8 +40,10 @@ var globalUnixConnPool = NewStreamConnPool(64)
 
 // NewUnixClient is the constructor of UnixClient
 func NewUnixClient(uri string) Client {
-	trans := &UnixTransporter{connPool: globalUnixConnPool}
-	client := &UnixClient{StreamClient: newStreamClient(trans)}
+	trans := new(unixTransporter)
+	trans.connPool = globalUnixConnPool
+	client := new(UnixClient)
+	client.StreamClient = newStreamClient(trans)
 	client.Client = client
 	trans.UnixClient = client
 	client.SetUri(uri)
@@ -51,7 +52,7 @@ func NewUnixClient(uri string) Client {
 
 // SetConnPool can set separate StreamConnPool for the client
 func (client *UnixClient) SetConnPool(connPool *StreamConnPool) {
-	client.Transporter.(*UnixTransporter).connPool = connPool
+	client.Transporter.(*unixTransporter).connPool = connPool
 }
 
 // SetUri set the uri of hprose client
@@ -68,19 +69,19 @@ func (client *UnixClient) SetUri(uri string) {
 func (client *UnixClient) Close() {
 	uri := client.Uri()
 	if uri != "" {
-		client.Transporter.(*UnixTransporter).connPool.Close(uri)
+		client.Transporter.(*unixTransporter).connPool.Close(uri)
 	}
 }
 
 // Timeout return the timeout of the connection in client pool
 func (client *UnixClient) Timeout() time.Duration {
-	return client.Transporter.(*UnixTransporter).connPool.Timeout()
+	return client.Transporter.(*unixTransporter).connPool.Timeout()
 }
 
 // SetTimeout for connection in client pool
 func (client *UnixClient) SetTimeout(d time.Duration) {
 	client.timeout = d
-	client.Transporter.(*UnixTransporter).connPool.SetTimeout(d)
+	client.Transporter.(*unixTransporter).connPool.SetTimeout(d)
 }
 
 func parseUnixUri(uri string) (scheme, path string) {
@@ -89,7 +90,7 @@ func parseUnixUri(uri string) (scheme, path string) {
 }
 
 // SendAndReceive send and receive the data
-func (t *UnixTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
+func (t *unixTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
 	connEntry := t.connPool.Get(uri)
 	defer func() {
 		if err != nil {
