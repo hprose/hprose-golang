@@ -39,8 +39,7 @@ type receiveMessage struct {
 	err  error
 }
 
-// WebSocketTransporter is hprose websocket transporter
-type WebSocketTransporter struct {
+type webSocketTransporter struct {
 	dialer                *websocket.Dialer
 	conn                  *websocket.Conn
 	header                *http.Header
@@ -55,7 +54,7 @@ type WebSocketTransporter struct {
 // NewWebSocketClient is the constructor of WebSocketClient
 func NewWebSocketClient(uri string) Client {
 	client := new(WebSocketClient)
-	transporter := new(WebSocketTransporter)
+	transporter := new(webSocketTransporter)
 	transporter.dialer = new(websocket.Dialer)
 	transporter.header = new(http.Header)
 	transporter.maxConcurrentRequests = 10
@@ -68,7 +67,7 @@ func NewWebSocketClient(uri string) Client {
 
 // Close the client
 func (client *WebSocketClient) Close() {
-	trans := client.Transporter.(*WebSocketTransporter)
+	trans := client.Transporter.(*webSocketTransporter)
 	if trans.conn != nil {
 		trans.conn.Close()
 		trans.conn = nil
@@ -90,8 +89,8 @@ func (client *WebSocketClient) SetUri(uri string) {
 	client.BaseClient.SetUri(uri)
 }
 
-func (client *WebSocketClient) trans() *WebSocketTransporter {
-	return client.Transporter.(*WebSocketTransporter)
+func (client *WebSocketClient) trans() *webSocketTransporter {
+	return client.Transporter.(*webSocketTransporter)
 }
 
 func (client *WebSocketClient) dialer() *websocket.Dialer {
@@ -133,7 +132,7 @@ func (client *WebSocketClient) SetMaxConcurrentRequests(value int) {
 	client.trans().maxConcurrentRequests = value
 }
 
-func (trans *WebSocketTransporter) idGen() {
+func (trans *webSocketTransporter) idGen() {
 	defer func() {
 		close(trans.id)
 		trans.id = nil
@@ -148,7 +147,7 @@ func (trans *WebSocketTransporter) idGen() {
 	}
 }
 
-func (trans *WebSocketTransporter) sendLoop() {
+func (trans *webSocketTransporter) sendLoop() {
 	defer func() {
 		close(trans.sendIDs)
 		trans.sendIDs = nil
@@ -173,7 +172,7 @@ func (trans *WebSocketTransporter) sendLoop() {
 	}
 }
 
-func (trans *WebSocketTransporter) recvLoop() {
+func (trans *webSocketTransporter) recvLoop() {
 	var msgType int
 	var data []byte
 	var err error
@@ -207,7 +206,7 @@ func (trans *WebSocketTransporter) recvLoop() {
 	}
 }
 
-func (trans *WebSocketTransporter) getConn(uri string) (err error) {
+func (trans *webSocketTransporter) getConn(uri string) (err error) {
 	trans.mutex.Lock()
 	defer trans.mutex.Unlock()
 	if trans.conn == nil {
@@ -227,7 +226,7 @@ func (trans *WebSocketTransporter) getConn(uri string) (err error) {
 }
 
 // SendAndReceive send and receive the data
-func (trans *WebSocketTransporter) SendAndReceive(uri string, data []byte) ([]byte, error) {
+func (trans *webSocketTransporter) SendAndReceive(uri string, data []byte) ([]byte, error) {
 	if err := trans.getConn(uri); err != nil {
 		return nil, err
 	}
