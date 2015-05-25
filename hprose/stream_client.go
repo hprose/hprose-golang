@@ -12,7 +12,7 @@
  *                                                        *
  * hprose stream client for Go.                           *
  *                                                        *
- * LastModified: May 23, 2015                             *
+ * LastModified: May 25, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -36,10 +36,10 @@ type StreamClient struct {
 	writeTimeout interface{}
 }
 
-func newStreamClient(trans Transporter) *StreamClient {
-	return &StreamClient{
-		BaseClient: NewBaseClient(trans),
-	}
+func newStreamClient(trans Transporter) (client *StreamClient) {
+	client = new(StreamClient)
+	client.BaseClient = NewBaseClient(trans)
+	return
 }
 
 type streamConnStatus int
@@ -56,6 +56,15 @@ type StreamConnEntry struct {
 	conn         net.Conn
 	status       streamConnStatus
 	lastUsedTime time.Time
+}
+
+// NewStreamConnEntry is the constructor for StreamConnEntry
+func NewStreamConnEntry(uri string) (entry *StreamConnEntry) {
+	entry = new(StreamConnEntry)
+	entry.uri = uri
+	entry.status = using
+	entry.lastUsedTime = time.Now()
+	return
 }
 
 // Get the connection
@@ -84,8 +93,10 @@ type StreamConnPool struct {
 }
 
 // NewStreamConnPool is the constructor for StreamConnPool
-func NewStreamConnPool(num int) *StreamConnPool {
-	return &StreamConnPool{pool: make([]*StreamConnEntry, 0, num)}
+func NewStreamConnPool(num int) (pool *StreamConnPool) {
+	pool = new(StreamConnPool)
+	pool.pool = make([]*StreamConnEntry, 0, num)
+	return
 }
 
 func freeConns(conns []net.Conn) {
@@ -147,7 +158,7 @@ func (connPool *StreamConnPool) Get(uri string) *StreamConnEntry {
 			}
 		}
 	}
-	entry := &StreamConnEntry{uri, nil, using, time.Now()}
+	entry := NewStreamConnEntry(uri)
 	connPool.pool = append(connPool.pool, entry)
 	return entry
 }

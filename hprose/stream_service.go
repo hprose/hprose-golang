@@ -12,7 +12,7 @@
  *                                                        *
  * hprose stream service for Go.                          *
  *                                                        *
- * LastModified: May 23, 2015                             *
+ * LastModified: May 25, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -41,8 +41,10 @@ type StreamContext struct {
 	net.Conn
 }
 
-func newStreamService() *StreamService {
-	return &StreamService{BaseService: NewBaseService()}
+func newStreamService() (service *StreamService) {
+	service = new(StreamService)
+	service.BaseService = NewBaseService()
+	return
 }
 
 // SetTimeout for stream service
