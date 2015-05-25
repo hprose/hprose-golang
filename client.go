@@ -12,98 +12,95 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: May 24, 2015                             *
+ * LastModified: May 26, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 /*
+Package hprose client example:
 
-Here is a client example:
+		package main
 
-	package main
+		import (
+			"fmt"
+			"hprose"
+		)
 
-	import (
-		"fmt"
-		"hprose"
-	)
-
-	type testUser struct {
-		Name     string
-		Sex      int
-		Birthday time.Time
-		Age      int
-		Married  bool
-	}
-
-	type testRemoteObject struct {
-		Hello               func(string) string
-		HelloWithError      func(string) (string, error)               `name:"hello"`
-		AsyncHello          func(string) <-chan string                 `name:"hello"`
-		AsyncHelloWithError func(string) (<-chan string, <-chan error) `name:"hello"`
-		Sum                 func(...int) int
-		SwapKeyAndValue     func(*map[string]string) map[string]string `byref:"true"`
-		SwapInt             func(int, int) (int, int)                  `name:"swap"`
-		SwapFloat           func(float64, float64) (float64, float64)  `name:"swap"`
-		Swap                func(interface{}, interface{}) (interface{}, interface{})
-		GetUserList         func() []testUser
-	}
-
-	func main() {
-		client := hprose.NewClient("http://www.hprose.com/example/")
-		var ro *RemoteObject
-		client.UseService(&ro)
-
-		// If an error occurs, it will panic
-		fmt.Println(ro.Hello("World"))
-
-		// If an error occurs, an error value will be returned
-		if result, err := ro.HelloWithError("World"); err == nil {
-			fmt.Println(result)
-		} else {
-			fmt.Println(err.Error())
+		type testUser struct {
+			Name     string
+			Sex      int
+			Birthday time.Time
+			Age      int
+			Married  bool
 		}
 
-		// If an error occurs, it will be ignored
-		result := ro.AsyncHello("World")
-		fmt.Println(<-result)
+		type testRemoteObject struct {
+			Hello               func(string) string
+			HelloWithError      func(string) (string, error)               `name:"hello"`
+			AsyncHello          func(string) <-chan string                 `name:"hello"`
+			AsyncHelloWithError func(string) (<-chan string, <-chan error) `name:"hello"`
+			Sum                 func(...int) int
+			SwapKeyAndValue     func(*map[string]string) map[string]string `byref:"true"`
+			SwapInt             func(int, int) (int, int)                  `name:"swap"`
+			SwapFloat           func(float64, float64) (float64, float64)  `name:"swap"`
+			Swap                func(interface{}, interface{}) (interface{}, interface{})
+			GetUserList         func() []testUser
+		}
 
-		// If an error occurs, an error chan will be returned
-		result, err := ro.AsyncHelloWithError("World")
-		if e := <-err; e == nil {
+		func main() {
+			client := hprose.NewClient("http://www.hprose.com/example/")
+			var ro *RemoteObject
+			client.UseService(&ro)
+
+			// If an error occurs, it will panic
+			fmt.Println(ro.Hello("World"))
+
+			// If an error occurs, an error value will be returned
+			if result, err := ro.HelloWithError("World"); err == nil {
+				fmt.Println(result)
+			} else {
+				fmt.Println(err.Error())
+			}
+
+			// If an error occurs, it will be ignored
+			result := ro.AsyncHello("World")
 			fmt.Println(<-result)
-		} else {
-			fmt.Println(e.Error())
+
+			// If an error occurs, an error chan will be returned
+			result, err := ro.AsyncHelloWithError("World")
+			if e := <-err; e == nil {
+				fmt.Println(<-result)
+			} else {
+				fmt.Println(e.Error())
+			}
+			fmt.Println(ro.Sum(1, 2, 3, 4, 5))
+
+			m := make(map[string]string)
+			m["Jan"] = "January"
+			m["Feb"] = "February"
+			m["Mar"] = "March"
+			m["Apr"] = "April"
+			m["May"] = "May"
+			m["Jun"] = "June"
+			m["Jul"] = "July"
+			m["Aug"] = "August"
+			m["Sep"] = "September"
+			m["Oct"] = "October"
+			m["Nov"] = "November"
+			m["Dec"] = "December"
+
+			fmt.Println(m)
+			mm := ro.SwapKeyAndValue(&m)
+			fmt.Println(m)
+			fmt.Println(mm)
+
+			fmt.Println(ro.GetUserList())
+			fmt.Println(ro.SwapInt(1, 2))
+			fmt.Println(ro.SwapFloat(1.2, 3.4))
+			fmt.Println(ro.Swap("Hello", "World"))
 		}
-		fmt.Println(ro.Sum(1, 2, 3, 4, 5))
-
-		m := make(map[string]string)
-		m["Jan"] = "January"
-		m["Feb"] = "February"
-		m["Mar"] = "March"
-		m["Apr"] = "April"
-		m["May"] = "May"
-		m["Jun"] = "June"
-		m["Jul"] = "July"
-		m["Aug"] = "August"
-		m["Sep"] = "September"
-		m["Oct"] = "October"
-		m["Nov"] = "November"
-		m["Dec"] = "December"
-
-		fmt.Println(m)
-		mm := ro.SwapKeyAndValue(&m)
-		fmt.Println(m)
-		fmt.Println(mm)
-
-		fmt.Println(ro.GetUserList())
-		fmt.Println(ro.SwapInt(1, 2))
-		fmt.Println(ro.SwapFloat(1.2, 3.4))
-		fmt.Println(ro.Swap("Hello", "World"))
-	}
-
 */
-
 package hprose
 
 import (
