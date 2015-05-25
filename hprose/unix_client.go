@@ -55,6 +55,11 @@ func (client *UnixClient) SetConnPool(connPool *StreamConnPool) {
 	client.Transporter.(*unixTransporter).connPool = connPool
 }
 
+func parseUnixUri(uri string) (scheme, path string) {
+	t := strings.SplitN(uri, ":", 2)
+	return t[0], t[1]
+}
+
 // SetUri set the uri of hprose client
 func (client *UnixClient) SetUri(uri string) {
 	scheme, _ := parseUnixUri(uri)
@@ -82,11 +87,6 @@ func (client *UnixClient) Timeout() time.Duration {
 func (client *UnixClient) SetTimeout(d time.Duration) {
 	client.timeout = d
 	client.Transporter.(*unixTransporter).connPool.SetTimeout(d)
-}
-
-func parseUnixUri(uri string) (scheme, path string) {
-	t := strings.SplitN(uri, ":", 2)
-	return t[0], t[1]
 }
 
 // SendAndReceive send and receive the data
