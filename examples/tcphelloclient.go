@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
+
+	"github.com/hprose/hprose-go"
 )
 
 type Stub struct {

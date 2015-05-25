@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 )
 
 type User struct {

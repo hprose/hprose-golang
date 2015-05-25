@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
 	"reflect"
+
+	"github.com/hprose/hprose-go"
 )
 
 type A struct {

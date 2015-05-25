@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 )
 
 type Stub struct {

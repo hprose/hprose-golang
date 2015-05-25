@@ -3,6 +3,7 @@
 [![Join the chat at https://gitter.im/hprose/hprose-go](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hprose/hprose-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Build Status](https://drone.io/github.com/hprose/hprose-go/status.png)](https://drone.io/github.com/hprose/hprose-go/latest)
+[![GoDoc](https://godoc.org/github.com/hprose/hprose-go?status.svg)](https://godoc.org/github.com/hprose/hprose-go)
 
 >---
 - **[Introduction](#introduction)**
@@ -24,6 +25,7 @@
     - **[Missing Method](#missing-method)**
     - **[TCP Server and Client](#tcp-server-and-client)**
     - **[Unix Server and Client](#unix-server-and-client)**
+	- **[WebSocket Server and Client](#websocket-server-and-client)**
     - **[Service Event](#service-event)**
 
 >---
@@ -61,7 +63,8 @@ This project is the implementation of Hprose for Golang.
 ## Installation
 
 ```sh
-go get github.com/hprose/hprose-go/hprose
+go get github.com/hprose/hprose-go
+go install github.com/hprose/hprose-go
 ```
 
 ## Usage
@@ -75,7 +78,7 @@ package main
 
 import (
 	"errors"
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 	"net/http"
 )
 
@@ -121,7 +124,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -150,7 +153,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -177,7 +180,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -206,7 +209,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -233,7 +236,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -261,7 +264,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -305,7 +308,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type TestUser struct {
@@ -366,7 +369,7 @@ You can use hprose server and client to create a hprose proxy server. All reques
 package main
 
 import (
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
 )
 
@@ -395,7 +398,7 @@ Hprose provides an ResultMode options to improve performance of the proxy server
 package main
 
 import (
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
 )
 
@@ -443,7 +446,7 @@ You can open simple mode in server like this:
 package main
 
 import (
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
 )
 
@@ -467,7 +470,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -497,7 +500,7 @@ Hprose supports publishing a special method: MissingMethod. All methods not expl
 package main
 
 import (
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
     "reflect"
     "strings"
@@ -543,7 +546,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -605,7 +608,7 @@ You can also specify `tcp4://` scheme to using ipv4 or `tcp6://` scheme to using
 
 ### Unix Server and Client
 
-Hprose for Golang supports Unix Socket Server and Client. Like TcpServer, it is very easy to use.
+Hprose for Golang supports Unix Socket Server and Client. It is very easy to use like the Tcp Server and Client.
 
 To create a hprose Unix server, you can use `NewUnixService` or `NewUnixServer`.
 
@@ -629,6 +632,30 @@ To create a hprose Unix client is the same as TCP client:
     ...
 ```
 
+### WebSocket Server and Client
+
+Hprose for Golang supports WebSocket Socket Server and Client. It is very easy to use like the HTTP Server and Client.
+
+To create a hprose WebSocket service, you can use `NewWebSocketService`. For example:
+
+```go
+    ...
+	service := hprose.NewWebSocketService()
+    service.AddFunction("hello", hello, true)
+    http.ListenAndServe(":8080", service)
+    ...
+```
+
+Hprose WebSocket service is also HTTP service. Not only hprose WebSocket client can invoke it, but also hprose HTTP client.
+
+To create a hprose WebSocket client is the same as HTTP client:
+
+```go
+    ...
+    client := hprose.NewClient("ws://127.0.0.1:8080/")
+    ...
+```
+
 ### Service Event
 
 Hprose defines a `ServiceEvent` interface.
@@ -648,7 +675,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
     "reflect"
 )

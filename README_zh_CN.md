@@ -1,6 +1,9 @@
 # Hprose for Golang
 
+[![Join the chat at https://gitter.im/hprose/hprose-go](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hprose/hprose-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://drone.io/github.com/hprose/hprose-go/status.png)](https://drone.io/github.com/hprose/hprose-go/latest)
+[![GoDoc](https://godoc.org/github.com/hprose/hprose-go?status.svg)](https://godoc.org/github.com/hprose/hprose-go)
 
 > ---
 - **[简介](#简介)**
@@ -22,6 +25,7 @@
 	- **[缺失的方法](#缺失的方法)**
 	- **[TCP 服务器和客户端](#tcp-服务器和客户端)**
 	- **[Unix 服务器和客户端](#unix-服务器和客户端)**
+	- **[WebSocket 服务器和客户端](#websocket-服务器和客户端)**
 	- **[服务事件](#服务事件)**
 
 > ---
@@ -59,18 +63,9 @@
 ## 安装
 
 ```sh
-go get github.com/hprose/hprose-go/hprose
+go get github.com/hprose/hprose-go
+go install github.com/hprose/hprose-go
 ```
-
-如果你遇到
-
-```
-package github.com/hprose/hprose-go/hprose
-		imports golang.org/x/net/websocket: unrecognized import path "golang.org/x/net/websocket"
-```
-
-的提示，说明你被墙了。翻墙之后问题即可解决。
-
 
 ## 使用
 
@@ -83,7 +78,7 @@ package main
 
 import (
 	"errors"
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 	"net/http"
 )
 
@@ -129,7 +124,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -158,7 +153,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -185,7 +180,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -214,7 +209,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -242,7 +237,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -270,7 +265,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -314,7 +309,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type TestUser struct {
@@ -375,7 +370,7 @@ hprose.ClassManager.Register(reflect.TypeOf(User{}), "User", "json")
 package main
 
 import (
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
 )
 
@@ -405,7 +400,7 @@ Hprose 提供了结果模式选项来改进代理服务器的性能。你可以�
 package main
 
 import (
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
 )
 
@@ -457,7 +452,7 @@ func main() {
 package main
 
 import (
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
 )
 
@@ -481,7 +476,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -513,7 +508,7 @@ Hprose 支持发布一个特殊的方法：MissingMethod。所有对没有显式
 package main
 
 import (
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
     "reflect"
     "strings"
@@ -559,7 +554,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
 )
 
 type clientStub struct {
@@ -594,7 +589,7 @@ func main() {
 
 ### TCP 服务器和客户端
 
-Hprose for Golang 已经支持 TCP 的服务器和客户端。它跟 HTTP 版本的服务器和客户端在使用上一样简单。
+Hprose for Golang 还支持 TCP 的服务器和客户端。它跟 HTTP 版本的服务器和客户端在使用上一样简单。
 
 你可以使用 `NewTcpService` 或 `NewTcpServer`，来创建 Hprose 的 TCP 服务器。
 
@@ -622,7 +617,7 @@ Hprose for Golang 已经支持 TCP 的服务器和客户端。它跟 HTTP 版本
 
 ### Unix 服务器和客户端
 
-Hprose for Golang 已经支持 Unix 的服务器和客户端。它跟 TCP 版本的服务器和客户端在使用上一样简单。
+Hprose for Golang 还支持 Unix 的服务器和客户端。它跟 TCP 版本的服务器和客户端在使用上一样简单。
 
 你可以使用 `NewUnixService` 或 `NewUnixServer`，来创建 Hprose 的 Unix 服务器。
 
@@ -646,6 +641,30 @@ Hprose for Golang 已经支持 Unix 的服务器和客户端。它跟 TCP 版本
     ...
 ```
 
+### WebSocket 服务器和客户端
+
+Hprose for Golang 还支持 WebSocket 的服务器和客户端。它跟 HTTP 版本的服务器和客户端在使用上一样简单。
+
+你可以使用 `NewWebSocketService` 来创建 Hprose 的 WebSocket 服务。例如：
+
+```go
+    ...
+	service := hprose.NewWebSocketService()
+    service.AddFunction("hello", hello, true)
+    http.ListenAndServe(":8080", service)
+    ...
+```
+
+Hprose 的 WebSocket 服务器同时也是 HTTP 服务器，客户端可以用 WebSocket 访问它，也可以用 HTTP 访问它。
+
+创建 Hprose 的 WebSocket 客户端跟 HTTP 客户端是一样的方式：
+
+```go
+    ...
+    client := hprose.NewClient("ws://127.0.0.1:8080/")
+    ...
+```
+
 ### 服务事件
 
 Hprose 定义了一个 `ServiceEvent` 接口。
@@ -665,7 +684,7 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-go/hprose"
+    "github.com/hprose/hprose-go"
     "net/http"
     "reflect"
 )

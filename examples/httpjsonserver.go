@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/hprose/hprose-go/hprose"
+	"github.com/hprose/hprose-go"
 )
 
 func hello(name string, context *hprose.HttpContext) string {
