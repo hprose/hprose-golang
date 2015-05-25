@@ -38,7 +38,6 @@ type HttpClient struct {
 	*BaseClient
 }
 
-// HttpTransporter is hprose http transporter
 type httpTransporter struct {
 	*http.Client
 	*http.Header
