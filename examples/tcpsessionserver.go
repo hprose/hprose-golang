@@ -1,10 +1,6 @@
 package main
 
-import (
-	"os"
-
-	"github.com/hprose/hprose-go"
-)
+import "github.com/hprose/hprose-go"
 
 var Session []map[string]interface{}
 
@@ -58,7 +54,4 @@ func main() {
 	server.AddFunction("inc", inc)
 	server.ThreadCount = 16
 	server.Start()
-	b := make([]byte, 1)
-	os.Stdin.Read(b)
-	server.Stop()
 }

@@ -23,6 +23,8 @@ package hprose
 import (
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
 	"reflect"
 	"runtime"
 	"runtime/debug"
@@ -108,6 +110,7 @@ type UnixServer struct {
 	URL         string
 	ThreadCount int
 	listener    *net.UnixListener
+	signal      chan os.Signal
 }
 
 // NewUnixServer is a constructor for UnixServer
@@ -170,12 +173,20 @@ func (server *UnixServer) Start() (err error) {
 		for i := 0; i < server.ThreadCount; i++ {
 			go server.start()
 		}
+		server.signal = make(chan os.Signal, 1)
+		signal.Notify(server.signal, os.Interrupt, os.Kill)
+		<-server.signal
+		server.Stop()
 	}
 	return nil
 }
 
 // Stop the hprose unix server
 func (server *UnixServer) Stop() {
+	if server.signal != nil {
+		signal.Stop(server.signal)
+		server.signal = nil
+	}
 	if server.listener != nil {
 		listener := server.listener
 		server.listener = nil

@@ -25,6 +25,8 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
+	"os/signal"
 	"reflect"
 	"runtime"
 	"runtime/debug"
@@ -176,6 +178,7 @@ type TcpServer struct {
 	URL         string
 	ThreadCount int
 	listener    *net.TCPListener
+	signal      chan os.Signal
 }
 
 // NewTcpServer is a constructor for TcpServer
@@ -241,12 +244,20 @@ func (server *TcpServer) Start() (err error) {
 		for i := 0; i < server.ThreadCount; i++ {
 			go server.start()
 		}
+		server.signal = make(chan os.Signal, 1)
+		signal.Notify(server.signal, os.Interrupt, os.Kill)
+		<-server.signal
+		server.Stop()
 	}
 	return nil
 }
 
 // Stop the hprose tcp server
 func (server *TcpServer) Stop() {
+	if server.signal != nil {
+		signal.Stop(server.signal)
+		server.signal = nil
+	}
 	if server.listener != nil {
 		listener := server.listener
 		server.listener = nil
