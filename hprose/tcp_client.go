@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: May 25, 2015                             *
+ * LastModified: May 27, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -38,7 +38,7 @@ type TcpClient struct {
 }
 
 type tcpTransporter struct {
-	connPool *StreamConnPool
+	ConnPool
 	*TcpClient
 }
 
@@ -47,7 +47,7 @@ var globalTcpConnPool = NewStreamConnPool(64)
 // NewTcpClient is the constructor of TcpClient
 func NewTcpClient(uri string) (client *TcpClient) {
 	trans := new(tcpTransporter)
-	trans.connPool = globalTcpConnPool
+	trans.ConnPool = globalTcpConnPool
 	client = new(TcpClient)
 	client.StreamClient = newStreamClient(trans)
 	client.Client = client
@@ -61,8 +61,8 @@ func newTcpClient(uri string) Client {
 }
 
 // SetConnPool can set separate StreamConnPool for the client
-func (client *TcpClient) SetConnPool(connPool *StreamConnPool) {
-	client.Transporter.(*tcpTransporter).connPool = connPool
+func (client *TcpClient) SetConnPool(connPool ConnPool) {
+	client.Transporter.(*tcpTransporter).ConnPool = connPool
 }
 
 // SetUri set the uri of hprose client
@@ -80,19 +80,19 @@ func (client *TcpClient) SetUri(uri string) {
 func (client *TcpClient) Close() {
 	uri := client.Uri()
 	if uri != "" {
-		client.Transporter.(*tcpTransporter).connPool.Close(uri)
+		client.Transporter.(*tcpTransporter).ConnPool.Close(uri)
 	}
 }
 
 // Timeout return the timeout of the connection in client pool
 func (client *TcpClient) Timeout() time.Duration {
-	return client.Transporter.(*tcpTransporter).connPool.Timeout()
+	return client.Transporter.(*tcpTransporter).ConnPool.Timeout()
 }
 
 // SetTimeout for connection in client pool
 func (client *TcpClient) SetTimeout(d time.Duration) {
 	client.timeout = d
-	client.Transporter.(*tcpTransporter).connPool.SetTimeout(d)
+	client.Transporter.(*tcpTransporter).ConnPool.SetTimeout(d)
 }
 
 // SetKeepAlive sets whether the operating system should send keepalive messages on the connection.
@@ -133,11 +133,11 @@ func (client *TcpClient) SetTLSClientConfig(config *tls.Config) {
 
 // SendAndReceive send and receive the data
 func (t *tcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
-	connEntry := t.connPool.Get(uri)
+	connEntry := t.ConnPool.Get(uri)
 	defer func() {
 		if err != nil {
 			connEntry.Close()
-			t.connPool.Free(connEntry)
+			t.ConnPool.Free(connEntry)
 		}
 	}()
 begin:
@@ -195,8 +195,8 @@ begin:
 		if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
 			err = nil
 			connEntry.Close()
-			t.connPool.Free(connEntry)
-			connEntry = t.connPool.Get(uri)
+			t.ConnPool.Free(connEntry)
+			connEntry = t.ConnPool.Get(uri)
 			goto begin
 		}
 	}
@@ -216,6 +216,6 @@ begin:
 	if idata, err = receiveDataOverStream(conn); err != nil {
 		return nil, err
 	}
-	t.connPool.Free(connEntry)
+	t.ConnPool.Free(connEntry)
 	return idata, nil
 }

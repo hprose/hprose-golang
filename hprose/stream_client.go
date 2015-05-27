@@ -12,7 +12,7 @@
  *                                                        *
  * hprose stream client for Go.                           *
  *                                                        *
- * LastModified: May 25, 2015                             *
+ * LastModified: May 27, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -50,8 +50,14 @@ const (
 	closing
 )
 
-// StreamConnEntry is the connection entry in connection pool
-type StreamConnEntry struct {
+// ConnEntry is the connection entry in connection pool
+type ConnEntry interface {
+	Get() net.Conn
+	Set(conn net.Conn)
+	Close()
+}
+
+type streamConnEntry struct {
 	uri          string
 	conn         net.Conn
 	status       streamConnStatus
@@ -59,44 +65,52 @@ type StreamConnEntry struct {
 }
 
 // NewStreamConnEntry is the constructor for StreamConnEntry
-func NewStreamConnEntry(uri string) (entry *StreamConnEntry) {
-	entry = new(StreamConnEntry)
+func NewStreamConnEntry(uri string) ConnEntry {
+	entry := new(streamConnEntry)
 	entry.uri = uri
 	entry.status = using
 	entry.lastUsedTime = time.Now()
-	return
+	return entry
 }
 
 // Get the connection
-func (connEntry *StreamConnEntry) Get() net.Conn {
+func (connEntry *streamConnEntry) Get() net.Conn {
 	return connEntry.conn
 }
 
 // Set the connection
-func (connEntry *StreamConnEntry) Set(conn net.Conn) {
+func (connEntry *streamConnEntry) Set(conn net.Conn) {
 	if conn != nil {
 		connEntry.conn = conn
 	}
 }
 
 // Close the connection
-func (connEntry *StreamConnEntry) Close() {
+func (connEntry *streamConnEntry) Close() {
 	connEntry.status = closing
 }
 
-// StreamConnPool is the connection pool
-type StreamConnPool struct {
+// ConnPool is the connection pool
+type ConnPool interface {
+	Timeout() time.Duration
+	SetTimeout(d time.Duration)
+	Get(uri string) ConnEntry
+	Close(uri string)
+	Free(entry ConnEntry)
+}
+
+type streamConnPool struct {
 	sync.Mutex
-	pool    []*StreamConnEntry
+	pool    []*streamConnEntry
 	timer   *time.Ticker
 	timeout time.Duration
 }
 
 // NewStreamConnPool is the constructor for StreamConnPool
-func NewStreamConnPool(num int) (pool *StreamConnPool) {
-	pool = new(StreamConnPool)
-	pool.pool = make([]*StreamConnEntry, 0, num)
-	return
+func NewStreamConnPool(num int) ConnPool {
+	pool := new(streamConnPool)
+	pool.pool = make([]*streamConnEntry, 0, num)
+	return pool
 }
 
 func freeConns(conns []net.Conn) {
@@ -106,12 +120,12 @@ func freeConns(conns []net.Conn) {
 }
 
 // Timeout return the timeout of the connection in pool
-func (connPool *StreamConnPool) Timeout() time.Duration {
+func (connPool *streamConnPool) Timeout() time.Duration {
 	return connPool.timeout
 }
 
 // SetTimeout for connection in pool
-func (connPool *StreamConnPool) SetTimeout(d time.Duration) {
+func (connPool *streamConnPool) SetTimeout(d time.Duration) {
 	if connPool.timer != nil {
 		connPool.timer.Stop()
 		connPool.timer = nil
@@ -123,7 +137,7 @@ func (connPool *StreamConnPool) SetTimeout(d time.Duration) {
 	}
 }
 
-func (connPool *StreamConnPool) closeTimeoutConns() {
+func (connPool *streamConnPool) closeTimeoutConns() {
 	for t := range connPool.timer.C {
 		func() {
 			connPool.Lock()
@@ -145,7 +159,7 @@ func (connPool *StreamConnPool) closeTimeoutConns() {
 }
 
 // Get the StreamConnEntry in StreamConnPool
-func (connPool *StreamConnPool) Get(uri string) *StreamConnEntry {
+func (connPool *streamConnPool) Get(uri string) ConnEntry {
 	connPool.Lock()
 	defer connPool.Unlock()
 	for _, entry := range connPool.pool {
@@ -161,12 +175,12 @@ func (connPool *StreamConnPool) Get(uri string) *StreamConnEntry {
 		}
 	}
 	entry := NewStreamConnEntry(uri)
-	connPool.pool = append(connPool.pool, entry)
+	connPool.pool = append(connPool.pool, entry.(*streamConnEntry))
 	return entry
 }
 
 // Close the specify uri connections in StreamConnPool
-func (connPool *StreamConnPool) Close(uri string) {
+func (connPool *streamConnPool) Close(uri string) {
 	connPool.Lock()
 	defer connPool.Unlock()
 	conns := make([]net.Conn, 0, len(connPool.pool))
@@ -185,16 +199,21 @@ func (connPool *StreamConnPool) Close(uri string) {
 }
 
 // Free the entry to pool
-func (connPool *StreamConnPool) Free(entry *StreamConnEntry) {
-	if entry.status == closing {
-		if entry.conn != nil {
-			go entry.conn.Close()
-			entry.conn = nil
+func (connPool *streamConnPool) Free(entry ConnEntry) {
+	if entry, ok := entry.(*streamConnEntry); ok {
+		if entry.status == closing {
+			if entry.conn != nil {
+				go entry.conn.Close()
+				entry.conn = nil
+			}
+			entry.uri = ""
 		}
-		entry.uri = ""
+		entry.lastUsedTime = time.Now()
+		entry.status = free
+	} else {
+		panic("entry is not an instance of *StreamConnEntry")
 	}
-	entry.lastUsedTime = time.Now()
-	entry.status = free
+
 }
 
 // SetReadBuffer sets the size of the operating system's receive buffer associated with the connection.

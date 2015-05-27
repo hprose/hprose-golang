@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix service for Go.                            *
  *                                                        *
- * LastModified: May 25, 2015                             *
+ * LastModified: May 27, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -158,8 +158,8 @@ func (server *UnixServer) start() {
 	}
 }
 
-// Start the hprose unix server
-func (server *UnixServer) Start() (err error) {
+// Handle the hprose unix server
+func (server *UnixServer) Handle() (err error) {
 	if server.listener == nil {
 		scheme, path := parseUnixUri(server.URL)
 		var addr *net.UnixAddr
@@ -173,6 +173,14 @@ func (server *UnixServer) Start() (err error) {
 		for i := 0; i < server.ThreadCount; i++ {
 			go server.start()
 		}
+	}
+	return nil
+}
+
+// Start the hprose unix server
+func (server *UnixServer) Start() (err error) {
+	if server.listener == nil {
+		server.Handle()
 		server.signal = make(chan os.Signal, 1)
 		signal.Notify(server.signal, os.Interrupt, os.Kill)
 		<-server.signal

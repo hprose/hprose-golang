@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix client for Go.                             *
  *                                                        *
- * LastModified: May 25, 2015                             *
+ * LastModified: May 27, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -32,7 +32,7 @@ type UnixClient struct {
 }
 
 type unixTransporter struct {
-	connPool *StreamConnPool
+	ConnPool
 	*UnixClient
 }
 
@@ -41,7 +41,7 @@ var globalUnixConnPool = NewStreamConnPool(64)
 // NewUnixClient is the constructor of UnixClient
 func NewUnixClient(uri string) (client *UnixClient) {
 	trans := new(unixTransporter)
-	trans.connPool = globalUnixConnPool
+	trans.ConnPool = globalUnixConnPool
 	client = new(UnixClient)
 	client.StreamClient = newStreamClient(trans)
 	client.Client = client
@@ -55,8 +55,8 @@ func newUnixClient(uri string) Client {
 }
 
 // SetConnPool can set separate StreamConnPool for the client
-func (client *UnixClient) SetConnPool(connPool *StreamConnPool) {
-	client.Transporter.(*unixTransporter).connPool = connPool
+func (client *UnixClient) SetConnPool(connPool ConnPool) {
+	client.Transporter.(*unixTransporter).ConnPool = connPool
 }
 
 func parseUnixUri(uri string) (scheme, path string) {
@@ -78,28 +78,28 @@ func (client *UnixClient) SetUri(uri string) {
 func (client *UnixClient) Close() {
 	uri := client.Uri()
 	if uri != "" {
-		client.Transporter.(*unixTransporter).connPool.Close(uri)
+		client.Transporter.(*unixTransporter).ConnPool.Close(uri)
 	}
 }
 
 // Timeout return the timeout of the connection in client pool
 func (client *UnixClient) Timeout() time.Duration {
-	return client.Transporter.(*unixTransporter).connPool.Timeout()
+	return client.Transporter.(*unixTransporter).ConnPool.Timeout()
 }
 
 // SetTimeout for connection in client pool
 func (client *UnixClient) SetTimeout(d time.Duration) {
 	client.timeout = d
-	client.Transporter.(*unixTransporter).connPool.SetTimeout(d)
+	client.Transporter.(*unixTransporter).ConnPool.SetTimeout(d)
 }
 
 // SendAndReceive send and receive the data
 func (t *unixTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
-	connEntry := t.connPool.Get(uri)
+	connEntry := t.ConnPool.Get(uri)
 	defer func() {
 		if err != nil {
 			connEntry.Close()
-			t.connPool.Free(connEntry)
+			t.ConnPool.Free(connEntry)
 		}
 	}()
 begin:
@@ -129,8 +129,8 @@ begin:
 		if err = conn.SetDeadline(time.Now().Add(t.timeout.(time.Duration))); err != nil {
 			err = nil
 			connEntry.Close()
-			t.connPool.Free(connEntry)
-			connEntry = t.connPool.Get(uri)
+			t.ConnPool.Free(connEntry)
+			connEntry = t.ConnPool.Get(uri)
 			goto begin
 		}
 	}
@@ -150,6 +150,6 @@ begin:
 	if idata, err = receiveDataOverStream(conn); err != nil {
 		return nil, err
 	}
-	t.connPool.Free(connEntry)
+	t.ConnPool.Free(connEntry)
 	return idata, nil
 }

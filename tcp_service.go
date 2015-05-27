@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: May 25, 2015                             *
+ * LastModified: May 27, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -226,8 +226,8 @@ func (server *TcpServer) start() {
 	}
 }
 
-// Start the hprose tcp server
-func (server *TcpServer) Start() (err error) {
+// Handle the hprose tcp server
+func (server *TcpServer) Handle() (err error) {
 	if server.listener == nil {
 		var u *url.URL
 		if u, err = url.Parse(server.URL); err != nil {
@@ -244,6 +244,14 @@ func (server *TcpServer) Start() (err error) {
 		for i := 0; i < server.ThreadCount; i++ {
 			go server.start()
 		}
+	}
+	return nil
+}
+
+// Start the hprose tcp server
+func (server *TcpServer) Start() (err error) {
+	if server.listener == nil {
+		server.Handle()
 		server.signal = make(chan os.Signal, 1)
 		signal.Notify(server.signal, os.Interrupt, os.Kill)
 		<-server.signal

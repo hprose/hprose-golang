@@ -107,7 +107,7 @@ func TestTcpService(t *testing.T) {
 	server.AddFunction("hello", hello)
 	server.AddMethods(new(testServe))
 	server.AddFunction("getIP", getIP)
-	server.Start()
+	server.Handle()
 	defer server.Stop()
 	client := hprose.NewClient(server.URL)
 	var ro *testRemoteObject2
@@ -145,7 +145,7 @@ func TestUnixService(t *testing.T) {
 	server.AddFunction("hello", hello)
 	server.AddMethods(new(testServe))
 	server.AddFunction("getIP", getIP)
-	if err := server.Start(); err != nil {
+	if err := server.Handle(); err != nil {
 		t.Error(err)
 	}
 	defer server.Stop()
@@ -191,7 +191,7 @@ func TestTcpServiceAsync(t *testing.T) {
 	server := hprose.NewTcpServer("")
 	server.AddFunction("hello", hello)
 	server.AddMethods(new(testServe))
-	server.Start()
+	server.Handle()
 	defer server.Stop()
 	client := hprose.NewClient(server.URL)
 	var ro *testRemoteObject3
@@ -232,7 +232,7 @@ func TestUnixServiceAsync(t *testing.T) {
 	server := hprose.NewUnixServer("")
 	server.AddFunction("hello", hello)
 	server.AddMethods(new(testServe))
-	if err := server.Start(); err != nil {
+	if err := server.Handle(); err != nil {
 		t.Error(err)
 	}
 	defer server.Stop()
