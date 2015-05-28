@@ -61,7 +61,8 @@ func (fixer wsArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Typ
 
 // NewWebSocketService is the constructor of WebSocketService
 func NewWebSocketService() *WebSocketService {
-	service := &WebSocketService{HttpService: NewHttpService()}
+	service := new(WebSocketService)
+	service.HttpService = NewHttpService()
 	service.argsfixer = wsArgsFixer{}
 	service.Upgrader = &websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -86,14 +87,22 @@ func (service *WebSocketService) ServeHTTP(response http.ResponseWriter, request
 	}
 	conn, err := service.Upgrade(response, request, nil)
 	if err != nil {
-		context := &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}
+		context := new(HttpContext)
+		context.BaseContext = NewBaseContext()
+		context.Response = response
+		context.Request = request
 		service.fireErrorEvent(err, context)
 		return
 	}
 	defer conn.Close()
 	mutex := sync.Mutex{}
 	for {
-		context := &WebSocketContext{HttpContext: &HttpContext{BaseContext: NewBaseContext(), Response: response, Request: request}, WebSocket: conn}
+		context := new(WebSocketContext)
+		context.HttpContext = new(HttpContext)
+		context.BaseContext = NewBaseContext()
+		context.Response = response
+		context.Request = request
+		context.WebSocket = conn
 		msgType, data, err := conn.ReadMessage()
 		if err != nil {
 			break
