@@ -12,7 +12,7 @@
  *                                                        *
  * hprose websocket client for Go.                        *
  *                                                        *
- * LastModified: May 25, 2015                             *
+ * LastModified: May 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,7 +31,6 @@ import (
 // WebSocketClient is hprose websocket client
 type WebSocketClient struct {
 	*BaseClient
-	keepAlive bool
 }
 
 type receiveMessage struct {
@@ -61,7 +60,6 @@ func NewWebSocketClient(uri string) (client *WebSocketClient) {
 	client.BaseClient = NewBaseClient(transporter)
 	client.Client = client
 	client.SetUri(uri)
-	client.SetKeepAlive(true)
 	return
 }
 
@@ -116,14 +114,8 @@ func (client *WebSocketClient) SetTLSClientConfig(config *tls.Config) {
 	client.dialer().TLSClientConfig = config
 }
 
-// KeepAlive returns the keepalive status of hprose client
-func (client *WebSocketClient) KeepAlive() bool {
-	return client.keepAlive
-}
-
-// SetKeepAlive sets the keepalive status of hprose client
+// SetKeepAlive do nothing on WebSocketClient, it is always keepAlive
 func (client *WebSocketClient) SetKeepAlive(enable bool) {
-	client.keepAlive = enable
 }
 
 // MaxConcurrentRequests returns the max concurrent requests of hprose client
