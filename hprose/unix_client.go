@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix client for Go.                             *
  *                                                        *
- * LastModified: May 27, 2015                             *
+ * LastModified: May 28, 2015                             *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -21,6 +21,7 @@
 package hprose
 
 import (
+	"crypto/tls"
 	"net"
 	"strings"
 	"time"
@@ -29,6 +30,7 @@ import (
 // UnixClient is hprose unix client
 type UnixClient struct {
 	*StreamClient
+	tlsConfig *tls.Config
 }
 
 type unixTransporter struct {
@@ -82,6 +84,10 @@ func (client *UnixClient) Close() {
 	}
 }
 
+// SetKeepAlive do nothing on unix client
+func (client *UnixClient) SetKeepAlive(keepalive bool) {
+}
+
 // Timeout return the timeout of the connection in client pool
 func (client *UnixClient) Timeout() time.Duration {
 	return client.Transporter.(*unixTransporter).ConnPool.Timeout()
@@ -91,6 +97,16 @@ func (client *UnixClient) Timeout() time.Duration {
 func (client *UnixClient) SetTimeout(d time.Duration) {
 	client.timeout = d
 	client.Transporter.(*unixTransporter).ConnPool.SetTimeout(d)
+}
+
+// TLSClientConfig returns the Config structure used to configure a TLS client
+func (client *UnixClient) TLSClientConfig() *tls.Config {
+	return client.tlsConfig
+}
+
+// SetTLSClientConfig sets the Config structure used to configure a TLS client
+func (client *UnixClient) SetTLSClientConfig(config *tls.Config) {
+	client.tlsConfig = config
 }
 
 // SendAndReceive send and receive the data
@@ -122,6 +138,9 @@ begin:
 			if err = conn.(*net.UnixConn).SetWriteBuffer(t.writeBuffer.(int)); err != nil {
 				return nil, err
 			}
+		}
+		if t.tlsConfig != nil {
+			conn = tls.Client(conn, t.tlsConfig)
 		}
 		connEntry.Set(conn)
 	}
