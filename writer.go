@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Writer for Go.                                  *
  *                                                        *
- * LastModified: May 25, 2015                             *
+ * LastModified: Jun 3, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -125,7 +125,7 @@ func (r *realWriterRefer) setRef(v interface{}) {
 
 func (r *realWriterRefer) writeRef(w *Writer, v interface{}) (success bool, err error) {
 	if n, found := r.ref[v]; found {
-		s := w.stream
+		s := w.Stream
 		if err = s.WriteByte(TagRef); err == nil {
 			if err = w.writeInt(n); err == nil {
 				err = s.WriteByte(TagSemicolon)
@@ -147,7 +147,7 @@ func (r *realWriterRefer) resetRef() {
 
 // Writer is a fine-grained operation struct for Hprose serialization
 type Writer struct {
-	stream    BufWriter
+	Stream    BufWriter
 	classref  map[string]int
 	fieldsref [][]*field
 	writerRefer
@@ -157,18 +157,13 @@ type Writer struct {
 // NewWriter is the constructor for Hprose Writer
 func NewWriter(stream BufWriter, simple bool) (writer *Writer) {
 	writer = new(Writer)
-	writer.stream = stream
+	writer.Stream = stream
 	if simple {
 		writer.writerRefer = fakeWriterRefer{}
 	} else {
 		writer.writerRefer = new(realWriterRefer)
 	}
 	return
-}
-
-// Stream is the data stream being operated.
-func (w *Writer) Stream() BufWriter {
-	return w.stream
 }
 
 // Serialize a data to stream
@@ -186,12 +181,12 @@ func (w *Writer) WriteValue(v reflect.Value) (err error) {
 
 // WriteNull to stream
 func (w *Writer) WriteNull() error {
-	return w.stream.WriteByte(TagNull)
+	return w.Stream.WriteByte(TagNull)
 }
 
 // WriteInt64 to stream
 func (w *Writer) WriteInt64(v int64) (err error) {
-	s := w.Stream()
+	s := w.Stream
 	if v >= 0 && v <= 9 {
 		err = s.WriteByte(byte(v + '0'))
 	} else {
@@ -211,7 +206,7 @@ func (w *Writer) WriteInt64(v int64) (err error) {
 
 // WriteUint64 to stream
 func (w *Writer) WriteUint64(v uint64) (err error) {
-	s := w.Stream()
+	s := w.Stream
 	if v >= 0 && v <= 9 {
 		err = s.WriteByte(byte(v + '0'))
 	} else {
@@ -231,7 +226,7 @@ func (w *Writer) WriteUint64(v uint64) (err error) {
 
 // WriteBigInt to stream
 func (w *Writer) WriteBigInt(v *big.Int) (err error) {
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagLong); err == nil {
 		if _, err = s.WriteString(v.String()); err == nil {
 			err = s.WriteByte(TagSemicolon)
@@ -242,9 +237,9 @@ func (w *Writer) WriteBigInt(v *big.Int) (err error) {
 
 // WriteFloat64 to stream
 func (w *Writer) WriteFloat64(v float64) (err error) {
-	s := w.stream
+	s := w.Stream
 	if math.IsNaN(v) {
-		return w.stream.WriteByte(TagNaN)
+		return w.Stream.WriteByte(TagNaN)
 	} else if math.IsInf(v, 0) {
 		if err = s.WriteByte(TagInfinity); err == nil {
 			if v > 0 {
@@ -263,7 +258,7 @@ func (w *Writer) WriteFloat64(v float64) (err error) {
 
 // WriteBool to stream
 func (w *Writer) WriteBool(v bool) error {
-	s := w.stream
+	s := w.Stream
 	if v {
 		return s.WriteByte(TagTrue)
 	}
@@ -282,7 +277,7 @@ func (w *Writer) WriteString(str string) (err error) {
 
 // WriteStringWithRef to stream
 func (w *Writer) WriteStringWithRef(str string) (err error) {
-	s := w.stream
+	s := w.Stream
 	if length := len(str); length == 0 {
 		err = s.WriteByte(TagEmpty)
 	} else if length < 4 && ulen(str) == 1 {
@@ -308,7 +303,7 @@ func (w *Writer) WriteBytesWithRef(bytes []byte) (err error) {
 // WriteArray to stream
 func (w *Writer) WriteArray(v []reflect.Value) (err error) {
 	w.setRef(&v)
-	s := w.stream
+	s := w.Stream
 	count := len(v)
 	if err = s.WriteByte(TagList); err == nil {
 		if count > 0 {
@@ -566,7 +561,7 @@ func (w *Writer) slowSerialize(v interface{}, rv reflect.Value, n int) error {
 
 func (w *Writer) writeTime(v interface{}, t time.Time) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	year, month, day := t.Date()
 	hour, min, sec := t.Clock()
 	nsec := t.Nanosecond()
@@ -604,7 +599,7 @@ func (w *Writer) writeString(v interface{}, str string) (err error) {
 		return w.writeBytes(v, []byte(str))
 	}
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagString); err == nil {
 		if length > 0 {
 			if err = w.writeInt(length); err == nil {
@@ -631,7 +626,7 @@ func (w *Writer) writeStringWithRef(v interface{}, str string) error {
 
 func (w *Writer) writeBytes(v interface{}, bytes []byte) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagBytes); err == nil {
 		if length := len(bytes); length > 0 {
 			if err = w.writeInt(length); err == nil {
@@ -658,7 +653,7 @@ func (w *Writer) writeBytesWithRef(v interface{}, bytes []byte) error {
 
 func (w *Writer) writeUUID(v interface{}, uuid UUID) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagGuid); err == nil {
 		if err = s.WriteByte(TagOpenbrace); err == nil {
 			if _, err = s.WriteString(uuid.String()); err == nil {
@@ -679,7 +674,7 @@ func (w *Writer) writeUUIDWithRef(v interface{}, uuid UUID) error {
 
 func (w *Writer) writeList(v interface{}, l *list.List) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	count := l.Len()
 	if err = s.WriteByte(TagList); err == nil {
 		if count > 0 {
@@ -710,7 +705,7 @@ func (w *Writer) writeListWithRef(v interface{}, l *list.List) error {
 
 func (w *Writer) writeIntSlice(v interface{}, a []int) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -740,7 +735,7 @@ func (w *Writer) writeIntSliceWithRef(v interface{}, a []int) error {
 
 func (w *Writer) writeInt8Slice(v interface{}, a []int8) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -770,7 +765,7 @@ func (w *Writer) writeInt8SliceWithRef(v interface{}, a []int8) error {
 
 func (w *Writer) writeInt16Slice(v interface{}, a []int16) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -800,7 +795,7 @@ func (w *Writer) writeInt16SliceWithRef(v interface{}, a []int16) error {
 
 func (w *Writer) writeInt32Slice(v interface{}, a []int32) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -830,7 +825,7 @@ func (w *Writer) writeInt32SliceWithRef(v interface{}, a []int32) error {
 
 func (w *Writer) writeInt64Slice(v interface{}, a []int64) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -860,7 +855,7 @@ func (w *Writer) writeInt64SliceWithRef(v interface{}, a []int64) error {
 
 func (w *Writer) writeUintSlice(v interface{}, a []uint) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -890,7 +885,7 @@ func (w *Writer) writeUintSliceWithRef(v interface{}, a []uint) error {
 
 func (w *Writer) writeUint16Slice(v interface{}, a []uint16) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -920,7 +915,7 @@ func (w *Writer) writeUint16SliceWithRef(v interface{}, a []uint16) error {
 
 func (w *Writer) writeUint32Slice(v interface{}, a []uint32) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -950,7 +945,7 @@ func (w *Writer) writeUint32SliceWithRef(v interface{}, a []uint32) error {
 
 func (w *Writer) writeUint64Slice(v interface{}, a []uint64) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -980,7 +975,7 @@ func (w *Writer) writeUint64SliceWithRef(v interface{}, a []uint64) error {
 
 func (w *Writer) writeFloat32Slice(v interface{}, a []float32) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1010,7 +1005,7 @@ func (w *Writer) writeFloat32SliceWithRef(v interface{}, a []float32) error {
 
 func (w *Writer) writeFloat64Slice(v interface{}, a []float64) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1040,7 +1035,7 @@ func (w *Writer) writeFloat64SliceWithRef(v interface{}, a []float64) error {
 
 func (w *Writer) writeBoolSlice(v interface{}, a []bool) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1070,7 +1065,7 @@ func (w *Writer) writeBoolSliceWithRef(v interface{}, a []bool) error {
 
 func (w *Writer) writeStringSlice(v interface{}, a []string) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1100,7 +1095,7 @@ func (w *Writer) writeStringSliceWithRef(v interface{}, a []string) error {
 
 func (w *Writer) writeObjectSlice(v interface{}, a []interface{}) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := len(a); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1130,7 +1125,7 @@ func (w *Writer) writeObjectSliceWithRef(v interface{}, a []interface{}) error {
 
 func (w *Writer) writeSlice(v interface{}, rv reflect.Value) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagList); err == nil {
 		if count := rv.Len(); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1160,7 +1155,7 @@ func (w *Writer) writeSliceWithRef(v interface{}, rv reflect.Value) error {
 
 func (w *Writer) writeStringMap(v interface{}, m map[string]string) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagMap); err == nil {
 		if count := len(m); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1193,7 +1188,7 @@ func (w *Writer) writeStringMapWithRef(v interface{}, m map[string]string) error
 
 func (w *Writer) writeStrObjMap(v interface{}, m map[string]interface{}) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagMap); err == nil {
 		if count := len(m); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1226,7 +1221,7 @@ func (w *Writer) writeStrObjMapWithRef(v interface{}, m map[string]interface{}) 
 
 func (w *Writer) writeObjectMap(v interface{}, m map[interface{}]interface{}) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagMap); err == nil {
 		if count := len(m); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1259,7 +1254,7 @@ func (w *Writer) writeObjectMapWithRef(v interface{}, m map[interface{}]interfac
 
 func (w *Writer) writeMap(v interface{}, rv reflect.Value) (err error) {
 	w.setRef(v)
-	s := w.stream
+	s := w.Stream
 	if err = s.WriteByte(TagMap); err == nil {
 		if count := rv.Len(); count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1292,9 +1287,9 @@ func (w *Writer) writeMapWithRef(v interface{}, rv reflect.Value) error {
 }
 
 func (w *Writer) writeObjectAsMap(v reflect.Value, fields []*field) (err error) {
-	s := w.Stream()
+	s := w.Stream
 	buf := new(bytes.Buffer)
-	w.stream = buf
+	w.Stream = buf
 	count := 0
 NEXT:
 	for _, f := range fields {
@@ -1316,7 +1311,7 @@ NEXT:
 		}
 		count++
 	}
-	w.stream = s
+	w.Stream = s
 	if err = s.WriteByte(TagMap); err == nil {
 		if count > 0 {
 			if err = w.writeInt(count); err == nil {
@@ -1333,7 +1328,7 @@ NEXT:
 }
 
 func (w *Writer) writeObject(v interface{}, rv reflect.Value) (err error) {
-	s := w.stream
+	s := w.Stream
 	t := rv.Type()
 	classname := ClassManager.GetClassAlias(t)
 	if classname == "" {
@@ -1401,7 +1396,7 @@ func (w *Writer) writeObject(v interface{}, rv reflect.Value) (err error) {
 						return err
 					}
 				}
-				err = w.stream.WriteByte(TagClosebrace)
+				err = w.Stream.WriteByte(TagClosebrace)
 			}
 		}
 	}
@@ -1417,7 +1412,7 @@ func (w *Writer) writeObjectWithRef(v interface{}, rv reflect.Value) error {
 }
 
 func (w *Writer) writeClass(classname string, fields []*field) (index int, err error) {
-	s := w.stream
+	s := w.Stream
 	count := len(fields)
 	if err = s.WriteByte(TagClass); err != nil {
 		return -1, err
@@ -1465,9 +1460,9 @@ func (w *Writer) writeClass(classname string, fields []*field) (index int, err e
 
 func (w *Writer) writeInt64(i int64) error {
 	if i >= 0 && i <= 9 {
-		return w.stream.WriteByte((byte)(i + '0'))
+		return w.Stream.WriteByte((byte)(i + '0'))
 	} else if i == math.MinInt64 {
-		_, err := w.stream.Write(minInt64Buf[:])
+		_, err := w.Stream.Write(minInt64Buf[:])
 		return err
 	}
 	off := 20
@@ -1485,13 +1480,13 @@ func (w *Writer) writeInt64(i int64) error {
 		off--
 		w.numbuf[off] = '-'
 	}
-	_, err := w.stream.Write(w.numbuf[off:])
+	_, err := w.Stream.Write(w.numbuf[off:])
 	return err
 }
 
 func (w *Writer) writeUint64(i uint64) error {
 	if i >= 0 && i <= 9 {
-		return w.stream.WriteByte((byte)(i + '0'))
+		return w.Stream.WriteByte((byte)(i + '0'))
 	}
 	off := 20
 	for i != 0 {
@@ -1499,7 +1494,7 @@ func (w *Writer) writeUint64(i uint64) error {
 		w.numbuf[off] = (byte)((i % 10) + '0')
 		i /= 10
 	}
-	_, err := w.stream.Write(w.numbuf[off:])
+	_, err := w.Stream.Write(w.numbuf[off:])
 	return err
 }
 

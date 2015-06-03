@@ -12,7 +12,7 @@
  *                                                        *
  * hprose RawReader for Go.                               *
  *                                                        *
- * LastModified: May 24, 2015                             *
+ * LastModified: Jun 3, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -26,13 +26,13 @@ import (
 
 // RawReader is the hprose raw reader
 type RawReader struct {
-	stream BufReader
+	Stream BufReader
 }
 
 // NewRawReader is a constructor for RawReader
 func NewRawReader(stream BufReader) (reader *RawReader) {
 	reader = new(RawReader)
-	reader.stream = stream
+	reader.Stream = stream
 	return
 }
 
@@ -46,7 +46,7 @@ func (r *RawReader) ReadRaw() (raw []byte, err error) {
 // ReadRawTo ostream from stream
 func (r *RawReader) ReadRawTo(ostream BufWriter) (err error) {
 	var tag byte
-	if tag, err = r.stream.ReadByte(); err == nil {
+	if tag, err = r.Stream.ReadByte(); err == nil {
 		err = r.readRaw(ostream, tag)
 	}
 	return err
@@ -58,7 +58,7 @@ func (r *RawReader) readRaw(ostream BufWriter, tag byte) (err error) {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 			TagNull, TagEmpty, TagTrue, TagFalse, TagNaN:
 		case TagInfinity:
-			if tag, err = r.stream.ReadByte(); err == nil {
+			if tag, err = r.Stream.ReadByte(); err == nil {
 				err = ostream.WriteByte(tag)
 			}
 		case TagInteger, TagLong, TagDouble, TagRef:
@@ -91,7 +91,7 @@ func (r *RawReader) readRaw(ostream BufWriter, tag byte) (err error) {
 func (r *RawReader) readNumberRaw(ostream BufWriter) (err error) {
 	for err == nil {
 		var tag byte
-		if tag, err = r.stream.ReadByte(); err == nil {
+		if tag, err = r.Stream.ReadByte(); err == nil {
 			if err = ostream.WriteByte(tag); tag == TagSemicolon {
 				break
 			}
@@ -103,7 +103,7 @@ func (r *RawReader) readNumberRaw(ostream BufWriter) (err error) {
 func (r *RawReader) readDateTimeRaw(ostream BufWriter) (err error) {
 	for err == nil {
 		var tag byte
-		if tag, err = r.stream.ReadByte(); err == nil {
+		if tag, err = r.Stream.ReadByte(); err == nil {
 			if err = ostream.WriteByte(tag); tag == TagSemicolon || tag == TagUTC {
 				break
 			}
@@ -126,7 +126,7 @@ func (r *RawReader) readBytesRaw(ostream BufWriter) (err error) {
 	for err == nil {
 		count *= 10
 		count += int(tag - '0')
-		if tag, err = r.stream.ReadByte(); err == nil {
+		if tag, err = r.Stream.ReadByte(); err == nil {
 			if err = ostream.WriteByte(tag); tag == TagQuote {
 				break
 			}
@@ -134,7 +134,7 @@ func (r *RawReader) readBytesRaw(ostream BufWriter) (err error) {
 	}
 	if err == nil {
 		b := make([]byte, count+1)
-		if _, err = r.stream.Read(b); err == nil {
+		if _, err = r.Stream.Read(b); err == nil {
 			_, err = ostream.Write(b)
 		}
 	}
@@ -147,7 +147,7 @@ func (r *RawReader) readStringRaw(ostream BufWriter) (err error) {
 	for err == nil {
 		count *= 10
 		count += int(tag - '0')
-		if tag, err = r.stream.ReadByte(); err == nil {
+		if tag, err = r.Stream.ReadByte(); err == nil {
 			if err = ostream.WriteByte(tag); tag == TagQuote {
 				break
 			}
@@ -164,7 +164,7 @@ func (r *RawReader) readStringRaw(ostream BufWriter) (err error) {
 
 func (r *RawReader) readGuidRaw(ostream BufWriter) (err error) {
 	var guid [38]byte
-	if _, err := r.stream.Read(guid[:]); err == nil {
+	if _, err := r.Stream.Read(guid[:]); err == nil {
 		_, err = ostream.Write(guid[:])
 	}
 	return err
@@ -173,16 +173,16 @@ func (r *RawReader) readGuidRaw(ostream BufWriter) (err error) {
 func (r *RawReader) readComplexRaw(ostream BufWriter) (err error) {
 	var tag byte
 	for tag != TagOpenbrace {
-		if tag, err = r.stream.ReadByte(); err == nil {
+		if tag, err = r.Stream.ReadByte(); err == nil {
 			err = ostream.WriteByte(tag)
 		}
 	}
 	if err == nil {
-		tag, err = r.stream.ReadByte()
+		tag, err = r.Stream.ReadByte()
 	}
 	for err == nil && tag != TagClosebrace {
 		if err = r.readRaw(ostream, tag); err == nil {
-			tag, err = r.stream.ReadByte()
+			tag, err = r.Stream.ReadByte()
 		}
 	}
 	if err == nil {
@@ -195,7 +195,7 @@ func (r *RawReader) readUTF8String(length int) (string, error) {
 	if length == 0 {
 		return "", nil
 	}
-	s := r.stream
+	s := r.Stream
 	buffer := make([]byte, 0, length*3)
 	for i := 0; i < length; i++ {
 		b, err := s.ReadByte()

@@ -12,7 +12,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: May 26, 2015                             *
+ * LastModified: Jun 3, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -382,7 +382,7 @@ func (client *BaseClient) doOutput(name string, args []reflect.Value, options *I
 		byref = br
 	}
 	writer := NewWriter(buf, simple)
-	if err = writer.Stream().WriteByte(TagCall); err != nil {
+	if err = writer.Stream.WriteByte(TagCall); err != nil {
 		return nil, err
 	}
 	if err = writer.WriteString(name); err != nil {
@@ -399,7 +399,7 @@ func (client *BaseClient) doOutput(name string, args []reflect.Value, options *I
 			}
 		}
 	}
-	if err = writer.Stream().WriteByte(TagEnd); err != nil {
+	if err = writer.Stream.WriteByte(TagEnd); err != nil {
 		return nil, err
 	}
 	data = buf.Bytes()

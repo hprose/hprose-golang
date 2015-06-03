@@ -12,7 +12,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: May 25, 2015                             *
+ * LastModified: Jun 3, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -309,9 +309,9 @@ func (service *BaseService) fireErrorEvent(err error, context Context) {
 func (service *BaseService) sendError(err error, context Context) []byte {
 	buf := new(bytes.Buffer)
 	writer := NewWriter(buf, true)
-	writer.Stream().WriteByte(TagError)
+	writer.Stream.WriteByte(TagError)
 	writer.WriteString(err.Error())
-	writer.Stream().WriteByte(TagEnd)
+	writer.Stream.WriteByte(TagEnd)
 	service.fireErrorEvent(err, context)
 	return service.responseEnd(buf.Bytes(), context)
 }
@@ -477,9 +477,9 @@ func (service *BaseService) doInvoke(data []byte, context Context) []byte {
 			buf.Write(data)
 		} else {
 			writer := NewWriter(buf, remoteMethod.SimpleMode)
-			writer.Stream().WriteByte(TagResult)
+			writer.Stream.WriteByte(TagResult)
 			if remoteMethod.ResultMode == Serialized {
-				if _, err = writer.Stream().Write(data); err != nil {
+				if _, err = writer.Stream.Write(data); err != nil {
 					return service.sendError(err, context)
 				}
 			} else {
@@ -496,7 +496,7 @@ func (service *BaseService) doInvoke(data []byte, context Context) []byte {
 				}
 			}
 			if byref {
-				writer.Stream().WriteByte(TagArgument)
+				writer.Stream.WriteByte(TagArgument)
 				writer.Reset()
 				if err = writer.WriteArray(args); err != nil {
 					return service.sendError(err, context)
@@ -514,11 +514,11 @@ func (service *BaseService) doInvoke(data []byte, context Context) []byte {
 func (service *BaseService) doFunctionList(context Context) []byte {
 	buf := new(bytes.Buffer)
 	writer := NewWriter(buf, true)
-	writer.Stream().WriteByte(TagFunctions)
+	writer.Stream.WriteByte(TagFunctions)
 	if err := writer.Serialize(service.MethodNames); err != nil {
 		return service.sendError(err, context)
 	}
-	writer.Stream().WriteByte(TagEnd)
+	writer.Stream.WriteByte(TagEnd)
 	return service.responseEnd(buf.Bytes(), context)
 }
 

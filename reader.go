@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Reader for Go.                                  *
  *                                                        *
- * LastModified: May 25, 2015                             *
+ * LastModified: Jun 3, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -134,14 +134,9 @@ func NewReader(stream BufReader, simple bool) (reader *Reader) {
 	return
 }
 
-// Stream is the data stream being operated.
-func (r *Reader) Stream() BufReader {
-	return r.stream
-}
-
 // CheckTag the next byte in stream is the expected tag
 func (r *Reader) CheckTag(expectTag byte) error {
-	tag, err := r.stream.ReadByte()
+	tag, err := r.Stream.ReadByte()
 	if err == nil {
 		return unexpectedTag(tag, []byte{expectTag})
 	}
@@ -150,7 +145,7 @@ func (r *Reader) CheckTag(expectTag byte) error {
 
 // CheckTags the next byte in stream in the expected tags
 func (r *Reader) CheckTags(expectTags []byte) (tag byte, err error) {
-	tag, err = r.stream.ReadByte()
+	tag, err = r.Stream.ReadByte()
 	if err == nil {
 		if err = unexpectedTag(tag, expectTags); err == nil {
 			return tag, nil
@@ -432,7 +427,7 @@ func (r *Reader) Unserialize(p interface{}) (err error) {
 
 // ReadInteger from stream
 func (r *Reader) ReadInteger(tag byte) (int, error) {
-	s := r.stream
+	s := r.Stream
 	i := 0
 	b, err := s.ReadByte()
 	if err == nil && b == tag {
@@ -465,7 +460,7 @@ func (r *Reader) ReadUinteger(tag byte) (uint, error) {
 
 // ReadInt from stream
 func (r *Reader) ReadInt() (int, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -518,7 +513,7 @@ func (r *Reader) ReadIntWithoutTag() (int, error) {
 
 // ReadUint from stream
 func (r *Reader) ReadUint() (uint, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -571,7 +566,7 @@ func (r *Reader) ReadUintWithoutTag() (uint, error) {
 
 // ReadInt64 from stream
 func (r *Reader) ReadInt64() (int64, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -621,7 +616,7 @@ func (r *Reader) ReadInt64WithoutTag() (int64, error) {
 
 // ReadUint64 from stream
 func (r *Reader) ReadUint64() (uint64, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -671,7 +666,7 @@ func (r *Reader) ReadUint64WithoutTag() (uint64, error) {
 
 // ReadInt8 from stream
 func (r *Reader) ReadInt8() (int8, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -724,7 +719,7 @@ func (r *Reader) ReadInt8WithoutTag() (int8, error) {
 
 // ReadUint8 from stream
 func (r *Reader) ReadUint8() (uint8, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -777,7 +772,7 @@ func (r *Reader) ReadUint8WithoutTag() (uint8, error) {
 
 // ReadInt16 from stream
 func (r *Reader) ReadInt16() (int16, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -830,7 +825,7 @@ func (r *Reader) ReadInt16WithoutTag() (int16, error) {
 
 // ReadUint16 from stream
 func (r *Reader) ReadUint16() (uint16, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -883,7 +878,7 @@ func (r *Reader) ReadUint16WithoutTag() (uint16, error) {
 
 // ReadInt32 from stream
 func (r *Reader) ReadInt32() (int32, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -936,7 +931,7 @@ func (r *Reader) ReadInt32WithoutTag() (int32, error) {
 
 // ReadUint32 from stream
 func (r *Reader) ReadUint32() (uint32, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -989,7 +984,7 @@ func (r *Reader) ReadUint32WithoutTag() (uint32, error) {
 
 // ReadBigInt from stream
 func (r *Reader) ReadBigInt() (*big.Int, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1034,7 +1029,7 @@ func (r *Reader) ReadBigInt() (*big.Int, error) {
 
 // ReadBigIntWithoutTag from stream
 func (r *Reader) ReadBigIntWithoutTag() (*big.Int, error) {
-	s := r.stream
+	s := r.Stream
 	tag := TagSemicolon
 	i := big.NewInt(0)
 	b, err := s.ReadByte()
@@ -1065,7 +1060,7 @@ func (r *Reader) ReadBigIntWithoutTag() (*big.Int, error) {
 
 // ReadFloat32 from stream
 func (r *Reader) ReadFloat32() (float32, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1127,7 +1122,7 @@ func (r *Reader) ReadFloat32WithoutTag() (float32, error) {
 
 // ReadFloat64 from stream
 func (r *Reader) ReadFloat64() (float64, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1185,7 +1180,7 @@ func (r *Reader) ReadFloat64WithoutTag() (float64, error) {
 
 // ReadBool from stream
 func (r *Reader) ReadBool() (bool, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1236,7 +1231,7 @@ func (r *Reader) ReadBool() (bool, error) {
 
 // ReadDateTime from stream
 func (r *Reader) ReadDateTime() (time.Time, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1275,7 +1270,7 @@ func (r *Reader) ReadDateTime() (time.Time, error) {
 
 // ReadDateWithoutTag from stream
 func (r *Reader) ReadDateWithoutTag() (time.Time, error) {
-	s := r.stream
+	s := r.Stream
 	var year, month, day, hour, min, sec, nsec int
 	tag, err := s.ReadByte()
 	if err == nil {
@@ -1350,7 +1345,7 @@ func (r *Reader) ReadTimeWithoutTag() (time.Time, error) {
 
 // ReadString from stream
 func (r *Reader) ReadString() (string, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1420,7 +1415,7 @@ func (r *Reader) ReadStringWithoutTag() (str string, err error) {
 // ReadBytes from stream
 func (r *Reader) ReadBytes() (*[]byte, error) {
 	bytes := new([]byte)
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1463,7 +1458,7 @@ func (r *Reader) ReadBytes() (*[]byte, error) {
 
 // ReadBytesWithoutTag from stream
 func (r *Reader) ReadBytesWithoutTag() (*[]byte, error) {
-	s := r.stream
+	s := r.Stream
 	length, err := r.ReadInteger(TagQuote)
 	if err != nil {
 		return new([]byte), err
@@ -1479,7 +1474,7 @@ func (r *Reader) ReadBytesWithoutTag() (*[]byte, error) {
 // ReadUUID from stream
 func (r *Reader) ReadUUID() (*UUID, error) {
 	uuid := new(UUID)
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1518,7 +1513,7 @@ func (r *Reader) ReadUUID() (*UUID, error) {
 
 // ReadUUIDWithoutTag from stream
 func (r *Reader) ReadUUIDWithoutTag() (*UUID, error) {
-	s := r.stream
+	s := r.Stream
 	err := r.CheckTag(TagOpenbrace)
 	if err == nil {
 		b := make([]byte, 36)
@@ -1535,7 +1530,7 @@ func (r *Reader) ReadUUIDWithoutTag() (*UUID, error) {
 // ReadList from stream
 func (r *Reader) ReadList() (*list.List, error) {
 	l := list.New()
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1769,7 +1764,7 @@ func (r *Reader) checkPointer(p interface{}) (v reflect.Value, err error) {
 }
 
 func (r *Reader) readInterface() (interface{}, error) {
-	s := r.stream
+	s := r.Stream
 	tag, err := s.ReadByte()
 	if err == nil {
 		switch tag {
@@ -1839,7 +1834,7 @@ func (r *Reader) readInterface() (interface{}, error) {
 }
 
 func (r *Reader) readUntil(tag byte) (string, error) {
-	s, err := r.stream.ReadString(tag)
+	s, err := r.Stream.ReadString(tag)
 	if err != nil {
 		return s, err
 	}
@@ -1847,7 +1842,7 @@ func (r *Reader) readUntil(tag byte) (string, error) {
 }
 
 func (r *Reader) readInt(tag byte) (int64, error) {
-	s := r.stream
+	s := r.Stream
 	i := int64(0)
 	b, err := s.ReadByte()
 	if err == nil && b == tag {
@@ -1878,7 +1873,7 @@ func (r *Reader) readUint(tag byte) (uint64, error) {
 }
 
 func (r *Reader) readInt8(tag byte) (int8, error) {
-	s := r.stream
+	s := r.Stream
 	i := int8(0)
 	b, err := s.ReadByte()
 	if err == nil && b == tag {
@@ -1909,7 +1904,7 @@ func (r *Reader) readUint8(tag byte) (uint8, error) {
 }
 
 func (r *Reader) readInt16(tag byte) (int16, error) {
-	s := r.stream
+	s := r.Stream
 	i := int16(0)
 	b, err := s.ReadByte()
 	if err == nil && b == tag {
@@ -1940,7 +1935,7 @@ func (r *Reader) readUint16(tag byte) (uint16, error) {
 }
 
 func (r *Reader) readInt32(tag byte) (int32, error) {
-	s := r.stream
+	s := r.Stream
 	i := int32(0)
 	b, err := s.ReadByte()
 	if err == nil && b == tag {
@@ -1971,7 +1966,7 @@ func (r *Reader) readUint32(tag byte) (uint32, error) {
 }
 
 func (r *Reader) readIntAsFloat64(tag byte) (float64, error) {
-	s := r.stream
+	s := r.Stream
 	f := float64(0)
 	b, err := s.ReadByte()
 	if err == nil && b == tag {
@@ -2002,7 +1997,7 @@ func (r *Reader) readIntAsFloat32(tag byte) (float32, error) {
 }
 
 func (r *Reader) readInfinity() (float64, error) {
-	if sign, err := r.stream.ReadByte(); err == nil {
+	if sign, err := r.Stream.ReadByte(); err == nil {
 		switch sign {
 		case '+':
 			return math.Inf(1), nil
@@ -2017,7 +2012,7 @@ func (r *Reader) readInfinity() (float64, error) {
 }
 
 func (r *Reader) readTime() (hour int, min int, sec int, nsec int, tag byte, err error) {
-	s := r.stream
+	s := r.Stream
 	if tag, err = s.ReadByte(); err == nil {
 		hour = int(tag - '0')
 		if tag, err = s.ReadByte(); err == nil {
@@ -2228,7 +2223,7 @@ func (r *Reader) getRef(v reflect.Value) error {
 }
 
 func (r *Reader) readSlice(v reflect.Value) error {
-	s := r.Stream()
+	s := r.Stream
 	t := v.Type()
 	tag, err := s.ReadByte()
 	if err == nil {
@@ -2374,7 +2369,7 @@ func (r *Reader) readSliceAsMap(v reflect.Value) error {
 }
 
 func (r *Reader) readMap(v reflect.Value) error {
-	s := r.Stream()
+	s := r.Stream
 	t := v.Type()
 	tag, err := s.ReadByte()
 	if err == nil {
@@ -2528,7 +2523,7 @@ func (r *Reader) readMapAsObject(v reflect.Value) error {
 }
 
 func (r *Reader) readObject(v reflect.Value) error {
-	s := r.Stream()
+	s := r.Stream
 	t := v.Type()
 	tag, err := s.ReadByte()
 	if err == nil {
