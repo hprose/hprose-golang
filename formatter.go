@@ -27,14 +27,14 @@ import (
 
 // BytesReader is a bytes reader
 type BytesReader struct {
-	s []byte
-	i int
+	Bytes []byte
+	Pos   int
 }
 
 // NewBytesReader is the constructor of BytesReader
 func NewBytesReader(b []byte) (reader *BytesReader) {
 	reader = new(BytesReader)
-	reader.s = b
+	reader.Bytes = b
 	return
 }
 
@@ -43,48 +43,48 @@ func (r *BytesReader) Read(b []byte) (n int, err error) {
 	if len(b) == 0 {
 		return 0, nil
 	}
-	if r.i >= len(r.s) {
+	if r.Pos >= len(r.Bytes) {
 		return 0, io.EOF
 	}
-	n = copy(b, r.s[r.i:])
-	r.i += n
+	n = copy(b, r.Bytes[r.Pos:])
+	r.Pos += n
 	return n, nil
 }
 
 // ReadByte from BytesReader
 func (r *BytesReader) ReadByte() (b byte, err error) {
-	if r.i >= len(r.s) {
+	if r.Pos >= len(r.Bytes) {
 		return 0, io.EOF
 	}
-	b = r.s[r.i]
-	r.i++
+	b = r.Bytes[r.Pos]
+	r.Pos++
 	return
 }
 
 // ReadRune from BytesReader
 func (r *BytesReader) ReadRune() (ch rune, size int, err error) {
-	if r.i >= len(r.s) {
+	if r.Pos >= len(r.Bytes) {
 		return 0, 0, io.EOF
 	}
-	if c := r.s[r.i]; c < utf8.RuneSelf {
-		r.i++
+	if c := r.Bytes[r.Pos]; c < utf8.RuneSelf {
+		r.Pos++
 		return rune(c), 1, nil
 	}
-	ch, size = utf8.DecodeRune(r.s[r.i:])
-	r.i += size
+	ch, size = utf8.DecodeRune(r.Bytes[r.Pos:])
+	r.Pos += size
 	return
 }
 
 // ReadString from BytesReader
 func (r *BytesReader) ReadString(delim byte) (line string, err error) {
-	i := bytes.IndexByte(r.s[r.i:], delim)
-	end := r.i + i + 1
+	i := bytes.IndexByte(r.Bytes[r.Pos:], delim)
+	end := r.Pos + i + 1
 	if i < 0 {
-		end = len(r.s)
+		end = len(r.Bytes)
 		err = io.EOF
 	}
-	line = string(r.s[r.i:end])
-	r.i = end
+	line = string(r.Bytes[r.Pos:end])
+	r.Pos = end
 	return line, err
 }
 
