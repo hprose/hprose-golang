@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix service for Go.                            *
  *                                                        *
- * LastModified: May 27, 2015                             *
+ * LastModified: Jun 9, 2015                              *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -107,10 +107,9 @@ func (service *UnixService) ServeUnix(conn *net.UnixConn) (err error) {
 // UnixServer is a hprose unix server
 type UnixServer struct {
 	*UnixService
-	URL         string
-	ThreadCount int
-	listener    *net.UnixListener
-	signal      chan os.Signal
+	URL      string
+	listener *net.UnixListener
+	signal   chan os.Signal
 }
 
 // NewUnixServer is a constructor for UnixServer
@@ -122,7 +121,6 @@ func NewUnixServer(uri string) (server *UnixServer) {
 	server = new(UnixServer)
 	server.UnixService = NewUnixService()
 	server.URL = uri
-	server.ThreadCount = runtime.NumCPU()
 	return
 }
 
@@ -170,9 +168,7 @@ func (server *UnixServer) Handle() (err error) {
 			return err
 		}
 		server.URL = scheme + ":" + server.listener.Addr().String()
-		for i := 0; i < server.ThreadCount; i++ {
-			go server.start()
-		}
+		go server.start()
 	}
 	return nil
 }

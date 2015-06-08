@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: May 27, 2015                             *
+ * LastModified: Jun 9, 2015                              *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -175,10 +175,9 @@ func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
 // TcpServer is a hprose tcp server
 type TcpServer struct {
 	*TcpService
-	URL         string
-	ThreadCount int
-	listener    *net.TCPListener
-	signal      chan os.Signal
+	URL      string
+	listener *net.TCPListener
+	signal   chan os.Signal
 }
 
 // NewTcpServer is a constructor for TcpServer
@@ -190,7 +189,6 @@ func NewTcpServer(uri string) (server *TcpServer) {
 	server = new(TcpServer)
 	server.TcpService = NewTcpService()
 	server.URL = uri
-	server.ThreadCount = runtime.NumCPU()
 	return
 }
 
@@ -241,9 +239,7 @@ func (server *TcpServer) Handle() (err error) {
 			return err
 		}
 		server.URL = u.Scheme + "://" + server.listener.Addr().String()
-		for i := 0; i < server.ThreadCount; i++ {
-			go server.start()
-		}
+		go server.start()
 	}
 	return nil
 }
