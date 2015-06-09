@@ -28,7 +28,6 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
-	"runtime"
 	"runtime/debug"
 	"time"
 )
@@ -185,7 +184,6 @@ func NewTcpServer(uri string) (server *TcpServer) {
 	if uri == "" {
 		uri = "tcp://127.0.0.1:0"
 	}
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	server = new(TcpServer)
 	server.TcpService = NewTcpService()
 	server.URL = uri

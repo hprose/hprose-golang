@@ -26,7 +26,6 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
-	"runtime"
 	"runtime/debug"
 	"time"
 )
@@ -117,7 +116,6 @@ func NewUnixServer(uri string) (server *UnixServer) {
 	if uri == "" {
 		uri = "unix:/tmp/hprose.sock"
 	}
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	server = new(UnixServer)
 	server.UnixService = NewUnixService()
 	server.URL = uri
