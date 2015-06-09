@@ -730,7 +730,7 @@ Here is the result with Go 1.4 on an Intel i7-2600:
 
 benchmark | iter | time/iter
 :------|------:|------:|
-BenchmarkHprose| 20000|63842 ns/op
-BenchmarkHprose2| 20000|67005 ns/op
-BenchmarkGobRPC| 20000|84810 ns/op
-BenchmarkJSONRPC| 10000|100062 ns/op
+BenchmarkHprose| 20000|63018 ns/op
+BenchmarkHprose2| 20000|66637 ns/op
+BenchmarkGobRPC| 20000|92289 ns/op
+BenchmarkJSONRPC| 10000|103602 ns/op
