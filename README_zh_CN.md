@@ -27,6 +27,7 @@
 	- **[Unix 服务器和客户端](#unix-服务器和客户端)**
 	- **[WebSocket 服务器和客户端](#websocket-服务器和客户端)**
 	- **[服务事件](#服务事件)**
+- **[性能测试](#性能测试)**
 
 > ---
 
@@ -727,3 +728,20 @@ type HttpServiceEvent interface {
 ```
 
 它的实现同样是赋值给 `service.ServiceEvent` 字段就可以了。
+
+## 性能测试
+
+Hprose 比 golang 内置的 RPC 要快，你可以像这样运行性能测试程序：
+
+```
+go test --bench=".*" github.com/hprose/hprose-go/bench
+```
+
+下面是一组在 Intel i7-2600 上使用 Go 1.4 的测试结果：
+
+benchmark | iter | time/iter
+:------|------:|------:|
+BenchmarkHprose| 20000|63842 ns/op
+BenchmarkHprose2| 20000|67005 ns/op
+BenchmarkGobRPC| 20000|84810 ns/op
+BenchmarkJSONRPC| 10000|100062 ns/op

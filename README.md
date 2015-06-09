@@ -27,6 +27,7 @@
     - **[Unix Server and Client](#unix-server-and-client)**
 	- **[WebSocket Server and Client](#websocket-server-and-client)**
     - **[Service Event](#service-event)**
+- **[Benchmark](#benchmark)**
 
 >---
 
@@ -716,3 +717,20 @@ type HttpServiceEvent interface {
     OnSendHeader(context *hprose.HttpContext)
 }
 ```
+
+## Benchmark
+
+Hprose is faster than golang RPC, you can run benchmark like this:
+
+```
+go test --bench=".*" github.com/hprose/hprose-go/bench
+```
+
+Here is the result with Go 1.4 on an Intel i7-2600:
+
+benchmark | iter | time/iter
+:------|------:|------:|
+BenchmarkHprose| 20000|63842 ns/op
+BenchmarkHprose2| 20000|67005 ns/op
+BenchmarkGobRPC| 20000|84810 ns/op
+BenchmarkJSONRPC| 10000|100062 ns/op
