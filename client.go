@@ -237,6 +237,8 @@ func (client *BaseClient) RemoveFilter(filter Filter) {
 // UseService (uri string)
 // UseService (remoteObject interface{})
 // UseService (uri string, remoteObject interface{})
+// UseService (remoteObject interface{}, namespace string)
+// UseService (uri string, remoteObject interface{}, namespace string)
 func (client *BaseClient) UseService(args ...interface{}) {
 	switch len(args) {
 	case 1:
@@ -264,6 +266,23 @@ func (client *BaseClient) UseService(args ...interface{}) {
 		case *string:
 			client.SetUri(*arg0)
 		default:
+			switch arg1 := args[1].(type) {
+			case nil:
+				if isStructPointer(arg0) {
+					client.createStub(arg0, "")
+					return
+				}
+			case string:
+				if isStructPointer(arg0) {
+					client.createStub(arg0, arg1)
+					return
+				}
+			case *string:
+				if isStructPointer(arg0) {
+					client.createStub(arg0, *arg1)
+					return
+				}
+			}
 			panic("Wrong arguments.")
 		}
 		if args[1] == nil {
@@ -271,6 +290,34 @@ func (client *BaseClient) UseService(args ...interface{}) {
 		}
 		if isStructPointer(args[1]) {
 			client.createStub(args[1], "")
+			return
+		}
+	case 3:
+		switch arg0 := args[0].(type) {
+		case nil:
+			panic("The arguments can't be nil.")
+		case string:
+			client.SetUri(arg0)
+		case *string:
+			client.SetUri(*arg0)
+		default:
+			panic("Wrong arguments.")
+		}
+		if args[1] == nil {
+			panic("The arguments can't be nil.")
+		}
+		if isStructPointer(args[1]) {
+			switch arg2 := args[2].(type) {
+			case nil:
+				client.createStub(args[1], "")
+				return
+			case string:
+				client.createStub(args[1], arg2)
+				return
+			case *string:
+				client.createStub(args[1], *arg2)
+				return
+			}
 		}
 	}
 	panic("Wrong arguments.")
@@ -534,9 +581,11 @@ func (client *BaseClient) createStub(stub interface{}, ns string) {
 			fp := reflect.New(ft)
 			sf := et.Field(i)
 			if sf.Anonymous {
-				client.createStub(fp.Interface(), "")
-			} else {
+				client.createStub(fp.Interface(), ns)
+			} else if ns == "" {
 				client.createStub(fp.Interface(), sf.Name)
+			} else {
+				client.createStub(fp.Interface(), ns+"_"+sf.Name)
 			}
 			if f.Kind() == reflect.Ptr {
 				f.Set(fp)
