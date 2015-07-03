@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Jun 9, 2015                              *
+ * LastModified: Jul 3, 2015                              *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -48,11 +48,11 @@ type TcpContext StreamContext
 type tcpArgsFixer struct{}
 
 func (tcpArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value {
-	if c, ok := context.(*TcpContext); ok {
-		if lastParamType.String() == "*hprose.TcpContext" {
+	if c, ok := context.(*StreamContext); ok {
+		if lastParamType.String() == "*hprose.StreamContext" {
 			return append(args, reflect.ValueOf(c))
-		} else if lastParamType.String() == "*hprose.StreamContext" {
-			return append(args, reflect.ValueOf((*StreamContext)(c)))
+		} else if lastParamType.String() == "*hprose.TcpContext" {
+			return append(args, reflect.ValueOf((*TcpContext)(c)))
 		} else if lastParamType.String() == "net.Conn" {
 			return append(args, reflect.ValueOf(c.Conn))
 		}

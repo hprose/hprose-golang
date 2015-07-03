@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix service for Go.                            *
  *                                                        *
- * LastModified: Jun 9, 2015                              *
+ * LastModified: Jul 3, 2015                              *
  * Authors: Ma Bingyao <andot@hprose.com>                 *
  *          Ore_Ash <nanohugh@gmail.com>                  *
  *                                                        *
@@ -38,11 +38,11 @@ type UnixContext StreamContext
 type unixArgsFixer struct{}
 
 func (unixArgsFixer) FixArgs(args []reflect.Value, lastParamType reflect.Type, context Context) []reflect.Value {
-	if c, ok := context.(*UnixContext); ok {
-		if lastParamType.String() == "*hprose.UnixContext" {
+	if c, ok := context.(*StreamContext); ok {
+		if lastParamType.String() == "*hprose.StreamContext" {
 			return append(args, reflect.ValueOf(c))
-		} else if lastParamType.String() == "*hprose.StreamContext" {
-			return append(args, reflect.ValueOf((*StreamContext)(c)))
+		} else if lastParamType.String() == "*hprose.UnixContext" {
+			return append(args, reflect.ValueOf((*UnixContext)(c)))
 		} else if lastParamType.String() == "net.Conn" {
 			return append(args, reflect.ValueOf(c.Conn))
 		}
