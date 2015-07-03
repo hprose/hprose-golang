@@ -71,3 +71,40 @@ func (service *StreamService) SetWriteTimeout(d time.Duration) {
 func (service *StreamService) SetWriteBuffer(bytes int) {
 	service.writeBuffer = bytes
 }
+
+func (service *StreamService) serve(conn net.Conn) {
+	var data []byte
+	var err error
+	for {
+		if service.readTimeout != nil {
+			err = conn.SetReadDeadline(time.Now().Add(service.readTimeout.(time.Duration)))
+		}
+		if err == nil {
+			data, err = receiveDataOverStream(conn)
+		}
+		if err == nil {
+			data = service.Handle(data, &StreamContext{BaseContext: NewBaseContext(), Conn: conn})
+			if service.writeTimeout != nil {
+				err = conn.SetWriteDeadline(time.Now().Add(service.writeTimeout.(time.Duration)))
+			}
+			if err == nil {
+				err = sendDataOverStream(conn, data)
+			}
+		}
+		if err != nil {
+			conn.Close()
+			break
+		}
+	}
+}
+
+// Serve ...
+func (service *StreamService) Serve(conn net.Conn) (err error) {
+	if service.timeout != nil {
+		if err = conn.SetDeadline(time.Now().Add(service.timeout.(time.Duration))); err != nil {
+			return err
+		}
+	}
+	go service.serve(conn)
+	return nil
+}

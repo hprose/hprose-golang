@@ -27,7 +27,6 @@ import (
 	"os/signal"
 	"reflect"
 	"runtime/debug"
-	"time"
 )
 
 // UnixService is the hprose unix service
@@ -70,37 +69,7 @@ func (service *UnixService) ServeUnix(conn *net.UnixConn) (err error) {
 			return err
 		}
 	}
-	if service.timeout != nil {
-		if err = conn.SetDeadline(time.Now().Add(service.timeout.(time.Duration))); err != nil {
-			return err
-		}
-	}
-	go func(conn net.Conn) {
-		var data []byte
-		var err error
-		for {
-			if service.readTimeout != nil {
-				err = conn.SetReadDeadline(time.Now().Add(service.readTimeout.(time.Duration)))
-			}
-			if err == nil {
-				data, err = receiveDataOverStream(conn)
-			}
-			if err == nil {
-				data = service.Handle(data, &UnixContext{BaseContext: NewBaseContext(), Conn: conn})
-				if service.writeTimeout != nil {
-					err = conn.SetWriteDeadline(time.Now().Add(service.writeTimeout.(time.Duration)))
-				}
-				if err == nil {
-					err = sendDataOverStream(conn, data)
-				}
-			}
-			if err != nil {
-				conn.Close()
-				break
-			}
-		}
-	}(conn)
-	return nil
+	return ((*StreamService)(service)).Serve(conn)
 }
 
 // UnixServer is a hprose unix server

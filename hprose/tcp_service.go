@@ -133,42 +133,12 @@ func (service *TcpService) ServeTCP(conn *net.TCPConn) (err error) {
 			return err
 		}
 	}
-	if service.timeout != nil {
-		if err = conn.SetDeadline(time.Now().Add(service.timeout.(time.Duration))); err != nil {
-			return err
-		}
+	if service.config != nil {
+		tlsConn := tls.Server(conn, service.config)
+		tlsConn.Handshake()
+		return service.Serve(tlsConn)
 	}
-	go func(conn net.Conn) {
-		if service.config != nil {
-			tlsConn := tls.Server(conn, service.config)
-			tlsConn.Handshake()
-			conn = tlsConn
-		}
-		var data []byte
-		var err error
-		for {
-			if service.readTimeout != nil {
-				err = conn.SetReadDeadline(time.Now().Add(service.readTimeout.(time.Duration)))
-			}
-			if err == nil {
-				data, err = receiveDataOverStream(conn)
-			}
-			if err == nil {
-				data = service.Handle(data, &TcpContext{BaseContext: NewBaseContext(), Conn: conn})
-				if service.writeTimeout != nil {
-					err = conn.SetWriteDeadline(time.Now().Add(service.writeTimeout.(time.Duration)))
-				}
-				if err == nil {
-					err = sendDataOverStream(conn, data)
-				}
-			}
-			if err != nil {
-				conn.Close()
-				break
-			}
-		}
-	}(conn)
-	return nil
+	return service.Serve(conn)
 }
 
 // TcpServer is a hprose tcp server

@@ -12,7 +12,7 @@
  *                                                        *
  * hprose client for Go.                                  *
  *                                                        *
- * LastModified: Jun 3, 2015                              *
+ * LastModified: Jul 3, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -585,7 +585,7 @@ func (client *BaseClient) createStub(stub interface{}, ns string) {
 			} else if ns == "" {
 				client.createStub(fp.Interface(), sf.Name)
 			} else {
-				client.createStub(fp.Interface(), ns+"_"+sf.Name)
+				client.createStub(fp.Interface(), (ns + "_" + sf.Name))
 			}
 			if f.Kind() == reflect.Ptr {
 				f.Set(fp)
