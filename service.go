@@ -12,7 +12,7 @@
  *                                                        *
  * hprose service for Go.                                 *
  *                                                        *
- * LastModified: Jun 3, 2015                              *
+ * LastModified: Jul 4, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -32,10 +32,30 @@ import (
 type MissingMethod func(name string, args []reflect.Value) (result []reflect.Value)
 
 // ServiceEvent is the service event
-type ServiceEvent interface {
+type ServiceEvent interface{}
+
+type beforeInvokeEvent interface {
 	OnBeforeInvoke(name string, args []reflect.Value, byref bool, context Context)
+}
+
+type beforeInvoke2Event interface {
+	OnBeforeInvoke(name string, args []reflect.Value, byref bool, context Context) error
+}
+
+type afterInvokeEvent interface {
 	OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context Context)
+}
+
+type afterInvoke2Event interface {
+	OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context Context) error
+}
+
+type sendErrorEvent interface {
 	OnSendError(err error, context Context)
+}
+
+type sendError2Event interface {
+	OnSendError(err error, context Context) error
 }
 
 // Method is the publish service method
@@ -300,19 +320,24 @@ func (service *BaseService) responseEnd(buf []byte, context Context) []byte {
 	return buf
 }
 
-func (service *BaseService) fireErrorEvent(err error, context Context) {
+func (service *BaseService) fireErrorEvent(err error, context Context) error {
 	if service.ServiceEvent != nil {
-		service.OnSendError(err, context)
+		if event, ok := service.ServiceEvent.(sendErrorEvent); ok {
+			event.OnSendError(err, context)
+		} else if event, ok := service.ServiceEvent.(sendError2Event); ok {
+			return event.OnSendError(err, context)
+		}
 	}
+	return err
 }
 
 func (service *BaseService) sendError(err error, context Context) []byte {
+	err = service.fireErrorEvent(err, context)
 	buf := new(bytes.Buffer)
 	writer := NewWriter(buf, true)
 	writer.Stream.WriteByte(TagError)
 	writer.WriteString(err.Error())
 	writer.Stream.WriteByte(TagEnd)
-	service.fireErrorEvent(err, context)
 	return service.responseEnd(buf.Bytes(), context)
 }
 
@@ -408,7 +433,14 @@ func (service *BaseService) doInvoke(data []byte, context Context) []byte {
 			}
 		}
 		if service.ServiceEvent != nil {
-			service.OnBeforeInvoke(name, args, byref, context)
+			if event, ok := service.ServiceEvent.(beforeInvokeEvent); ok {
+				event.OnBeforeInvoke(name, args, byref, context)
+			} else if event, ok := service.ServiceEvent.(beforeInvoke2Event); ok {
+				err = event.OnBeforeInvoke(name, args, byref, context)
+				if err != nil {
+					return service.sendError(err, context)
+				}
+			}
 		}
 		var result []reflect.Value
 		if result, err = func() (out []reflect.Value, err error) {
@@ -436,7 +468,14 @@ func (service *BaseService) doInvoke(data []byte, context Context) []byte {
 			return service.sendError(err, context)
 		}
 		if service.ServiceEvent != nil {
-			service.OnAfterInvoke(name, args, byref, result, context)
+			if event, ok := service.ServiceEvent.(afterInvokeEvent); ok {
+				event.OnAfterInvoke(name, args, byref, result, context)
+			} else if event, ok := service.ServiceEvent.(afterInvoke2Event); ok {
+				err = event.OnAfterInvoke(name, args, byref, result, context)
+				if err != nil {
+					return service.sendError(err, context)
+				}
+			}
 		}
 		resultLength := len(result)
 		if resultLength > 0 {

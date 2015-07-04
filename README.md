@@ -1,9 +1,8 @@
 # Hprose for Golang
 
-[![Join the chat at https://gitter.im/hprose/hprose-go](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hprose/hprose-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
+[![Join the chat at https://gitter.im/hprose/hprose-go](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/hprose/hprose-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GoDoc](https://godoc.org/github.com/hprose/hprose-go?status.svg&style=flat)](https://godoc.org/github.com/hprose/hprose-go)
 [![Build Status](https://drone.io/github.com/hprose/hprose-go/status.png)](https://drone.io/github.com/hprose/hprose-go/latest)
-[![GoDoc](https://godoc.org/github.com/hprose/hprose-go?status.svg)](https://godoc.org/github.com/hprose/hprose-go)
 
 >---
 - **[Introduction](#introduction)**
@@ -662,14 +661,23 @@ To create a hprose WebSocket client is the same as HTTP client:
 Hprose defines a `ServiceEvent` interface.
 
 ```go
-type ServiceEvent interface {
-    OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context)
-    OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context)
-    OnSendError(err error, context hprose.Context)
-}
+type ServiceEvent interface {}
 ```
 
-If you want to log some thing about the service, you can implement this interface. For example:
+It is a empty interface, but you can add the following event methods to your implementation:
+
+```go
+    OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context)
+	OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context) error
+    OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context)
+	OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context) error
+    OnSendError(err error, context hprose.Context)
+	OnSendError(err error, context hprose.Context) error
+```
+
+`OnBeforeInvoke`, `OnAfterInvoke` and `OnSendError` all have two kinds of definitions. You just need and only can implement one of them.
+
+For example, if you want to log some thing about the service, you can do it like this:
 
 ```go
 package main
@@ -709,14 +717,14 @@ func main() {
 
 The `TcpService` and `TcpServer` also have this interface field.
 
-For hprose HTTP Service, you can implement `HttpServiceEvent` instead of `ServiceEvent` interface:
+For hprose HTTP Service, there are two more `OnSendHeader` event methods:
 
 ```go
-type HttpServiceEvent interface {
-    ServiceEvent
+	OnSendHeader(context Context)
     OnSendHeader(context *hprose.HttpContext)
-}
 ```
+
+You also just need to implement only one of them.
 
 ## Benchmark
 
@@ -730,7 +738,7 @@ Here is the result with Go 1.4 on an Intel i7-2600:
 
 benchmark | iter | time/iter
 :------|------:|------:|
-BenchmarkHprose| 20000|63018 ns/op
-BenchmarkHprose2| 20000|66637 ns/op
-BenchmarkGobRPC| 20000|92289 ns/op
-BenchmarkJSONRPC| 10000|103602 ns/op
+BenchmarkHprose| 30000|46696 ns/op
+BenchmarkHprose2| 30000|48215 ns/op
+BenchmarkGobRPC| 20000|66818 ns/op
+BenchmarkJSONRPC| 10000|104709 ns/op

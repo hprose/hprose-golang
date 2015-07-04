@@ -1,9 +1,8 @@
 # Hprose for Golang
 
-[![Join the chat at https://gitter.im/hprose/hprose-go](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hprose/hprose-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
+[![Join the chat at https://gitter.im/hprose/hprose-go](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/hprose/hprose-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GoDoc](https://godoc.org/github.com/hprose/hprose-go?status.svg&style=flat)](https://godoc.org/github.com/hprose/hprose-go)
 [![Build Status](https://drone.io/github.com/hprose/hprose-go/status.png)](https://drone.io/github.com/hprose/hprose-go/latest)
-[![GoDoc](https://godoc.org/github.com/hprose/hprose-go?status.svg)](https://godoc.org/github.com/hprose/hprose-go)
 
 > ---
 - **[简介](#简介)**
@@ -671,14 +670,23 @@ Hprose 的 WebSocket 服务器同时也是 HTTP 服务器，客户端可以用 W
 Hprose 定义了一个 `ServiceEvent` 接口。
 
 ```go
-type ServiceEvent interface {
-    OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context)
-    OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context)
-    OnSendError(err error, context hprose.Context)
-}
+type ServiceEvent interface {}
 ```
 
-如果你想针对服务器的一些行为做日志的话，你可以实现这个接口，例如：
+这是一个空接口，但是你可以在你的实现中添加下面一些事件方法：
+
+```go
+    OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context)
+	OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context) error
+    OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context)
+	OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context) error
+    OnSendError(err error, context hprose.Context)
+	OnSendError(err error, context hprose.Context) error
+```
+
+`OnBeforeInvoke`, `OnAfterInvoke` 和 `OnSendError` 都具有两种形式的定义，你只需要且仅可以实现其中的一种。
+
+例如，如果你想针对服务器的一些行为做日志的话，你可以这样做：
 
 ```go
 package main
@@ -718,16 +726,14 @@ func main() {
 
 `TcpService` 和 `TcpServer` 同样包含这个接口字段。
 
-另外，针对 Hprose HTTP 服务器，你还可以单独实现 `HttpServiceEvent` 接口，这个接口多了一个针对 Http 头的事件。
+另外，针对 Hprose HTTP 服务器，还增加了两个 `OnSendHeader` 事件方法：
 
 ```go
-type HttpServiceEvent interface {
-	ServiceEvent
+	OnSendHeader(context Context)
 	OnSendHeader(context *hprose.HttpContext)
-}
 ```
 
-它的实现同样是赋值给 `service.ServiceEvent` 字段就可以了。
+这两种形式仍然只需要实现一种即可。它的实现同样是赋值给 `service.ServiceEvent` 字段就可以了。
 
 ## 性能测试
 
@@ -741,7 +747,7 @@ go test --bench=".*" github.com/hprose/hprose-go/bench
 
 benchmark | iter | time/iter
 :------|------:|------:|
-BenchmarkHprose| 20000|63018 ns/op
-BenchmarkHprose2| 20000|66637 ns/op
-BenchmarkGobRPC| 20000|92289 ns/op
-BenchmarkJSONRPC| 10000|103602 ns/op
+BenchmarkHprose| 30000|46696 ns/op
+BenchmarkHprose2| 30000|48215 ns/op
+BenchmarkGobRPC| 20000|66818 ns/op
+BenchmarkJSONRPC| 10000|104709 ns/op

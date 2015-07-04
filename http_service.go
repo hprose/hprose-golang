@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: May 24, 2015                             *
+ * LastModified: Jul 4, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,12 +37,6 @@ type HttpContext struct {
 	Request  *http.Request
 }
 
-// HttpServiceEvent is the hprose http service event
-type HttpServiceEvent interface {
-	ServiceEvent
-	OnSendHeader(context *HttpContext)
-}
-
 // HttpService is the hprose http service
 type HttpService struct {
 	*BaseService
@@ -56,6 +50,14 @@ type HttpService struct {
 	crossDomainXmlContent        []byte
 	clientAccessPolicyXmlFile    string
 	clientAccessPolicyXmlContent []byte
+}
+
+type sendHeaderEvent interface {
+	OnSendHeader(context Context)
+}
+
+type sendHeader2Event interface {
+	OnSendHeader(context *HttpContext)
 }
 
 type httpArgsFixer struct{}
@@ -123,7 +125,9 @@ func (service *HttpService) clientAccessPolicyXmlHandler(response http.ResponseW
 
 func (service *HttpService) sendHeader(context *HttpContext) {
 	if service.ServiceEvent != nil {
-		if event, ok := service.ServiceEvent.(HttpServiceEvent); ok {
+		if event, ok := service.ServiceEvent.(sendHeaderEvent); ok {
+			event.OnSendHeader(context)
+		} else if event, ok := service.ServiceEvent.(sendHeader2Event); ok {
 			event.OnSendHeader(context)
 		}
 	}
