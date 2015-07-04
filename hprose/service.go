@@ -321,6 +321,11 @@ func (service *BaseService) responseEnd(buf []byte, context Context) []byte {
 }
 
 func (service *BaseService) fireErrorEvent(err error, context Context) error {
+	defer func() {
+		if e := recover(); e != nil {
+			err = fmt.Errorf("%v", e)
+		}
+	}()
 	if service.ServiceEvent != nil {
 		if event, ok := service.ServiceEvent.(sendErrorEvent); ok {
 			event.OnSendError(err, context)
