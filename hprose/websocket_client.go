@@ -33,6 +33,11 @@ type WebSocketClient struct {
 	*BaseClient
 }
 
+type sendMessage struct {
+	id   uint32
+	data []byte
+}
+
 type receiveMessage struct {
 	data []byte
 	err  error
@@ -45,9 +50,7 @@ type webSocketTransporter struct {
 	mutex                 sync.Mutex
 	maxConcurrentRequests int
 	id                    chan uint32
-	sendIDs               chan uint32
-	sendLock              sync.Mutex
-	sendMsgs              map[uint32][]byte
+	sendChan              chan sendMessage
 	recvLock              sync.Mutex
 	recvMsgs              map[uint32](chan receiveMessage)
 }
@@ -147,28 +150,21 @@ func (trans *webSocketTransporter) idGen() {
 
 func (trans *webSocketTransporter) sendLoop() {
 	defer func() {
-		close(trans.sendIDs)
-		trans.sendIDs = nil
-		trans.sendLock.Lock()
-		trans.sendMsgs = nil
-		trans.sendLock.Unlock()
+		close(trans.sendChan)
+		trans.sendChan = nil
 	}()
 	for {
 		if trans.conn == nil {
 			break
 		}
-		id := <-trans.sendIDs
-		trans.sendLock.Lock()
-		msg := trans.sendMsgs[id]
-		delete(trans.sendMsgs, id)
-		trans.sendLock.Unlock()
-		err := trans.conn.WriteMessage(websocket.BinaryMessage, msg)
+		msg := <-trans.sendChan
+		err := trans.conn.WriteMessage(websocket.BinaryMessage, msg.data)
 		if err != nil {
 			trans.conn.Close()
 			trans.conn = nil
 			trans.recvLock.Lock()
-			recvMsg := trans.recvMsgs[id]
-			delete(trans.recvMsgs, id)
+			recvMsg := trans.recvMsgs[msg.id]
+			delete(trans.recvMsgs, msg.id)
 			trans.recvLock.Unlock()
 			recvMsg <- receiveMessage{nil, err}
 			close(recvMsg)
@@ -223,8 +219,7 @@ func (trans *webSocketTransporter) getConn(uri string) (err error) {
 			return err
 		}
 		trans.id = make(chan uint32)
-		trans.sendIDs = make(chan uint32, trans.maxConcurrentRequests)
-		trans.sendMsgs = make(map[uint32][]byte, trans.maxConcurrentRequests)
+		trans.sendChan = make(chan sendMessage, trans.maxConcurrentRequests)
 		trans.recvMsgs = make(map[uint32](chan receiveMessage), trans.maxConcurrentRequests)
 		go trans.idGen()
 		go trans.sendLoop()
@@ -249,10 +244,7 @@ func (trans *webSocketTransporter) SendAndReceive(uri string, data []byte) ([]by
 	trans.recvLock.Lock()
 	trans.recvMsgs[id] = recvMsg
 	trans.recvLock.Unlock()
-	trans.sendLock.Lock()
-	trans.sendMsgs[id] = msg
-	trans.sendLock.Unlock()
-	trans.sendIDs <- id
+	trans.sendChan <- sendMessage{id, msg}
 	result := <-recvMsg
 	return result.data, result.err
 }
