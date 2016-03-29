@@ -12,7 +12,7 @@
  *                                                        *
  * hprose websocket client for Go.                        *
  *                                                        *
- * LastModified: May 28, 2015                             *
+ * LastModified: Mar 29, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -46,7 +46,9 @@ type webSocketTransporter struct {
 	maxConcurrentRequests int
 	id                    chan uint32
 	sendIDs               chan uint32
+	sendLock              sync.Mutex
 	sendMsgs              map[uint32][]byte
+	recvLock              sync.Mutex
 	recvMsgs              map[uint32](chan receiveMessage)
 }
 
@@ -147,21 +149,27 @@ func (trans *webSocketTransporter) sendLoop() {
 	defer func() {
 		close(trans.sendIDs)
 		trans.sendIDs = nil
+		trans.sendLock.Lock()
 		trans.sendMsgs = nil
+		trans.sendLock.Unlock()
 	}()
 	for {
 		if trans.conn == nil {
 			break
 		}
 		id := <-trans.sendIDs
+		trans.sendLock.Lock()
 		msg := trans.sendMsgs[id]
 		delete(trans.sendMsgs, id)
+		trans.sendLock.Unlock()
 		err := trans.conn.WriteMessage(websocket.BinaryMessage, msg)
 		if err != nil {
 			trans.conn.Close()
 			trans.conn = nil
+			trans.recvLock.Lock()
 			recvMsg := trans.recvMsgs[id]
 			delete(trans.recvMsgs, id)
+			trans.recvLock.Unlock()
 			recvMsg <- receiveMessage{nil, err}
 			close(recvMsg)
 		}
@@ -173,11 +181,13 @@ func (trans *webSocketTransporter) recvLoop() {
 	var data []byte
 	var err error
 	defer func() {
+		trans.recvLock.Lock()
 		for _, recvMsg := range trans.recvMsgs {
 			recvMsg <- receiveMessage{nil, err}
 			close(recvMsg)
 		}
 		trans.recvMsgs = nil
+		trans.recvLock.Unlock()
 	}()
 	for {
 		if trans.conn == nil {
@@ -194,8 +204,10 @@ func (trans *webSocketTransporter) recvLoop() {
 				uint32(data[1])<<16 |
 				uint32(data[2])<<8 |
 				uint32(data[3]))
+			trans.recvLock.Lock()
 			recvMsg := trans.recvMsgs[id]
 			delete(trans.recvMsgs, id)
+			trans.recvLock.Unlock()
 			recvMsg <- receiveMessage{data[4:], nil}
 			close(recvMsg)
 		}
@@ -234,8 +246,12 @@ func (trans *webSocketTransporter) SendAndReceive(uri string, data []byte) ([]by
 	msg[3] = byte(id & 0xff)
 	copy(msg[4:], data)
 	recvMsg := make(chan receiveMessage)
+	trans.recvLock.Lock()
 	trans.recvMsgs[id] = recvMsg
+	trans.recvLock.Unlock()
+	trans.sendLock.Lock()
 	trans.sendMsgs[id] = msg
+	trans.sendLock.Unlock()
 	trans.sendIDs <- id
 	result := <-recvMsg
 	return result.data, result.err
