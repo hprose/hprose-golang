@@ -38,7 +38,14 @@ type sendMessage struct {
 	data []byte
 }
 
-type receiveMessage struct {
+type recvMessage struct {
+	data []byte
+	err  error
+}
+
+type recvCommand struct {
+	id   uint32
+	recv chan recvMessage
 	data []byte
 	err  error
 }
@@ -51,8 +58,7 @@ type webSocketTransporter struct {
 	maxConcurrentRequests int
 	id                    chan uint32
 	sendChan              chan sendMessage
-	recvLock              sync.Mutex
-	recvMsgs              map[uint32](chan receiveMessage)
+	recvChan              chan recvCommand
 }
 
 // NewWebSocketClient is the constructor of WebSocketClient
@@ -143,8 +149,11 @@ func (trans *webSocketTransporter) idGen() {
 		if trans.conn == nil {
 			break
 		}
-		trans.id <- i
 		i++
+		trans.id <- i
+		if i == 0xFFFFFFFF {
+			i = 0
+		}
 	}
 }
 
@@ -157,19 +166,44 @@ func (trans *webSocketTransporter) sendLoop() {
 		if trans.conn == nil {
 			break
 		}
-		msg := <-trans.sendChan
-		err := trans.conn.WriteMessage(websocket.BinaryMessage, msg.data)
+		send := <-trans.sendChan
+		err := trans.conn.WriteMessage(websocket.BinaryMessage, send.data)
 		if err != nil {
 			trans.conn.Close()
 			trans.conn = nil
-			trans.recvLock.Lock()
-			recvMsg := trans.recvMsgs[msg.id]
-			delete(trans.recvMsgs, msg.id)
-			trans.recvLock.Unlock()
-			recvMsg <- receiveMessage{nil, err}
-			close(recvMsg)
+			trans.recvChan <- recvCommand{send.id, nil, nil, err}
 		}
 	}
+}
+
+func (trans *webSocketTransporter) resultLoop() {
+	results := make(map[uint32](chan recvMessage))
+	for r := range trans.recvChan {
+		if r.recv != nil {
+			results[r.id] = r.recv
+		} else if r.data != nil {
+			recv := results[r.id]
+			delete(results, r.id)
+			recv <- recvMessage{r.data, nil}
+			close(recv)
+		} else if r.err != nil {
+			if r.id != 0 {
+				recv := results[r.id]
+				delete(results, r.id)
+				recv <- recvMessage{nil, r.err}
+				close(recv)
+			} else {
+				for _, recv := range results {
+					recv <- recvMessage{nil, r.err}
+					close(recv)
+				}
+				break
+			}
+		}
+	}
+	results = nil
+	close(trans.recvChan)
+	trans.recvChan = nil
 }
 
 func (trans *webSocketTransporter) recvLoop() {
@@ -177,13 +211,7 @@ func (trans *webSocketTransporter) recvLoop() {
 	var data []byte
 	var err error
 	defer func() {
-		trans.recvLock.Lock()
-		for _, recvMsg := range trans.recvMsgs {
-			recvMsg <- receiveMessage{nil, err}
-			close(recvMsg)
-		}
-		trans.recvMsgs = nil
-		trans.recvLock.Unlock()
+		trans.recvChan <- recvCommand{0, nil, nil, err}
 	}()
 	for {
 		if trans.conn == nil {
@@ -200,12 +228,7 @@ func (trans *webSocketTransporter) recvLoop() {
 				uint32(data[1])<<16 |
 				uint32(data[2])<<8 |
 				uint32(data[3]))
-			trans.recvLock.Lock()
-			recvMsg := trans.recvMsgs[id]
-			delete(trans.recvMsgs, id)
-			trans.recvLock.Unlock()
-			recvMsg <- receiveMessage{data[4:], nil}
-			close(recvMsg)
+			trans.recvChan <- recvCommand{id, nil, data[4:], nil}
 		}
 	}
 }
@@ -220,8 +243,9 @@ func (trans *webSocketTransporter) getConn(uri string) (err error) {
 		}
 		trans.id = make(chan uint32)
 		trans.sendChan = make(chan sendMessage, trans.maxConcurrentRequests)
-		trans.recvMsgs = make(map[uint32](chan receiveMessage), trans.maxConcurrentRequests)
+		trans.recvChan = make(chan recvCommand, trans.maxConcurrentRequests)
 		go trans.idGen()
+		go trans.resultLoop()
 		go trans.sendLoop()
 		go trans.recvLoop()
 	}
@@ -234,17 +258,15 @@ func (trans *webSocketTransporter) SendAndReceive(uri string, data []byte) ([]by
 		return nil, err
 	}
 	id := <-trans.id
-	msg := make([]byte, len(data)+4)
-	msg[0] = byte((id >> 24) & 0xff)
-	msg[1] = byte((id >> 16) & 0xff)
-	msg[2] = byte((id >> 8) & 0xff)
-	msg[3] = byte(id & 0xff)
-	copy(msg[4:], data)
-	recvMsg := make(chan receiveMessage)
-	trans.recvLock.Lock()
-	trans.recvMsgs[id] = recvMsg
-	trans.recvLock.Unlock()
-	trans.sendChan <- sendMessage{id, msg}
-	result := <-recvMsg
+	buf := make([]byte, len(data)+4)
+	buf[0] = byte((id >> 24) & 0xff)
+	buf[1] = byte((id >> 16) & 0xff)
+	buf[2] = byte((id >> 8) & 0xff)
+	buf[3] = byte(id & 0xff)
+	copy(buf[4:], data)
+	recv := make(chan recvMessage)
+	trans.recvChan <- recvCommand{id, recv, nil, nil}
+	trans.sendChan <- sendMessage{id, buf}
+	result := <-recv
 	return result.data, result.err
 }
