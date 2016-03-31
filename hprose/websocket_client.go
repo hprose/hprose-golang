@@ -12,7 +12,7 @@
  *                                                        *
  * hprose websocket client for Go.                        *
  *                                                        *
- * LastModified: Mar 29, 2016                             *
+ * LastModified: Mar 31, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -54,7 +54,7 @@ type webSocketTransporter struct {
 	dialer                *websocket.Dialer
 	conn                  *websocket.Conn
 	header                *http.Header
-	mutex                 sync.Mutex
+	mutex                 sync.RWMutex
 	maxConcurrentRequests int
 	id                    chan uint32
 	sendChan              chan sendMessage
@@ -163,14 +163,19 @@ func (trans *webSocketTransporter) sendLoop() {
 		trans.sendChan = nil
 	}()
 	for {
+		trans.mutex.RLock()
 		if trans.conn == nil {
+			trans.mutex.RUnlock()
 			break
 		}
+		trans.mutex.RUnlock()
 		send := <-trans.sendChan
 		err := trans.conn.WriteMessage(websocket.BinaryMessage, send.data)
 		if err != nil {
+			trans.mutex.Lock()
 			trans.conn.Close()
 			trans.conn = nil
+			trans.mutex.Unlock()
 			trans.recvChan <- recvCommand{send.id, nil, nil, err}
 		}
 	}
@@ -214,15 +219,21 @@ func (trans *webSocketTransporter) recvLoop() {
 		trans.recvChan <- recvCommand{0, nil, nil, err}
 	}()
 	for {
+		trans.mutex.RLock()
 		if trans.conn == nil {
+			trans.mutex.RUnlock()
 			break
 		}
 		msgType, data, err = trans.conn.ReadMessage()
 		if err != nil {
+			trans.mutex.Lock()
 			trans.conn.Close()
 			trans.conn = nil
+			trans.mutex.Unlock()
+			trans.mutex.RUnlock()
 			break
 		}
+		trans.mutex.RUnlock()
 		if msgType == websocket.BinaryMessage {
 			id := (uint32(data[0])<<24 |
 				uint32(data[1])<<16 |
@@ -234,10 +245,12 @@ func (trans *webSocketTransporter) recvLoop() {
 }
 
 func (trans *webSocketTransporter) getConn(uri string) (err error) {
-	trans.mutex.Lock()
-	defer trans.mutex.Unlock()
+	trans.mutex.RLock()
+	defer trans.mutex.RUnlock()
 	if trans.conn == nil {
+		trans.mutex.Lock()
 		trans.conn, _, err = trans.dialer.Dial(uri, *trans.header)
+		trans.mutex.Unlock()
 		if err != nil {
 			return err
 		}
