@@ -39,6 +39,7 @@ type receiveMessage struct {
 }
 
 type webSocketTransporter struct {
+	*WebSocketClient
 	dialer                *websocket.Dialer
 	conn                  *websocket.Conn
 	header                *http.Header
@@ -52,14 +53,20 @@ type webSocketTransporter struct {
 
 // NewWebSocketClient is the constructor of WebSocketClient
 func NewWebSocketClient(uri string) (client *WebSocketClient) {
+	client = createWebSocketClient()
+	client.SetUri(uri)
+	return
+}
+
+func createWebSocketClient() (client *WebSocketClient) {
 	client = new(WebSocketClient)
 	transporter := new(webSocketTransporter)
 	transporter.dialer = new(websocket.Dialer)
 	transporter.header = new(http.Header)
 	transporter.maxConcurrentRequests = 10
+	transporter.WebSocketClient = client
 	client.BaseClient = NewBaseClient(transporter)
 	client.Client = client
-	client.SetUri(uri)
 	return
 }
 
@@ -148,6 +155,11 @@ func (trans *webSocketTransporter) sendLoop() {
 		close(trans.sendIDs)
 		trans.sendIDs = nil
 		trans.sendMsgs = nil
+		if r := recover(); r != nil {
+			if trans.PrimaryServerManager != nil {
+				trans.PrimaryServerManager.Update()
+			}
+		}
 	}()
 	for {
 		if trans.conn == nil {
@@ -164,6 +176,9 @@ func (trans *webSocketTransporter) sendLoop() {
 			delete(trans.recvMsgs, id)
 			recvMsg <- receiveMessage{nil, err}
 			close(recvMsg)
+			if trans.PrimaryServerManager != nil {
+				trans.PrimaryServerManager.Update()
+			}
 		}
 	}
 }
@@ -178,6 +193,11 @@ func (trans *webSocketTransporter) recvLoop() {
 			close(recvMsg)
 		}
 		trans.recvMsgs = nil
+		if r := recover(); r != nil {
+			if trans.PrimaryServerManager != nil {
+				trans.PrimaryServerManager.Update()
+			}
+		}
 	}()
 	for {
 		if trans.conn == nil {
@@ -187,13 +207,16 @@ func (trans *webSocketTransporter) recvLoop() {
 		if err != nil {
 			trans.conn.Close()
 			trans.conn = nil
+			if trans.PrimaryServerManager != nil {
+				trans.PrimaryServerManager.Update()
+			}
 			break
 		}
 		if msgType == websocket.BinaryMessage {
-			id := (uint32(data[0])<<24 |
-				uint32(data[1])<<16 |
-				uint32(data[2])<<8 |
-				uint32(data[3]))
+			id := (uint32(data[0]) << 24 |
+			uint32(data[1]) << 16 |
+			uint32(data[2]) << 8 |
+			uint32(data[3]))
 			recvMsg := trans.recvMsgs[id]
 			delete(trans.recvMsgs, id)
 			recvMsg <- receiveMessage{data[4:], nil}
@@ -223,11 +246,17 @@ func (trans *webSocketTransporter) getConn(uri string) (err error) {
 
 // SendAndReceive send and receive the data
 func (trans *webSocketTransporter) SendAndReceive(uri string, data []byte) ([]byte, error) {
+	if trans.PrimaryServerManager != nil &&
+	trans.PrimaryServerManager.GetPrimaryServer() != nil &&
+	trans.PrimaryServerManager.GetPrimaryServer().ServerUrl != "" {
+		uri = trans.PrimaryServerManager.GetPrimaryServer().ServerUrl
+	}
+
 	if err := trans.getConn(uri); err != nil {
 		return nil, err
 	}
 	id := <-trans.id
-	msg := make([]byte, len(data)+4)
+	msg := make([]byte, len(data) + 4)
 	msg[0] = byte((id >> 24) & 0xff)
 	msg[1] = byte((id >> 16) & 0xff)
 	msg[2] = byte((id >> 8) & 0xff)

@@ -3,9 +3,6 @@ package hprosebench
 import (
 	//"fmt"
 	"github.com/hprose/hprose-go"
-	"net"
-	"net/rpc"
-	"net/rpc/jsonrpc"
 	"testing"
 )
 
@@ -66,7 +63,7 @@ func (this *Hello) Hello(args *Args, result *string) error {
 }
 
 // BenchmarkGobRPC is ...
-func BenchmarkGobRPC(b *testing.B) {
+/*func BenchmarkGobRPC(b *testing.B) {
 	b.StopTimer()
 	server := rpc.NewServer()
 	server.Register(new(Hello))
@@ -82,10 +79,10 @@ func BenchmarkGobRPC(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		client.Call("Hello.Hello", &args, &reply)
 	}
-}
+}*/
 
 // BenchmarkJSONRPC is ...
-func BenchmarkJSONRPC(b *testing.B) {
+/*func BenchmarkJSONRPC(b *testing.B) {
 	b.StopTimer()
 	server := rpc.NewServer()
 	server.Register(new(Hello))
@@ -107,3 +104,4 @@ func BenchmarkJSONRPC(b *testing.B) {
 		client.Call("Hello.Hello", &args, &reply)
 	}
 }
+*/

@@ -148,10 +148,33 @@ type Transporter interface {
 	SendAndReceive(uri string, data []byte) ([]byte, error)
 }
 
+type ServersRepo struct {
+	Domain        string
+	ServersMap    map[string]*Server
+	PrimaryServer *Server
+}
+
+// Member is a client machine
+type Server struct {
+	InGroup   bool
+	ServerUrl string
+	Domain    string
+	UUID      string
+	CPU       int
+}
+
+type PrimaryServerManager interface {
+	Update()
+	GetPrimaryServer() (*Server)
+}
+
+
 // BaseClient is the hprose base client
 type BaseClient struct {
 	Transporter
 	Client
+	ServersRepo *ServersRepo
+	PrimaryServerManager PrimaryServerManager
 	ByRef        bool
 	SimpleMode   bool
 	DebugEnabled bool
@@ -180,6 +203,7 @@ func NewClient(uri string) Client {
 		panic("The uri can't be parsed.")
 	}
 }
+
 
 // Uri return the uri of hprose client
 func (client *BaseClient) Uri() string {

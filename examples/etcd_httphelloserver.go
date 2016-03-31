@@ -1,3 +1,18 @@
+/**********************************************************\
+|                                                          |
+|                          hprose                          |
+|                                                          |
+| Official WebSite: http://www.hprose.com/                 |
+|                   http://www.hprose.org/                 |
+|                                                          |
+\**********************************************************/
+/**********************************************************\
+ *                                                        *
+ * Author: Ma Bingyao <andot@hprose.com>                  *
+ * Modified By: Henry Hu <henry.pf.hu@gmail.com>          *
+ *                                                        *
+\**********************************************************/
+
 package main
 
 import (
@@ -43,5 +58,11 @@ func main() {
 	service.DebugEnabled = false
 	service.AddFunction("hello", hello)
 	service.AddFunction("getEmptySlice", getEmptySlice)
+
+	domain := "http.hello.server"
+	httpEndpoint := "http://"+hprose.GetLocalIP()+":8080/"
+	etcdEndpoints :=[]string{"http://127.0.0.1:2379"}
+	hprose.EtcdRegisterServer(domain,httpEndpoint,etcdEndpoints)
+
 	http.ListenAndServe(":8080", service)
 }

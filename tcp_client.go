@@ -46,13 +46,18 @@ var globalTcpConnPool = NewStreamConnPool(64)
 
 // NewTcpClient is the constructor of TcpClient
 func NewTcpClient(uri string) (client *TcpClient) {
+	client = createTcpClient()
+	client.SetUri(uri)
+	return
+}
+
+func createTcpClient() (client *TcpClient) {
 	trans := new(tcpTransporter)
 	trans.ConnPool = globalTcpConnPool
 	client = new(TcpClient)
 	client.StreamClient = newStreamClient(trans)
 	client.Client = client
 	trans.TcpClient = client
-	client.SetUri(uri)
 	return
 }
 
@@ -133,14 +138,24 @@ func (client *TcpClient) SetTLSClientConfig(config *tls.Config) {
 
 // SendAndReceive send and receive the data
 func (t *tcpTransporter) SendAndReceive(uri string, odata []byte) (idata []byte, err error) {
+	if t.PrimaryServerManager != nil &&
+	t.PrimaryServerManager.GetPrimaryServer() != nil &&
+	t.PrimaryServerManager.GetPrimaryServer().ServerUrl != "" {
+		uri = t.PrimaryServerManager.GetPrimaryServer().ServerUrl
+	}
+
 	connEntry := t.ConnPool.Get(uri)
 	defer func() {
 		if err != nil {
+			if t.PrimaryServerManager != nil {
+				t.PrimaryServerManager.Update()
+			}
 			connEntry.Close()
 			t.ConnPool.Free(connEntry)
 		}
 	}()
-begin:
+
+	begin:
 	conn := connEntry.Get()
 	if conn == nil {
 		var u *url.URL

@@ -28,4 +28,5 @@ func main() {
 	fmt.Println(user.Name)
 	fmt.Println(user.Age)
 	fmt.Println(user.HaHa)
+	fmt.Println(stub.Hello("hprose test"))
 }

@@ -41,14 +41,22 @@ type HttpClient struct {
 type httpTransporter struct {
 	*http.Client
 	*http.Header
+	*HttpClient
 }
 
 // NewHttpClient is the constructor of HttpClient
 func NewHttpClient(uri string) (client *HttpClient) {
-	client = new(HttpClient)
-	client.BaseClient = NewBaseClient(newHttpTransporter())
-	client.Client = client
+	client = createHttpClient()
 	client.SetUri(uri)
+	return
+}
+
+func createHttpClient() (client *HttpClient) {
+	client = new(HttpClient)
+	trans := newHttpTransporter()
+	trans.HttpClient = client
+	client.BaseClient = NewBaseClient(trans)
+	client.Client = client
 	client.SetKeepAlive(true)
 	return
 }
@@ -56,6 +64,7 @@ func NewHttpClient(uri string) (client *HttpClient) {
 func newHttpClient(uri string) Client {
 	return NewHttpClient(uri)
 }
+
 
 // Close the client
 func (client *HttpClient) Close() {}
@@ -159,6 +168,12 @@ func (h *httpTransporter) readAll(response *http.Response) (data []byte, err err
 
 // SendAndReceive send and receive the data
 func (h *httpTransporter) SendAndReceive(uri string, data []byte) ([]byte, error) {
+	if h.PrimaryServerManager != nil &&
+	h.PrimaryServerManager.GetPrimaryServer() != nil &&
+	h.PrimaryServerManager.GetPrimaryServer().ServerUrl != "" {
+		uri = h.PrimaryServerManager.GetPrimaryServer().ServerUrl
+	}
+
 	req, err := http.NewRequest("POST", uri, NewBytesReader(data))
 	if err != nil {
 		return nil, err
@@ -172,7 +187,10 @@ func (h *httpTransporter) SendAndReceive(uri string, data []byte) ([]byte, error
 	req.Header.Set("Content-Type", "application/hprose")
 	resp, err := h.Do(req)
 	if err != nil {
-		return nil, err
+		if h.PrimaryServerManager != nil {
+			h.PrimaryServerManager.Update()
+		}
+		return h.SendAndReceive(uri, data)
 	}
 	data, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
