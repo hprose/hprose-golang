@@ -112,6 +112,7 @@ import (
 	"reflect"
 	"runtime/debug"
 	"strings"
+	"time"
 )
 
 // InvokeOptions is the invoke options of hprose client
@@ -173,13 +174,13 @@ type PrimaryServerManager interface {
 type BaseClient struct {
 	Transporter
 	Client
-	ServersRepo *ServersRepo
+	ServersRepo          *ServersRepo
 	PrimaryServerManager PrimaryServerManager
-	ByRef        bool
-	SimpleMode   bool
-	DebugEnabled bool
-	uri          *url.URL
-	filters      []Filter
+	ByRef                bool
+	SimpleMode           bool
+	DebugEnabled         bool
+	uri                  *url.URL
+	filters              []Filter
 }
 
 var clientFactories = make(map[string]func(string) Client)
@@ -207,10 +208,18 @@ func NewClient(uri string) Client {
 
 // Uri return the uri of hprose client
 func (client *BaseClient) Uri() string {
+	var uri string
 	if client.uri != nil {
-		return client.uri.String()
+		uri = client.uri.String()
 	}
-	return ""
+
+	if client.PrimaryServerManager != nil &&
+	client.PrimaryServerManager.GetPrimaryServer() != nil &&
+	client.PrimaryServerManager.GetPrimaryServer().ServerUrl != "" {
+		uri = client.PrimaryServerManager.GetPrimaryServer().ServerUrl
+	}
+
+	return uri
 }
 
 // SetUri set the uri of hprose client
@@ -248,10 +257,10 @@ func (client *BaseClient) RemoveFilter(filter Filter) {
 	n := len(client.filters)
 	for i := 0; i < n; i++ {
 		if client.filters[i] == filter {
-			if i == n-1 {
+			if i == n - 1 {
 				client.filters = client.filters[:i]
 			} else {
-				client.filters = append(client.filters[:i], client.filters[i+1:]...)
+				client.filters = append(client.filters[:i], client.filters[i + 1:]...)
 			}
 			return
 		}
@@ -400,6 +409,26 @@ func (client *BaseClient) invoke(name string, args []reflect.Value, options *Inv
 	return err
 }
 
+func (client *BaseClient) sendAndReceiveWrapper(uri string, data []byte) ([]byte, error) {
+	var idata []byte
+	var e error
+
+	idata, e = client.SendAndReceive(uri, data)
+	if len(idata) < 1 {
+		for retryCount := 0; retryCount < 10; retryCount++ {
+			if client.PrimaryServerManager != nil {
+				client.PrimaryServerManager.Update()
+			}
+			idata, e = client.SendAndReceive(client.Uri(), data)
+			if len(idata) > 0 && e == nil {
+				break
+			}
+			time.Sleep(time.Second * 3)
+		}
+	}
+	return idata, e
+}
+
 func (client *BaseClient) syncInvoke(name string, args []reflect.Value, options *InvokeOptions, result []reflect.Value, context *ClientContext) (err error) {
 	defer func() {
 		if e := recover(); e != nil && err == nil {
@@ -412,7 +441,7 @@ func (client *BaseClient) syncInvoke(name string, args []reflect.Value, options 
 	}()
 	if odata, e := client.doOutput(name, args, options, context); e != nil {
 		err = e
-	} else if idata, e := client.SendAndReceive(client.Uri(), odata); e != nil {
+	} else if idata, e := client.sendAndReceiveWrapper(client.Uri(), odata); e != nil {
 		err = e
 	} else if e := client.doIntput(idata, args, options, result, context); e != nil {
 		err = e
@@ -642,16 +671,16 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 		}
 		args := make([]reflect.Value, argc)
 		if argc > 0 {
-			for i := 0; i < inlen-1; i++ {
+			for i := 0; i < inlen - 1; i++ {
 				args[i] = in[i]
 			}
 			if t.IsVariadic() {
-				v := in[inlen-1]
+				v := in[inlen - 1]
 				for i := 0; i < varlen; i++ {
-					args[inlen-1+i] = v.Index(i)
+					args[inlen - 1 + i] = v.Index(i)
 				}
 			} else {
-				args[inlen-1] = in[inlen-1]
+				args[inlen - 1] = in[inlen - 1]
 			}
 		}
 		numout := t.NumOut()
@@ -696,14 +725,14 @@ func (client *BaseClient) remoteMethod(t reflect.Type, sf reflect.StructField, n
 				out[i] = reflect.New(t.Out(i)).Elem()
 			}
 			if rtlast.Kind() == reflect.Chan &&
-				rtlast.Elem().Kind() == reflect.Interface &&
-				rtlast.Elem().Name() == "error" {
+			rtlast.Elem().Kind() == reflect.Interface &&
+			rtlast.Elem().Name() == "error" {
 				err := client.invoke(name, args, options, out[:last])
 				out[last] = reflect.ValueOf(&err).Elem()
 				return out
 			}
 			if rtlast.Kind() == reflect.Interface &&
-				rtlast.Name() == "error" {
+			rtlast.Name() == "error" {
 				err := <-client.invoke(name, args, options, out[:last])
 				out[last] = reflect.ValueOf(&err).Elem()
 				return out
@@ -738,7 +767,7 @@ func isStructPointer(p interface{}) bool {
 	}
 	t := v.Type()
 	return t.Kind() == reflect.Ptr && (t.Elem().Kind() == reflect.Struct ||
-		(t.Elem().Kind() == reflect.Ptr && t.Elem().Elem().Kind() == reflect.Struct))
+	(t.Elem().Kind() == reflect.Ptr && t.Elem().Elem().Kind() == reflect.Struct))
 }
 
 func checkRefArgs(args []reflect.Value) bool {

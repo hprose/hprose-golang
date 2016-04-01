@@ -12,12 +12,13 @@
  *                                                        *
 \**********************************************************/
 
-package hprose
+package etcd
 
 import (
 	"log"
 	"time"
 
+	"github.com/hprose/hprose-go"
 	"golang.org/x/net/context"
 	etcd "github.com/coreos/etcd/client"
 	"encoding/json"
@@ -26,7 +27,7 @@ import (
 )
 
 type EtcdServersRepo struct {
-	ServersRepo
+	hprose.ServersRepo
 	KeysAPI etcd.KeysAPI
 }
 
@@ -45,14 +46,14 @@ func NewEtcdServersRepo(domain string, endpoints []string) *EtcdServersRepo {
 	serversRepo := &EtcdServersRepo{
 		KeysAPI: etcd.NewKeysAPI(etcdClient),
 	}
-	serversRepo.ServersMap = make(map[string]*Server)
+	serversRepo.ServersMap = make(map[string]*hprose.Server)
 	serversRepo.Domain = domain
 	go serversRepo.WatchServers()
 	return serversRepo
 }
 
 func (s *EtcdServersRepo) AddWorker(info *ServerInfo) {
-	server := &Server{
+	server := &hprose.Server{
 		InGroup: true,
 		ServerUrl:      info.ServerUrl,
 		Domain:    info.Domain,
@@ -62,7 +63,7 @@ func (s *EtcdServersRepo) AddWorker(info *ServerInfo) {
 	s.ServersMap[server.UUID] = server
 }
 
-func (s *EtcdServersRepo) GetPrimaryServer() (*Server) {
+func (s *EtcdServersRepo) GetPrimaryServer() (*hprose.Server) {
 	return s.PrimaryServer
 }
 

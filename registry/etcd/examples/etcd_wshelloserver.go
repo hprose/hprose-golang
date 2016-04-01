@@ -21,7 +21,7 @@ import (
 	"reflect"
 
 	"github.com/hprose/hprose-go"
-	"runtime"
+	"github.com/hprose/hprose-go/registry/etcd"
 )
 
 func hello(name string, context *hprose.HttpContext) string {
@@ -51,18 +51,17 @@ func (e *ServerEvent) OnSendError(err error, context hprose.Context) {
 }
 
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	domain := "ws.hello.server"
+	tcpEndpoint := "ws://"+etcd.GetLocalIP()+":8080/"
+	etcdEndpoints :=[]string{"http://127.0.0.1:2379"}
+	etcd.RegisterServer(domain,tcpEndpoint,etcdEndpoints)
+
 	hprose.ClassManager.Register(reflect.TypeOf(A{}), "A", "json")
-	service := hprose.NewHttpService()
-//	service.ServiceEvent = &ServerEvent{}
-	service.DebugEnabled = false
+	service := hprose.NewWebSocketService()
+	//service.ServiceEvent = &ServerEvent{}
+	//service.DebugEnabled = true
 	service.AddFunction("hello", hello)
 	service.AddFunction("getEmptySlice", getEmptySlice)
-
-	domain := "http.hello.server"
-	httpEndpoint := "http://"+hprose.GetLocalIP()+":8080/"
-	etcdEndpoints :=[]string{"http://127.0.0.1:2379"}
-	hprose.EtcdRegisterServer(domain,httpEndpoint,etcdEndpoints)
-
 	http.ListenAndServe(":8080", service)
 }

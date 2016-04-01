@@ -17,50 +17,42 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"reflect"
 
 	"github.com/hprose/hprose-go"
+	"time"
+	"github.com/hprose/hprose-go/registry/etcd"
 )
-
-func hello(name string, context *hprose.HttpContext) string {
-	return "Hello " + name + "!  -  " + context.Request.RemoteAddr
-}
 
 type A struct {
 	S string `json:"str"`
 }
 
-func getEmptySlice() interface{} {
-	s := make([]A, 100)
-	return s
-}
-
-type ServerEvent struct{}
-
-func (e *ServerEvent) OnBeforeInvoke(name string, args []reflect.Value, byref bool, context hprose.Context) {
-	fmt.Println("Before OK")
-}
-
-func (e *ServerEvent) OnAfterInvoke(name string, args []reflect.Value, byref bool, result []reflect.Value, context hprose.Context) {
-	fmt.Println("After OK")
-}
-func (e *ServerEvent) OnSendError(err error, context hprose.Context) {
-	fmt.Println(err)
+type Stub struct {
+	Hello         func(string) string
+	GetEmptySlice func() interface{}
 }
 
 func main() {
+	hprose.ClassManager.Register(reflect.TypeOf(A{}), "A", "json")
 
 	domain := "ws.hello.server"
-	tcpEndpoint := "http://"+hprose.GetLocalIP()+":8081/"
 	etcdEndpoints :=[]string{"http://127.0.0.1:2379"}
-	hprose.EtcdRegisterServer(domain,tcpEndpoint,etcdEndpoints)
+	client := etcd.NewClient(domain,etcdEndpoints) //Used for Clustering model...
 
-	hprose.ClassManager.Register(reflect.TypeOf(A{}), "A", "json")
-	service := hprose.NewWebSocketService()
-	//service.ServiceEvent = &ServerEvent{}
-	//service.DebugEnabled = true
-	service.AddFunction("hello", hello)
-	service.AddFunction("getEmptySlice", getEmptySlice)
-	http.ListenAndServe(":8081", service)
+	//client := hprose.NewClient("ws://127.0.0.1:8080/")
+	var stub *Stub
+	client.UseService(&stub)
+
+	startTime := time.Now()
+	for i := 1; i < 500000; i++ {
+		result := stub.Hello("world")
+		if i%10000 == 0 {
+			println("HttpRequest Result: ", result)
+		}
+	}
+	endTime := time.Now()
+	fmt.Println("Time used: ", endTime.Sub(startTime).Seconds())
+
+	stub.GetEmptySlice()
 }

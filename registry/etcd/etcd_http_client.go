@@ -12,11 +12,15 @@
  *                                                        *
 \**********************************************************/
 
-package hprose
+package etcd
 
-func NewWebSocketClientWithEtcd(serversRepo *EtcdServersRepo) (client *WebSocketClient) {
-	client = createWebSocketClient()
-	client.ServersRepo = &ServersRepo{Domain: serversRepo.Domain,
+import (
+	"github.com/hprose/hprose-go"
+)
+
+func NewHTTPClientWithEtcd(serversRepo *EtcdServersRepo) (client *hprose.HttpClient) {
+	client = hprose.CreateHttpClient()
+	client.ServersRepo = &hprose.ServersRepo{Domain: serversRepo.Domain,
 		ServersMap: serversRepo.ServersMap,
 		PrimaryServer: serversRepo.PrimaryServer,
 	}
@@ -25,6 +29,6 @@ func NewWebSocketClientWithEtcd(serversRepo *EtcdServersRepo) (client *WebSocket
 	return
 }
 
-func newWebSocketClientWithEtcd(serversRepo *EtcdServersRepo) Client {
-	return NewWebSocketClientWithEtcd(serversRepo)
+func newHTTPClientWithEtcd(serversRepo *EtcdServersRepo) hprose.Client {
+	return NewHTTPClientWithEtcd(serversRepo)
 }

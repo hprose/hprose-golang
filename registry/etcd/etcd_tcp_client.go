@@ -12,11 +12,15 @@
  *                                                        *
 \**********************************************************/
 
-package hprose
+package etcd
+import (
+	"github.com/hprose/hprose-go"
+)
 
-func NewHTTPClientWithEtcd(serversRepo *EtcdServersRepo) (client *HttpClient) {
-	client = createHttpClient()
-	client.ServersRepo = &ServersRepo{Domain: serversRepo.Domain,
+
+func NewTcpClientWithEtcd(serversRepo *EtcdServersRepo) (client *hprose.TcpClient) {
+	client = hprose.CreateTcpClient()
+	client.ServersRepo = &hprose.ServersRepo{Domain: serversRepo.Domain,
 		ServersMap: serversRepo.ServersMap,
 		PrimaryServer: serversRepo.PrimaryServer,
 	}
@@ -25,6 +29,6 @@ func NewHTTPClientWithEtcd(serversRepo *EtcdServersRepo) (client *HttpClient) {
 	return
 }
 
-func newHTTPClientWithEtcd(serversRepo *EtcdServersRepo) Client {
-	return NewHTTPClientWithEtcd(serversRepo)
+func newTcpClientWithEtcd(serversRepo *EtcdServersRepo) hprose.Client {
+	return NewTcpClientWithEtcd(serversRepo)
 }

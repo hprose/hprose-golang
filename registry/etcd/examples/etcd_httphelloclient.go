@@ -20,7 +20,9 @@ import (
 	"reflect"
 
 	"github.com/hprose/hprose-go"
+	"runtime"
 	"time"
+	"github.com/hprose/hprose-go/registry/etcd"
 )
 
 type A struct {
@@ -33,13 +35,14 @@ type Stub struct {
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	hprose.ClassManager.Register(reflect.TypeOf(A{}), "A", "json")
 
-	domain := "ws.hello.server"
+	domain := "http.hello.server"
 	etcdEndpoints :=[]string{"http://127.0.0.1:2379"}
-	client := hprose.NewClientWithEtcd(domain,etcdEndpoints) //Used for Clustering model...
+	client := etcd.NewClient(domain,etcdEndpoints) //Used for Clustering model...
 
-	//client := hprose.NewClient("ws://127.0.0.1:8080/")
+	//client := hprose.NewClient("http://127.0.0.1:8080/")
 	var stub *Stub
 	client.UseService(&stub)
 
@@ -53,5 +56,6 @@ func main() {
 	endTime := time.Now()
 	fmt.Println("Time used: ", endTime.Sub(startTime).Seconds())
 
+	fmt.Println(stub.Hello("world"))
 	stub.GetEmptySlice()
 }

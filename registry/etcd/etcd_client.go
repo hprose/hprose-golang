@@ -12,14 +12,15 @@
  *                                                        *
 \**********************************************************/
 
-package hprose
+package etcd
 
 import (
 	"strings"
 	"net/url"
+	"github.com/hprose/hprose-go"
 )
 
-var clientWithEtcdFactories = make(map[string]func(*EtcdServersRepo) Client)
+var clientWithEtcdFactories = make(map[string]func(*EtcdServersRepo) hprose.Client)
 
 func init() {
 	RegisterClientWithEtcdFactory("tcp", newTcpClientWithEtcd)
@@ -35,12 +36,12 @@ func init() {
 
 
 // RegisterClientFactory register client factory
-func RegisterClientWithEtcdFactory(scheme string, newClient func(*EtcdServersRepo) Client) {
+func RegisterClientWithEtcdFactory(scheme string, newClient func(*EtcdServersRepo) hprose.Client) {
 	clientWithEtcdFactories[strings.ToLower(scheme)] = newClient
 }
 
 
-func NewClientWithEtcd(domain string, etcEndpoints []string) Client {
+func NewClient(domain string, etcEndpoints []string) hprose.Client {
 	serversRepo := NewEtcdServersRepo(domain, etcEndpoints)
 	serversRepo.Update()
 

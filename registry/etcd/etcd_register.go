@@ -12,7 +12,7 @@
  *                                                        *
 \**********************************************************/
 
-package hprose
+package etcd
 
 import (
 	"runtime"
@@ -22,11 +22,13 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"crypto/md5"
+	"encoding/hex"
 
 	"golang.org/x/net/context"
 	etcd "github.com/coreos/etcd/client"
-	"fmt"
-	"crypto/rand"
+
+//"crypto/rand"*
 )
 
 type EtcdRegister struct {
@@ -62,7 +64,7 @@ func GetLocalIP() string {
 	return ""
 }
 
-func EtcdRegisterServer(domain, serverUrl string, etcEndpoints []string) {
+func RegisterServer(domain, serverUrl string, etcEndpoints []string) {
 	etcdCfg := etcd.Config{
 		Endpoints:               etcEndpoints,
 		Transport:               etcd.DefaultTransport,
@@ -75,7 +77,7 @@ func EtcdRegisterServer(domain, serverUrl string, etcEndpoints []string) {
 	}
 
 	e := &EtcdRegister{
-		UUID: uuid(),
+		UUID: uuid(serverUrl),
 		Domain: domain,
 		ServerUrl: serverUrl,
 		KeysAPI: etcd.NewKeysAPI(etcdClient),
@@ -120,10 +122,14 @@ func (e *EtcdRegister) updateHB() {
 	}
 }
 
-func uuid() string {
-	b := make([]byte, 16)
-	rand.Read(b)
-	b[6] = (b[6] & 0x0f) | 0x40
-	b[8] = (b[8] & 0x3f) | 0x80
-	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+func uuid(serverUrl string) string {
+	md5Ctx := md5.New()
+	md5Ctx.Write([]byte(serverUrl))
+	cipherStr := md5Ctx.Sum(nil)
+	return hex.EncodeToString(cipherStr)
+	/*	b := make([]byte, 16)
+		rand.Read(b)
+		b[6] = (b[6] & 0x0f) | 0x40
+		b[8] = (b[8] & 0x3f) | 0x80
+		return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])*/
 }

@@ -29,13 +29,13 @@ https://coreos.com/etcd/
 ##通过样例测试SOA特性
 启动样例服务器: hello tcp server
 ```sh
-cd examples
+cd registry/etcd/examples
 go run etcd_tcphelloserver.go
 ```
 
 启动样例客户端: hello tcp client
 ```sh
-cd examples
+cd registry/etcd/examples
 go run etcd_tcphelloclient.go
 ```
 
@@ -64,7 +64,7 @@ func main() {
      * 与此同时，监听此服务域domain的客户端将会自动剔除此失效的服务器
      * 服务客户端会维持一份最新有效的服务器列表。    
      */
-	hprose.EtcdRegisterServer(domain,tcpEndpoint,etcdEndpoints)
+	etcd.RegisterServer(domain,tcpEndpoint,etcdEndpoints)
 
 	server := hprose.NewTcpServer(tcpEndpoint)
 	server.AddFunction("hello", hello)
@@ -94,12 +94,12 @@ func main() {
 	etcdEndpoints :=[]string{"http://127.0.0.1:2379"}
 
     /**
-     * NewClientWithEtcd 方法将会自动产生hprose代理客户端，
+     * etcd.NewClient 方法将会自动产生hprose代理客户端，
      * 此客户端中将会在服务调用过程中自动注入etcd 服务自动发现逻辑。
      * 此服务发现逻辑将会在客户端服务调用过程中自动更新对应的服务器列表。
      * 此服务发现逻辑可以提供服务请求负载均衡和服务调用的高可用集群特性。
      */
-	client := hprose.NewClientWithEtcd(domain,etcdEndpoints) 
+	client := etcd.NewClient(domain,etcdEndpoints) 
 
 	var stub *Stub
 	client.UseService(&stub)

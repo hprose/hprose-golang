@@ -29,13 +29,13 @@ Run the etcd command to start etcd standalone testing instance.
 ## Test the SOA feature through sample code
 Start the sample: hello tcp server
 ```sh
-cd examples
+cd registry/etcd/examples
 go run etcd_tcphelloserver.go
 ```
 
 Start the testing client: hello tcp client
 ```sh
-cd examples
+cd registry/etcd/examples
 go run etcd_tcphelloclient.go
 ```
 
@@ -64,7 +64,7 @@ func main() {
      * from registry and clients listened to this domain will be updated.
      * Services client will keep last updated server list.    
      */
-	hprose.EtcdRegisterServer(domain,tcpEndpoint,etcdEndpoints)
+	etcd.RegisterServer(domain,tcpEndpoint,etcdEndpoints)
 
 	server := hprose.NewTcpServer(tcpEndpoint)
 	server.AddFunction("hello", hello)
@@ -94,12 +94,12 @@ func main() {
 	etcdEndpoints :=[]string{"http://127.0.0.1:2379"}
 
     /**
-     * NewClientWithEtcd method will generate hprose client 
+     * etcd.NewClient method will generate hprose client 
      * which will inject the etcd discovery logic during service invocation.
      * And discovery logic will keep the last updated service list for the service invoked.
      * Logic will provide services load balance and high avaialbe clustering features.
      */
-	client := hprose.NewClientWithEtcd(domain,etcdEndpoints) //Used for Clustering model...
+	client := etcd.NewClient(domain,etcdEndpoints) //Used for Clustering model...
 
 	var stub *Stub
 	client.UseService(&stub)
