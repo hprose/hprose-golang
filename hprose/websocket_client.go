@@ -12,7 +12,7 @@
  *                                                        *
  * hprose websocket client for Go.                        *
  *                                                        *
- * LastModified: Mar 31, 2016                             *
+ * LastModified: Jun 24, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -226,11 +226,11 @@ func (trans *webSocketTransporter) recvLoop() {
 		}
 		msgType, data, err = trans.conn.ReadMessage()
 		if err != nil {
+			trans.mutex.RUnlock()
 			trans.mutex.Lock()
 			trans.conn.Close()
 			trans.conn = nil
 			trans.mutex.Unlock()
-			trans.mutex.RUnlock()
 			break
 		}
 		trans.mutex.RUnlock()
@@ -246,8 +246,8 @@ func (trans *webSocketTransporter) recvLoop() {
 
 func (trans *webSocketTransporter) getConn(uri string) (err error) {
 	trans.mutex.RLock()
-	defer trans.mutex.RUnlock()
 	if trans.conn == nil {
+		trans.mutex.RUnlock()
 		trans.mutex.Lock()
 		trans.conn, _, err = trans.dialer.Dial(uri, *trans.header)
 		trans.mutex.Unlock()
@@ -261,6 +261,8 @@ func (trans *webSocketTransporter) getConn(uri string) (err error) {
 		go trans.resultLoop()
 		go trans.sendLoop()
 		go trans.recvLoop()
+	} else {
+		trans.mutex.RUnlock()
 	}
 	return nil
 }
