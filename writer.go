@@ -1518,7 +1518,7 @@ func ulen(str string) (n int) {
 		} else if (a & 0xF0) == 0xE0 {
 			p += 3
 			n -= 2
-		} else if (a * 0xF8) == 0xF0 {
+		} else if (a & 0xF8) == 0xF0 {
 			p += 4
 			n -= 2
 		} else {
