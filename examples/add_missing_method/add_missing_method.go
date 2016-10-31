@@ -9,26 +9,28 @@ import (
 
 // HproseProxy ...
 type HproseProxy struct {
-	client rpc.Client
+	client   rpc.Client
+	settings rpc.InvokeSettings
 }
 
 func newHproseProxy() *HproseProxy {
 	proxy := new(HproseProxy)
 	proxy.client = rpc.NewClient("http://www.hprose.com/example/")
+	proxy.settings = rpc.InvokeSettings{
+		Mode:        rpc.Raw,
+		ResultTypes: []reflect.Type{reflect.TypeOf(([]byte)(nil))},
+	}
 	return proxy
 }
 
-// MissingMethod ...
-func (proxy *HproseProxy) MissingMethod(
+// Proxy ...
+func (proxy *HproseProxy) Proxy(
 	name string, args []reflect.Value, context rpc.Context) ([]reflect.Value, error) {
-	return proxy.client.Invoke(name, args, &rpc.InvokeSettings{
-		Mode:        rpc.Raw,
-		ResultTypes: []reflect.Type{reflect.TypeOf(([]byte)(nil))},
-	})
+	return proxy.client.Invoke(name, args, &proxy.settings)
 }
 
 func main() {
 	service := rpc.NewHTTPService()
-	service.AddMissingMethod(newHproseProxy().MissingMethod, rpc.Options{Mode: rpc.Raw})
+	service.AddMissingMethod(newHproseProxy().Proxy, rpc.Options{Mode: rpc.Raw})
 	http.ListenAndServe(":8080", service)
 }
