@@ -20,15 +20,11 @@ func newHproseProxy() *HproseProxy {
 
 // MissingMethod ...
 func (proxy *HproseProxy) MissingMethod(
-	name string, args []reflect.Value, context rpc.Context) []reflect.Value {
-	result, err := proxy.client.Invoke(name, args, &rpc.InvokeSettings{
+	name string, args []reflect.Value, context rpc.Context) ([]reflect.Value, error) {
+	return proxy.client.Invoke(name, args, &rpc.InvokeSettings{
 		Mode:        rpc.Raw,
-		ResultTypes: []reflect.Type{reflect.TypeOf((*interface{})(nil)).Elem()},
+		ResultTypes: []reflect.Type{reflect.TypeOf(([]byte)(nil))},
 	})
-	if err != nil {
-		panic(err)
-	}
-	return result
 }
 
 func main() {

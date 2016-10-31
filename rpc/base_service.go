@@ -12,7 +12,7 @@
  *                                                        *
  * hprose base service for Go.                            *
  *                                                        *
- * LastModified: Oct 29, 2016                             *
+ * LastModified: Oct 31, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -194,7 +194,7 @@ func callService(
 	function := remoteMethod.Function
 	if context.IsMissingMethod() {
 		missingMethod := function.Interface().(MissingMethod)
-		return missingMethod(name, args, context), nil
+		return missingMethod(name, args, context)
 	}
 	ft := function.Type()
 	if !ft.IsVariadic() {

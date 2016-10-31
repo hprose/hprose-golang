@@ -12,7 +12,7 @@
  *                                                        *
  * hprose method manager for Go.                          *
  *                                                        *
- * LastModified: Oct 23, 2016                             *
+ * LastModified: Oct 31, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -241,7 +241,7 @@ func (mm *methodManager) AddAllMethods(
 }
 
 // MissingMethod is missing method
-type MissingMethod func(name string, args []reflect.Value, context Context) (result []reflect.Value)
+type MissingMethod func(name string, args []reflect.Value, context Context) (result []reflect.Value, err error)
 
 // AddMissingMethod is used for publishing a method,
 // all methods not explicitly published will be redirected to this method.
