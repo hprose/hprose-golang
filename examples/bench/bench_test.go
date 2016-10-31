@@ -1,14 +1,11 @@
 package bench
 
 import (
-	//"fmt"
-
 	"net"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 	"testing"
 
-	"github.com/hprose/hprose-go"
 	hproserpc "github.com/hprose/hprose-golang/rpc"
 )
 
@@ -41,44 +38,6 @@ func BenchmarkHprose2Unix(b *testing.B) {
 	client.UseService(&ro)
 	defer server.Close()
 	defer client.Close()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		ro.Hello("World")
-	}
-	b.StopTimer()
-}
-
-// BenchmarkHprose is ...
-func BenchmarkHprose(b *testing.B) {
-	b.StopTimer()
-	server := hprose.NewTcpServer("")
-	server.AddFunction("hello", hello)
-	server.Handle()
-	client := hprose.NewClient(server.URL)
-	var ro *RO
-	client.UseService(&ro)
-	defer server.Stop()
-	// result, _ := ro.Hello("World")
-	// fmt.Println(result)
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		ro.Hello("World")
-	}
-	b.StopTimer()
-}
-
-// BenchmarkHproseUnix is ...
-func BenchmarkHproseUnix(b *testing.B) {
-	b.StopTimer()
-	server := hprose.NewUnixServer("")
-	server.AddFunction("hello", hello)
-	server.Handle()
-	client := hprose.NewClient(server.URL)
-	var ro *RO
-	client.UseService(&ro)
-	defer server.Stop()
-	// result, _ := ro.Hello("World")
-	// fmt.Println(result)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		ro.Hello("World")

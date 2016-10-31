@@ -1,15 +1,12 @@
 package bench
 
 import (
-	//"fmt"
-
 	"net"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 	"runtime"
 	"testing"
 
-	"github.com/hprose/hprose-go"
 	hproserpc "github.com/hprose/hprose-golang/rpc"
 )
 
@@ -44,44 +41,6 @@ func BenchmarkParallelHprose2Unix(b *testing.B) {
 	client.UseService(&ro)
 	defer server.Close()
 	defer client.Close()
-	b.StartTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			ro.Hello("World")
-		}
-	})
-	b.StopTimer()
-}
-
-// BenchmarkParallelHprose is ...
-func BenchmarkParallelHprose(b *testing.B) {
-	b.StopTimer()
-	server := hprose.NewTcpServer("")
-	server.AddFunction("hello", hello)
-	server.Handle()
-	client := hprose.NewClient(server.URL)
-	var ro *RO
-	client.UseService(&ro)
-	defer server.Stop()
-	b.StartTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			ro.Hello("World")
-		}
-	})
-	b.StopTimer()
-}
-
-// BenchmarkParallelHproseUnix is ...
-func BenchmarkParallelHproseUnix(b *testing.B) {
-	b.StopTimer()
-	server := hprose.NewUnixServer("")
-	server.AddFunction("hello", hello)
-	server.Handle()
-	client := hprose.NewClient(server.URL)
-	var ro *RO
-	client.UseService(&ro)
-	defer server.Stop()
 	b.StartTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
