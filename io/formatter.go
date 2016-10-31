@@ -8,107 +8,54 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * hprose/formatter.go                                    *
+ * io/formatter.go                                        *
  *                                                        *
- * hprose Formatter for Go.                               *
+ * io Formatter for Go.                                   *
  *                                                        *
- * LastModified: May 24, 2015                             *
+ * LastModified: Oct 13, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-package hprose
+package io
 
-import (
-	"bytes"
-	"io"
-	"unicode/utf8"
-)
+import "sync"
 
-// BytesReader is a bytes reader
-type BytesReader struct {
-	Bytes []byte
-	Pos   int
+var readerPool = sync.Pool{
+	New: func() interface{} { return new(Reader) },
 }
 
-// NewBytesReader is the constructor of BytesReader
-func NewBytesReader(b []byte) (reader *BytesReader) {
-	reader = new(BytesReader)
-	reader.Bytes = b
+func acquireReader(buf []byte, simple bool) (reader *Reader) {
+	reader = readerPool.Get().(*Reader)
+	reader.Init(buf)
+	reader.Simple = simple
 	return
 }
 
-// Read bytes from BytesReader
-func (r *BytesReader) Read(b []byte) (n int, err error) {
-	if len(b) == 0 {
-		return 0, nil
-	}
-	if r.Pos >= len(r.Bytes) {
-		return 0, io.EOF
-	}
-	n = copy(b, r.Bytes[r.Pos:])
-	r.Pos += n
-	return n, nil
-}
-
-// ReadByte from BytesReader
-func (r *BytesReader) ReadByte() (b byte, err error) {
-	if r.Pos >= len(r.Bytes) {
-		return 0, io.EOF
-	}
-	b = r.Bytes[r.Pos]
-	r.Pos++
-	return
-}
-
-// ReadRune from BytesReader
-func (r *BytesReader) ReadRune() (ch rune, size int, err error) {
-	if r.Pos >= len(r.Bytes) {
-		return 0, 0, io.EOF
-	}
-	if c := r.Bytes[r.Pos]; c < utf8.RuneSelf {
-		r.Pos++
-		return rune(c), 1, nil
-	}
-	ch, size = utf8.DecodeRune(r.Bytes[r.Pos:])
-	r.Pos += size
-	return
-}
-
-// ReadString from BytesReader
-func (r *BytesReader) ReadString(delim byte) (line string, err error) {
-	i := bytes.IndexByte(r.Bytes[r.Pos:], delim)
-	end := r.Pos + i + 1
-	if i < 0 {
-		end = len(r.Bytes)
-		err = io.EOF
-	}
-	line = string(r.Bytes[r.Pos:end])
-	r.Pos = end
-	return line, err
+func releaseReader(reader *Reader) {
+	reader.Init(nil)
+	reader.Reset()
+	readerPool.Put(reader)
 }
 
 // Serialize data
-func Serialize(v interface{}, simple bool) ([]byte, error) {
-	buf := new(bytes.Buffer)
-	writer := NewWriter(buf, simple)
-	err := writer.Serialize(v)
-	return buf.Bytes(), err
+func Serialize(v interface{}, simple bool) []byte {
+	return NewWriter(simple).Serialize(v).Bytes()
 }
 
 // Marshal data
-func Marshal(v interface{}) ([]byte, error) {
+func Marshal(v interface{}) []byte {
 	return Serialize(v, true)
 }
 
 // Unserialize data
-func Unserialize(b []byte, p interface{}, simple bool) error {
-	buf := NewBytesReader(b)
-	reader := NewReader(buf, simple)
-	return reader.Unserialize(p)
+func Unserialize(b []byte, p interface{}, simple bool) {
+	reader := acquireReader(b, simple)
+	defer releaseReader(reader)
+	reader.Unserialize(p)
 }
 
 // Unmarshal data
-func Unmarshal(b []byte, p interface{}) error {
-	return Unserialize(b, p, true)
+func Unmarshal(b []byte, p interface{}) {
+	Unserialize(b, p, true)
 }

@@ -8,19 +8,21 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * hprose/tags.go                                         *
+ * io/tags.go                                             *
  *                                                        *
  * hprose tags enum for Go.                               *
  *                                                        *
- * LastModified: Jan 17, 2014                             *
+ * LastModified: Aug 15, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-package hprose
+package io
 
+// Hprose Tags
 const (
-	/* Serialize Tags */
+
+	// Serialize Type
 	TagInteger  byte = 'i'
 	TagLong     byte = 'l'
 	TagDouble   byte = 'd'
@@ -36,13 +38,14 @@ const (
 	TagBytes    byte = 'b'
 	TagUTF8Char byte = 'u'
 	TagString   byte = 's'
-	TagGuid     byte = 'g'
+	TagGUID     byte = 'g'
 	TagList     byte = 'a'
 	TagMap      byte = 'm'
 	TagClass    byte = 'c'
 	TagObject   byte = 'o'
 	TagRef      byte = 'r'
-	/* Serialize Marks */
+
+	// Serialize Marks
 	TagPos        byte = '+'
 	TagNeg        byte = '-'
 	TagSemicolon  byte = ';'
@@ -50,7 +53,8 @@ const (
 	TagClosebrace byte = '}'
 	TagQuote      byte = '"'
 	TagPoint      byte = '.'
-	/* Protocol Tags */
+
+	// Protocol Tags
 	TagFunctions byte = 'F'
 	TagCall      byte = 'C'
 	TagResult    byte = 'R'

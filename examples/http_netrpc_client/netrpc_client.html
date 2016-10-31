@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>hprose</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="hprose.js"></script>
+  </head>
+  <body>
+    <script type="text/javascript">
+		// The method name is case-insensitive
+		var methods = ['multiply', 'divide'];
+		var client = hprose.Client.create('http://127.0.0.1:8080/', methods);
+		// The first letter of the field name is convert to lowercase.
+		client.multiply({a:8, b:7}).then(function(product) {
+			return client.divide({a:product, b:6});
+		}).then(function(quotient) {
+			// The first letter of the field name is convert to lowercase.
+			console.log(quotient.quo, quotient.rem);
+		}).catch(function(err) {
+			// The returned err is here
+			console.error(err);
+		});
+    </script>
+  </body>
+</html>
