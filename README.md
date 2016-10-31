@@ -436,7 +436,7 @@ func hello(name string) string {
 }
 
 type HelloService struct {
-	Hello func(string) (string, error) `simple:"true"
+	Hello func(string) (string, error) `simple:"true"`
 }
 
 func main() {
