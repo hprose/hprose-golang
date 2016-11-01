@@ -30,6 +30,12 @@
 		- [Field Alias of Custom Struct](#field-alias-of-custom-struct)
     - **[Hprose Proxy](#hprose-proxy)**
     - **[Simple Mode](#simple-mode)**
+    - **[WebSocket Server & Client](#websocket-server--client)**
+        - [WebSocket Server](#websocket-server)
+        - [WebSocket Client](#websocket-client)
+    - **[Unix Socket Server & Client](#unix-socket-server--client)**
+        - [Unix Socket Server](#unix-socket-server)
+        - [Unix Socket Client](#unix-socket-client)
 - **[Benchmark](#benchmark)**
 
 >---
@@ -102,7 +108,7 @@ func main() {
 package main
 
 import (
-	"github.com/hprose/hprose-golang/rpc"
+	rpc "github.com/hprose/hprose-golang/rpc/fasthttp"
 	"github.com/valyala/fasthttp"
 )
 
@@ -194,7 +200,7 @@ func main() {
 package main
 
 import (
-	"github.com/hprose/hprose-golang/rpc"
+	rpc "github.com/hprose/hprose-golang/rpc/fasthttp"
 	"github.com/kataras/iris"
 )
 
@@ -472,6 +478,102 @@ func main() {
 	fmt.Println(helloService.Hello("World"))
 	client.Close()
 	server.Close()
+}
+```
+
+### WebSocket Server & Client
+
+#### WebSocket Server
+
+```go
+package main
+
+import (
+	"net/http"
+	"runtime"
+
+	rpc "github.com/hprose/hprose-golang/rpc/websocket"
+)
+
+func hello(name string) string {
+	return "Hello " + name + "!"
+}
+
+func main() {
+	service := rpc.NewWebSocketService()
+	service.AddFunction("hello", hello)
+	http.ListenAndServe(":8080", service)
+}
+```
+
+#### WebSocket Client
+
+```go
+package main
+
+import (
+	"fmt"
+
+	rpc "github.com/hprose/hprose-golang/rpc/websocket"
+)
+
+type HelloService struct {
+    Hello func(string) (string, error)
+}
+
+func main() {
+	client := rpc.NewWebSocketClient("ws://127.0.0.1:8080/")
+	var helloService *HelloService
+	client.UseService(&helloService)
+	fmt.Println(helloService.Hello("world"))
+}
+```
+
+### Unix Socket Server & Client
+
+#### Unix Socket Server
+
+```go
+package main
+
+import (
+	"net/http"
+	"runtime"
+
+	"github.com/hprose/hprose-golang/rpc"
+)
+
+func hello(name string) string {
+	return "Hello " + name + "!"
+}
+
+func main() {
+	server := rpc.NewUnixServer("unix:///tmp/hprose.sock")
+	server.AddFunction("hello", hello)
+	server.Start()
+}
+```
+
+#### Unix Socket Client
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/hprose/hprose-golang/rpc"
+)
+
+type HelloService struct {
+    Hello func(string) (string, error)
+}
+
+func main() {
+	client := rpc.NewUnixClient("unix:///tmp/hprose.sock")
+	var helloService *HelloService
+	client.UseService(&helloService)
+	fmt.Println(helloService.Hello("world"))
 }
 ```
 
