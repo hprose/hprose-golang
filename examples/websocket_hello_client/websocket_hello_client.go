@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hprose/hprose-golang/rpc"
+	rpc "github.com/hprose/hprose-golang/rpc/websocket"
 )
 
 // Stub is ...
@@ -16,7 +16,7 @@ type Stub struct {
 
 func main() {
 	client := rpc.NewWebSocketClient("ws://127.0.0.1:8080/")
-	client.MaxConcurrentRequests = 128
+	client.SetMaxConcurrentRequests(128)
 	var stub *Stub
 	client.UseService(&stub)
 	stub.AsyncHello(func(result string, err error) {

@@ -12,7 +12,7 @@
  *                                                        *
  * hprose socket client for Go.                           *
  *                                                        *
- * LastModified: Oct 21, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,7 +37,7 @@ type socketTransport interface {
 
 // SocketClient is base struct for TCPClient and UnixClient
 type SocketClient struct {
-	baseClient
+	BaseClient
 	socketTransport
 	ReadBuffer  int
 	WriteBuffer int
@@ -45,7 +45,7 @@ type SocketClient struct {
 }
 
 func (client *SocketClient) initSocketClient() {
-	client.initBaseClient()
+	client.InitBaseClient()
 	client.socketTransport = newHalfDuplexSocketTransport()
 	client.ReadBuffer = 0
 	client.WriteBuffer = 0

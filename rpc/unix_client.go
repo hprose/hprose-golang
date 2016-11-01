@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unx client for Go.                              *
  *                                                        *
- * LastModified: Oct 11, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -45,8 +45,8 @@ func newUnixClient(uri ...string) Client {
 
 // SetURIList set a list of server addresses
 func (client *UnixClient) SetURIList(uriList []string) {
-	checkAddresses(uriList, unixSchemes)
-	client.baseClient.SetURIList(uriList)
+	CheckAddresses(uriList, unixSchemes)
+	client.BaseClient.SetURIList(uriList)
 }
 
 func (client *UnixClient) createUnixConn() net.Conn {

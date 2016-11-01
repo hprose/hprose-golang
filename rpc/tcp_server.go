@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp server for Go.                              *
  *                                                        *
- * LastModified: Oct 2, 2016                              *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -47,7 +47,7 @@ func NewTCPServer(uri string) (server *TCPServer) {
 // URI return the real address of this server
 func (server *TCPServer) URI() string {
 	if server.listener == nil {
-		panic(errServerIsNotStarted)
+		panic(ErrServerIsNotStarted)
 	}
 	u, err := url.Parse(server.uri)
 	if err != nil {
@@ -59,7 +59,7 @@ func (server *TCPServer) URI() string {
 // Handle the hprose tcp server
 func (server *TCPServer) Handle() (err error) {
 	if server.listener != nil {
-		return errServerIsAlreadyStarted
+		return ErrServerIsAlreadyStarted
 	}
 	u, err := url.Parse(server.uri)
 	if err != nil {

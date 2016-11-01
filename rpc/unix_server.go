@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix server for Go.                             *
  *                                                        *
- * LastModified: Oct 5, 2016                              *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -47,7 +47,7 @@ func NewUnixServer(uri string) (server *UnixServer) {
 // URI return the real address of this server
 func (server *UnixServer) URI() string {
 	if server.listener == nil {
-		panic(errServerIsNotStarted)
+		panic(ErrServerIsNotStarted)
 	}
 	return "unix:" + server.listener.Addr().String()
 }
@@ -55,7 +55,7 @@ func (server *UnixServer) URI() string {
 // Handle the hprose unix server
 func (server *UnixServer) Handle() (err error) {
 	if server.listener != nil {
-		return errServerIsAlreadyStarted
+		return ErrServerIsAlreadyStarted
 	}
 	u, err := url.Parse(server.uri)
 	if err != nil {

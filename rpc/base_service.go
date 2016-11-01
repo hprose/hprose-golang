@@ -12,7 +12,7 @@
  *                                                        *
  * hprose base service for Go.                            *
  *                                                        *
- * LastModified: Oct 31, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,7 +31,8 @@ import (
 	"github.com/hprose/hprose-golang/util"
 )
 
-type baseService struct {
+// BaseService is the hprose base service
+type BaseService struct {
 	methodManager
 	handlerManager
 	filterManager
@@ -46,7 +47,8 @@ type baseService struct {
 	topicLock    sync.RWMutex
 }
 
-func defaultFixArguments(args []reflect.Value, context ServiceContext) {
+// DefaultFixArguments is the default FixArguments function
+func DefaultFixArguments(args []reflect.Value, context ServiceContext) {
 	i := len(args) - 1
 	typ := args[i].Type()
 	if typ == interfaceType || typ == contextType || typ == serviceContextType {
@@ -54,7 +56,8 @@ func defaultFixArguments(args []reflect.Value, context ServiceContext) {
 	}
 }
 
-func (service *baseService) initBaseService() {
+// InitBaseService initializes BaseService
+func (service *BaseService) InitBaseService() {
 	service.initMethodManager()
 	service.initHandlerManager()
 	service.Timeout = 120 * time.Second
@@ -81,31 +84,31 @@ func (service *baseService) initBaseService() {
 // name is the method name
 // function is a func or bound method
 // options includes Mode, Simple, Oneway and NameSpace
-func (service *baseService) AddFunction(name string, function interface{}, option ...Options) Service {
+func (service *BaseService) AddFunction(name string, function interface{}, option ...Options) Service {
 	service.methodManager.AddFunction(name, function, option...)
 	return service
 }
 
 // AddFunctions is used for batch publishing service method
-func (service *baseService) AddFunctions(names []string, functions []interface{}, option ...Options) Service {
+func (service *BaseService) AddFunctions(names []string, functions []interface{}, option ...Options) Service {
 	service.methodManager.AddFunctions(names, functions, option...)
 	return service
 }
 
 // AddMethod is used for publishing a method on the obj with an alias
-func (service *baseService) AddMethod(name string, obj interface{}, alias string, option ...Options) Service {
+func (service *BaseService) AddMethod(name string, obj interface{}, alias string, option ...Options) Service {
 	service.methodManager.AddMethod(name, obj, alias, option...)
 	return service
 }
 
 // AddMethods is used for batch publishing methods on the obj with aliases
-func (service *baseService) AddMethods(names []string, obj interface{}, aliases []string, option ...Options) Service {
+func (service *BaseService) AddMethods(names []string, obj interface{}, aliases []string, option ...Options) Service {
 	service.methodManager.AddMethods(names, obj, aliases, option...)
 	return service
 }
 
 // AddInstanceMethods is used for publishing all the public methods and func fields with options.
-func (service *baseService) AddInstanceMethods(obj interface{}, option ...Options) Service {
+func (service *BaseService) AddInstanceMethods(obj interface{}, option ...Options) Service {
 	service.methodManager.AddInstanceMethods(obj, option...)
 	return service
 }
@@ -114,74 +117,74 @@ func (service *baseService) AddInstanceMethods(obj interface{}, option ...Option
 // obj self and on its anonymous or non-anonymous struct fields (or pointer to
 // pointer ... to pointer struct fields). This is a recursive operation.
 // So it's a pit, if you do not know what you are doing, do not step on.
-func (service *baseService) AddAllMethods(obj interface{}, option ...Options) Service {
+func (service *BaseService) AddAllMethods(obj interface{}, option ...Options) Service {
 	service.methodManager.AddAllMethods(obj, option...)
 	return service
 }
 
 // AddMissingMethod is used for publishing a method,
 // all methods not explicitly published will be redirected to this method.
-func (service *baseService) AddMissingMethod(method MissingMethod, option ...Options) Service {
+func (service *BaseService) AddMissingMethod(method MissingMethod, option ...Options) Service {
 	service.methodManager.AddMissingMethod(method, option...)
 	return service
 }
 
 // AddNetRPCMethods is used for publishing methods defined for net/rpc.
-func (service *baseService) AddNetRPCMethods(rcvr interface{}, option ...Options) Service {
+func (service *BaseService) AddNetRPCMethods(rcvr interface{}, option ...Options) Service {
 	service.methodManager.AddNetRPCMethods(rcvr, option...)
 	return service
 }
 
 // Remove the published func or method by name
-func (service *baseService) Remove(name string) Service {
+func (service *BaseService) Remove(name string) Service {
 	service.methodManager.Remove(name)
 	return service
 }
 
 // SetFilter will replace the current filter settings
-func (service *baseService) SetFilter(filter ...Filter) Service {
+func (service *BaseService) SetFilter(filter ...Filter) Service {
 	service.filterManager.SetFilter(filter...)
 	return service
 }
 
 // AddFilter add the filter to this Service
-func (service *baseService) AddFilter(filter ...Filter) Service {
+func (service *BaseService) AddFilter(filter ...Filter) Service {
 	service.filterManager.AddFilter(filter...)
 	return service
 }
 
 // RemoveFilterByIndex remove the filter by the index
-func (service *baseService) RemoveFilterByIndex(index int) Service {
+func (service *BaseService) RemoveFilterByIndex(index int) Service {
 	service.filterManager.RemoveFilterByIndex(index)
 	return service
 }
 
 // RemoveFilter remove the filter from this Service
-func (service *baseService) RemoveFilter(filter ...Filter) Service {
+func (service *BaseService) RemoveFilter(filter ...Filter) Service {
 	service.filterManager.RemoveFilter(filter...)
 	return service
 }
 
 // AddInvokeHandler add the invoke handler to this Service
-func (service *baseService) AddInvokeHandler(handler ...InvokeHandler) Service {
+func (service *BaseService) AddInvokeHandler(handler ...InvokeHandler) Service {
 	service.handlerManager.AddInvokeHandler(handler...)
 	return service
 }
 
 // AddBeforeFilterHandler add the filter handler before filters
-func (service *baseService) AddBeforeFilterHandler(handler ...FilterHandler) Service {
+func (service *BaseService) AddBeforeFilterHandler(handler ...FilterHandler) Service {
 	service.handlerManager.AddBeforeFilterHandler(handler...)
 	return service
 }
 
 // AddAfterFilterHandler add the filter handler after filters
-func (service *baseService) AddAfterFilterHandler(handler ...FilterHandler) Service {
+func (service *BaseService) AddAfterFilterHandler(handler ...FilterHandler) Service {
 	service.handlerManager.AddAfterFilterHandler(handler...)
 	return service
 }
 
 // SetUserData for service
-func (service *baseService) SetUserData(
+func (service *BaseService) SetUserData(
 	userdata map[string]interface{}) Service {
 	service.UserData = userdata
 	return service
@@ -260,7 +263,8 @@ func getErrorMessage(err error, debug bool) string {
 	return err.Error()
 }
 
-func fireErrorEvent(event ServiceEvent, e error, context Context) (err error) {
+// FireErrorEvent fires the OnSendError
+func FireErrorEvent(event ServiceEvent, e error, context Context) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = NewPanicError(e)
@@ -315,15 +319,16 @@ func fireAfterInvokeEvent(
 	return err
 }
 
-func (service *baseService) sendError(err error, context Context) []byte {
-	err = fireErrorEvent(service.Event, err, context)
+func (service *BaseService) sendError(err error, context Context) []byte {
+	err = FireErrorEvent(service.Event, err, context)
 	w := io.NewWriter(true)
 	w.WriteByte(io.TagError)
 	w.WriteString(getErrorMessage(err, service.Debug))
 	return w.Bytes()
 }
 
-func (service *baseService) endError(err error, context Context) []byte {
+// EndError return the error response with TagEnd
+func (service *BaseService) EndError(err error, context Context) []byte {
 	w := io.NewByteWriter(service.sendError(err, context))
 	w.WriteByte(io.TagEnd)
 	return w.Bytes()
@@ -388,7 +393,7 @@ func readArguments(
 	return
 }
 
-func (service *baseService) beforeInvoke(
+func (service *BaseService) beforeInvoke(
 	name string,
 	args []reflect.Value,
 	context ServiceContext) ([]byte, error) {
@@ -421,7 +426,7 @@ func mergeResult(results [][]byte) []byte {
 	return writer.Bytes()
 }
 
-func (service *baseService) doSingleInvoke(
+func (service *BaseService) doSingleInvoke(
 	reader *io.Reader, context ServiceContext) (result []byte, tag byte) {
 	name := reader.ReadString()
 	alias := strings.ToLower(name)
@@ -449,7 +454,7 @@ func (service *baseService) doSingleInvoke(
 	return result, tag
 }
 
-func (service *baseService) doInvoke(
+func (service *BaseService) doInvoke(
 	reader *io.Reader,
 	context ServiceContext) []byte {
 	var results [][]byte
@@ -464,7 +469,8 @@ func (service *baseService) doInvoke(
 	return mergeResult(results)
 }
 
-func (service *baseService) doFunctionList(context ServiceContext) []byte {
+// DoFunctionList returns the function list
+func (service *BaseService) DoFunctionList(context ServiceContext) []byte {
 	writer := io.NewWriter(true)
 	writer.WriteByte(io.TagFunctions)
 	writer.WriteStringSlice(service.MethodNames)
@@ -472,7 +478,7 @@ func (service *baseService) doFunctionList(context ServiceContext) []byte {
 	return writer.Bytes()
 }
 
-func (service *baseService) afterFilter(
+func (service *BaseService) afterFilter(
 	request []byte, context ServiceContext) ([]byte, error) {
 	reader := defaultReaderPool.acquireReader(request)
 	defer defaultReaderPool.releaseReader(reader)
@@ -485,22 +491,22 @@ func (service *baseService) afterFilter(
 	case io.TagCall:
 		return service.doInvoke(reader, context), nil
 	case io.TagEnd:
-		return service.doFunctionList(context), nil
+		return service.DoFunctionList(context), nil
 	default:
 		return nil, fmt.Errorf("Wrong Request: \r\n%s", request)
 	}
 }
 
-func (service *baseService) delayError(
+func (service *BaseService) delayError(
 	err error, context ServiceContext) []byte {
-	response := service.endError(err, context)
+	response := service.EndError(err, context)
 	if service.ErrorDelay > 0 {
 		time.Sleep(service.ErrorDelay)
 	}
 	return response
 }
 
-func (service *baseService) beforeFilter(
+func (service *BaseService) beforeFilter(
 	request []byte, context ServiceContext) (response []byte, err error) {
 	request = service.inputFilter(request, context)
 	response, err = service.afterFilterHandler(request, context)
@@ -511,7 +517,7 @@ func (service *baseService) beforeFilter(
 }
 
 // Handle the hprose request and return the hprose response
-func (service *baseService) Handle(request []byte, context Context) []byte {
+func (service *BaseService) Handle(request []byte, context Context) []byte {
 	if service.UserData != nil {
 		for k, v := range service.UserData {
 			context.SetInterface(k, v)
@@ -519,7 +525,7 @@ func (service *baseService) Handle(request []byte, context Context) []byte {
 	}
 	response, err := service.beforeFilterHandler(request, context)
 	if err != nil {
-		return service.endError(err, context)
+		return service.EndError(err, context)
 	}
 	return response
 }
@@ -527,7 +533,7 @@ func (service *baseService) Handle(request []byte, context Context) []byte {
 func fireSubscribeEvent(
 	topic string,
 	id string,
-	service *baseService) {
+	service *BaseService) {
 	defer func() {
 		recover()
 	}()
@@ -539,7 +545,7 @@ func fireSubscribeEvent(
 func fireUnsubscribeEvent(
 	topic string,
 	id string,
-	service *baseService) {
+	service *BaseService) {
 	defer func() {
 		recover()
 	}()
@@ -548,7 +554,7 @@ func fireUnsubscribeEvent(
 	}
 }
 
-func (service *baseService) offline(t *topic, topic string, id string) {
+func (service *BaseService) offline(t *topic, topic string, id string) {
 	if t.exist(id) {
 		t.remove(id)
 		fireUnsubscribeEvent(topic, id, service)
@@ -556,7 +562,7 @@ func (service *baseService) offline(t *topic, topic string, id string) {
 }
 
 // Publish the hprose push topic
-func (service *baseService) Publish(
+func (service *BaseService) Publish(
 	topic string,
 	timeout time.Duration,
 	heartbeat time.Duration) Service {
@@ -587,7 +593,7 @@ func (service *baseService) Publish(
 	}, Options{})
 }
 
-func (service *baseService) getTopic(topic string) (t *topic) {
+func (service *BaseService) getTopic(topic string) (t *topic) {
 	service.topicLock.RLock()
 	t = service.topics[topic]
 	service.topicLock.RUnlock()
@@ -597,7 +603,7 @@ func (service *baseService) getTopic(topic string) (t *topic) {
 	return
 }
 
-func (service *baseService) unicast(
+func (service *BaseService) unicast(
 	t *topic, topic string, id string, result interface{}, callback func(bool)) {
 	message := t.get(id)
 	if message == nil {
@@ -623,17 +629,17 @@ func (service *baseService) unicast(
 }
 
 // IDList returns the push client id list
-func (service *baseService) IDList(topic string) []string {
+func (service *BaseService) IDList(topic string) []string {
 	return service.getTopic(topic).idlist()
 }
 
 // Exist returns true if the client id exist.
-func (service *baseService) Exist(topic string, id string) bool {
+func (service *BaseService) Exist(topic string, id string) bool {
 	return service.getTopic(topic).exist(id)
 }
 
 // Push result to clients
-func (service *baseService) Push(topic string, result interface{}, id ...string) {
+func (service *BaseService) Push(topic string, result interface{}, id ...string) {
 	t := service.getTopic(topic)
 	n := len(id)
 	if n == 0 {
@@ -649,13 +655,13 @@ func (service *baseService) Push(topic string, result interface{}, id ...string)
 }
 
 // Broadcast push result to all clients
-func (service *baseService) Broadcast(
+func (service *BaseService) Broadcast(
 	topic string, result interface{}, callback func([]string)) {
 	service.Multicast(topic, service.IDList(topic), result, callback)
 }
 
 // Multicast result to the specified clients
-func (service *baseService) Multicast(
+func (service *BaseService) Multicast(
 	topic string, ids []string, result interface{}, callback func([]string)) {
 	t := service.getTopic(topic)
 	m := 0
@@ -687,7 +693,7 @@ func (service *baseService) Multicast(
 }
 
 // Unicast result to then specified client
-func (service *baseService) Unicast(
+func (service *BaseService) Unicast(
 	topic string, id string, result interface{}, callback func(bool)) {
 	service.unicast(service.getTopic(topic), topic, id, result, callback)
 }

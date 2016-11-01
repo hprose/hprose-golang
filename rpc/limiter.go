@@ -12,7 +12,7 @@
  *                                                        *
  * hprose client requests limiter for Go.                 *
  *                                                        *
- * LastModified: Oct 2, 2016                              *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -21,35 +21,40 @@ package rpc
 
 import "sync"
 
-type limiter struct {
-	cond                  sync.Cond
-	requestCount          int
+// Limiter is a request limiter
+type Limiter struct {
 	MaxConcurrentRequests int
+	requestCount          int
+	sync.Cond
 }
 
-func (limiter *limiter) initLimiter() {
+// InitLimiter initializes Limiter
+func (limiter *Limiter) InitLimiter() {
 	limiter.MaxConcurrentRequests = 10
-	limiter.cond.L = &sync.Mutex{}
+	limiter.L = &sync.Mutex{}
 }
 
-func (limiter *limiter) limit() {
+// Limit the request
+func (limiter *Limiter) Limit() {
 	for {
 		if limiter.requestCount < limiter.MaxConcurrentRequests {
 			break
 		}
-		limiter.cond.Wait()
+		limiter.Wait()
 	}
 	limiter.requestCount++
 }
 
-func (limiter *limiter) unlimit() {
+// Unlimit the request
+func (limiter *Limiter) Unlimit() {
 	limiter.requestCount--
-	limiter.cond.Signal()
+	limiter.Signal()
 }
 
-func (limiter *limiter) reset() {
+// Reset the Limiter
+func (limiter *Limiter) Reset() {
 	limiter.requestCount = 0
 	for i := limiter.MaxConcurrentRequests; i > 0; i-- {
-		limiter.cond.Signal()
+		limiter.Signal()
 	}
 }

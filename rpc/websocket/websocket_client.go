@@ -8,16 +8,16 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * rpc/websocket_client.go                                *
+ * rpc/websocket/websocket_client.go                      *
  *                                                        *
  * hprose websocket client for Go.                        *
  *                                                        *
- * LastModified: Oct 11, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-package rpc
+package websocket
 
 import (
 	"crypto/tls"
@@ -26,17 +26,25 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/hprose/hprose-golang/rpc"
+	"github.com/hprose/hprose-golang/util"
 )
+
+var websocketSchemes = []string{"ws", "wss"}
 
 type reqeust struct {
 	id   uint32
 	data []byte
 }
 
+type socketResponse struct {
+	data []byte
+	err  error
+}
+
 // WebSocketClient is hprose websocket client
 type WebSocketClient struct {
-	baseClient
-	limiter
+	rpc.BaseClient
 	http.Header
 	dialer    websocket.Dialer
 	conn      *websocket.Conn
@@ -44,33 +52,34 @@ type WebSocketClient struct {
 	requests  chan reqeust
 	responses map[uint32]chan socketResponse
 	closed    bool
+	limiter   rpc.Limiter
 }
 
 // NewWebSocketClient is the constructor of WebSocketClient
 func NewWebSocketClient(uri ...string) (client *WebSocketClient) {
 	client = new(WebSocketClient)
-	client.initBaseClient()
-	client.initLimiter()
+	client.InitBaseClient()
+	client.limiter.InitLimiter()
 	client.closed = false
 	client.SetURIList(uri)
 	client.SendAndReceive = client.sendAndReceive
 	return
 }
 
-func newWebSocketClient(uri ...string) Client {
+func newWebSocketClient(uri ...string) rpc.Client {
 	return NewWebSocketClient(uri...)
 }
 
-// SetURIList set a list of server addresses
+// SetURIList sets a list of server addresses
 func (client *WebSocketClient) SetURIList(uriList []string) {
-	if checkAddresses(uriList, websocketSchemes) == "wss" {
+	if rpc.CheckAddresses(uriList, websocketSchemes) == "wss" {
 		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}
-	client.baseClient.SetURIList(uriList)
+	client.BaseClient.SetURIList(uriList)
 }
 
 func (client *WebSocketClient) close(err error) {
-	client.cond.L.Lock()
+	client.limiter.L.Lock()
 	if err != nil && client.responses != nil {
 		for _, response := range client.responses {
 			response <- socketResponse{nil, err}
@@ -81,14 +90,14 @@ func (client *WebSocketClient) close(err error) {
 		client.conn.Close()
 		client.conn = nil
 	}
-	client.reset()
-	client.cond.L.Unlock()
+	client.limiter.Reset()
+	client.limiter.L.Unlock()
 }
 
 // Close the client
 func (client *WebSocketClient) Close() {
 	client.closed = true
-	client.close(errClientIsAlreadyClosed)
+	client.close(rpc.ErrClientIsAlreadyClosed)
 }
 
 // TLSClientConfig returns the tls.Config in hprose client
@@ -99,6 +108,16 @@ func (client *WebSocketClient) TLSClientConfig() *tls.Config {
 // SetTLSClientConfig sets the tls.Config
 func (client *WebSocketClient) SetTLSClientConfig(config *tls.Config) {
 	client.dialer.TLSClientConfig = config
+}
+
+// MaxConcurrentRequests returns max concurrent request count
+func (client *WebSocketClient) MaxConcurrentRequests() int {
+	return client.limiter.MaxConcurrentRequests
+}
+
+// SetMaxConcurrentRequests sets max concurrent request count
+func (client *WebSocketClient) SetMaxConcurrentRequests(value int) {
+	client.limiter.MaxConcurrentRequests = value
 }
 
 func (client *WebSocketClient) sendLoop() {
@@ -122,15 +141,15 @@ func (client *WebSocketClient) recvLoop() {
 			break
 		}
 		if msgType == websocket.BinaryMessage {
-			id := toUint32(data)
-			client.cond.L.Lock()
+			id := util.ToUint32(data)
+			client.limiter.L.Lock()
 			response := client.responses[id]
 			if response != nil {
 				response <- socketResponse{data[4:], nil}
 				delete(client.responses, id)
 			}
-			client.unlimit()
-			client.cond.L.Unlock()
+			client.limiter.Unlimit()
+			client.limiter.L.Unlock()
 		}
 	}
 	close(client.requests)
@@ -142,7 +161,7 @@ func (client *WebSocketClient) getConn(uri string) (err error) {
 		if err != nil {
 			return err
 		}
-		count := client.MaxConcurrentRequests
+		count := client.limiter.MaxConcurrentRequests
 		client.requests = make(chan reqeust, count)
 		client.responses = make(map[uint32]chan socketResponse, count)
 		go client.sendLoop()
@@ -152,33 +171,38 @@ func (client *WebSocketClient) getConn(uri string) (err error) {
 }
 
 func (client *WebSocketClient) sendAndReceive(
-	data []byte, context *ClientContext) ([]byte, error) {
+	data []byte, context *rpc.ClientContext) ([]byte, error) {
 	id := atomic.AddUint32(&client.nextid, 1)
 	buf := make([]byte, len(data)+4)
-	fromUint32(buf, id)
+	util.FromUint32(buf, id)
 	copy(buf[4:], data)
 	response := make(chan socketResponse)
-	client.cond.L.Lock()
-	client.limit()
+	client.limiter.L.Lock()
+	client.limiter.Limit()
 	if client.closed {
-		client.cond.L.Unlock()
-		return nil, errClientIsAlreadyClosed
+		client.limiter.L.Unlock()
+		return nil, rpc.ErrClientIsAlreadyClosed
 	}
-	if err := client.getConn(client.uri); err != nil {
-		client.cond.L.Unlock()
+	if err := client.getConn(client.URI()); err != nil {
+		client.limiter.L.Unlock()
 		return nil, err
 	}
 	client.responses[id] = response
-	client.cond.L.Unlock()
+	client.limiter.L.Unlock()
 	client.requests <- reqeust{id, buf}
 	select {
 	case resp := <-response:
 		return resp.data, resp.err
 	case <-time.After(context.Timeout):
-		client.cond.L.Lock()
+		client.limiter.L.Lock()
 		delete(client.responses, id)
-		client.unlimit()
-		client.cond.L.Unlock()
-		return nil, ErrTimeout
+		client.limiter.Unlimit()
+		client.limiter.L.Unlock()
+		return nil, rpc.ErrTimeout
 	}
+}
+
+func init() {
+	rpc.RegisterClientFactory("ws", newWebSocketClient)
+	rpc.RegisterClientFactory("wss", newWebSocketClient)
 }

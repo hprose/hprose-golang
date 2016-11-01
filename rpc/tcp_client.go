@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Oct 11, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -53,8 +53,8 @@ func newTCPClient(uri ...string) Client {
 
 // SetURIList set a list of server addresses
 func (client *TCPClient) SetURIList(uriList []string) {
-	checkAddresses(uriList, tcpSchemes)
-	client.baseClient.SetURIList(uriList)
+	CheckAddresses(uriList, tcpSchemes)
+	client.BaseClient.SetURIList(uriList)
 }
 
 func (client *TCPClient) createTCPConn() net.Conn {

@@ -8,11 +8,11 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * rpc/client_filter.go                                   *
+ * rpc/filter/jsonrpc/client_filter.go                    *
  *                                                        *
- * hprose client filter for Go.                           *
+ * hprose jsonrpc client filter for Go.                   *
  *                                                        *
- * LastModified: Oct 27, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/

@@ -12,7 +12,7 @@
  *                                                        *
  * hprose service context for Go.                         *
  *                                                        *
- * LastModified: Oct 6, 2016                              *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -32,50 +32,57 @@ type ServiceContext interface {
 	setByRef(value bool)
 }
 
-type serviceContext struct {
-	baseContext
+// BaseServiceContext is the base service context
+type BaseServiceContext struct {
+	BaseContext
 	method          *Method
 	service         Service
 	isMissingMethod bool
 	byRef           bool
 }
 
-func (context *serviceContext) initServiceContext(service Service) {
-	context.initBaseContext()
+// InitServiceContext initializes BaseServiceContext
+func (context *BaseServiceContext) InitServiceContext(service Service) {
+	context.InitBaseContext()
 	context.service = service
 	context.method = nil
 	context.isMissingMethod = false
 	context.byRef = false
 }
 
-func (context *serviceContext) Method() *Method {
+// Method returns the method of current invoking
+func (context *BaseServiceContext) Method() *Method {
 	return context.method
 }
 
-func (context *serviceContext) Service() Service {
+// Service returns the Service interface
+func (context *BaseServiceContext) Service() Service {
 	return context.service
 }
 
-func (context *serviceContext) Clients() Clients {
+// Clients returns the Clients interface
+func (context *BaseServiceContext) Clients() Clients {
 	return context.service
 }
 
-func (context *serviceContext) IsMissingMethod() bool {
+// IsMissingMethod returns whether the current invoking is missing method
+func (context *BaseServiceContext) IsMissingMethod() bool {
 	return context.isMissingMethod
 }
 
-func (context *serviceContext) ByRef() bool {
+// ByRef returns whether the current invoking is parameter passing by reference.
+func (context *BaseServiceContext) ByRef() bool {
 	return context.byRef
 }
 
-func (context *serviceContext) setMethod(method *Method) {
+func (context *BaseServiceContext) setMethod(method *Method) {
 	context.method = method
 }
 
-func (context *serviceContext) setIsMissingMethod(value bool) {
+func (context *BaseServiceContext) setIsMissingMethod(value bool) {
 	context.isMissingMethod = value
 }
 
-func (context *serviceContext) setByRef(value bool) {
+func (context *BaseServiceContext) setByRef(value bool) {
 	context.byRef = value
 }

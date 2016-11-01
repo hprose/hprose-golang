@@ -12,7 +12,7 @@
  *                                                        *
  * hprose context for Go.                                 *
  *                                                        *
- * LastModified: Oct 11, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -40,21 +40,23 @@ type Context interface {
 	SetInterface(key string, value interface{})
 }
 
-type baseContext struct {
+// BaseContext is the base context
+type BaseContext struct {
 	userData map[string]interface{}
 }
 
-func (context *baseContext) initBaseContext() {
+// InitBaseContext initializes BaseContext
+func (context *BaseContext) InitBaseContext() {
 	context.userData = make(map[string]interface{})
 }
 
 // UserData return the user data
-func (context *baseContext) UserData() map[string]interface{} {
+func (context *BaseContext) UserData() map[string]interface{} {
 	return context.userData
 }
 
 // GetInt from hprose context
-func (context *baseContext) GetInt(
+func (context *BaseContext) GetInt(
 	key string, defaultValue ...int) int {
 	if value, ok := context.userData[key]; ok {
 		if value, ok := value.(int); ok {
@@ -68,7 +70,7 @@ func (context *baseContext) GetInt(
 }
 
 // GetUInt from hprose context
-func (context *baseContext) GetUInt(
+func (context *BaseContext) GetUInt(
 	key string, defaultValue ...uint) uint {
 	if value, ok := context.userData[key]; ok {
 		if value, ok := value.(uint); ok {
@@ -82,7 +84,7 @@ func (context *baseContext) GetUInt(
 }
 
 // GetInt64 from hprose context
-func (context *baseContext) GetInt64(
+func (context *BaseContext) GetInt64(
 	key string, defaultValue ...int64) int64 {
 	if value, ok := context.userData[key]; ok {
 		if value, ok := value.(int64); ok {
@@ -96,7 +98,7 @@ func (context *baseContext) GetInt64(
 }
 
 // GetUInt64 from hprose context
-func (context *baseContext) GetUInt64(
+func (context *BaseContext) GetUInt64(
 	key string, defaultValue ...uint64) uint64 {
 	if value, ok := context.userData[key]; ok {
 		if value, ok := value.(uint64); ok {
@@ -110,7 +112,7 @@ func (context *baseContext) GetUInt64(
 }
 
 // GetFloat from hprose context
-func (context *baseContext) GetFloat(
+func (context *BaseContext) GetFloat(
 	key string, defaultValue ...float64) float64 {
 	if value, ok := context.userData[key]; ok {
 		if value, ok := value.(float64); ok {
@@ -124,7 +126,7 @@ func (context *baseContext) GetFloat(
 }
 
 // GetBool from hprose context
-func (context *baseContext) GetBool(
+func (context *BaseContext) GetBool(
 	key string, defaultValue ...bool) bool {
 	if value, ok := context.userData[key]; ok {
 		if value, ok := value.(bool); ok {
@@ -138,7 +140,7 @@ func (context *baseContext) GetBool(
 }
 
 // GetString from hprose context
-func (context *baseContext) GetString(
+func (context *BaseContext) GetString(
 	key string, defaultValue ...string) string {
 	if value, ok := context.userData[key]; ok {
 		if value, ok := value.(string); ok {
@@ -152,7 +154,7 @@ func (context *baseContext) GetString(
 }
 
 // GetInterface from hprose context
-func (context *baseContext) GetInterface(
+func (context *BaseContext) GetInterface(
 	key string, defaultValue ...interface{}) interface{} {
 	if value, ok := context.userData[key]; ok {
 		return value
@@ -164,41 +166,41 @@ func (context *baseContext) GetInterface(
 }
 
 // SetInt to hprose context
-func (context *baseContext) SetInt(key string, value int) {
+func (context *BaseContext) SetInt(key string, value int) {
 	context.userData[key] = value
 }
 
 // SetUInt to hprose context
-func (context *baseContext) SetUInt(key string, value uint) {
+func (context *BaseContext) SetUInt(key string, value uint) {
 	context.userData[key] = value
 }
 
 // SetInt64 to hprose context
-func (context *baseContext) SetInt64(key string, value int64) {
+func (context *BaseContext) SetInt64(key string, value int64) {
 	context.userData[key] = value
 }
 
 // SetUInt64 to hprose context
-func (context *baseContext) SetUInt64(key string, value uint64) {
+func (context *BaseContext) SetUInt64(key string, value uint64) {
 	context.userData[key] = value
 }
 
 // SetFloat to hprose context
-func (context *baseContext) SetFloat(key string, value float64) {
+func (context *BaseContext) SetFloat(key string, value float64) {
 	context.userData[key] = value
 }
 
 // SetBool to hprose context
-func (context *baseContext) SetBool(key string, value bool) {
+func (context *BaseContext) SetBool(key string, value bool) {
 	context.userData[key] = value
 }
 
 // SetString to hprose context
-func (context *baseContext) SetString(key string, value string) {
+func (context *BaseContext) SetString(key string, value string) {
 	context.userData[key] = value
 }
 
 // SetInterface to hprose context
-func (context *baseContext) SetInterface(key string, value interface{}) {
+func (context *BaseContext) SetInterface(key string, value interface{}) {
 	context.userData[key] = value
 }

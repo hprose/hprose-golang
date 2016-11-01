@@ -8,11 +8,11 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * rpc/service_filter.go                                  *
+ * rpc/filter/jsonrpc/service_filter.go                   *
  *                                                        *
- * hprose service filter for Go.                          *
+ * hprose jsonrpc service filter for Go.                  *
  *                                                        *
- * LastModified: Oct 29, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/

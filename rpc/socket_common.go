@@ -12,7 +12,7 @@
  *                                                        *
  * hprose socket common for Go.                           *
  *                                                        *
- * LastModified: Oct 25, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -25,6 +25,7 @@ import (
 	"time"
 
 	hio "github.com/hprose/hprose-golang/io"
+	"github.com/hprose/hprose-golang/util"
 )
 
 type packet struct {
@@ -44,17 +45,6 @@ func ifErrorPanic(err error) {
 	}
 }
 
-func toUint32(b []byte) uint32 {
-	return uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
-}
-
-func fromUint32(b []byte, i uint32) {
-	b[0] = byte(i >> 24)
-	b[1] = byte(i >> 16)
-	b[2] = byte(i >> 8)
-	b[3] = byte(i)
-}
-
 func sendData(writer io.Writer, data packet) (err error) {
 	n := len(data.body)
 	i := 4
@@ -69,14 +59,14 @@ func sendData(writer io.Writer, data packet) (err error) {
 	}
 	buf := hio.AcquireBytes(len)
 	if data.fullDuplex {
-		fromUint32(buf, uint32(n|0x80000000))
+		util.FromUint32(buf, uint32(n|0x80000000))
 		buf[4] = data.id[0]
 		buf[5] = data.id[1]
 		buf[6] = data.id[2]
 		buf[7] = data.id[3]
 		i = 8
 	} else {
-		fromUint32(buf, uint32(n))
+		util.FromUint32(buf, uint32(n))
 	}
 	p := len - i
 	if n <= p {
@@ -100,7 +90,7 @@ func recvData(reader io.Reader, data *packet) (err error) {
 	if _, err = io.ReadAtLeast(reader, header, 4); err != nil {
 		return
 	}
-	size := toUint32(header)
+	size := util.ToUint32(header)
 	data.fullDuplex = (size&0x80000000 != 0)
 	if data.fullDuplex {
 		size &= 0x7FFFFFFF
@@ -132,7 +122,7 @@ func hdSendData(writer io.Writer, data []byte) (err error) {
 		len = 512
 	}
 	buf := hio.AcquireBytes(len)
-	fromUint32(buf, uint32(n))
+	util.FromUint32(buf, uint32(n))
 	p := len - i
 	if n <= p {
 		copy(buf[i:], data)
@@ -155,7 +145,7 @@ func hdRecvData(reader io.Reader, buf []byte) (data []byte, err error) {
 	if _, err = io.ReadAtLeast(reader, header[:], 4); err != nil {
 		return
 	}
-	size := toUint32(header[:])
+	size := util.ToUint32(header[:])
 	if cap(buf) >= int(size) {
 		data = buf[:size]
 	} else {
@@ -176,7 +166,7 @@ func nextTempDelay(
 		if max := 1 * time.Second; tempDelay > max {
 			tempDelay = max
 		}
-		fireErrorEvent(event, err, nil)
+		FireErrorEvent(event, err, nil)
 		time.Sleep(tempDelay)
 		return tempDelay
 	}

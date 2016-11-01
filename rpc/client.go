@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc client for Go.                              *
  *                                                        *
- * LastModified: Oct 27, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -91,7 +91,7 @@ type Client interface {
 
 // ClientContext is the hprose client context
 type ClientContext struct {
-	baseContext
+	BaseContext
 	InvokeSettings
 	Retried int
 	Client  Client
@@ -99,22 +99,16 @@ type ClientContext struct {
 
 // NewClient is the constructor of Client
 func NewClient(uri ...string) Client {
-	return clientFactories[checkAddresses(uri, allSchemes)](uri...)
-}
-
-// UseFastHTTPClient as the default http client
-func UseFastHTTPClient() {
-	registerClientFactory("http", newFastHTTPClient)
-	registerClientFactory("https", newFastHTTPClient)
+	return clientFactories[CheckAddresses(uri, allSchemes)](uri...)
 }
 
 var httpSchemes = []string{"http", "https"}
 var tcpSchemes = []string{"tcp", "tcp4", "tcp6"}
 var unixSchemes = []string{"unix"}
-var websocketSchemes = []string{"ws", "wss"}
 var allSchemes = []string{"http", "https", "tcp", "tcp4", "tcp6", "unix", "ws", "wss"}
 
-func checkAddresses(uriList []string, schemes []string) (scheme string) {
+// CheckAddresses returns the uri scheme if the address is valid.
+func CheckAddresses(uriList []string, schemes []string) (scheme string) {
 	count := len(uriList)
 	if count < 1 {
 		panic(errURIListEmpty)
@@ -141,17 +135,16 @@ func checkAddresses(uriList []string, schemes []string) (scheme string) {
 
 var clientFactories = make(map[string]func(...string) Client)
 
-func registerClientFactory(scheme string, newClient func(...string) Client) {
+// RegisterClientFactory registers the default client factory
+func RegisterClientFactory(scheme string, newClient func(...string) Client) {
 	clientFactories[strings.ToLower(scheme)] = newClient
 }
 
 func init() {
-	registerClientFactory("http", newHTTPClient)
-	registerClientFactory("https", newHTTPClient)
-	registerClientFactory("tcp", newTCPClient)
-	registerClientFactory("tcp4", newTCPClient)
-	registerClientFactory("tcp6", newTCPClient)
-	registerClientFactory("unix", newUnixClient)
-	registerClientFactory("ws", newWebSocketClient)
-	registerClientFactory("wss", newWebSocketClient)
+	RegisterClientFactory("http", newHTTPClient)
+	RegisterClientFactory("https", newHTTPClient)
+	RegisterClientFactory("tcp", newTCPClient)
+	RegisterClientFactory("tcp4", newTCPClient)
+	RegisterClientFactory("tcp6", newTCPClient)
+	RegisterClientFactory("unix", newUnixClient)
 }

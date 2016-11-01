@@ -8,11 +8,11 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * rpc/fasthttp_service.go                                *
+ * rpc/fasthttp/fasthttp_service.go                       *
  *                                                        *
  * hprose fasthttp service for Go.                        *
  *                                                        *
- * LastModified: Oct 9, 2016                              *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -24,25 +24,30 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hprose/hprose-golang/rpc"
 	"github.com/hprose/hprose-golang/util"
 	"github.com/valyala/fasthttp"
 )
 
+var fasthttpContextType = reflect.TypeOf((*FastHTTPContext)(nil))
+var fasthttpRequestCtxType = reflect.TypeOf((*fasthttp.RequestCtx)(nil))
+
 // FastHTTPContext is the hprose fasthttp context
 type FastHTTPContext struct {
-	serviceContext
+	rpc.BaseServiceContext
 	RequestCtx *fasthttp.RequestCtx
 }
 
-func (context *FastHTTPContext) initFastHTTPContext(
-	service Service, ctx *fasthttp.RequestCtx) {
-	context.initServiceContext(service)
+// InitFastHTTPContext initializes FastHTTPContext
+func (context *FastHTTPContext) InitFastHTTPContext(
+	service rpc.Service, ctx *fasthttp.RequestCtx) {
+	context.InitServiceContext(service)
 	context.RequestCtx = ctx
 }
 
 // FastHTTPService is the hprose fasthttp service
 type FastHTTPService struct {
-	baseHTTPService
+	rpc.BaseHTTPService
 	contextPool sync.Pool
 }
 
@@ -54,7 +59,7 @@ type fastSendHeaderEvent2 interface {
 	OnSendHeader(context *FastHTTPContext) error
 }
 
-func fasthttpFixArguments(args []reflect.Value, context ServiceContext) {
+func fasthttpFixArguments(args []reflect.Value, context rpc.ServiceContext) {
 	i := len(args) - 1
 	switch args[i].Type() {
 	case fasthttpContextType:
@@ -66,14 +71,14 @@ func fasthttpFixArguments(args []reflect.Value, context ServiceContext) {
 			args[i] = reflect.ValueOf(c.RequestCtx)
 		}
 	default:
-		defaultFixArguments(args, context)
+		rpc.DefaultFixArguments(args, context)
 	}
 }
 
 // NewFastHTTPService is the constructor of FastHTTPService
 func NewFastHTTPService() (service *FastHTTPService) {
 	service = new(FastHTTPService)
-	service.initBaseHTTPService()
+	service.InitBaseHTTPService()
 	service.contextPool = sync.Pool{
 		New: func() interface{} { return new(FastHTTPContext) },
 	}
@@ -81,7 +86,7 @@ func NewFastHTTPService() (service *FastHTTPService) {
 	return
 }
 
-func (service *FastHTTPService) acquireContext() (context *FastHTTPContext) {
+func (service *FastHTTPService) acquireContext() *FastHTTPContext {
 	return service.contextPool.Get().(*FastHTTPContext)
 }
 
@@ -97,12 +102,12 @@ func (service *FastHTTPService) xmlFileHandler(
 	}
 	ifModifiedSince := util.ByteString(ctx.Request.Header.Peek("if-modified-since"))
 	ifNoneMatch := util.ByteString(ctx.Request.Header.Peek("if-none-match"))
-	if ifModifiedSince == service.lastModified && ifNoneMatch == service.etag {
+	if ifModifiedSince == service.LastModified && ifNoneMatch == service.Etag {
 		ctx.SetStatusCode(304)
 	} else {
 		contentLength := len(context)
-		ctx.Response.Header.Set("Last-Modified", service.lastModified)
-		ctx.Response.Header.Set("Etag", service.etag)
+		ctx.Response.Header.Set("Last-Modified", service.LastModified)
+		ctx.Response.Header.Set("Etag", service.Etag)
 		ctx.Response.Header.SetContentType("text/xml")
 		ctx.Response.Header.Set("Content-Length", util.Itoa(contentLength))
 		ctx.SetBody(context)
@@ -113,14 +118,14 @@ func (service *FastHTTPService) xmlFileHandler(
 func (service *FastHTTPService) crossDomainXMLHandler(
 	ctx *fasthttp.RequestCtx) bool {
 	path := "/crossdomain.xml"
-	context := service.crossDomainXMLContent
+	context := service.CrossDomainXMLContent()
 	return service.xmlFileHandler(ctx, path, context)
 }
 
 func (service *FastHTTPService) clientAccessPolicyXMLHandler(
 	ctx *fasthttp.RequestCtx) bool {
 	path := "/clientaccesspolicy.xml"
-	context := service.clientAccessPolicyXMLContent
+	context := service.ClientAccessPolicyXMLContent()
 	return service.xmlFileHandler(ctx, path, context)
 }
 
@@ -128,7 +133,7 @@ func (service *FastHTTPService) fireSendHeaderEvent(
 	context *FastHTTPContext) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
-			err = NewPanicError(e)
+			err = rpc.NewPanicError(e)
 		}
 	}()
 	switch event := service.Event.(type) {
@@ -156,8 +161,8 @@ func (service *FastHTTPService) sendHeader(
 	if service.CrossDomain {
 		origin := util.ByteString(ctx.Request.Header.Peek("origin"))
 		if origin != "" && origin != "null" {
-			if len(service.accessControlAllowOrigins) == 0 ||
-				service.accessControlAllowOrigins[origin] {
+			if len(service.AccessControlAllowOrigins) == 0 ||
+				service.AccessControlAllowOrigins[origin] {
 				ctx.Response.Header.Set("Access-Control-Allow-Origin", origin)
 				ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
 			}
@@ -175,13 +180,13 @@ func (service *FastHTTPService) ServeFastHTTP(ctx *fasthttp.RequestCtx) {
 		return
 	}
 	context := service.acquireContext()
-	context.initFastHTTPContext(service, ctx)
+	context.InitFastHTTPContext(service, ctx)
 	var resp []byte
 	if err := service.sendHeader(context); err == nil {
 		switch util.ByteString(ctx.Method()) {
 		case "GET":
 			if service.GET {
-				resp = service.doFunctionList(context)
+				resp = service.DoFunctionList(context)
 			} else {
 				ctx.SetStatusCode(403)
 			}
@@ -189,7 +194,7 @@ func (service *FastHTTPService) ServeFastHTTP(ctx *fasthttp.RequestCtx) {
 			resp = service.Handle(ctx.PostBody(), context)
 		}
 	} else {
-		resp = service.endError(err, context)
+		resp = service.EndError(err, context)
 	}
 	context.RequestCtx = nil
 	service.releaseContext(context)

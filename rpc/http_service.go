@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http service for Go.                            *
  *                                                        *
- * LastModified: Oct 9, 2016                              *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -32,23 +32,24 @@ import (
 
 // HTTPContext is the hprose http context
 type HTTPContext struct {
-	serviceContext
+	BaseServiceContext
 	Response http.ResponseWriter
 	Request  *http.Request
 }
 
-func (context *HTTPContext) initHTTPContext(
+// InitHTTPContext initializes HTTPContext
+func (context *HTTPContext) InitHTTPContext(
 	service Service,
 	response http.ResponseWriter,
 	request *http.Request) {
-	context.initServiceContext(service)
+	context.InitServiceContext(service)
 	context.Response = response
 	context.Request = request
 }
 
 // HTTPService is the hprose http service
 type HTTPService struct {
-	baseHTTPService
+	BaseHTTPService
 	contextPool sync.Pool
 }
 
@@ -72,14 +73,14 @@ func httpFixArguments(args []reflect.Value, context ServiceContext) {
 			args[i] = reflect.ValueOf(c.Request)
 		}
 	default:
-		defaultFixArguments(args, context)
+		DefaultFixArguments(args, context)
 	}
 }
 
 // NewHTTPService is the constructor of HTTPService
 func NewHTTPService() (service *HTTPService) {
 	service = new(HTTPService)
-	service.initBaseHTTPService()
+	service.InitBaseHTTPService()
 	service.contextPool = sync.Pool{
 		New: func() interface{} { return new(HTTPContext) },
 	}
@@ -101,14 +102,14 @@ func (service *HTTPService) xmlFileHandler(
 	if context == nil || strings.ToLower(request.URL.Path) != path {
 		return false
 	}
-	if request.Header.Get("if-modified-since") == service.lastModified &&
-		request.Header.Get("if-none-match") == service.etag {
+	if request.Header.Get("if-modified-since") == service.LastModified &&
+		request.Header.Get("if-none-match") == service.Etag {
 		response.WriteHeader(304)
 	} else {
 		contentLength := len(context)
 		header := response.Header()
-		header.Set("Last-Modified", service.lastModified)
-		header.Set("Etag", service.etag)
+		header.Set("Last-Modified", service.LastModified)
+		header.Set("Etag", service.Etag)
 		header.Set("Content-Type", "text/xml")
 		header.Set("Content-Length", util.Itoa(contentLength))
 		response.Write(context)
@@ -161,8 +162,8 @@ func (service *HTTPService) sendHeader(context *HTTPContext) (err error) {
 	if service.CrossDomain {
 		origin := context.Request.Header.Get("origin")
 		if origin != "" && origin != "null" {
-			if len(service.accessControlAllowOrigins) == 0 ||
-				service.accessControlAllowOrigins[origin] {
+			if len(service.AccessControlAllowOrigins) == 0 ||
+				service.AccessControlAllowOrigins[origin] {
 				header.Set("Access-Control-Allow-Origin", origin)
 				header.Set("Access-Control-Allow-Credentials", "true")
 			}
@@ -193,14 +194,14 @@ func (service *HTTPService) ServeHTTP(
 		return
 	}
 	context := service.acquireContext()
-	context.initHTTPContext(service, response, request)
+	context.InitHTTPContext(service, response, request)
 	var resp []byte
 	err := service.sendHeader(context)
 	if err == nil {
 		switch request.Method {
 		case "GET":
 			if service.GET {
-				resp = service.doFunctionList(context)
+				resp = service.DoFunctionList(context)
 			} else {
 				response.WriteHeader(403)
 			}
@@ -212,7 +213,7 @@ func (service *HTTPService) ServeHTTP(
 		}
 	}
 	if err != nil {
-		resp = service.endError(err, context)
+		resp = service.EndError(err, context)
 	}
 	service.releaseContext(context)
 	response.Header().Set("Content-Length", util.Itoa(len(resp)))

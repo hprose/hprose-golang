@@ -12,7 +12,7 @@
  *                                                        *
  * rpc error for Go.                                      *
  *                                                        *
- * LastModified: Oct 11, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,9 +27,16 @@ import (
 
 // ErrTimeout represents a timeout error
 var ErrTimeout = errors.New("timeout")
-var errServerIsAlreadyStarted = errors.New("The server is already started")
-var errServerIsNotStarted = errors.New("The server is not started")
-var errClientIsAlreadyClosed = errors.New("The Client is already closed")
+
+// ErrServerIsAlreadyStarted represents a error
+var ErrServerIsAlreadyStarted = errors.New("The server is already started")
+
+// ErrServerIsNotStarted represents a error
+var ErrServerIsNotStarted = errors.New("The server is not started")
+
+// ErrClientIsAlreadyClosed represents a error
+var ErrClientIsAlreadyClosed = errors.New("The Client is already closed")
+
 var errURIListEmpty = errors.New("uriList must contain at least one uri")
 var errNotSupportMultpleProtocol = errors.New("Not support multiple protocol.")
 

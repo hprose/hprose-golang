@@ -12,7 +12,7 @@
  *                                                        *
  * hprose half duplex socket transport for Go.            *
  *                                                        *
- * LastModified: Oct 21, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -89,7 +89,7 @@ func (hd *halfDuplexSocketTransport) getConn() *halfDuplexConnEntry {
 		select {
 		case entry, ok := <-hd.connPool:
 			if !ok {
-				panic(errClientIsAlreadyClosed)
+				panic(ErrClientIsAlreadyClosed)
 			}
 			if entry.timer != nil {
 				entry.timer.Stop()
@@ -102,7 +102,7 @@ func (hd *halfDuplexSocketTransport) getConn() *halfDuplexConnEntry {
 			return nil
 		}
 	}
-	panic(errClientIsAlreadyClosed)
+	panic(ErrClientIsAlreadyClosed)
 }
 
 func (hd *halfDuplexSocketTransport) fetchConn() *halfDuplexConnEntry {

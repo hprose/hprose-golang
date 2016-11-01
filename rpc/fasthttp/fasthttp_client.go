@@ -8,11 +8,11 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * rpc/http_client.go                                     *
+ * rpc/fasthttp/fasthttp_client.go                        *
  *                                                        *
- * hprose http client for Go.                             *
+ * hprose fasthttp client for Go.                         *
  *                                                        *
- * LastModified: Oct 24, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -26,9 +26,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hprose/hprose-golang/rpc"
 	"github.com/hprose/hprose-golang/util"
 	"github.com/valyala/fasthttp"
 )
+
+var httpSchemes = []string{"http", "https"}
 
 type cookieManager struct {
 	store  map[string]*fasthttp.Cookie
@@ -80,22 +83,22 @@ var globalCookieManager = newCookieManager()
 
 // FastHTTPClient is hprose fasthttp client
 type FastHTTPClient struct {
-	baseClient
-	limiter
+	rpc.BaseClient
 	*cookieManager
 	fasthttp.Client
 	Header      fasthttp.RequestHeader
 	compression bool
 	keepAlive   bool
+	limiter     rpc.Limiter
 }
 
 // NewFastHTTPClient is the constructor of FastHTTPClient
 func NewFastHTTPClient(uri ...string) (client *FastHTTPClient) {
 	client = new(FastHTTPClient)
-	client.initBaseClient()
-	client.initLimiter()
+	client.InitBaseClient()
+	client.limiter.InitLimiter()
 	client.cookieManager = globalCookieManager
-	if DisableGlobalCookie {
+	if rpc.DisableGlobalCookie {
 		client.cookieManager = newCookieManager()
 	}
 	client.compression = false
@@ -105,58 +108,68 @@ func NewFastHTTPClient(uri ...string) (client *FastHTTPClient) {
 	return
 }
 
-func newFastHTTPClient(uri ...string) Client {
+func newFastHTTPClient(uri ...string) rpc.Client {
 	return NewFastHTTPClient(uri...)
 }
 
-// SetURIList set a list of server addresses
+// SetURIList sets a list of server addresses
 func (client *FastHTTPClient) SetURIList(uriList []string) {
-	if checkAddresses(uriList, httpSchemes) == "https" {
+	if rpc.CheckAddresses(uriList, httpSchemes) == "https" {
 		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}
-	client.baseClient.SetURIList(uriList)
+	client.BaseClient.SetURIList(uriList)
 }
 
-// TLSClientConfig return the tls.Config in hprose client
+// TLSClientConfig returns the tls.Config in hprose client
 func (client *FastHTTPClient) TLSClientConfig() *tls.Config {
 	return client.TLSConfig
 }
 
-// SetTLSClientConfig set the tls.Config
+// SetTLSClientConfig sets the tls.Config
 func (client *FastHTTPClient) SetTLSClientConfig(config *tls.Config) {
 	client.TLSConfig = config
 }
 
-// KeepAlive return the keepalive status of hprose client
+// MaxConcurrentRequests returns max concurrent request count
+func (client *FastHTTPClient) MaxConcurrentRequests() int {
+	return client.limiter.MaxConcurrentRequests
+}
+
+// SetMaxConcurrentRequests sets max concurrent request count
+func (client *FastHTTPClient) SetMaxConcurrentRequests(value int) {
+	client.limiter.MaxConcurrentRequests = value
+}
+
+// KeepAlive returns the keepalive status of hprose client
 func (client *FastHTTPClient) KeepAlive() bool {
 	return client.keepAlive
 }
 
-// SetKeepAlive set the keepalive status of hprose client
+// SetKeepAlive sets the keepalive status of hprose client
 func (client *FastHTTPClient) SetKeepAlive(enable bool) {
 	client.keepAlive = enable
 }
 
-// Compression return the compression status of hprose client
+// Compression returns the compression status of hprose client
 func (client *FastHTTPClient) Compression() bool {
 	return client.compression
 }
 
-// SetCompression set the compression status of hprose client
+// SetCompression sets the compression status of hprose client
 func (client *FastHTTPClient) SetCompression(enable bool) {
 	client.compression = enable
 }
 
 func (client *FastHTTPClient) sendAndReceive(
-	data []byte, context *ClientContext) ([]byte, error) {
-	client.cond.L.Lock()
-	client.limit()
-	client.cond.L.Unlock()
+	data []byte, context *rpc.ClientContext) ([]byte, error) {
+	client.limiter.L.Lock()
+	client.limiter.Limit()
+	client.limiter.L.Unlock()
 	req := fasthttp.AcquireRequest()
 	client.Header.CopyTo(&req.Header)
 	req.Header.SetMethod("POST")
-	client.loadCookie(req, client.url)
-	req.SetRequestURI(client.uri)
+	client.loadCookie(req, client.URL())
+	req.SetRequestURI(client.URI())
 	req.SetBody(data)
 	req.Header.SetContentLength(len(data))
 	req.Header.SetContentType("application/hprose")
@@ -178,8 +191,13 @@ func (client *FastHTTPClient) sendAndReceive(
 	}
 	fasthttp.ReleaseRequest(req)
 	fasthttp.ReleaseResponse(resp)
-	client.cond.L.Lock()
-	client.unlimit()
-	client.cond.L.Unlock()
+	client.limiter.L.Lock()
+	client.limiter.Unlimit()
+	client.limiter.L.Unlock()
 	return data, err
+}
+
+func init() {
+	rpc.RegisterClientFactory("http", newFastHTTPClient)
+	rpc.RegisterClientFactory("https", newFastHTTPClient)
 }

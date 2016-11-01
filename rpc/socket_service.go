@@ -12,7 +12,7 @@
  *                                                        *
  * hprose socket service for Go.                          *
  *                                                        *
- * LastModified: Oct 21, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -29,13 +29,13 @@ import (
 
 // SocketContext is the hprose socket context for service
 type SocketContext struct {
-	serviceContext
+	BaseServiceContext
 	net.Conn
 }
 
 func (context *SocketContext) initSocketContext(
 	service Service, conn net.Conn) {
-	context.initServiceContext(service)
+	context.InitServiceContext(service)
 	context.Conn = conn
 	return
 }
@@ -52,19 +52,19 @@ func socketFixArguments(args []reflect.Value, context ServiceContext) {
 			args[i] = reflect.ValueOf(c.Conn)
 		}
 	default:
-		defaultFixArguments(args, context)
+		DefaultFixArguments(args, context)
 	}
 }
 
 // SocketService is the hprose socket service
 type SocketService struct {
-	baseService
+	BaseService
 	TLSConfig   *tls.Config
 	contextPool sync.Pool
 }
 
 func (service *SocketService) initSocketService() {
-	service.initBaseService()
+	service.InitBaseService()
 	service.contextPool = sync.Pool{
 		New: func() interface{} { return new(SocketContext) },
 	}
@@ -87,18 +87,18 @@ func (service *SocketService) serveConn(conn net.Conn) {
 	defer func() {
 		if e := recover(); e != nil {
 			err := NewPanicError(e)
-			fireErrorEvent(event, err, context)
+			FireErrorEvent(event, err, context)
 		}
 	}()
 	if err := fireAcceptEvent(event, context); err != nil {
-		fireErrorEvent(event, err, context)
+		FireErrorEvent(event, err, context)
 		return
 	}
 	handler := new(connHandler)
 	handler.conn = conn
 	handler.serve(service)
 	if err := fireCloseEvent(event, context); err != nil {
-		fireErrorEvent(event, err, context)
+		FireErrorEvent(event, err, context)
 	}
 }
 
@@ -181,7 +181,7 @@ func (handler *connHandler) handle(service *SocketService, data packet) {
 		handler.Unlock()
 	}
 	if err != nil {
-		fireErrorEvent(service.Event, err, context)
+		FireErrorEvent(service.Event, err, context)
 	}
 	service.releaseContext(context)
 }

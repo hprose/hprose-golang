@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Oct 24, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -36,18 +36,18 @@ var DisableGlobalCookie = false
 
 // HTTPClient is hprose http client
 type HTTPClient struct {
-	baseClient
-	limiter
+	BaseClient
 	http.Transport
 	Header     http.Header
 	httpClient http.Client
+	limiter    Limiter
 }
 
 // NewHTTPClient is the constructor of HTTPClient
 func NewHTTPClient(uri ...string) (client *HTTPClient) {
 	client = new(HTTPClient)
-	client.initBaseClient()
-	client.initLimiter()
+	client.InitBaseClient()
+	client.limiter.InitLimiter()
 	client.httpClient.Transport = &client.Transport
 	client.DisableCompression = true
 	client.DisableKeepAlives = false
@@ -65,40 +65,50 @@ func newHTTPClient(uri ...string) Client {
 	return NewHTTPClient(uri...)
 }
 
-// SetURIList set a list of server addresses
+// SetURIList sets a list of server addresses
 func (client *HTTPClient) SetURIList(uriList []string) {
-	if checkAddresses(uriList, httpSchemes) == "https" {
+	if CheckAddresses(uriList, httpSchemes) == "https" {
 		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}
-	client.baseClient.SetURIList(uriList)
+	client.BaseClient.SetURIList(uriList)
 }
 
-// TLSClientConfig return the tls.Config in hprose client
+// TLSClientConfig returns the tls.Config in hprose client
 func (client *HTTPClient) TLSClientConfig() *tls.Config {
 	return client.Transport.TLSClientConfig
 }
 
-// SetTLSClientConfig set the tls.Config
+// SetTLSClientConfig sets the tls.Config
 func (client *HTTPClient) SetTLSClientConfig(config *tls.Config) {
 	client.Transport.TLSClientConfig = config
 }
 
-// KeepAlive return the keepalive status of hprose client
+// MaxConcurrentRequests returns max concurrent request count
+func (client *HTTPClient) MaxConcurrentRequests() int {
+	return client.limiter.MaxConcurrentRequests
+}
+
+// SetMaxConcurrentRequests sets max concurrent request count
+func (client *HTTPClient) SetMaxConcurrentRequests(value int) {
+	client.limiter.MaxConcurrentRequests = value
+}
+
+// KeepAlive returns the keepalive status of hprose client
 func (client *HTTPClient) KeepAlive() bool {
 	return !client.DisableKeepAlives
 }
 
-// SetKeepAlive set the keepalive status of hprose client
+// SetKeepAlive sets the keepalive status of hprose client
 func (client *HTTPClient) SetKeepAlive(enable bool) {
 	client.DisableKeepAlives = !enable
 }
 
-// Compression return the compression status of hprose client
+// Compression returns the compression status of hprose client
 func (client *HTTPClient) Compression() bool {
 	return !client.DisableCompression
 }
 
-// SetCompression set the compression status of hprose client
+// SetCompression sets the compression status of hprose client
 func (client *HTTPClient) SetCompression(enable bool) {
 	client.DisableCompression = !enable
 }
@@ -118,9 +128,9 @@ func (client *HTTPClient) readAll(
 
 func (client *HTTPClient) sendAndReceive(
 	data []byte, context *ClientContext) ([]byte, error) {
-	client.cond.L.Lock()
-	client.limit()
-	client.cond.L.Unlock()
+	client.limiter.L.Lock()
+	client.limiter.Limit()
+	client.limiter.L.Unlock()
 	req, err := http.NewRequest("POST", client.uri, hio.NewByteReader(data))
 	if err != nil {
 		return nil, err
@@ -141,8 +151,8 @@ func (client *HTTPClient) sendAndReceive(
 	if err == nil {
 		err = resp.Body.Close()
 	}
-	client.cond.L.Lock()
-	client.unlimit()
-	client.cond.L.Unlock()
+	client.limiter.L.Lock()
+	client.limiter.Unlimit()
+	client.limiter.L.Unlock()
 	return data, err
 }

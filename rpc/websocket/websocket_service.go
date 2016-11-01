@@ -8,16 +8,16 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * rpc/websocket_service.go                               *
+ * rpc/websocket/websocket_service.go                     *
  *                                                        *
  * hprose websocket service for Go.                       *
  *                                                        *
- * LastModified: Oct 9, 2016                              *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-package rpc
+package websocket
 
 import (
 	"net/http"
@@ -26,23 +26,29 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/hprose/hprose-golang/rpc"
 	"github.com/hprose/hprose-golang/util"
 )
 
+var httpContextType = reflect.TypeOf((*rpc.HTTPContext)(nil))
+var httpRequestType = reflect.TypeOf((*http.Request)(nil))
+var websocketContextType = reflect.TypeOf((*WebSocketContext)(nil))
+var websocketConnType = reflect.TypeOf((*websocket.Conn)(nil))
+
 // WebSocketContext is the hprose websocket context
 type WebSocketContext struct {
-	HTTPContext
+	rpc.HTTPContext
 	WebSocket *websocket.Conn
 }
 
 // WebSocketService is the hprose websocket service
 type WebSocketService struct {
-	HTTPService
+	rpc.HTTPService
 	websocket.Upgrader
 	contextPool sync.Pool
 }
 
-func websocketFixArguments(args []reflect.Value, context ServiceContext) {
+func websocketFixArguments(args []reflect.Value, context rpc.ServiceContext) {
 	i := len(args) - 1
 	switch args[i].Type() {
 	case websocketContextType:
@@ -62,14 +68,14 @@ func websocketFixArguments(args []reflect.Value, context ServiceContext) {
 			args[i] = reflect.ValueOf(c.Request)
 		}
 	default:
-		defaultFixArguments(args, context)
+		rpc.DefaultFixArguments(args, context)
 	}
 }
 
 // NewWebSocketService is the constructor of WebSocketService
 func NewWebSocketService() (service *WebSocketService) {
 	service = new(WebSocketService)
-	service.initBaseHTTPService()
+	service.InitBaseHTTPService()
 	service.contextPool = sync.Pool{
 		New: func() interface{} { return new(WebSocketContext) },
 	}
@@ -77,8 +83,8 @@ func NewWebSocketService() (service *WebSocketService) {
 	service.CheckOrigin = func(request *http.Request) bool {
 		origin := request.Header.Get("origin")
 		if origin != "" && origin != "null" {
-			if len(service.accessControlAllowOrigins) == 0 ||
-				service.accessControlAllowOrigins[origin] {
+			if len(service.AccessControlAllowOrigins) == 0 ||
+				service.AccessControlAllowOrigins[origin] {
 				return true
 			}
 			return false
@@ -88,7 +94,7 @@ func NewWebSocketService() (service *WebSocketService) {
 	return
 }
 
-func (service *WebSocketService) acquireContext() (context *WebSocketContext) {
+func (service *WebSocketService) acquireContext() *WebSocketContext {
 	return service.contextPool.Get().(*WebSocketContext)
 }
 
@@ -105,10 +111,9 @@ func (service *WebSocketService) ServeHTTP(
 	}
 	conn, err := service.Upgrade(response, request, nil)
 	if err != nil {
-		context := service.HTTPService.acquireContext()
-		context.initHTTPContext(service, response, request)
-		resp := service.endError(err, context)
-		service.HTTPService.releaseContext(context)
+		context := new(rpc.HTTPContext)
+		context.InitHTTPContext(service, response, request)
+		resp := service.EndError(err, context)
 		response.Header().Set("Content-Length", util.Itoa(len(resp)))
 		response.Write(resp)
 		return
@@ -134,7 +139,7 @@ func (service *WebSocketService) handle(
 	request *http.Request,
 	conn *websocket.Conn) {
 	context := service.acquireContext()
-	context.initHTTPContext(service, response, request)
+	context.InitHTTPContext(service, response, request)
 	context.WebSocket = conn
 	id := data[0:4]
 	data = service.Handle(data[4:], context)
@@ -151,7 +156,7 @@ func (service *WebSocketService) handle(
 	}
 	mutex.Unlock()
 	if err != nil {
-		fireErrorEvent(service.Event, err, context)
+		rpc.FireErrorEvent(service.Event, err, context)
 	}
 	service.releaseContext(context)
 }
