@@ -12,7 +12,7 @@
  *                                                        *
  * util test for Go.                                      *
  *                                                        *
- * LastModified: Oct 24, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -219,5 +219,20 @@ func TestMin(t *testing.T) {
 func TestMax(t *testing.T) {
 	if Max(1, 2) != 2 {
 		t.Error(Min(1, 2))
+	}
+}
+
+func TestToUint32(t *testing.T) {
+	x := ToUint32([]byte{0x12, 0x34, 0x56, 0x78})
+	if x != 0x12345678 {
+		t.Error(x)
+	}
+}
+
+func TestFromUint32(t *testing.T) {
+	var b [4]byte
+	FromUint32(b[:], 0x12345678)
+	if b[0] != 0x12 && b[1] != 0x34 && b[2] != 0x56 && b[3] != 0x78 {
+		t.Error(b)
 	}
 }

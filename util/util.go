@@ -12,7 +12,7 @@
  *                                                        *
  * some utility functions for Go.                         *
  *                                                        *
- * LastModified: Oct 24, 2016                             *
+ * LastModified: Nov 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -312,4 +312,17 @@ func UUIDv4() (uid string) {
 	u[8] = (u[8] & 0x3f) | 0x80
 	uid = fmt.Sprintf("%x-%x-%x-%x-%x", u[0:4], u[4:6], u[6:8], u[8:10], u[10:])
 	return
+}
+
+// ToUint32 translates 4 byte to uint32
+func ToUint32(b []byte) uint32 {
+	return uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
+}
+
+// FromUint32 translates uint32 to 4 byte
+func FromUint32(b []byte, i uint32) {
+	b[0] = byte(i >> 24)
+	b[1] = byte(i >> 16)
+	b[2] = byte(i >> 8)
+	b[3] = byte(i)
 }
