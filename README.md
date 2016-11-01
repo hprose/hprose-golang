@@ -16,10 +16,11 @@
 - **[Installation](#installation)**
 - **[Usage](#usage)**
     - **[Http Server](#http-server)**
-        - [Based on net/http](#based-on-net/http)
+        - [Based on net/http](#based-on-nethttp)
         - [Based on fasthttp](#based-on-fasthttp)
         - [Based on gin](#based-on-gin)
         - [Based on echo](#based-on-echo)
+        - [Based on beego](#based-on-beego)
         - [Based on iris](#based-on-iris)
     - **[Http Client](#http-client)**
         - [Synchronous Invoking](#synchronous-invoking)
@@ -162,6 +163,28 @@ func main() {
 	e := echo.New()
 	e.Any("/hello", standard.WrapHandler(service))
 	e.Run(standard.New(":8080"))
+}
+```
+
+#### Based on beego
+
+```go
+package main
+
+import (
+	"github.com/astaxie/beego"
+	"github.com/hprose/hprose-golang/rpc"
+)
+
+func hello(name string) string {
+	return "Hello " + name + "!"
+}
+
+func main() {
+	service := rpc.NewHTTPService()
+	service.AddFunction("hello", hello)
+	beego.Handler("/hello", service)
+	beego.Run()
 }
 ```
 
