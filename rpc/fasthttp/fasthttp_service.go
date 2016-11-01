@@ -17,7 +17,7 @@
  *                                                        *
 \**********************************************************/
 
-package rpc
+package fasthttp
 
 import (
 	"reflect"
