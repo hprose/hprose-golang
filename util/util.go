@@ -12,7 +12,7 @@
  *                                                        *
  * some utility functions for Go.                         *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Nov 7, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -24,6 +24,7 @@ package util
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"math"
 	"reflect"
@@ -325,4 +326,39 @@ func FromUint32(b []byte, i uint32) {
 	b[1] = byte(i >> 16)
 	b[2] = byte(i >> 8)
 	b[3] = byte(i)
+}
+
+// LocalProxy make a local object to a proxy struct
+func LocalProxy(proxy, local interface{}) error {
+	dstValue := reflect.ValueOf(proxy)
+	srcValue := reflect.ValueOf(local)
+	if dstValue.Kind() != reflect.Ptr {
+		return errors.New("proxy must be a pointer")
+	}
+	dstValue = dstValue.Elem()
+	t := dstValue.Type()
+	et := t
+	if et.Kind() == reflect.Ptr {
+		et = et.Elem()
+	}
+	if et.Kind() != reflect.Struct {
+		return errors.New("proxy must be a struct pointer or pointer to a struct pointer")
+	}
+	ptr := reflect.New(et)
+	obj := ptr.Elem()
+	count := obj.NumField()
+	for i := 0; i < count; i++ {
+		f := obj.Field(i)
+		ft := f.Type()
+		sf := et.Field(i)
+		if f.CanSet() && ft.Kind() == reflect.Func {
+			f.Set(srcValue.MethodByName(sf.Name))
+		}
+	}
+	if t.Kind() == reflect.Ptr {
+		dstValue.Set(ptr)
+	} else {
+		dstValue.Set(obj)
+	}
+	return nil
 }

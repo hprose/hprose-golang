@@ -12,7 +12,7 @@
  *                                                        *
  * util test for Go.                                      *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Nov 7, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -234,5 +234,29 @@ func TestFromUint32(t *testing.T) {
 	FromUint32(b[:], 0x12345678)
 	if b[0] != 0x12 && b[1] != 0x34 && b[2] != 0x56 && b[3] != 0x78 {
 		t.Error(b)
+	}
+}
+
+type local struct{}
+
+func (local) F1() string {
+	return "OK"
+}
+func (local) F2(a, b int) int {
+	return a + b
+}
+
+func TestLocalProxy(t *testing.T) {
+	type Proxy struct {
+		F1 func() string
+		F2 func(a, b int) int
+	}
+	var p *Proxy
+	LocalProxy(&p, local{})
+	if p.F1() != "OK" {
+		t.Error(p.F1())
+	}
+	if p.F2(1, 2) != 3 {
+		t.Error(p.F2(1, 2))
 	}
 }
