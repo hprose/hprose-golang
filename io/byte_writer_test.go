@@ -10,16 +10,18 @@
  *                                                        *
  * io/byte_writer_test.go                                 *
  *                                                        *
- * hprose byte writer test for Go.                        *
+ * byte writer test for Go.                               *
  *                                                        *
- * LastModified: Oct 29, 2016                             *
+ * LastModified: Nov 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
-
 package io
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestByteWriter_Len(t *testing.T) {
 	w := NewByteWriter(nil)
@@ -64,5 +66,21 @@ func TestByteWriter_WriteByte(t *testing.T) {
 	w.WriteByte(3)
 	if w.Len() != 3 {
 		t.Error(w.Len())
+	}
+}
+
+func TestNewByteWriter(t *testing.T) {
+	type args struct {
+		buf []byte
+	}
+	tests := []struct {
+		name  string
+		args  args
+		wantW *ByteWriter
+	}{}
+	for _, tt := range tests {
+		if gotW := NewByteWriter(tt.args.buf); !reflect.DeepEqual(gotW, tt.wantW) {
+			t.Errorf("%q. NewByteWriter() = %v, want %v", tt.name, gotW, tt.wantW)
+		}
 	}
 }
