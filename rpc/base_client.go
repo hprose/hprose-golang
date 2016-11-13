@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc base client for Go.                         *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Nov 14, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -368,14 +368,8 @@ func (client *BaseClient) beforeFilter(
 }
 
 func (client *BaseClient) afterFilter(
-	request []byte, context Context) ([]byte, error) {
-	return client.SendAndReceive(request, context.(*ClientContext))
-}
-
-func (client *BaseClient) sendRequest(
-	request []byte,
-	context *ClientContext) (response []byte, err error) {
-	response, err = client.handlerManager.beforeFilterHandler(request, context)
+	request []byte, context *ClientContext) (response []byte, err error) {
+	response, err = client.SendAndReceive(request, context)
 	if err != nil {
 		response, err = client.retrySendReqeust(request, err, context)
 	}
@@ -401,7 +395,7 @@ func (client *BaseClient) retrySendReqeust(
 		if interval > 0 {
 			time.Sleep(time.Duration(interval) * time.Millisecond)
 		}
-		return client.sendRequest(request, context)
+		return client.afterFilter(request, context)
 	}
 	return nil, err
 }
@@ -547,7 +541,7 @@ func (client *BaseClient) invoke(
 	args []reflect.Value,
 	context *ClientContext) ([]reflect.Value, error) {
 	request := encode(name, args, context)
-	response, err := client.sendRequest(request, context)
+	response, err := client.handlerManager.beforeFilterHandler(request, context)
 	if err != nil {
 		return nil, err
 	}
