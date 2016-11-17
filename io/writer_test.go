@@ -298,6 +298,7 @@ func TestSerializeFloat32(t *testing.T) {
 		float32(math.Inf(1)):  "I+",
 		float32(math.Inf(-1)): "I-",
 		float32(3.14159):      "d3.14159;",
+		math.MaxFloat32:       "d3.4028235e+38;",
 	}
 	for k, v := range testdata {
 		w.Serialize(k)
@@ -329,6 +330,7 @@ func TestSerializeFloat64(t *testing.T) {
 		math.Inf(1):      "I+",
 		math.Inf(-1):     "I-",
 		3.14159265358979: "d3.14159265358979;",
+		math.MaxFloat64:  "d1.7976931348623157e+308;",
 	}
 	for k, v := range testdata {
 		w.Serialize(k)
