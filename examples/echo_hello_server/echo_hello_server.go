@@ -14,5 +14,5 @@ func main() {
 	service.AddFunction("hello", hello)
 	e := echo.New()
 	e.Any("/hello", echo.WrapHandler(service))
-	e.Run(standard.New(":8080"))
+	e.Start(":8080")
 }
