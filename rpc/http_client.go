@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Nov 20, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -49,6 +49,7 @@ func NewHTTPClient(uri ...string) (client *HTTPClient) {
 	client.InitBaseClient()
 	client.limiter.InitLimiter()
 	client.httpClient.Transport = &client.Transport
+	client.Header = make(http.Header)
 	client.DisableCompression = true
 	client.DisableKeepAlives = false
 	client.MaxIdleConnsPerHost = 10
