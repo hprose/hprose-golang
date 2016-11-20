@@ -12,7 +12,7 @@
  *                                                        *
  * hprose socket common for Go.                           *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Nov 20, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -59,7 +59,7 @@ func sendData(writer io.Writer, data packet) (err error) {
 	}
 	buf := hio.AcquireBytes(len)
 	if data.fullDuplex {
-		util.FromUint32(buf, uint32(n|0x80000000))
+		util.FromUint32(buf, uint32(n)|0x80000000)
 		buf[4] = data.id[0]
 		buf[5] = data.id[1]
 		buf[6] = data.id[2]
