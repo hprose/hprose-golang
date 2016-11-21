@@ -141,7 +141,7 @@ func main() {
 	service := rpc.NewHTTPService()
 	service.AddFunction("hello", hello)
 	router := gin.Default()
-	router.Any("/hello", func(c *gin.Context) {
+	router.Any("/path", func(c *gin.Context) {
 		service.ServeHTTP(c.Writer, c.Request)
 	})
 	router.Run(":8080")
@@ -166,7 +166,7 @@ func main() {
 	service := rpc.NewHTTPService()
 	service.AddFunction("hello", hello)
 	e := echo.New()
-	e.Any("/hello", echo.WrapHandler(service))
+	e.Any("/path", echo.WrapHandler(service))
 	e.Start(":8080")
 }
 ```
@@ -188,7 +188,7 @@ func hello(name string) string {
 func main() {
 	service := rpc.NewHTTPService()
 	service.AddFunction("hello", hello)
-	beego.Handler("/hello", service)
+	beego.Handler("/path", service)
 	beego.Run()
 }
 ```
@@ -210,7 +210,7 @@ func hello(name string) string {
 func main() {
 	service := rpc.NewFastHTTPService()
 	service.AddFunction("hello", hello)
-	iris.Any("/hello", func(c *iris.Context) {
+	iris.Any("/path", func(c *iris.Context) {
 		service.ServeFastHTTP(c.RequestCtx)
 	})
 	iris.Listen(":8080")
