@@ -357,14 +357,18 @@ func readArguments(
 	fixArguments func(args []reflect.Value, context ServiceContext),
 	reader *io.Reader,
 	method *Method,
+	hasArgs bool,
 	context ServiceContext) (args []reflect.Value) {
-	if method != nil {
-		reader.JSONCompatible = method.JSONCompatible
+	count := 0
+	if hasArgs {
+		if method != nil {
+			reader.JSONCompatible = method.JSONCompatible
+		}
+		if method == nil || context.IsMissingMethod() {
+			return reader.ReadSliceWithoutTag()
+		}
+		count = reader.ReadCount()
 	}
-	if method == nil || context.IsMissingMethod() {
-		return reader.ReadSliceWithoutTag()
-	}
-	count := reader.ReadCount()
 	ft := method.Function.Type()
 	n := ft.NumIn()
 	if ft.IsVariadic() {
@@ -386,7 +390,9 @@ func readArguments(
 			}
 		}
 	}
-	reader.ReadSlice(args[:count])
+	if hasArgs {
+		reader.ReadSlice(args[:count])
+	}
 	if !ft.IsVariadic() && n > count {
 		fixArguments(args, context)
 	}
@@ -439,12 +445,14 @@ func (service *BaseService) doSingleInvoke(
 	var args []reflect.Value
 	if tag == io.TagList {
 		reader.Reset()
-		args = readArguments(service.FixArguments, reader, method, context)
+		args = readArguments(service.FixArguments, reader, method, true, context)
 		tag = reader.CheckTags([]byte{io.TagTrue, io.TagEnd, io.TagCall})
 		if tag == io.TagTrue {
 			context.setByRef(true)
 			tag = reader.CheckTags([]byte{io.TagEnd, io.TagCall})
 		}
+	} else {
+		args = readArguments(service.FixArguments, reader, method, false, context)
 	}
 	context.setMethod(method)
 	result, err := service.beforeInvoke(name, args, context)
