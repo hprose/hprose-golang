@@ -12,7 +12,7 @@
  *                                                        *
  * hprose websocket service for Go.                       *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Nov 24, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -75,7 +75,7 @@ func websocketFixArguments(args []reflect.Value, context rpc.ServiceContext) {
 // NewWebSocketService is the constructor of WebSocketService
 func NewWebSocketService() (service *WebSocketService) {
 	service = new(WebSocketService)
-	service.InitBaseHTTPService()
+	service.InitHTTPService()
 	service.contextPool = sync.Pool{
 		New: func() interface{} { return new(WebSocketContext) },
 	}
