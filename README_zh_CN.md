@@ -8,34 +8,34 @@
 [![Coverage Status](https://coveralls.io/repos/github/hprose/hprose-golang/badge.svg?branch=master)](https://coveralls.io/github/hprose/hprose-golang?branch=master)
 [![License](https://img.shields.io/github/license/hprose/hprose-golang.svg)](http://opensource.org/licenses/MIT)
 
-*## 简介
+## 简介
  
- *Hprose* 是高性能远程对象服务引擎（High Performance Remote Object Service Engine）的缩写。
+*Hprose* 是高性能远程对象服务引擎（High Performance Remote Object Service Engine）的缩写。
  
- 它是一个先进的轻量级的跨语言跨平台面向对象的高性能远程动态通讯中间件。它不仅简单易用，而且功能强大。你只需要稍许的时间去学习，就能用它轻松构建跨语言跨平台的分布式应用系统了。
+它是一个先进的轻量级的跨语言跨平台面向对象的高性能远程动态通讯中间件。它不仅简单易用，而且功能强大。你只需要稍许的时间去学习，就能用它轻松构建跨语言跨平台的分布式应用系统了。
  
- *Hprose* 支持众多编程语言，例如：
+*Hprose* 支持众多编程语言，例如：
  
- * AAuto Quicker
- * ActionScript
- * ASP
- * C++
- * Dart
- * Delphi/Free Pascal
- * dotNET(C#, Visual Basic...)
- * Golang
- * Java
- * JavaScript
- * Node.js
- * Objective-C
- * Perl
- * PHP
- * Python
- * Ruby
- * ...
+* AAuto Quicker
+* ActionScript
+* ASP
+* C++
+* Dart
+* Delphi/Free Pascal
+* dotNET(C#, Visual Basic...)
+* Golang
+* Java
+* JavaScript
+* Node.js
+* Objective-C
+* Perl
+* PHP
+* Python
+* Ruby
+* ...
  
- 通过 *Hprose*，你就可以在这些语言之间方便高效的实现互通了。
+通过 *Hprose*，你就可以在这些语言之间方便高效的实现互通了。
  
- 本项目是 Hprose 的 Golang 语言版本实现。
+本项目是 Hprose 的 Golang 语言版本实现。
  
- Hprose 2.0 for Golang 文档: https://github.com/hprose/hprose-golang/wiki
+Hprose 2.0 for Golang 文档: https://github.com/hprose/hprose-golang/wiki
