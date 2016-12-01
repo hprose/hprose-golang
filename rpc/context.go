@@ -12,7 +12,7 @@
  *                                                        *
  * hprose context for Go.                                 *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Dec 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,6 +30,7 @@ type Context interface {
 	GetBool(key string, defaultValue ...bool) bool
 	GetString(key string, defaultValue ...string) string
 	GetInterface(key string, defaultValue ...interface{}) interface{}
+	Get(key string) interface{}
 	SetInt(key string, value int)
 	SetUInt(key string, value uint)
 	SetInt64(key string, value int64)
@@ -38,6 +39,7 @@ type Context interface {
 	SetBool(key string, value bool)
 	SetString(key string, value string)
 	SetInterface(key string, value interface{})
+	Set(key string, value interface{})
 }
 
 // BaseContext is the base context
@@ -165,6 +167,14 @@ func (context *BaseContext) GetInterface(
 	return nil
 }
 
+// Get value from hprose context
+func (context *BaseContext) Get(key string) interface{} {
+	if value, ok := context.userData[key]; ok {
+		return value
+	}
+	return nil
+}
+
 // SetInt to hprose context
 func (context *BaseContext) SetInt(key string, value int) {
 	context.userData[key] = value
@@ -202,5 +212,10 @@ func (context *BaseContext) SetString(key string, value string) {
 
 // SetInterface to hprose context
 func (context *BaseContext) SetInterface(key string, value interface{}) {
+	context.userData[key] = value
+}
+
+// Set is an alias of SetInterface
+func (context *BaseContext) Set(key string, value interface{}) {
 	context.userData[key] = value
 }
