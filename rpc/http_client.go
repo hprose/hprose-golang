@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Nov 20, 2016                             *
+ * LastModified: Dec 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -141,10 +141,19 @@ func (client *HTTPClient) sendAndReceive(
 			req.Header.Add(key, value)
 		}
 	}
+	header, ok := context.Get("httpHeader").(http.Header)
+	if ok && header != nil {
+		for key, values := range header {
+			for _, value := range values {
+				req.Header.Add(key, value)
+			}
+		}
+	}
 	req.ContentLength = int64(len(data))
 	req.Header.Set("Content-Type", "application/hprose")
 	client.httpClient.Timeout = context.Timeout
 	resp, err := client.httpClient.Do(req)
+	context.Set("httpHeader", resp.Header)
 	if err != nil {
 		return nil, err
 	}

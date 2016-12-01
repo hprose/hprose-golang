@@ -12,7 +12,7 @@
  *                                                        *
  * hprose fasthttp client for Go.                         *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Dec 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -21,6 +21,7 @@ package fasthttp
 
 import (
 	"crypto/tls"
+	"net/http"
 	"net/url"
 	"strings"
 	"sync"
@@ -167,6 +168,14 @@ func (client *FastHTTPClient) sendAndReceive(
 	client.limiter.L.Unlock()
 	req := fasthttp.AcquireRequest()
 	client.Header.CopyTo(&req.Header)
+	header, ok := context.Get("httpHeader").(http.Header)
+	if ok && header != nil {
+		for key, values := range header {
+			for _, value := range values {
+				req.Header.Add(key, value)
+			}
+		}
+	}
 	req.Header.SetMethod("POST")
 	client.loadCookie(req, client.URL())
 	req.SetRequestURI(client.URI())
@@ -189,6 +198,13 @@ func (client *FastHTTPClient) sendAndReceive(
 		data = resp.Body()
 		client.saveCookie(resp)
 	}
+	header = make(http.Header)
+	resp.Header.VisitAll(func(key, value []byte) {
+		k := util.ByteString(key)
+		v := util.ByteString(value)
+		header.Add(k, v)
+	})
+	context.Set("httpHeader", header)
 	fasthttp.ReleaseRequest(req)
 	fasthttp.ReleaseResponse(resp)
 	client.limiter.L.Lock()
