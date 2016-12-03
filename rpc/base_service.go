@@ -490,7 +490,6 @@ func (service *BaseService) afterFilter(
 	request []byte, context ServiceContext) ([]byte, error) {
 	reader := io.AcquireReader(request, false)
 	defer io.ReleaseReader(reader)
-	reader.Init(request)
 	tag, err := reader.ReadByte()
 	if err != nil {
 		return nil, err
