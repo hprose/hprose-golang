@@ -188,7 +188,7 @@ func (client *FastHTTPClient) sendAndReceive(
 		req.Header.Set("Connection", "close")
 	}
 	if client.compression {
-		req.Header.Set("Content-Encoding", "gzip")
+		req.Header.Set("Accept-Encoding", "gzip")
 	}
 	resp := fasthttp.AcquireResponse()
 	err := client.Client.DoTimeout(req, resp, context.Timeout)
@@ -200,9 +200,7 @@ func (client *FastHTTPClient) sendAndReceive(
 	}
 	header = make(http.Header)
 	resp.Header.VisitAll(func(key, value []byte) {
-		k := util.ByteString(key)
-		v := util.ByteString(value)
-		header.Add(k, v)
+		header.Add(util.ByteString(key), util.ByteString(value))
 	})
 	context.Set("httpHeader", header)
 	fasthttp.ReleaseRequest(req)
