@@ -12,7 +12,7 @@
  *                                                        *
  * hprose base service for Go.                            *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Dec 3, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -488,8 +488,8 @@ func (service *BaseService) DoFunctionList(context ServiceContext) []byte {
 
 func (service *BaseService) afterFilter(
 	request []byte, context ServiceContext) ([]byte, error) {
-	reader := defaultReaderPool.acquireReader(request)
-	defer defaultReaderPool.releaseReader(reader)
+	reader := AcquireReader(request)
+	defer ReleaseReader(reader)
 	reader.Init(request)
 	tag, err := reader.ReadByte()
 	if err != nil {

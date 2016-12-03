@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc base client for Go.                         *
  *                                                        *
- * LastModified: Nov 14, 2016                             *
+ * LastModified: Dec 3, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -277,7 +277,8 @@ func (client *BaseClient) UseService(
 	client.buildRemoteService(v, ns)
 }
 
-func (client *BaseClient) getClientContext(
+// GetClientContext return a ClientContext
+func (client *BaseClient) GetClientContext(
 	settings *InvokeSettings) (context *ClientContext) {
 	context = client.contextPool.Get().(*ClientContext)
 	context.InitBaseContext()
@@ -315,7 +316,7 @@ func (client *BaseClient) Invoke(
 	name string,
 	args []reflect.Value,
 	settings *InvokeSettings) (results []reflect.Value, err error) {
-	context := client.getClientContext(settings)
+	context := client.GetClientContext(settings)
 	results, err = client.handlerManager.invokeHandler(name, args, context)
 	if results == nil && len(context.ResultTypes) > 0 {
 		n := len(context.ResultTypes)
@@ -511,8 +512,8 @@ func decode(
 		results[0] = reflect.ValueOf(data[:n-1])
 		return
 	}
-	reader := defaultReaderPool.acquireReader(data)
-	defer defaultReaderPool.releaseReader(reader)
+	reader := AcquireReader(data)
+	defer ReleaseReader(reader)
 	reader.JSONCompatible = context.JSONCompatible
 	tag, _ := reader.ReadByte()
 	if tag == hio.TagResult {
@@ -837,7 +838,7 @@ func (client *BaseClient) processCallback(
 	if resultTypes != nil && len(resultTypes) > 0 {
 		writer := hio.NewWriter(false)
 		writer.WriteValue(results[0])
-		reader := defaultReaderPool.acquireReader(writer.Bytes())
+		reader := AcquireReader(writer.Bytes())
 		if len(resultTypes) == 1 {
 			results = make([]reflect.Value, 1)
 			results[0] = reflect.New(resultTypes[0]).Elem()
@@ -845,7 +846,7 @@ func (client *BaseClient) processCallback(
 		} else {
 			results = readMultiResults(reader, resultTypes)
 		}
-		defaultReaderPool.releaseReader(reader)
+		ReleaseReader(reader)
 	}
 	for _, callback := range callbacks {
 		callback(results, err)

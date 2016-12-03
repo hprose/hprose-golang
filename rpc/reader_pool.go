@@ -12,7 +12,7 @@
  *                                                        *
  * hprose reader pool for Go.                             *
  *                                                        *
- * LastModified: Oct 24, 2016                             *
+ * LastModified: Dec 3, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,13 +30,15 @@ type ReaderPool struct {
 	sync.Pool
 }
 
-func (pool *ReaderPool) acquireReader(buf []byte) (reader *io.Reader) {
+// AcquireReader from pool.
+func (pool *ReaderPool) AcquireReader(buf []byte) (reader *io.Reader) {
 	reader = pool.Get().(*io.Reader)
 	reader.Init(buf)
 	return
 }
 
-func (pool *ReaderPool) releaseReader(reader *io.Reader) {
+// ReleaseReader to pool.
+func (pool *ReaderPool) ReleaseReader(reader *io.Reader) {
 	reader.Init(nil)
 	reader.Reset()
 	pool.Put(reader)
@@ -46,4 +48,14 @@ var defaultReaderPool = &ReaderPool{
 	Pool: sync.Pool{
 		New: func() interface{} { return new(io.Reader) },
 	},
+}
+
+// AcquireReader from pool.
+func AcquireReader(buf []byte) *io.Reader {
+	return defaultReaderPool.AcquireReader(buf)
+}
+
+// ReleaseReader to pool.
+func ReleaseReader(reader *io.Reader) {
+	defaultReaderPool.ReleaseReader(reader)
 }
