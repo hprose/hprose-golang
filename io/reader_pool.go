@@ -8,7 +8,7 @@
 \**********************************************************/
 /**********************************************************\
  *                                                        *
- * rpc/reader_pool.go                                     *
+ * io/reader_pool.go                                      *
  *                                                        *
  * hprose reader pool for Go.                             *
  *                                                        *
@@ -17,12 +17,10 @@
  *                                                        *
 \**********************************************************/
 
-package rpc
+package io
 
 import (
 	"sync"
-
-	"github.com/hprose/hprose-golang/io"
 )
 
 // ReaderPool is a reader pool for hprose client & service
@@ -31,14 +29,15 @@ type ReaderPool struct {
 }
 
 // AcquireReader from pool.
-func (pool *ReaderPool) AcquireReader(buf []byte) (reader *io.Reader) {
-	reader = pool.Get().(*io.Reader)
+func (pool *ReaderPool) AcquireReader(buf []byte, simple bool) (reader *Reader) {
+	reader = pool.Get().(*Reader)
 	reader.Init(buf)
+	reader.Simple = simple
 	return
 }
 
 // ReleaseReader to pool.
-func (pool *ReaderPool) ReleaseReader(reader *io.Reader) {
+func (pool *ReaderPool) ReleaseReader(reader *Reader) {
 	reader.Init(nil)
 	reader.Reset()
 	pool.Put(reader)
@@ -46,16 +45,16 @@ func (pool *ReaderPool) ReleaseReader(reader *io.Reader) {
 
 var defaultReaderPool = &ReaderPool{
 	Pool: sync.Pool{
-		New: func() interface{} { return new(io.Reader) },
+		New: func() interface{} { return new(Reader) },
 	},
 }
 
 // AcquireReader from pool.
-func AcquireReader(buf []byte) *io.Reader {
-	return defaultReaderPool.AcquireReader(buf)
+func AcquireReader(buf []byte, simple bool) *Reader {
+	return defaultReaderPool.AcquireReader(buf, simple)
 }
 
 // ReleaseReader to pool.
-func ReleaseReader(reader *io.Reader) {
+func ReleaseReader(reader *Reader) {
 	defaultReaderPool.ReleaseReader(reader)
 }

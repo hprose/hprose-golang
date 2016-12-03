@@ -512,8 +512,8 @@ func decode(
 		results[0] = reflect.ValueOf(data[:n-1])
 		return
 	}
-	reader := AcquireReader(data)
-	defer ReleaseReader(reader)
+	reader := hio.AcquireReader(data, false)
+	defer hio.ReleaseReader(reader)
 	reader.JSONCompatible = context.JSONCompatible
 	tag, _ := reader.ReadByte()
 	if tag == hio.TagResult {
@@ -838,7 +838,7 @@ func (client *BaseClient) processCallback(
 	if resultTypes != nil && len(resultTypes) > 0 {
 		writer := hio.NewWriter(false)
 		writer.WriteValue(results[0])
-		reader := AcquireReader(writer.Bytes())
+		reader := hio.AcquireReader(writer.Bytes(), false)
 		if len(resultTypes) == 1 {
 			results = make([]reflect.Value, 1)
 			results[0] = reflect.New(resultTypes[0]).Elem()
@@ -846,7 +846,7 @@ func (client *BaseClient) processCallback(
 		} else {
 			results = readMultiResults(reader, resultTypes)
 		}
-		ReleaseReader(reader)
+		hio.ReleaseReader(reader)
 	}
 	for _, callback := range callbacks {
 		callback(results, err)

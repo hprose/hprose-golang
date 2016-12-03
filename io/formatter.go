@@ -12,31 +12,12 @@
  *                                                        *
  * io Formatter for Go.                                   *
  *                                                        *
- * LastModified: Oct 13, 2016                             *
+ * LastModified: Dec 3, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 package io
-
-import "sync"
-
-var readerPool = sync.Pool{
-	New: func() interface{} { return new(Reader) },
-}
-
-func acquireReader(buf []byte, simple bool) (reader *Reader) {
-	reader = readerPool.Get().(*Reader)
-	reader.Init(buf)
-	reader.Simple = simple
-	return
-}
-
-func releaseReader(reader *Reader) {
-	reader.Init(nil)
-	reader.Reset()
-	readerPool.Put(reader)
-}
 
 // Serialize data
 func Serialize(v interface{}, simple bool) []byte {
@@ -50,8 +31,8 @@ func Marshal(v interface{}) []byte {
 
 // Unserialize data
 func Unserialize(b []byte, p interface{}, simple bool) {
-	reader := acquireReader(b, simple)
-	defer releaseReader(reader)
+	reader := AcquireReader(b, simple)
+	defer ReleaseReader(reader)
 	reader.Unserialize(p)
 }
 
