@@ -12,7 +12,7 @@
  *                                                        *
  * hprose half duplex socket transport for Go.            *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Jan 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,7 +37,7 @@ type halfDuplexSocketTransport struct {
 	connPool    chan *halfDuplexConnEntry
 	connCount   int32
 	nextid      uint32
-	createConn  func() net.Conn
+	createConn  func() (net.Conn, error)
 	cond        sync.Cond
 }
 
@@ -51,7 +51,7 @@ func newHalfDuplexSocketTransport() (hd *halfDuplexSocketTransport) {
 	return
 }
 
-func (hd *halfDuplexSocketTransport) setCreateConn(createConn func() net.Conn) {
+func (hd *halfDuplexSocketTransport) setCreateConn(createConn func() (net.Conn, error)) {
 	hd.createConn = createConn
 }
 
@@ -105,17 +105,22 @@ func (hd *halfDuplexSocketTransport) getConn() *halfDuplexConnEntry {
 	panic(ErrClientIsAlreadyClosed)
 }
 
-func (hd *halfDuplexSocketTransport) fetchConn() *halfDuplexConnEntry {
+func (hd *halfDuplexSocketTransport) fetchConn() (*halfDuplexConnEntry, error) {
 	hd.cond.L.Lock()
 	for {
 		entry := hd.getConn()
 		if entry != nil && entry.conn != nil {
 			hd.cond.L.Unlock()
-			return entry
+			return entry, nil
 		}
 		if int(atomic.AddInt32(&hd.connCount, 1)) <= cap(hd.connPool) {
 			hd.cond.L.Unlock()
-			return &halfDuplexConnEntry{conn: hd.createConn()}
+			conn, err := hd.createConn()
+			if err == nil {
+				return &halfDuplexConnEntry{conn: conn}, nil
+			}
+			atomic.AddInt32(&hd.connCount, -1)
+			return nil, err
 		}
 		atomic.AddInt32(&hd.connCount, -1)
 		hd.cond.Wait()
@@ -146,9 +151,13 @@ func (hd *halfDuplexSocketTransport) closeConn(conn net.Conn) {
 
 func (hd *halfDuplexSocketTransport) sendAndReceive(
 	data []byte, context *ClientContext) ([]byte, error) {
-	entry := hd.fetchConn()
+	entry, err := hd.fetchConn()
+	if err != nil {
+		hd.cond.Signal()
+		return nil, err
+	}
 	conn := entry.conn
-	err := conn.SetDeadline(time.Now().Add(context.Timeout))
+	err = conn.SetDeadline(time.Now().Add(context.Timeout))
 	if err == nil {
 		err = hdSendData(conn, data)
 	}

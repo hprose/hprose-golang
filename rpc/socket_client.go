@@ -12,7 +12,7 @@
  *                                                        *
  * hprose socket client for Go.                           *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Jan 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,7 +30,7 @@ type socketTransport interface {
 	SetIdleTimeout(timeout time.Duration)
 	MaxPoolSize() int
 	SetMaxPoolSize(size int)
-	setCreateConn(createConn func() net.Conn)
+	setCreateConn(createConn func() (net.Conn, error))
 	sendAndReceive(data []byte, context *ClientContext) ([]byte, error)
 	close()
 }

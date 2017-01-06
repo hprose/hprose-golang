@@ -12,7 +12,7 @@
  *                                                        *
  * hprose socket common for Go.                           *
  *                                                        *
- * LastModified: Nov 20, 2016                             *
+ * LastModified: Jan 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,12 +37,6 @@ type packet struct {
 type socketResponse struct {
 	data []byte
 	err  error
-}
-
-func ifErrorPanic(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
 
 func sendData(writer io.Writer, data packet) (err error) {

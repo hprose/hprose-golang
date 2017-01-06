@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp client for Go.                              *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Jan 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -57,27 +57,51 @@ func (client *TCPClient) SetURIList(uriList []string) {
 	client.BaseClient.SetURIList(uriList)
 }
 
-func (client *TCPClient) createTCPConn() net.Conn {
+func (client *TCPClient) createTCPConn() (net.Conn, error) {
 	u, err := url.Parse(client.uri)
-	ifErrorPanic(err)
+	if err != nil {
+		return nil, err
+	}
 	tcpaddr, err := net.ResolveTCPAddr(u.Scheme, u.Host)
-	ifErrorPanic(err)
+	if err != nil {
+		return nil, err
+	}
 	conn, err := net.DialTCP(u.Scheme, nil, tcpaddr)
-	ifErrorPanic(err)
-	ifErrorPanic(conn.SetLinger(client.Linger))
-	ifErrorPanic(conn.SetNoDelay(client.NoDelay))
-	ifErrorPanic(conn.SetKeepAlive(client.KeepAlive))
+	if err != nil {
+		return nil, err
+	}
+	err = conn.SetLinger(client.Linger)
+	if err != nil {
+		return nil, err
+	}
+	err = conn.SetNoDelay(client.NoDelay)
+	if err != nil {
+		return nil, err
+	}
+	err = conn.SetKeepAlive(client.KeepAlive)
+	if err != nil {
+		return nil, err
+	}
 	if client.KeepAlivePeriod > 0 {
-		ifErrorPanic(conn.SetKeepAlivePeriod(client.KeepAlivePeriod))
+		err = conn.SetKeepAlivePeriod(client.KeepAlivePeriod)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if client.ReadBuffer > 0 {
-		ifErrorPanic(conn.SetReadBuffer(client.ReadBuffer))
+		err = conn.SetReadBuffer(client.ReadBuffer)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if client.WriteBuffer > 0 {
-		ifErrorPanic(conn.SetWriteBuffer(client.WriteBuffer))
+		err = conn.SetWriteBuffer(client.WriteBuffer)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if client.TLSConfig != nil {
-		return tls.Client(conn, client.TLSConfig)
+		return tls.Client(conn, client.TLSConfig), nil
 	}
-	return conn
+	return conn, nil
 }

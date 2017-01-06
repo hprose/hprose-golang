@@ -12,7 +12,7 @@
  *                                                        *
  * hprose fasthttp client for Go.                         *
  *                                                        *
- * LastModified: Dec 1, 2016                              *
+ * LastModified: Jan 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -161,11 +161,22 @@ func (client *FastHTTPClient) SetCompression(enable bool) {
 	client.compression = enable
 }
 
-func (client *FastHTTPClient) sendAndReceive(
-	data []byte, context *rpc.ClientContext) ([]byte, error) {
+func (client *FastHTTPClient) limit() {
 	client.limiter.L.Lock()
 	client.limiter.Limit()
 	client.limiter.L.Unlock()
+}
+
+func (client *FastHTTPClient) unlimit() {
+	client.limiter.L.Lock()
+	client.limiter.Unlimit()
+	client.limiter.L.Unlock()
+}
+
+func (client *FastHTTPClient) sendAndReceive(
+	data []byte, context *rpc.ClientContext) ([]byte, error) {
+	client.limit()
+	defer client.unlimit()
 	req := fasthttp.AcquireRequest()
 	client.Header.CopyTo(&req.Header)
 	header, ok := context.Get("httpHeader").(http.Header)
@@ -205,9 +216,6 @@ func (client *FastHTTPClient) sendAndReceive(
 	context.Set("httpHeader", header)
 	fasthttp.ReleaseRequest(req)
 	fasthttp.ReleaseResponse(resp)
-	client.limiter.L.Lock()
-	client.limiter.Unlimit()
-	client.limiter.L.Unlock()
 	return data, err
 }
 

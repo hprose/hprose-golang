@@ -12,7 +12,7 @@
  *                                                        *
  * hprose websocket client for Go.                        *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Jan 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -180,10 +180,12 @@ func (client *WebSocketClient) sendAndReceive(
 	client.limiter.L.Lock()
 	client.limiter.Limit()
 	if client.closed {
+		client.limiter.Unlimit()
 		client.limiter.L.Unlock()
 		return nil, rpc.ErrClientIsAlreadyClosed
 	}
 	if err := client.getConn(client.URI()); err != nil {
+		client.limiter.Unlimit()
 		client.limiter.L.Unlock()
 		return nil, err
 	}

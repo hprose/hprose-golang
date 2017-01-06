@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Dec 1, 2016                              *
+ * LastModified: Jan 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -127,11 +127,22 @@ func (client *HTTPClient) readAll(
 	return nil, nil
 }
 
-func (client *HTTPClient) sendAndReceive(
-	data []byte, context *ClientContext) ([]byte, error) {
+func (client *HTTPClient) limit() {
 	client.limiter.L.Lock()
 	client.limiter.Limit()
 	client.limiter.L.Unlock()
+}
+
+func (client *HTTPClient) unlimit() {
+	client.limiter.L.Lock()
+	client.limiter.Unlimit()
+	client.limiter.L.Unlock()
+}
+
+func (client *HTTPClient) sendAndReceive(
+	data []byte, context *ClientContext) ([]byte, error) {
+	client.limit()
+	defer client.unlimit()
 	req, err := http.NewRequest("POST", client.uri, hio.NewByteReader(data))
 	if err != nil {
 		return nil, err
@@ -153,16 +164,13 @@ func (client *HTTPClient) sendAndReceive(
 	req.Header.Set("Content-Type", "application/hprose")
 	client.httpClient.Timeout = context.Timeout
 	resp, err := client.httpClient.Do(req)
-	context.Set("httpHeader", resp.Header)
 	if err != nil {
 		return nil, err
 	}
+	context.Set("httpHeader", resp.Header)
 	data, err = ioutil.ReadAll(resp.Body)
 	if err == nil {
 		err = resp.Body.Close()
 	}
-	client.limiter.L.Lock()
-	client.limiter.Unlimit()
-	client.limiter.L.Unlock()
 	return data, err
 }

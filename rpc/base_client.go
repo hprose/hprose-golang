@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc base client for Go.                         *
  *                                                        *
- * LastModified: Dec 3, 2016                              *
+ * LastModified: Jan 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -741,9 +741,9 @@ func (client *BaseClient) getAsyncRemoteMethod(
 			out, err := client.Invoke(name, in, settings)
 			if hasError {
 				out = append(out, reflect.ValueOf(&err).Elem())
-				err = nil
+			} else {
+				defer client.fireErrorEvent(name, err)
 			}
-			defer client.fireErrorEvent(name, err)
 			callback.Call(out)
 		}()
 		return nil
