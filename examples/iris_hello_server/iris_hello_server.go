@@ -1,7 +1,7 @@
 package main
 
 import (
-	rpc "github.com/hprose/hprose-golang/rpc/fasthttp"
+	rpc "github.com/hprose/hprose-golang/rpc"
 	"github.com/kataras/iris"
 )
 
@@ -10,10 +10,10 @@ func hello(name string) string {
 }
 
 func main() {
-	service := rpc.NewFastHTTPService()
+	service := rpc.NewHTTPService()
 	service.AddFunction("hello", hello)
 	iris.Any("/hello", func(c *iris.Context) {
-		service.ServeFastHTTP(c.RequestCtx)
+		service.ServeHTTP(c.ResponseWriter, c.Request)
 	})
 	iris.Listen(":8080")
 }
