@@ -190,7 +190,7 @@ func (mm *methodManager) recursiveAddFuncFields(
 		mm.AddAllMethods(f.Interface(), option...)
 	} else {
 		var newOptions Options
-		if len(option) > 1 {
+		if len(option) > 0 {
 			newOptions = option[0]
 		}
 		if newOptions.NameSpace == "" {
