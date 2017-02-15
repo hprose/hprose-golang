@@ -12,7 +12,7 @@
  *                                                        *
  * hprose struct encoder for Go.                          *
  *                                                        *
- * LastModified: Oct 22, 2015                             *
+ * LastModified: Feb 15, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -52,7 +52,7 @@ var structTypesLocker = sync.RWMutex{}
 
 func getFieldAlias(f *reflect.StructField, tag string) (alias string) {
 	fname := f.Name
-	if fname != "" && 'A' <= fname[0] && fname[0] < 'Z' {
+	if fname != "" && 'A' <= fname[0] && fname[0] <= 'Z' {
 		if tag != "" && f.Tag != "" {
 			alias = strings.SplitN(f.Tag.Get(tag), ",", 2)[0]
 			alias = strings.TrimSpace(strings.SplitN(alias, ">", 2)[0])
