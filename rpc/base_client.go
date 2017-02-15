@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc base client for Go.                         *
  *                                                        *
- * LastModified: Jan 7, 2017                              *
+ * LastModified: Feb 15, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -169,9 +169,9 @@ func shuffleStringSlice(src []string) []string {
 
 // SetURIList set a list of server addresses
 func (client *BaseClient) SetURIList(uriList []string) {
-	client.uriList = shuffleStringSlice(uriList)
 	client.index = 0
 	client.failround = 0
+	client.uriList = shuffleStringSlice(uriList)
 	client.uri = client.uriList[0]
 	client.url, _ = url.Parse(client.uri)
 }
@@ -402,13 +402,14 @@ func (client *BaseClient) retrySendReqeust(
 }
 
 func (client *BaseClient) failswitch() {
-	n := int32(len(client.uriList))
+	uriList := client.uriList
+	n := int32(len(uriList))
 	if n > 1 {
 		if atomic.CompareAndSwapInt32(&client.index, n-1, 0) {
-			client.uri = client.uriList[0]
+			client.uri = uriList[0]
 			client.failround++
 		} else {
-			client.uri = client.uriList[atomic.AddInt32(&client.index, 1)]
+			client.uri = uriList[atomic.AddInt32(&client.index, 1)]
 		}
 		client.url, _ = url.Parse(client.uri)
 	} else {
