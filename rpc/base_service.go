@@ -12,7 +12,7 @@
  *                                                        *
  * hprose base service for Go.                            *
  *                                                        *
- * LastModified: Dec 3, 2016                              *
+ * LastModified: May 22, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -515,12 +515,14 @@ func (service *BaseService) delayError(
 
 func (service *BaseService) beforeFilter(
 	request []byte, context ServiceContext) (response []byte, err error) {
-	request = service.inputFilter(request, context)
-	response, err = service.afterFilterHandler(request, context)
+	request, err = service.inputFilter(request, context)
+	if err == nil {
+		response, err = service.afterFilterHandler(request, context)
+	}
 	if err != nil {
 		response = service.delayError(err, context)
 	}
-	return service.outputFilter(response, context), nil
+	return service.outputFilter(response, context)
 }
 
 // Handle the hprose request and return the hprose response

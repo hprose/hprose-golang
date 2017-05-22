@@ -12,7 +12,7 @@
  *                                                        *
  * hprose filter interface for Go.                        *
  *                                                        *
- * LastModified: Oct 25, 2016                             *
+ * LastModified: May 22, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -110,20 +110,32 @@ func (fm *filterManager) RemoveFilter(filter ...Filter) {
 	}
 }
 
-func (fm *filterManager) inputFilter(data []byte, context Context) []byte {
+func (fm *filterManager) inputFilter(data []byte, context Context) (out []byte, err error) {
 	fm.fmLocker.RLock()
-	defer fm.fmLocker.RUnlock()
+	defer func() {
+		if e := recover(); e != nil {
+			err = NewPanicError(e)
+		}
+		fm.fmLocker.RUnlock()
+	}()
 	for i := len(fm.filters) - 1; i >= 0; i-- {
 		data = fm.filters[i].InputFilter(data, context)
 	}
-	return data
+	out = data
+	return
 }
 
-func (fm *filterManager) outputFilter(data []byte, context Context) []byte {
+func (fm *filterManager) outputFilter(data []byte, context Context) (out []byte, err error) {
 	fm.fmLocker.RLock()
-	defer fm.fmLocker.RUnlock()
+	defer func() {
+		if e := recover(); e != nil {
+			err = NewPanicError(e)
+		}
+		defer fm.fmLocker.RUnlock()
+	}()
 	for i := range fm.filters {
 		data = fm.filters[i].OutputFilter(data, context)
 	}
-	return data
+	out = data
+	return
 }

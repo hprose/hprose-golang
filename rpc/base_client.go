@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc base client for Go.                         *
  *                                                        *
- * LastModified: Feb 15, 2017                             *
+ * LastModified: May 22, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -358,14 +358,19 @@ func (client *BaseClient) fireErrorEvent(name string, err error) {
 func (client *BaseClient) beforeFilter(
 	request []byte,
 	context *ClientContext) (response []byte, err error) {
-	request = client.outputFilter(request, context)
+	request, err = client.outputFilter(request, context)
+	if err != nil {
+		return
+	}
 	if context.Oneway {
 		go client.handlerManager.afterFilterHandler(request, context)
-		return nil, nil
+		return
 	}
 	response, err = client.handlerManager.afterFilterHandler(request, context)
-	response = client.inputFilter(response, context)
-	return
+	if err != nil {
+		return
+	}
+	return client.inputFilter(response, context)
 }
 
 func (client *BaseClient) afterFilter(
