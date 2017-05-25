@@ -105,7 +105,7 @@ func (service *WebSocketService) releaseContext(context *WebSocketContext) {
 // ServeHTTP is the hprose http handler method
 func (service *WebSocketService) ServeHTTP(
 	response http.ResponseWriter, request *http.Request) {
-	if request.Method == "GET" && strings.Contains(strings.ToLower(request.Header.Get("connection")), "upgrade") || request.Method == "POST" {
+	if request.Method == "GET" && !strings.Contains(strings.ToLower(request.Header.Get("connection")), "upgrade") || request.Method == "POST" {
 		service.HTTPService.ServeHTTP(response, request)
 		return
 	}
