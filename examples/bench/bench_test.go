@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	hproserpc "github.com/hprose/hprose-golang/rpc"
+    "strings"
 )
 
 // BenchmarkHprose2 is ...
@@ -61,7 +62,7 @@ func BenchmarkGobRPC(b *testing.B) {
 			go server.ServeConn(conn)
 		}
 	}()
-	client, _ := rpc.Dial("tcp", listener.Addr().String())
+	client, _ := rpc.Dial("tcp", strings.Replace(listener.Addr().String(), "[::]", "", -1))
 	defer client.Close()
 	var args = &Args{"World"}
 	var reply string
@@ -119,7 +120,7 @@ func BenchmarkJSONRPC(b *testing.B) {
 			go server.ServeCodec(jsonrpc.NewServerCodec(conn))
 		}
 	}()
-	client, _ := jsonrpc.Dial("tcp", listener.Addr().String())
+	client, _ := jsonrpc.Dial("tcp", strings.Replace(listener.Addr().String(), "[::]", "", -1))
 	defer client.Close()
 	var args = &Args{"World"}
 	var reply string
