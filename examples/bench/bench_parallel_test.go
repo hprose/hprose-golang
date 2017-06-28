@@ -56,7 +56,7 @@ func BenchmarkParallelGobRPC(b *testing.B) {
 	b.StopTimer()
 	server := rpc.NewServer()
 	server.Register(new(Hello))
-	listener, _ := net.Listen("tcp", "")
+	listener, _ := net.Listen("tcp4", "")
 	defer listener.Close()
 	go func() {
 		for {
@@ -67,7 +67,7 @@ func BenchmarkParallelGobRPC(b *testing.B) {
 			go server.ServeConn(conn)
 		}
 	}()
-	client, _ := rpc.Dial("tcp", listener.Addr().String())
+	client, _ := rpc.Dial("tcp4", listener.Addr().String())
 	defer client.Close()
 	var args = &Args{"World"}
 	var reply string
@@ -114,7 +114,7 @@ func BenchmarkParallelJSONRPC(b *testing.B) {
 	b.StopTimer()
 	server := rpc.NewServer()
 	server.Register(new(Hello))
-	listener, _ := net.Listen("tcp", "")
+	listener, _ := net.Listen("tcp4", "")
 	defer listener.Close()
 	go func() {
 		for {
@@ -125,7 +125,7 @@ func BenchmarkParallelJSONRPC(b *testing.B) {
 			go server.ServeCodec(jsonrpc.NewServerCodec(conn))
 		}
 	}()
-	client, _ := jsonrpc.Dial("tcp", listener.Addr().String())
+	client, _ := jsonrpc.Dial("tcp4", listener.Addr().String())
 	defer client.Close()
 	var args = &Args{"World"}
 	var reply string
