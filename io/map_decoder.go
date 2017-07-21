@@ -84,6 +84,35 @@ func readMap(r *Reader, v reflect.Value) {
 	r.readByte()
 }
 
+func readStructMetaInMap(r *Reader, v reflect.Value) {
+	structName := r.readString()
+	count := r.ReadCount()
+	fields := make([]*fieldCache, count)
+
+	structType := GetStructType(structName)
+	if structType == nil {
+		var x interface{}
+		for i := 0; i < count; i++ {
+			name := r.ReadString()
+			fields[i] = &fieldCache{
+				Alias: name,
+				Type:  reflect.TypeOf(&x),
+				Kind:  reflect.UnsafePointer,
+			}
+		}
+	} else {
+		structCache := getStructCache(structType)
+		fieldMap := structCache.FieldMap
+		for i := 0; i < count; i++ {
+			fields[i] = fieldMap[r.ReadString()]
+		}
+		r.structTypeRef = append(r.structTypeRef, structType)
+	}
+	r.fieldsRef = append(r.fieldsRef, fields)
+	r.readByte()
+	r.ReadValue(v)
+}
+
 func readStructAsMap(r *Reader, v reflect.Value) {
 	if v.IsNil() {
 		v.Set(reflect.MakeMap(v.Type()))
@@ -99,7 +128,11 @@ func readStructAsMap(r *Reader, v reflect.Value) {
 			key := reflect.ValueOf(field.Alias)
 			val := reflect.New(field.Type).Elem()
 			r.ReadValue(val)
-			v.SetMapIndex(key, val)
+			if field.Kind == reflect.UnsafePointer {
+				v.SetMapIndex(key, val.Elem())
+			} else {
+				v.SetMapIndex(key, val)
+			}
 		} else {
 			var x interface{}
 			r.Unserialize(&x)
@@ -126,7 +159,7 @@ var mapDecoders = [256]func(r *Reader, v reflect.Value){
 	TagEmpty:  nilDecoder,
 	TagList:   readListAsMap,
 	TagMap:    readMap,
-	TagClass:  readStructMeta,
+	TagClass:  readStructMetaInMap,
 	TagObject: readStructAsMap,
 	TagRef:    readRefAsMap,
 }
