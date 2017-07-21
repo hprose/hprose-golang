@@ -20,6 +20,7 @@
 package io
 
 import (
+	"bytes"
 	"container/list"
 	"math"
 	"math/big"
@@ -1607,6 +1608,31 @@ func TestUnserializeStructAsMap(t *testing.T) {
 	w := NewWriter(true)
 	w.Serialize(test)
 	reader := NewReader(w.Bytes(), false)
+	m := make(map[string]interface{})
+	m["name"] = "Tom"
+	m["age"] = 36
+	m["male"] = true
+	var p map[string]interface{}
+	reader.Unserialize(&p)
+	if !reflect.DeepEqual(p, m) {
+		t.Error(p, m)
+	}
+}
+
+func TestUnserializeStructAsMapUnregisted(t *testing.T) {
+	type TestStructAsMapUnregisted_1 struct {
+		Name string
+		Age  int
+		Male bool
+	}
+	test := TestStructAsMapUnregisted_1{"Tom", 36, true}
+	w := NewWriter(true)
+	w.Serialize(test)
+
+	reader := NewReader(bytes.Replace(w.Bytes(),
+		[]byte("TestStructAsMapUnregisted_1"), []byte("TestStructAsMapUnregisted_2"), -1),
+		false)
+
 	m := make(map[string]interface{})
 	m["name"] = "Tom"
 	m["age"] = 36
