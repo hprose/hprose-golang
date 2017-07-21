@@ -84,6 +84,24 @@ func readMap(r *Reader, v reflect.Value) {
 	r.readByte()
 }
 
+func readStructMetaIgnore(r *Reader, v reflect.Value) {
+	r.readString()
+	count := r.ReadCount()
+	var x interface{}
+	fields := make([]*fieldCache, count)
+	for i := 0; i < count; i++ {
+		name := r.ReadString()
+		fields[i] = &fieldCache{
+			Alias: name,
+			Type:  reflect.TypeOf(&x),
+			Kind:  reflect.Interface,
+		}
+	}
+	r.fieldsRef = append(r.fieldsRef, fields)
+	r.readByte()
+	r.ReadValue(v)
+}
+
 func readStructAsMap(r *Reader, v reflect.Value) {
 	if v.IsNil() {
 		v.Set(reflect.MakeMap(v.Type()))
@@ -126,7 +144,7 @@ var mapDecoders = [256]func(r *Reader, v reflect.Value){
 	TagEmpty:  nilDecoder,
 	TagList:   readListAsMap,
 	TagMap:    readMap,
-	TagClass:  readStructMeta,
+	TagClass:  readStructMetaIgnore,
 	TagObject: readStructAsMap,
 	TagRef:    readRefAsMap,
 }
