@@ -126,17 +126,24 @@ func readStructMeta(r *Reader, v reflect.Value) {
 	structType := v.Type()
 	if structType.Kind() != reflect.Struct {
 		structType = GetStructType(structName)
-		if structType == nil {
-			panic(errors.New("cannot convert " + structName +
-				" to type " + v.Type().String()))
-		}
 	}
-	structCache := getStructCache(structType)
-	fieldMap := structCache.FieldMap
+
 	count := r.ReadCount()
 	fields := make([]*fieldCache, count)
-	for i := 0; i < count; i++ {
-		fields[i] = fieldMap[r.ReadString()]
+
+	if structType == nil {
+		for i := 0; i < count; i++ {
+			fields[i] = &fieldCache{
+				Alias: r.ReadString(),
+				Type:  interfaceType,
+			}
+		}
+	} else {
+		structCache := getStructCache(structType)
+		fieldMap := structCache.FieldMap
+		for i := 0; i < count; i++ {
+			fields[i] = fieldMap[r.ReadString()]
+		}
 	}
 	r.structTypeRef = append(r.structTypeRef, structType)
 	r.fieldsRef = append(r.fieldsRef, fields)
