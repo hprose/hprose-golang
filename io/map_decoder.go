@@ -84,11 +84,10 @@ func readMap(r *Reader, v reflect.Value) {
 	r.readByte()
 }
 
-func readStructAsMap(r *Reader, v reflect.Value) {
+func readStructAsMapByIndex(r *Reader, v reflect.Value, index int) {
 	if v.IsNil() {
 		v.Set(reflect.MakeMap(v.Type()))
 	}
-	index := r.ReadCount()
 	fields := r.fieldsRef[index]
 	count := len(fields)
 	if !r.Simple {
@@ -106,6 +105,11 @@ func readStructAsMap(r *Reader, v reflect.Value) {
 		}
 	}
 	r.readByte()
+}
+
+func readStructAsMap(r *Reader, v reflect.Value) {
+	index := r.ReadCount()
+	readStructAsMapByIndex(r, v, index)
 }
 
 func readRefAsMap(r *Reader, v reflect.Value) {
