@@ -13,7 +13,10 @@ before_install:
     - go get golang.org/x/tools/cmd/cover
 
 install:
-    - go get -d -v ./...
+    - go get -d -v $(go list ./... | grep -v examples)
+
+script:
+    - go test -v $(go list ./... | grep -v examples)
 
 after_success:
   - bash .generate_coverage.sh
