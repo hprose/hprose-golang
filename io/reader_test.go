@@ -1620,23 +1620,46 @@ func TestUnserializeStructAsMap(t *testing.T) {
 }
 
 func TestUnserializeStructAsMapUnregisted(t *testing.T) {
-	type TestStructAsMapUnregisted_1 struct {
-		Name string
-		Age  int
-		Male bool
+	type TestStructAsMapUnregisted_3 struct {
+		Id    string
+		Child *TestStructAsMapUnregisted_3
 	}
-	test := TestStructAsMapUnregisted_1{"Tom", 36, true}
+	type TestStructAsMapUnregisted_1 struct {
+		Name  string
+		Age   int
+		Male  bool
+		Child *TestStructAsMapUnregisted_3
+	}
+	test := TestStructAsMapUnregisted_1{"Tom", 36, true,
+		&TestStructAsMapUnregisted_3{
+			Id: "ok",
+			Child: &TestStructAsMapUnregisted_3{
+				Id: "yes",
+			},
+		},
+	}
 	w := NewWriter(true)
 	w.Serialize(test)
 
-	reader := NewReader(bytes.Replace(w.Bytes(),
-		[]byte("TestStructAsMapUnregisted_1"), []byte("TestStructAsMapUnregisted_2"), -1),
-		false)
+	buf := bytes.Replace(w.Bytes(),
+		[]byte("TestStructAsMapUnregisted_1"), []byte("TestStructAsMapUnregisted_2"), -1)
+	buf = bytes.Replace(buf,
+		[]byte("TestStructAsMapUnregisted_3"), []byte("TestStructAsMapUnregisted_4"), -1)
+
+	reader := NewReader(buf, false)
 
 	m := make(map[string]interface{})
 	m["name"] = "Tom"
 	m["age"] = 36
 	m["male"] = true
+	m["child"] = map[string]interface{}{
+		"id": "ok",
+		"child": map[string]interface{}{
+			"id":    "yes",
+			"child": nil,
+		},
+	}
+
 	var p map[string]interface{}
 	reader.Unserialize(&p)
 	if !reflect.DeepEqual(p, m) {
