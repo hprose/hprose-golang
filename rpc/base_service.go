@@ -596,7 +596,6 @@ func (service *BaseService) Publish(
 		case result := <-message:
 			return result
 		case <-time.After(timeout):
-			service.offline(t, topic, id)
 			return nil
 		}
 	}, Options{})
