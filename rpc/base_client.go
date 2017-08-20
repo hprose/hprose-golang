@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc base client for Go.                         *
  *                                                        *
- * LastModified: May 22, 2017                             *
+ * LastModified: Aug 20, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -902,6 +902,9 @@ func (client *BaseClient) Subscribe(
 	}
 	if settings == nil {
 		settings = new(InvokeSettings)
+	}
+	if settings.Timeout <= 0 {
+		settings.Timeout = 5 * time.Minute;
 	}
 	settings.ByRef = false
 	settings.Idempotent = true
