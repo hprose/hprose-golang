@@ -12,7 +12,7 @@
  *                                                        *
  * hprose base service for Go.                            *
  *                                                        *
- * LastModified: May 22, 2017                             *
+ * LastModified: Sep 10, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -570,6 +570,8 @@ func (service *BaseService) offline(t *topic, topic string, id string) {
 	}
 }
 
+var heartbeatSignals = new(interface{})
+
 // Publish the hprose push topic
 func (service *BaseService) Publish(
 	topic string,
@@ -592,10 +594,22 @@ func (service *BaseService) Publish(
 			t.put(id, message)
 			fireSubscribeEvent(topic, id, service)
 		}
+		receiveMessage:
 		select {
 		case result := <-message:
+			if result == heartbeatSignals {
+				goto receiveMessage
+			}
 			return result
 		case <-time.After(timeout):
+			go func() {
+				select {
+				case message <- heartbeatSignals:
+					break;
+				case <-time.After(t.heartbeat):
+					service.offline(t, topic, id)
+				}
+			}()
 			return nil
 		}
 	}, Options{})
