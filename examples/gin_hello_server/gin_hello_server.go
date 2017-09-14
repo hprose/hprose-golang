@@ -13,7 +13,7 @@ func main() {
 	service := rpc.NewHTTPService()
 	service.AddFunction("hello", hello)
 	router := gin.Default()
-	router.Any("/hello", func(c *gin.Context) {
+	router.Any("/", func(c *gin.Context) {
 		service.ServeHTTP(c.Writer, c.Request)
 	})
 	router.Run(":8080")
