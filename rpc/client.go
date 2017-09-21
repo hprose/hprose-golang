@@ -67,7 +67,7 @@ type Client interface {
 	SetTimeout(value time.Duration)
 	Failround() int
 	SetEvent(ClientEvent)
-	Filter() Filter
+	FirstFilter() Filter
 	FilterByIndex(index int) Filter
 	SetFilter(filter ...Filter) Client
 	AddFilter(filter ...Filter) Client

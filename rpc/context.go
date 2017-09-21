@@ -19,6 +19,8 @@
 
 package rpc
 
+import "reflect"
+
 // Context is the hprose context
 type Context interface {
 	UserData() map[string]interface{}
@@ -175,47 +177,118 @@ func (context *BaseContext) Get(key string) interface{} {
 	return nil
 }
 
+func (context *BaseContext) checkType(val1 interface{}, val2 interface{}) bool {
+	refTyp1 := reflect.TypeOf(val1)
+	refTyp2 := reflect.TypeOf(val2)
+	if refTyp1.Kind() == refTyp2.Kind() {
+		return true
+	}
+	return false
+}
+
 // SetInt to hprose context
 func (context *BaseContext) SetInt(key string, value int) {
+	if oldVal, ok := context.userData[key]; !ok {
+		context.userData[key] = value
+		return
+	} else if !context.checkType(oldVal, value) {
+		panic("context set value's type is not right")
+	}
 	context.userData[key] = value
+	return
 }
 
 // SetUInt to hprose context
 func (context *BaseContext) SetUInt(key string, value uint) {
+	if oldVal, ok := context.userData[key]; !ok {
+		context.userData[key] = value
+		return
+	} else if !context.checkType(oldVal, value) {
+		panic("context set value's type is not right")
+	}
 	context.userData[key] = value
+	return
 }
 
 // SetInt64 to hprose context
 func (context *BaseContext) SetInt64(key string, value int64) {
+	if oldVal, ok := context.userData[key]; !ok {
+		context.userData[key] = value
+		return
+	} else if !context.checkType(oldVal, value) {
+		panic("context set value's type is not right")
+	}
 	context.userData[key] = value
 }
 
 // SetUInt64 to hprose context
 func (context *BaseContext) SetUInt64(key string, value uint64) {
+	if oldVal, ok := context.userData[key]; !ok {
+		context.userData[key] = value
+		return
+	} else if !context.checkType(oldVal, value) {
+		panic("context set value's type is not right")
+	}
 	context.userData[key] = value
+	return
 }
 
 // SetFloat to hprose context
 func (context *BaseContext) SetFloat(key string, value float64) {
+	if oldVal, ok := context.userData[key]; !ok {
+		context.userData[key] = value
+		return
+	} else if !context.checkType(oldVal, value) {
+		panic("context set value's type is not right")
+	}
 	context.userData[key] = value
+	return
 }
 
 // SetBool to hprose context
 func (context *BaseContext) SetBool(key string, value bool) {
+	if oldVal, ok := context.userData[key]; !ok {
+		context.userData[key] = value
+		return
+	} else if !context.checkType(oldVal, value) {
+		panic("context set value's type is not right")
+	}
 	context.userData[key] = value
+	return
 }
 
 // SetString to hprose context
 func (context *BaseContext) SetString(key string, value string) {
+	if oldVal, ok := context.userData[key]; !ok {
+		context.userData[key] = value
+		return
+	} else if !context.checkType(oldVal, value) {
+		panic("context set value's type is not right")
+	}
 	context.userData[key] = value
+	return
 }
 
 // SetInterface to hprose context
 func (context *BaseContext) SetInterface(key string, value interface{}) {
+	if oldVal, ok := context.userData[key]; !ok {
+		context.userData[key] = value
+		return
+	} else if !context.checkType(oldVal, value) {
+		panic("context set value's type is not right")
+	}
 	context.userData[key] = value
+	return
 }
 
 // Set is an alias of SetInterface
 func (context *BaseContext) Set(key string, value interface{}) {
+	if oldVal, ok := context.userData[key]; !ok {
+		context.userData[key] = value
+		return
+	} else if !context.checkType(oldVal, value) {
+		panic("context set value's type is not right")
+	}
 	context.userData[key] = value
+	return
 }

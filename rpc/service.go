@@ -32,7 +32,7 @@ type Service interface {
 	AddMissingMethod(method MissingMethod, option ...Options) Service
 	AddNetRPCMethods(rcvr interface{}, option ...Options) Service
 	Remove(name string) Service
-	Filter() Filter
+	FirstFilter() Filter
 	FilterByIndex(index int) Filter
 	SetFilter(filter ...Filter) Service
 	AddFilter(filter ...Filter) Service
