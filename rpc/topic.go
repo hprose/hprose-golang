@@ -57,14 +57,17 @@ func (t *topic) remove(id string) {
 }
 
 func (t *topic) idlist() (result []string) {
-	t.RLock()
+	// there exists a issue:
+	//  if goroutines come concurrent to write t.messages map, it will add or delete messages length. the result is not right.
+	// so there are a tip: 1. use RWLock pair: t.Lock() and t.Unlock()
+	t.Lock()
 	result = make([]string, len(t.messages))
 	i := 0
 	for id := range t.messages {
 		result[i] = id
 		i++
 	}
-	t.RUnlock()
+	t.Unlock()
 	return
 }
 
