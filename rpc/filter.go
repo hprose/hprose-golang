@@ -35,11 +35,11 @@ type filterManager struct {
 
 // Filter return the first filter
 func (fm *filterManager) FirstFilter() (f Filter) {
-	fm.RLock()
+	fm.Lock()
 	if len(fm.filters) > 0 {
 		f = fm.filters[0]
 	}
-	fm.RUnlock()
+	fm.Unlock()
 	return
 }
 
@@ -47,18 +47,17 @@ func (fm *filterManager) FirstFilter() (f Filter) {
 func (fm *filterManager) NumFilter() (length int) {
 	fm.RLock()
 	length = len(fm.filters)
-	//len = len(fm.filters)
 	fm.RUnlock()
 	return
 }
 
 // FilterByIndex return the filter by index
 func (fm *filterManager) FilterByIndex(index int) (f Filter) {
-	fm.RLock()
+	fm.Lock()
 	if index >= 0 && index < len(fm.filters) {
 		f = fm.filters[index]
 	}
-	fm.RUnlock()
+	fm.Unlock()
 	return
 }
 
