@@ -22,7 +22,7 @@ package rpc
 import (
 	"errors"
 	"fmt"
-	"runtime"
+	"runtime/debug"
 )
 
 // ErrTimeout represents a timeout error
@@ -46,20 +46,9 @@ type PanicError struct {
 	Stack []byte
 }
 
-func stack() []byte {
-	buf := make([]byte, 1024)
-	for {
-		n := runtime.Stack(buf, false)
-		if n < len(buf) {
-			return buf[:n]
-		}
-		buf = make([]byte, 2*len(buf))
-	}
-}
-
 // NewPanicError return a panic error
 func NewPanicError(v interface{}) *PanicError {
-	return &PanicError{v, stack()}
+	return &PanicError{v, debug.Stack()}
 }
 
 // Error implements the PanicError Error method.
