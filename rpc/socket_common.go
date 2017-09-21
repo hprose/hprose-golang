@@ -150,7 +150,7 @@ func hdRecvData(reader io.Reader, buf []byte) (data []byte, err error) {
 }
 
 func nextTempDelay(
-	err error, event ServiceEvent, tempDelay time.Duration) time.Duration {
+	err error, event ServiceEvent, tempDelay time.Duration) (time.Duration, bool) {
 	if ne, ok := err.(net.Error); ok && ne.Temporary() {
 		if tempDelay == 0 {
 			tempDelay = 5 * time.Millisecond
@@ -162,7 +162,7 @@ func nextTempDelay(
 		}
 		FireErrorEvent(event, err, nil)
 		time.Sleep(tempDelay)
-		return tempDelay
+		return tempDelay, false
 	}
-	return 0
+	return tempDelay, true
 }

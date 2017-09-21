@@ -80,16 +80,16 @@ func (service *TCPService) ServeConn(conn net.Conn) {
 // statement.
 func (service *TCPService) ServeTCP(listener *net.TCPListener) {
 	var tempDelay time.Duration // how long to sleep on accept failure
+	var isRet bool
 	for {
 		conn, err := listener.AcceptTCP()
 		if err != nil {
-			tempDelay = nextTempDelay(err, service.Event, tempDelay)
-			if tempDelay > 0 {
-				continue
+			tempDelay, isRet = nextTempDelay(err, service.Event, tempDelay)
+			if isRet {
+				return
 			}
-			return
+			continue
 		}
-		tempDelay = 0
 		go service.ServeTCPConn(conn)
 	}
 }
