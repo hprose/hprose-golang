@@ -139,12 +139,13 @@ func getNextFilterHandler(
 }
 
 // AddInvokeHandler add the invoke handler
-func (hm *handlerManager) AddInvokeHandler(handler ...InvokeHandler) {
-	if len(handler) == 0 {
+func (hm *handlerManager) AddInvokeHandler(handlers ...InvokeHandler) {
+	if len(handlers) == 0 {
 		return
 	}
-	hm.invokeHandlers = append(hm.invokeHandlers, handler...)
+	hm.invokeHandlers = append(hm.invokeHandlers, handlers...)
 	next := hm.defaultInvokeHandler
+	// ::TODO optimize i=len(hm.invokeHandlers); i >= old len(hm.inokeHandlers); i--
 	for i := len(hm.invokeHandlers) - 1; i >= 0; i-- {
 		next = getNextInvokeHandler(next, hm.invokeHandlers[i])
 	}
@@ -158,6 +159,7 @@ func (hm *handlerManager) AddBeforeFilterHandler(handler ...FilterHandler) {
 	}
 	hm.beforeFilterHandlers = append(hm.beforeFilterHandlers, handler...)
 	next := hm.defaultBeforeFilterHandler
+	// ::TODO optimize i=len(hm.beforeFilterHandlers); i >= old len(hm.beforeFilterHandlers); i--
 	for i := len(hm.beforeFilterHandlers) - 1; i >= 0; i-- {
 		next = getNextFilterHandler(next, hm.beforeFilterHandlers[i])
 	}
@@ -171,6 +173,8 @@ func (hm *handlerManager) AddAfterFilterHandler(handler ...FilterHandler) {
 	}
 	hm.afterFilterHandlers = append(hm.afterFilterHandlers, handler...)
 	next := hm.defaultAfterFilterHandler
+	// ::TODO
+	//	optimize i=len(hm.beforeFilterHandlers); i >= old len(hm.beforeFilterHandlers); i--
 	for i := len(hm.afterFilterHandlers) - 1; i >= 0; i-- {
 		next = getNextFilterHandler(next, hm.afterFilterHandlers[i])
 	}

@@ -124,10 +124,12 @@ func (fm *filterManager) inputFilter(data []byte, context Context) (out []byte, 
 		}
 		fm.RUnlock()
 	}()
+	// don't change original data
+	out = make([]byte, len(data))
+	copy(out, data)
 	for i := len(fm.filters) - 1; i >= 0; i-- {
-		data = fm.filters[i].InputFilter(data, context)
+		out = fm.filters[i].InputFilter(out, context)
 	}
-	out = data
 	return
 }
 
@@ -137,11 +139,13 @@ func (fm *filterManager) outputFilter(data []byte, context Context) (out []byte,
 		if e := recover(); e != nil {
 			err = NewPanicError(e)
 		}
-		defer fm.RUnlock()
+		fm.RUnlock()
 	}()
+	// don't change original data
+	out = make([]byte, len(data))
+	copy(out, data)
 	for i := range fm.filters {
-		data = fm.filters[i].OutputFilter(data, context)
+		out = fm.filters[i].OutputFilter(out, context)
 	}
-	out = data
 	return
 }

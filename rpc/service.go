@@ -23,14 +23,14 @@ import "time"
 
 // Service interface
 type Service interface {
-	AddFunction(name string, function interface{}, option ...Options) Service
-	AddFunctions(names []string, functions []interface{}, option ...Options) Service
-	AddMethod(name string, obj interface{}, alias string, option ...Options) Service
-	AddMethods(names []string, obj interface{}, aliases []string, option ...Options) Service
-	AddInstanceMethods(obj interface{}, option ...Options) Service
-	AddAllMethods(obj interface{}, option ...Options) Service
-	AddMissingMethod(method MissingMethod, option ...Options) Service
-	AddNetRPCMethods(rcvr interface{}, option ...Options) Service
+	AddFunction(name string, function interface{}, options ...Option) Service
+	AddFunctions(names []string, functions []interface{}, options ...Option) Service
+	AddMethod(name string, obj interface{}, alias string, options ...Option) Service
+	AddMethods(names []string, obj interface{}, aliases []string, options ...Option) Service
+	AddInstanceMethods(obj interface{}, options ...Option) Service
+	AddAllMethods(obj interface{}, options ...Option) Service
+	AddMissingMethod(method MissingMethod, options ...Option) Service
+	AddNetRPCMethods(rcvr interface{}, options ...Option) Service
 	Remove(name string) Service
 	FirstFilter() Filter
 	FilterByIndex(index int) Filter
