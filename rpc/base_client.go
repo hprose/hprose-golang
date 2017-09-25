@@ -737,7 +737,7 @@ func (client *BaseClient) getSyncRemoteMethod(
 		var err error
 		out, err = client.Invoke(name, in, settings)
 		if hasError {
-			out = append(out, reflect.ValueOf(err))
+			out = append(out, reflect.ValueOf(&err).Elem())
 		} else if err != nil {
 			if e, ok := err.(*PanicError); ok {
 				panic(fmt.Sprintf("%v\r\n%s", e.Panic, e.Stack))
@@ -762,7 +762,7 @@ func (client *BaseClient) getAsyncRemoteMethod(
 			in = in[1:]
 			out, err := client.Invoke(name, in, settings)
 			if hasError {
-				out = append(out, reflect.ValueOf(err))
+				out = append(out, reflect.ValueOf(&err).Elem())
 			} else if err != nil {
 				defer client.fireErrorEvent(name, err)
 			}
