@@ -44,7 +44,7 @@ type BaseService struct {
 	ErrorDelay   time.Duration
 	UserData     map[string]interface{}
 	topics       map[string]*topic
-	topicLock    sync.RWMutex
+	sync.RWMutex
 }
 
 // DefaultFixArguments is the default FixArguments function
@@ -584,9 +584,9 @@ func (service *BaseService) Publish(
 		heartbeat = service.Heartbeat
 	}
 	t := newTopic(heartbeat)
-	service.topicLock.Lock()
+	service.Lock()
 	service.topics[topic] = t
-	service.topicLock.Unlock()
+	service.Unlock()
 	return service.AddFunction(topic, func(id string) interface{} {
 		message := t.get(id)
 		if message == nil {
@@ -616,9 +616,9 @@ func (service *BaseService) Publish(
 }
 
 func (service *BaseService) getTopic(topic string) (t *topic) {
-	service.topicLock.RLock()
+	service.RLock()
 	t = service.topics[topic]
-	service.topicLock.RUnlock()
+	service.RUnlock()
 	if t == nil {
 		panic("topic \"" + topic + "\" is not published.")
 	}

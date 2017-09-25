@@ -30,7 +30,6 @@ type Limiter struct {
 
 // InitLimiter initializes Limiter
 func (limiter *Limiter) InitLimiter() {
-	// ::TODO why concurrent request num is so little ?
 	limiter.MaxConcurrentRequests = 10
 	limiter.L = &sync.Mutex{}
 }

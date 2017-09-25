@@ -40,55 +40,62 @@ import (
 
 type clientTopic struct {
 	callbacks []Callback
-	locker    sync.RWMutex
+	sync.RWMutex
 }
 
 func (ct *clientTopic) addCallback(callback Callback) {
-	ct.locker.Lock()
+	ct.Lock()
 	ct.callbacks = append(ct.callbacks, callback)
-	ct.locker.Unlock()
+	ct.Unlock()
 }
 
 type topicManager struct {
 	allTopics map[string]map[string]*clientTopic
-	locker    sync.RWMutex
+	sync.RWMutex
 }
 
-func (tm *topicManager) getTopic(topic string, id string) *clientTopic {
-	tm.locker.RLock()
+func (tm *topicManager) getTopic(topic string, id string) (ct *clientTopic) {
+	// there is a issue:
+	// because `return topic` is not atomic operation,
+	// the topic may be delete by other goroutine.
+	tm.RLock()
 	topics := tm.allTopics[topic]
 	if topics != nil {
-		topic := topics[id]
-		tm.locker.RUnlock()
-		return topic
+		ct = topics[id]
+		tm.RUnlock()
+		return
 	}
-	tm.locker.RUnlock()
-	return nil
+	tm.RUnlock()
+	return
 }
+
 func (tm *topicManager) createTopic(topic string) {
-	tm.locker.Lock()
+	tm.Lock()
 	if tm.allTopics[topic] == nil {
 		tm.allTopics[topic] = make(map[string]*clientTopic)
 	}
-	tm.locker.Unlock()
+	tm.Unlock()
 }
 
 // IsSubscribed the topic
-func (tm *topicManager) IsSubscribed(topic string) bool {
-	tm.locker.RLock()
-	defer tm.locker.RUnlock()
-	return tm.allTopics[topic] != nil
+func (tm *topicManager) IsSubscribed(topic string) (isSubscribed bool) {
+	tm.RLock()
+	_, isSubscribed = tm.allTopics[topic]
+	tm.RUnlock()
+	return
 }
 
 // SubscribedList returns the subscribed topic list
 func (tm *topicManager) SubscribedList() []string {
-	tm.locker.RLock()
-	list := make([]string, 0, len(tm.allTopics))
+	var i int
+	tm.RLock()
+	topics := make([]string, len(tm.allTopics))
 	for name := range tm.allTopics {
-		list = append(list, name)
+		topics[i] = name
+		i++
 	}
-	tm.locker.RUnlock()
-	return list
+	tm.RUnlock()
+	return topics
 }
 
 // BaseClient is hprose base client
@@ -169,6 +176,9 @@ func shuffleStringSlice(src []string) []string {
 
 // SetURIList set a list of server addresses
 func (client *BaseClient) SetURIList(uriList []string) {
+	if len(uriList) <= 0 {
+		panic("client uri can't be empty!")
+	}
 	client.index = 0
 	client.failround = 0
 	client.uriList = shuffleStringSlice(uriList)
@@ -319,9 +329,8 @@ func (client *BaseClient) Invoke(
 	context := client.GetClientContext(settings)
 	results, err = client.handlerManager.invokeHandler(name, args, context)
 	if results == nil && len(context.ResultTypes) > 0 {
-		n := len(context.ResultTypes)
-		results = make([]reflect.Value, n)
-		for i := 0; i < n; i++ {
+		results = make([]reflect.Value, len(context.ResultTypes))
+		for i := 0; i < len(context.ResultTypes); i++ {
 			results[i] = reflect.New(context.ResultTypes[i]).Elem()
 		}
 	}
@@ -577,7 +586,7 @@ func (client *BaseClient) buildRemoteService(v reflect.Value, ns string) {
 			case reflect.Struct:
 				client.buildRemoteSubService(f, ft, sf, ns)
 			case reflect.Func:
-				client.buildRemoteMethod(f, ft, sf, ns)
+				client.buildRemoteMethod(f, sf, ns)
 			}
 		}
 	}
@@ -660,6 +669,7 @@ func getUserData(tag reflect.StructTag) (userdata map[string]interface{}) {
 }
 
 func getResultTypes(ft reflect.Type) ([]reflect.Type, bool) {
+	var results []reflect.Type
 	n := ft.NumOut()
 	if n == 0 {
 		return nil, false
@@ -668,14 +678,18 @@ func getResultTypes(ft reflect.Type) ([]reflect.Type, bool) {
 	if hasError {
 		n--
 	}
-	results := make([]reflect.Type, n)
-	for i := 0; i < n; i++ {
-		results[i] = ft.Out(i)
+	// if not set condition, the results value is non-nil.
+	if n > 0 {
+		results = make([]reflect.Type, n)
+		for i := 0; i < n; i++ {
+			results[i] = ft.Out(i)
+		}
 	}
 	return results, hasError
 }
 
 func getCallbackResultTypes(ft reflect.Type) ([]reflect.Type, bool) {
+	var results []reflect.Type
 	n := ft.NumIn()
 	if n == 0 {
 		return nil, false
@@ -684,9 +698,11 @@ func getCallbackResultTypes(ft reflect.Type) ([]reflect.Type, bool) {
 	if hasError {
 		n--
 	}
-	results := make([]reflect.Type, n)
-	for i := 0; i < n; i++ {
-		results[i] = ft.In(i)
+	if n > 0 {
+		results = make([]reflect.Type, n)
+		for i := 0; i < n; i++ {
+			results[i] = ft.In(i)
+		}
 	}
 	return results, hasError
 }
@@ -721,7 +737,7 @@ func (client *BaseClient) getSyncRemoteMethod(
 		var err error
 		out, err = client.Invoke(name, in, settings)
 		if hasError {
-			out = append(out, reflect.ValueOf(&err).Elem())
+			out = append(out, reflect.ValueOf(err))
 		} else if err != nil {
 			if e, ok := err.(*PanicError); ok {
 				panic(fmt.Sprintf("%v\r\n%s", e.Panic, e.Stack))
@@ -746,8 +762,8 @@ func (client *BaseClient) getAsyncRemoteMethod(
 			in = in[1:]
 			out, err := client.Invoke(name, in, settings)
 			if hasError {
-				out = append(out, reflect.ValueOf(&err).Elem())
-			} else {
+				out = append(out, reflect.ValueOf(err))
+			} else if err != nil {
 				defer client.fireErrorEvent(name, err)
 			}
 			callback.Call(out)
@@ -757,13 +773,13 @@ func (client *BaseClient) getAsyncRemoteMethod(
 }
 
 func (client *BaseClient) buildRemoteMethod(
-	f reflect.Value, ft reflect.Type, sf reflect.StructField, ns string) {
+	f reflect.Value, sf reflect.StructField, ns string) {
 	name := getRemoteMethodName(sf, ns)
-	outTypes, hasError := getResultTypes(ft)
+	outTypes, hasError := getResultTypes(sf.Type)
 	async := false
 	if outTypes == nil && hasError == false {
-		if ft.NumIn() > 0 && ft.In(0).Kind() == reflect.Func {
-			cbft := ft.In(0)
+		if sf.Type.NumIn() > 0 && sf.Type.In(0).Kind() == reflect.Func {
+			cbft := sf.Type.In(0)
 			if cbft.IsVariadic() {
 				panic("callback can't be variadic function")
 			}
@@ -786,16 +802,16 @@ func (client *BaseClient) buildRemoteMethod(
 	}
 	var fn func(in []reflect.Value) (out []reflect.Value)
 	if async {
-		fn = client.getAsyncRemoteMethod(name, settings, ft.IsVariadic(), hasError)
+		fn = client.getAsyncRemoteMethod(name, settings, sf.Type.IsVariadic(), hasError)
 	} else {
-		fn = client.getSyncRemoteMethod(name, settings, ft.IsVariadic(), hasError)
+		fn = client.getSyncRemoteMethod(name, settings, sf.Type.IsVariadic(), hasError)
 	}
 	if f.Kind() == reflect.Ptr {
-		fp := reflect.New(ft)
-		fp.Elem().Set(reflect.MakeFunc(ft, fn))
+		fp := reflect.New(sf.Type)
+		fp.Elem().Set(reflect.MakeFunc(sf.Type, fn))
 		f.Set(fp)
 	} else {
-		f.Set(reflect.MakeFunc(ft, fn))
+		f.Set(reflect.MakeFunc(sf.Type, fn))
 	}
 }
 
@@ -809,14 +825,14 @@ var autoIDSettings = InvokeSettings{
 // AutoID returns the auto id of this hprose client.
 // If the id is not initialized, it be initialized and returned.
 func (client *BaseClient) AutoID() (string, error) {
-	client.topicManager.locker.RLock()
+	client.topicManager.RLock()
 	if client.id != "" {
-		client.topicManager.locker.RUnlock()
+		client.topicManager.RUnlock()
 		return client.id, nil
 	}
-	client.topicManager.locker.RUnlock()
-	client.topicManager.locker.Lock()
-	defer client.topicManager.locker.Unlock()
+	client.topicManager.RUnlock()
+	client.topicManager.Lock()
+	defer client.topicManager.Unlock()
 	if client.id != "" {
 		return client.id, nil
 	}
@@ -841,7 +857,7 @@ func (client *BaseClient) processCallback(
 	results []reflect.Value,
 	err error) {
 	defer client.fireErrorEvent(name, nil)
-	if resultTypes != nil && len(resultTypes) > 0 {
+	if len(resultTypes) > 0 {
 		writer := hio.NewWriter(false)
 		writer.WriteValue(results[0])
 		reader := hio.AcquireReader(writer.Bytes(), false)
@@ -869,9 +885,9 @@ func (client *BaseClient) subscribe(
 		if topic == nil {
 			return
 		}
-		topic.locker.RLock()
+		topic.RLock()
 		callbacks := topic.callbacks
-		topic.locker.RUnlock()
+		topic.RUnlock()
 		results, err := client.Invoke(name, args, settings)
 		if !results[0].IsNil() {
 			client.processCallback(name, callbacks, resultTypes, results, err)
@@ -896,7 +912,7 @@ func (client *BaseClient) Subscribe(
 	resultTypes, hasError := getCallbackResultTypes(f.Type())
 	cb := func(results []reflect.Value, err error) {
 		if hasError {
-			results = append(results, reflect.ValueOf(&err).Elem())
+			results = append(results, reflect.ValueOf(err))
 		}
 		f.Call(results)
 	}
@@ -904,7 +920,7 @@ func (client *BaseClient) Subscribe(
 		settings = new(InvokeSettings)
 	}
 	if settings.Timeout <= 0 {
-		settings.Timeout = 5 * time.Minute;
+		settings.Timeout = 5 * time.Minute
 	}
 	settings.ByRef = false
 	settings.Idempotent = true
@@ -917,9 +933,9 @@ func (client *BaseClient) Subscribe(
 	if topic == nil {
 		topic = new(clientTopic)
 		topic.addCallback(cb)
-		client.topicManager.locker.Lock()
+		client.topicManager.Lock()
 		client.allTopics[name][id] = topic
-		client.topicManager.locker.Unlock()
+		client.topicManager.Unlock()
 		go client.subscribe(name, id, settings)
 	} else {
 		topic.addCallback(cb)
@@ -928,23 +944,23 @@ func (client *BaseClient) Subscribe(
 }
 
 // Unsubscribe a push topic
-func (client *BaseClient) Unsubscribe(name string, id ...string) {
-	client.topicManager.locker.Lock()
+func (client *BaseClient) Unsubscribe(name string, ids ...string) {
+	client.topicManager.Lock()
 	if client.allTopics[name] != nil {
-		if len(id) == 0 {
+		if len(ids) == 0 {
 			if client.id == "" {
 				delete(client.allTopics, name)
 			} else {
 				delete(client.allTopics[name], client.id)
 			}
 		} else {
-			for i := range id {
-				delete(client.allTopics[name], id[i])
+			for i := range ids {
+				delete(client.allTopics[name], ids[i])
 			}
 		}
 		if len(client.allTopics[name]) == 0 {
 			delete(client.allTopics, name)
 		}
 	}
-	client.topicManager.locker.Unlock()
+	client.topicManager.Unlock()
 }
