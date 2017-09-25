@@ -19,7 +19,9 @@
 
 package rpc
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // NextInvokeHandler is the next invoke handler function
 type NextInvokeHandler func(
@@ -70,8 +72,8 @@ type handlerManager struct {
 }
 
 func (hm *handlerManager) initHandlerManager() {
-	hm.BeforeFilter.Use = hm.AddBeforeFilterHandler
-	hm.AfterFilter.Use = hm.AddAfterFilterHandler
+	hm.BeforeFilter.Use = hm.AddBeforeFilterHandlers
+	hm.AfterFilter.Use = hm.AddAfterFilterHandlers
 	hm.defaultInvokeHandler = func(
 		name string,
 		args []reflect.Value,
@@ -139,13 +141,12 @@ func getNextFilterHandler(
 }
 
 // AddInvokeHandler add the invoke handler
-func (hm *handlerManager) AddInvokeHandler(handlers ...InvokeHandler) {
+func (hm *handlerManager) AddInvokeHandlers(handlers ...InvokeHandler) {
 	if len(handlers) == 0 {
 		return
 	}
 	hm.invokeHandlers = append(hm.invokeHandlers, handlers...)
 	next := hm.defaultInvokeHandler
-	// ::TODO optimize i=len(hm.invokeHandlers); i >= old len(hm.inokeHandlers); i--
 	for i := len(hm.invokeHandlers) - 1; i >= 0; i-- {
 		next = getNextInvokeHandler(next, hm.invokeHandlers[i])
 	}
@@ -153,13 +154,12 @@ func (hm *handlerManager) AddInvokeHandler(handlers ...InvokeHandler) {
 }
 
 // AddBeforeFilterHandler add the filter handler before filters
-func (hm *handlerManager) AddBeforeFilterHandler(handler ...FilterHandler) {
-	if len(handler) == 0 {
+func (hm *handlerManager) AddBeforeFilterHandlers(handlers ...FilterHandler) {
+	if len(handlers) == 0 {
 		return
 	}
-	hm.beforeFilterHandlers = append(hm.beforeFilterHandlers, handler...)
+	hm.beforeFilterHandlers = append(hm.beforeFilterHandlers, handlers...)
 	next := hm.defaultBeforeFilterHandler
-	// ::TODO optimize i=len(hm.beforeFilterHandlers); i >= old len(hm.beforeFilterHandlers); i--
 	for i := len(hm.beforeFilterHandlers) - 1; i >= 0; i-- {
 		next = getNextFilterHandler(next, hm.beforeFilterHandlers[i])
 	}
@@ -167,14 +167,12 @@ func (hm *handlerManager) AddBeforeFilterHandler(handler ...FilterHandler) {
 }
 
 // AddAfterFilterHandler add the filter handler after filters
-func (hm *handlerManager) AddAfterFilterHandler(handler ...FilterHandler) {
-	if len(handler) == 0 {
+func (hm *handlerManager) AddAfterFilterHandlers(handlers ...FilterHandler) {
+	if len(handlers) == 0 {
 		return
 	}
-	hm.afterFilterHandlers = append(hm.afterFilterHandlers, handler...)
+	hm.afterFilterHandlers = append(hm.afterFilterHandlers, handlers...)
 	next := hm.defaultAfterFilterHandler
-	// ::TODO
-	//	optimize i=len(hm.beforeFilterHandlers); i >= old len(hm.beforeFilterHandlers); i--
 	for i := len(hm.afterFilterHandlers) - 1; i >= 0; i-- {
 		next = getNextFilterHandler(next, hm.afterFilterHandlers[i])
 	}
@@ -182,6 +180,6 @@ func (hm *handlerManager) AddAfterFilterHandler(handler ...FilterHandler) {
 }
 
 // Use is a method alias of AddInvokeHandler
-func (hm *handlerManager) Use(handler ...InvokeHandler) {
-	hm.AddInvokeHandler(handler...)
+func (hm *handlerManager) Use(handlers ...InvokeHandler) {
+	hm.AddInvokeHandlers(handlers...)
 }

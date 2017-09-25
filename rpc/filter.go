@@ -44,11 +44,8 @@ func (fm *filterManager) FirstFilter() (f Filter) {
 }
 
 // NumFilter return the filter count
-func (fm *filterManager) NumFilter() (length int) {
-	fm.RLock()
-	length = len(fm.filters)
-	fm.RUnlock()
-	return
+func (fm *filterManager) NumFilter() int {
+	return len(fm.filters)
 }
 
 // FilterByIndex return the filter by index
@@ -62,7 +59,7 @@ func (fm *filterManager) FilterByIndex(index int) (f Filter) {
 }
 
 // SetFilter will replace the current filter settings
-func (fm *filterManager) SetFilter(filters ...Filter) {
+func (fm *filterManager) SetFilters(filters ...Filter) {
 	fm.Lock()
 	fm.filters = make([]Filter, 0, len(filters))
 	fm.filters = append(fm.filters, filters...)
@@ -71,8 +68,8 @@ func (fm *filterManager) SetFilter(filters ...Filter) {
 	fm.Unlock()
 }
 
-// AddFilter add the filter to this FilterManager
-func (fm *filterManager) AddFilter(filters ...Filter) {
+// AddFilters add the filter to this FilterManager
+func (fm *filterManager) AddFilters(filters ...Filter) {
 	fm.Lock()
 	fm.filters = append(fm.filters, filters...)
 	fm.Unlock()
@@ -103,13 +100,13 @@ func (fm *filterManager) removeFilter(filter Filter) {
 }
 
 // RemoveFilter remove the filter from this FilterManager
-func (fm *filterManager) RemoveFilter(filters ...Filter) {
+func (fm *filterManager) RemoveFilters(filters ...Filter) {
 	fm.Lock()
 	for _, filter := range filters {
 		for i := range fm.filters {
 			if fm.filters[i] == filter {
 				fm.filters = append(fm.filters[:i], fm.filters[i+1:]...)
-				return
+				break
 			}
 		}
 	}

@@ -142,14 +142,14 @@ func (service *BaseService) Remove(name string) Service {
 }
 
 // SetFilter will replace the current filter settings
-func (service *BaseService) SetFilter(filter ...Filter) Service {
-	service.filterManager.SetFilter(filter...)
+func (service *BaseService) SetFilters(filters ...Filter) Service {
+	service.filterManager.SetFilters(filters...)
 	return service
 }
 
 // AddFilter add the filter to this Service
-func (service *BaseService) AddFilter(filter ...Filter) Service {
-	service.filterManager.AddFilter(filter...)
+func (service *BaseService) AddFilters(filters ...Filter) Service {
+	service.filterManager.AddFilters(filters...)
 	return service
 }
 
@@ -160,26 +160,26 @@ func (service *BaseService) RemoveFilterByIndex(index int) Service {
 }
 
 // RemoveFilter remove the filter from this Service
-func (service *BaseService) RemoveFilter(filter ...Filter) Service {
-	service.filterManager.RemoveFilter(filter...)
+func (service *BaseService) RemoveFilters(filter ...Filter) Service {
+	service.filterManager.RemoveFilters(filter...)
 	return service
 }
 
 // AddInvokeHandler add the invoke handler to this Service
-func (service *BaseService) AddInvokeHandler(handler ...InvokeHandler) Service {
-	service.handlerManager.AddInvokeHandler(handler...)
+func (service *BaseService) AddInvokeHandlers(handlers ...InvokeHandler) Service {
+	service.handlerManager.AddInvokeHandlers(handlers...)
 	return service
 }
 
 // AddBeforeFilterHandler add the filter handler before filters
-func (service *BaseService) AddBeforeFilterHandler(handler ...FilterHandler) Service {
-	service.handlerManager.AddBeforeFilterHandler(handler...)
+func (service *BaseService) AddBeforeFilterHandlers(handlers ...FilterHandler) Service {
+	service.handlerManager.AddBeforeFilterHandlers(handlers...)
 	return service
 }
 
 // AddAfterFilterHandler add the filter handler after filters
-func (service *BaseService) AddAfterFilterHandler(handler ...FilterHandler) Service {
-	service.handlerManager.AddAfterFilterHandler(handler...)
+func (service *BaseService) AddAfterFilterHandlers(handlers ...FilterHandler) Service {
+	service.handlerManager.AddAfterFilterHandlers(handlers...)
 	return service
 }
 

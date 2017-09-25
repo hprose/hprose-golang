@@ -59,11 +59,8 @@ func (tm *topicManager) getTopic(topic string, id string) (ct *clientTopic) {
 	// because `return topic` is not atomic operation,
 	// the topic may be delete by other goroutine.
 	tm.RLock()
-	topics := tm.allTopics[topic]
-	if topics != nil {
+	if topics, ok := tm.allTopics[topic]; ok {
 		ct = topics[id]
-		tm.RUnlock()
-		return
 	}
 	tm.RUnlock()
 	return
@@ -71,7 +68,7 @@ func (tm *topicManager) getTopic(topic string, id string) (ct *clientTopic) {
 
 func (tm *topicManager) createTopic(topic string) {
 	tm.Lock()
-	if tm.allTopics[topic] == nil {
+	if _, ok := tm.allTopics[topic]; !ok {
 		tm.allTopics[topic] = make(map[string]*clientTopic)
 	}
 	tm.Unlock()
@@ -225,44 +222,47 @@ func (client *BaseClient) SetEvent(event ClientEvent) {
 }
 
 // SetFilter will replace the current filter settings
-func (client *BaseClient) SetFilter(filter ...Filter) Client {
-	client.filterManager.SetFilter(filter...)
+func (client *BaseClient) SetFilters(filters ...Filter) Client {
+	client.filterManager.SetFilters(filters...)
 	return client
 }
 
-// AddFilter add the filter to this Service
-func (client *BaseClient) AddFilter(filter ...Filter) Client {
-	client.filterManager.AddFilter(filter...)
+// AddFilters add the filter to this Service
+func (client *BaseClient) AddFilters(filters ...Filter) Client {
+	client.filterManager.AddFilters(filters...)
 	return client
 }
 
 // RemoveFilterByIndex remove the filter by the index
 func (client *BaseClient) RemoveFilterByIndex(index int) Client {
+	if index < 0 || index >= client.filterManager.NumFilter() {
+		return nil
+	}
 	client.filterManager.RemoveFilterByIndex(index)
 	return client
 }
 
 // RemoveFilter remove the filter from this Service
-func (client *BaseClient) RemoveFilter(filter ...Filter) Client {
-	client.filterManager.RemoveFilter(filter...)
+func (client *BaseClient) RemoveFilters(filters ...Filter) Client {
+	client.filterManager.RemoveFilters(filters...)
 	return client
 }
 
 // AddInvokeHandler add the invoke handler to this Service
-func (client *BaseClient) AddInvokeHandler(handler ...InvokeHandler) Client {
-	client.handlerManager.AddInvokeHandler(handler...)
+func (client *BaseClient) AddInvokeHandlers(handlers ...InvokeHandler) Client {
+	client.handlerManager.AddInvokeHandlers(handlers...)
 	return client
 }
 
 // AddBeforeFilterHandler add the filter handler before filters
-func (client *BaseClient) AddBeforeFilterHandler(handler ...FilterHandler) Client {
-	client.handlerManager.AddBeforeFilterHandler(handler...)
+func (client *BaseClient) AddBeforeFilterHandlers(handlers ...FilterHandler) Client {
+	client.handlerManager.AddBeforeFilterHandlers(handlers...)
 	return client
 }
 
-// AddAfterFilterHandler add the filter handler after filters
-func (client *BaseClient) AddAfterFilterHandler(handler ...FilterHandler) Client {
-	client.handlerManager.AddAfterFilterHandler(handler...)
+// AddAfterFilterHandlers add the filter handler after filters
+func (client *BaseClient) AddAfterFilterHandlers(handlers ...FilterHandler) Client {
+	client.handlerManager.AddAfterFilterHandlers(handlers...)
 	return client
 }
 

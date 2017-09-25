@@ -34,13 +34,13 @@ type Service interface {
 	Remove(name string) Service
 	FirstFilter() Filter
 	FilterByIndex(index int) Filter
-	SetFilter(filter ...Filter) Service
-	AddFilter(filter ...Filter) Service
+	SetFilters(filters ...Filter) Service
+	AddFilters(filters ...Filter) Service
 	RemoveFilterByIndex(index int) Service
-	RemoveFilter(filter ...Filter) Service
-	AddInvokeHandler(handler ...InvokeHandler) Service
-	AddBeforeFilterHandler(handler ...FilterHandler) Service
-	AddAfterFilterHandler(handler ...FilterHandler) Service
+	RemoveFilters(filter ...Filter) Service
+	AddInvokeHandlers(handlers ...InvokeHandler) Service
+	AddBeforeFilterHandlers(handlers ...FilterHandler) Service
+	AddAfterFilterHandlers(handlers ...FilterHandler) Service
 	SetUserData(userdata map[string]interface{}) Service
 	Publish(topic string, timeout time.Duration, heartbeat time.Duration) Service
 	Clients
