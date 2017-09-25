@@ -29,113 +29,120 @@ type Filter interface {
 
 // filterManager is the filter manager
 type filterManager struct {
-	filters  []Filter
-	fmLocker sync.RWMutex
+	filters []Filter
+	sync.RWMutex
 }
 
 // Filter return the first filter
-func (fm *filterManager) Filter() Filter {
-	fm.fmLocker.RLock()
-	defer fm.fmLocker.RUnlock()
-	if len(fm.filters) == 0 {
-		return nil
+func (fm *filterManager) FirstFilter() (f Filter) {
+	fm.Lock()
+	if len(fm.filters) > 0 {
+		f = fm.filters[0]
 	}
-	return fm.filters[0]
+	fm.Unlock()
+	return
 }
 
 // NumFilter return the filter count
 func (fm *filterManager) NumFilter() int {
-	fm.fmLocker.RLock()
-	defer fm.fmLocker.RUnlock()
 	return len(fm.filters)
 }
 
 // FilterByIndex return the filter by index
-func (fm *filterManager) FilterByIndex(index int) Filter {
-	fm.fmLocker.RLock()
-	defer fm.fmLocker.RUnlock()
-	n := len(fm.filters)
-	if index < 0 && index >= n {
-		return nil
+func (fm *filterManager) FilterByIndex(index int) (f Filter) {
+	fm.Lock()
+	if index >= 0 && index < len(fm.filters) {
+		f = fm.filters[index]
 	}
-	return fm.filters[index]
+	fm.Unlock()
+	return
 }
 
 // SetFilter will replace the current filter settings
-func (fm *filterManager) SetFilter(filter ...Filter) {
-	fm.fmLocker.Lock()
-	fm.filters = make([]Filter, len(filter))
-	fm.AddFilter(filter...)
-	fm.fmLocker.Unlock()
+func (fm *filterManager) SetFilters(filters ...Filter) {
+	fm.Lock()
+	fm.filters = make([]Filter, 0, len(filters))
+	fm.filters = append(fm.filters, filters...)
+	// it will be deadlock!!!
+	//fm.AddFilter(filter...)
+	fm.Unlock()
 }
 
-// AddFilter add the filter to this FilterManager
-func (fm *filterManager) AddFilter(filter ...Filter) {
-	fm.fmLocker.Lock()
-	if len(filter) > 0 {
-		fm.filters = append(fm.filters, filter...)
-	}
-	fm.fmLocker.Unlock()
+// AddFilters add the filter to this FilterManager
+func (fm *filterManager) AddFilters(filters ...Filter) {
+	fm.Lock()
+	fm.filters = append(fm.filters, filters...)
+	fm.Unlock()
 }
 
 // RemoveFilterByIndex remove the filter by the index
 func (fm *filterManager) RemoveFilterByIndex(index int) {
-	fm.fmLocker.Lock()
-	n := len(fm.filters)
-	if index < 0 && index >= n {
-		fm.fmLocker.Unlock()
+	fm.Lock()
+	if 0 > index || index >= len(fm.filters) {
 		return
 	}
-	if index == n-1 {
-		fm.filters = fm.filters[:index]
-	} else {
-		fm.filters = append(fm.filters[:index], fm.filters[index+1:]...)
-	}
-	fm.fmLocker.Unlock()
+	fm.filters = append(fm.filters[:index], fm.filters[index+1:]...)
+	fm.Unlock()
+	return
 }
 
 func (fm *filterManager) removeFilter(filter Filter) {
+	// if goroutines come concurrent to modify filters.
+	// it may be delete index 0 filter , it actually deletes index 1 filter.
+	fm.Lock()
 	for i := range fm.filters {
 		if fm.filters[i] == filter {
-			fm.RemoveFilterByIndex(i)
+			fm.filters = append(fm.filters[:i], fm.filters[i+1:]...)
 			return
 		}
 	}
+	fm.Unlock()
 }
 
 // RemoveFilter remove the filter from this FilterManager
-func (fm *filterManager) RemoveFilter(filter ...Filter) {
-	for i := range filter {
-		fm.removeFilter(filter[i])
+func (fm *filterManager) RemoveFilters(filters ...Filter) {
+	fm.Lock()
+	for _, filter := range filters {
+		for i := range fm.filters {
+			if fm.filters[i] == filter {
+				fm.filters = append(fm.filters[:i], fm.filters[i+1:]...)
+				break
+			}
+		}
 	}
+	fm.Unlock()
 }
 
 func (fm *filterManager) inputFilter(data []byte, context Context) (out []byte, err error) {
-	fm.fmLocker.RLock()
+	fm.RLock()
 	defer func() {
 		if e := recover(); e != nil {
 			err = NewPanicError(e)
 		}
-		fm.fmLocker.RUnlock()
+		fm.RUnlock()
 	}()
+	// don't change original data
+	out = make([]byte, len(data))
+	copy(out, data)
 	for i := len(fm.filters) - 1; i >= 0; i-- {
-		data = fm.filters[i].InputFilter(data, context)
+		out = fm.filters[i].InputFilter(out, context)
 	}
-	out = data
 	return
 }
 
 func (fm *filterManager) outputFilter(data []byte, context Context) (out []byte, err error) {
-	fm.fmLocker.RLock()
+	fm.RLock()
 	defer func() {
 		if e := recover(); e != nil {
 			err = NewPanicError(e)
 		}
-		defer fm.fmLocker.RUnlock()
+		fm.RUnlock()
 	}()
+	// don't change original data
+	out = make([]byte, len(data))
+	copy(out, data)
 	for i := range fm.filters {
-		data = fm.filters[i].OutputFilter(data, context)
+		out = fm.filters[i].OutputFilter(out, context)
 	}
-	out = data
 	return
 }

@@ -54,7 +54,5 @@ func (limiter *Limiter) Unlimit() {
 // Reset the Limiter
 func (limiter *Limiter) Reset() {
 	limiter.requestCount = 0
-	for i := limiter.MaxConcurrentRequests; i > 0; i-- {
-		limiter.Signal()
-	}
+	limiter.Broadcast()
 }

@@ -20,13 +20,14 @@
 package rpc
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"sync"
 )
 
 // Options is the options of the published service method
-type Options struct {
+type Option struct {
 	Mode           ResultMode
 	Simple         bool
 	Oneway         bool
@@ -37,14 +38,14 @@ type Options struct {
 // Method is the published service method
 type Method struct {
 	Function reflect.Value
-	Options
+	Option
 }
 
 // methodManager manages published service methods
 type methodManager struct {
 	MethodNames   []string
 	RemoteMethods map[string]*Method
-	mmLocker      sync.Mutex
+	sync.Mutex
 }
 
 func (mm *methodManager) initMethodManager() {
@@ -57,7 +58,7 @@ func (mm *methodManager) initMethodManager() {
 // function is a func or bound method
 // option includes Mode, Simple, Oneway and NameSpace
 func (mm *methodManager) AddFunction(
-	name string, function interface{}, option ...Options) {
+	name string, function interface{}, options ...Option) {
 	if name == "" {
 		panic("name can't be empty")
 	}
@@ -71,36 +72,46 @@ func (mm *methodManager) AddFunction(
 	if f.Kind() != reflect.Func {
 		panic("function must be func or bound method")
 	}
-	var options Options
-	if len(option) > 0 {
-		options = option[0]
+	// (*func(int))(nil)
+	if f.IsNil() {
+		panic("function must be non-nil")
 	}
-	if options.NameSpace != "" && name != "*" {
-		name = options.NameSpace + "_" + name
+	var option Option
+	if len(options) > 0 {
+		option = options[0]
 	}
-	mm.mmLocker.Lock()
-	if mm.RemoteMethods[strings.ToLower(name)] == nil {
-		mm.MethodNames = append(mm.MethodNames, name)
+	if option.NameSpace != "" && name != "*" {
+		name = option.NameSpace + "_" + name
 	}
-	mm.RemoteMethods[strings.ToLower(name)] = &Method{f, options}
-	mm.mmLocker.Unlock()
+	lowerName := strings.ToLower(name)
+	mm.Lock()
+	// there is a issue: if name is `SendMessage` or `sendMessage`, lowerName is the same.
+	// two MethodNames have same RemoteMethods, the latter sendMessage's RemoteName is invalid.
+	// i recommend methodName is ToLower(name).
+	if _, ok := mm.RemoteMethods[lowerName]; !ok {
+		mm.MethodNames = append(mm.MethodNames, lowerName)
+		mm.RemoteMethods[lowerName] = &Method{f, option}
+	} else {
+		mm.Unlock()
+		panic(fmt.Sprintf("rpc method name: [%s] already exists!!", name))
+	}
+	mm.Unlock()
 }
 
 // AddFunctions is used for batch publishing service method
 func (mm *methodManager) AddFunctions(
-	names []string, functions []interface{}, option ...Options) {
-	count := len(names)
-	if count != len(functions) {
+	names []string, functions []interface{}, options ...Option) {
+	if len(names) != len(functions) {
 		panic("names and functions must have the same length")
 	}
-	for i := 0; i < count; i++ {
-		mm.AddFunction(names[i], functions[i], option...)
+	for i := 0; i < len(names); i++ {
+		mm.AddFunction(names[i], functions[i], options...)
 	}
 }
 
 // AddMethod is used for publishing a method on the obj with an alias
 func (mm *methodManager) AddMethod(
-	name string, obj interface{}, alias string, option ...Options) {
+	name string, obj interface{}, alias string, options ...Option) {
 	if obj == nil {
 		panic("obj can't be nil")
 	}
@@ -109,44 +120,46 @@ func (mm *methodManager) AddMethod(
 		name = alias
 	}
 	if f.CanInterface() {
-		mm.AddFunction(name, f, option...)
+		mm.AddFunction(name, f, options...)
 	}
 }
 
 // AddMethods is used for batch publishing methods on the obj with aliases
 func (mm *methodManager) AddMethods(
-	names []string, obj interface{}, aliases []string, option ...Options) {
+	names []string, obj interface{}, aliases []string, options ...Option) {
 	if obj == nil {
 		panic("obj can't be nil")
 	}
-	count := len(names)
-	if aliases == nil {
-		for i := 0; i < count; i++ {
-			mm.AddMethod(names[i], obj, "", option...)
-		}
-		return
-	}
-	if len(aliases) != count {
+	if len(names) != len(aliases) {
 		panic("names and aliases must have the same length")
 	}
-	for i := 0; i < count; i++ {
-		mm.AddMethod(names[i], obj, aliases[i], option...)
+	for i := 0; i < len(names); i++ {
+		mm.AddMethod(names[i], obj, aliases[i], options...)
 	}
 }
 
 func (mm *methodManager) addMethods(
-	v reflect.Value, t reflect.Type, option ...Options) {
+	v reflect.Value, options ...Option) {
+	var (
+		name      string
+		valM      reflect.Value
+		nameSpace string
+	)
+	t := v.Type()
+	nameSpace = t.Elem().Name()
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
-		name := t.Method(i).Name
-		method := v.Method(i)
-		if method.CanInterface() {
-			mm.AddFunction(name, method, option...)
+		name = nameSpace + "_" + t.Method(i).Name
+		valM = v.Method(i)
+		if valM.CanInterface() {
+			mm.AddFunction(name, valM, options...)
 		}
 	}
 }
 
-func getPtrTo(v reflect.Value, t reflect.Type, kind reflect.Kind) (reflect.Value, reflect.Type) {
+// ::TODO
+func getPtrTo(v reflect.Value, kind reflect.Kind) (reflect.Value, reflect.Type) {
+	t := v.Type()
 	for t.Kind() == reflect.Ptr && !v.IsNil() && t.Elem().Kind() == kind {
 		v = v.Elem()
 		t = t.Elem()
@@ -155,50 +168,59 @@ func getPtrTo(v reflect.Value, t reflect.Type, kind reflect.Kind) (reflect.Value
 }
 
 func (mm *methodManager) addFuncField(
-	v reflect.Value, t reflect.Type, i int, option ...Options) {
+	v reflect.Value, t reflect.Type, i int, options ...Option) {
+	for v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		panic("addFuncField's first param is not struct type")
+	}
+	if v.NumField() <= i || i < 0 {
+		panic("addFuncField's second param is out of index range")
+	}
 	f := v.Field(i)
 	name := t.Field(i).Name
 	if !f.CanInterface() || !f.IsValid() {
 		return
 	}
-	f, _ = getPtrTo(f, f.Type(), reflect.Func)
+	f, _ = getPtrTo(f, reflect.Func)
 	if f.Kind() == reflect.Func && !f.IsNil() {
-		mm.AddFunction(name, f, option...)
+		mm.AddFunction(name, f, options...)
 	}
 }
 
 func (mm *methodManager) recursiveAddFuncFields(
-	v reflect.Value, t reflect.Type, i int, option ...Options) {
+	v reflect.Value, t reflect.Type, i int, options ...Option) {
 	f := v.Field(i)
-	fs := t.Field(i)
-	name := fs.Name
+	fs := t.Elem().Field(i)
+	name := t.Elem().Name() + "_" + fs.Name
 	if !f.CanInterface() || !f.IsValid() {
 		return
 	}
-	f, _ = getPtrTo(f, f.Type(), reflect.Func)
-	switch f.Kind() {
-	case reflect.Func, reflect.Ptr, reflect.Interface, reflect.Slice, reflect.Map, reflect.Chan:
+	f, _ = getPtrTo(f, reflect.Func)
+	kind := f.Kind()
+	if kind >= reflect.Chan && kind <= reflect.Slice {
 		if f.IsNil() {
 			return
 		}
 	}
-	if f.Kind() == reflect.Func {
-		mm.AddFunction(name, f, option...)
+	if kind == reflect.Func {
+		mm.AddFunction(name, f, options...)
 		return
 	}
 	if fs.Anonymous {
-		mm.AddAllMethods(f.Interface(), option...)
+		mm.AddAllMethods(f.Interface(), options...)
 	} else {
-		var newOptions Options
-		if len(option) > 0 {
-			newOptions = option[0]
+		var newOption Option
+		if len(options) > 0 {
+			newOption = options[0]
 		}
-		if newOptions.NameSpace == "" {
-			newOptions.NameSpace = name
+		if newOption.NameSpace == "" {
+			newOption.NameSpace = name
 		} else {
-			newOptions.NameSpace += "_" + name
+			newOption.NameSpace += "_" + name
 		}
-		mm.AddAllMethods(f.Interface(), newOptions)
+		mm.AddAllMethods(f.Interface(), newOption)
 	}
 }
 
@@ -206,29 +228,29 @@ type addFuncFunc func(
 	v reflect.Value,
 	t reflect.Type,
 	i int,
-	option ...Options)
+	options ...Option)
 
 func (mm *methodManager) addInstanceMethods(
-	obj interface{}, addFunc addFuncFunc, option ...Options) {
+	obj interface{}, addFunc addFuncFunc, options ...Option) {
 	if obj == nil {
 		panic("obj can't be nil")
 	}
+	var t reflect.Type
 	v := reflect.ValueOf(obj)
-	t := v.Type()
-	mm.addMethods(v, t, option...)
-	v, t = getPtrTo(v, t, reflect.Struct)
+	mm.addMethods(v, options...)
+	v, t = getPtrTo(v, reflect.Struct)
 	if t.Kind() == reflect.Struct {
 		n := t.NumField()
 		for i := 0; i < n; i++ {
-			addFunc(v, t, i, option...)
+			addFunc(v, t, i, options...)
 		}
 	}
 }
 
 // AddInstanceMethods is used for publishing all the public methods and func fields with options.
 func (mm *methodManager) AddInstanceMethods(
-	obj interface{}, option ...Options) {
-	mm.addInstanceMethods(obj, mm.addFuncField, option...)
+	obj interface{}, options ...Option) {
+	mm.addInstanceMethods(obj, mm.addFuncField, options...)
 }
 
 // AddAllMethods will publish all methods and non-nil function fields on the
@@ -236,8 +258,8 @@ func (mm *methodManager) AddInstanceMethods(
 // pointer ... to pointer struct fields). This is a recursive operation.
 // So it's a pit, if you do not know what you are doing, do not step on.
 func (mm *methodManager) AddAllMethods(
-	obj interface{}, option ...Options) {
-	mm.addInstanceMethods(obj, mm.recursiveAddFuncFields, option...)
+	obj interface{}, options ...Option) {
+	mm.addInstanceMethods(obj, mm.recursiveAddFuncFields, options...)
 }
 
 // MissingMethod is missing method
@@ -246,8 +268,8 @@ type MissingMethod func(name string, args []reflect.Value, context Context) (res
 // AddMissingMethod is used for publishing a method,
 // all methods not explicitly published will be redirected to this method.
 func (mm *methodManager) AddMissingMethod(
-	method MissingMethod, option ...Options) {
-	mm.AddFunction("*", method, option...)
+	method MissingMethod, options ...Option) {
+	mm.AddFunction("*", method, options...)
 }
 
 // AddNetRPCMethods is used for publishing methods defined for net/rpc.
@@ -283,7 +305,7 @@ func (mm *methodManager) AddMissingMethod(
 // You can publish it in hprose like this:
 //
 //		service := rpc.NewHTTPService()
-//		service.AddNetRPCMethods(new(Arith), rpc.Options{})
+//		service.AddNetRPCMethods(new(Arith), rpc.Option{})
 //		http.ListenAndServe(":8080", service)
 //
 //
@@ -328,25 +350,29 @@ func (mm *methodManager) AddMissingMethod(
 //			console.error(err);
 //		});
 //
-func (mm *methodManager) AddNetRPCMethods(rcvr interface{}, option ...Options) {
+func (mm *methodManager) AddNetRPCMethods(rcvr interface{}, options ...Option) {
 	if rcvr == nil {
 		panic("rcvr can't be nil")
 	}
+	var (
+		name string
+		valM reflect.Value
+	)
 	v := reflect.ValueOf(rcvr)
 	t := v.Type()
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
-		name := t.Method(i).Name
-		method := v.Method(i)
-		if method.CanInterface() {
-			mm.addNetRPCMethod(name, method, option...)
+		name = t.Method(i).Name
+		valM = v.Method(i)
+		if valM.CanInterface() {
+			mm.addNetRPCMethod(name, valM, options...)
 		}
 	}
 }
 
 func (mm *methodManager) addNetRPCMethod(
-	name string, method reflect.Value, option ...Options) {
-	ft := method.Type()
+	name string, valM reflect.Value, options ...Option) {
+	ft := valM.Type()
 	if ft.NumIn() != 2 || ft.IsVariadic() {
 		// panic("the method " + name + " must has two arguments")
 		return
@@ -364,28 +390,28 @@ func (mm *methodManager) addNetRPCMethod(
 	in := []reflect.Type{argsType}
 	out := []reflect.Type{resultType, errorType}
 	newft := reflect.FuncOf(in, out, false)
-	newMethod := reflect.MakeFunc(newft, func(
+	newValM := reflect.MakeFunc(newft, func(
 		args []reflect.Value) (results []reflect.Value) {
 		result := reflect.New(resultType)
 		in := []reflect.Value{args[0], result}
-		err := method.Call(in)[0]
+		err := valM.Call(in)[0]
 		results = []reflect.Value{result.Elem(), err}
 		return
 	})
-	mm.AddFunction(name, newMethod, option...)
+	mm.AddFunction(name, newValM, options...)
 }
 
 // Remove the published func or method by name
 func (mm *methodManager) Remove(name string) {
 	name = strings.ToLower(name)
-	mm.mmLocker.Lock()
-	n := len(mm.MethodNames)
-	for i := 0; i < n; i++ {
-		if strings.ToLower(mm.MethodNames[i]) == name {
+	mm.Lock()
+
+	for i := 0; i < len(mm.MethodNames); i++ {
+		if mm.MethodNames[i] == name {
 			mm.MethodNames = append(mm.MethodNames[:i], mm.MethodNames[i+1:]...)
 			break
 		}
 	}
 	delete(mm.RemoteMethods, name)
-	mm.mmLocker.Unlock()
+	mm.Unlock()
 }

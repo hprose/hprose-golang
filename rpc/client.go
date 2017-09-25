@@ -67,15 +67,15 @@ type Client interface {
 	SetTimeout(value time.Duration)
 	Failround() int
 	SetEvent(ClientEvent)
-	Filter() Filter
+	FirstFilter() Filter
 	FilterByIndex(index int) Filter
-	SetFilter(filter ...Filter) Client
-	AddFilter(filter ...Filter) Client
+	SetFilters(filters ...Filter) Client
+	AddFilters(filters ...Filter) Client
 	RemoveFilterByIndex(index int) Client
-	RemoveFilter(filter ...Filter) Client
-	AddInvokeHandler(handler ...InvokeHandler) Client
-	AddBeforeFilterHandler(handler ...FilterHandler) Client
-	AddAfterFilterHandler(handler ...FilterHandler) Client
+	RemoveFilters(filters ...Filter) Client
+	AddInvokeHandlers(handlers ...InvokeHandler) Client
+	AddBeforeFilterHandlers(handlers ...FilterHandler) Client
+	AddAfterFilterHandlers(handlers ...FilterHandler) Client
 	SetUserData(userdata map[string]interface{}) Client
 	UseService(remoteService interface{}, namespace ...string)
 	Invoke(string, []reflect.Value, *InvokeSettings) ([]reflect.Value, error)

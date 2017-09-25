@@ -62,16 +62,16 @@ func (service *UnixService) ServeConn(conn net.Conn) {
 // statement.
 func (service *UnixService) ServeUnix(listener *net.UnixListener) {
 	var tempDelay time.Duration // how long to sleep on accept failure
+	var isRet bool
 	for {
 		conn, err := listener.AcceptUnix()
 		if err != nil {
-			tempDelay = nextTempDelay(err, service.Event, tempDelay)
-			if tempDelay > 0 {
-				continue
+			tempDelay, isRet = nextTempDelay(err, service.Event, tempDelay)
+			if isRet {
+				return
 			}
-			return
+			continue
 		}
-		tempDelay = 0
 		go service.ServeUnixConn(conn)
 	}
 }

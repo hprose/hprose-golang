@@ -44,7 +44,7 @@ type BaseService struct {
 	ErrorDelay   time.Duration
 	UserData     map[string]interface{}
 	topics       map[string]*topic
-	topicLock    sync.RWMutex
+	sync.RWMutex
 }
 
 // DefaultFixArguments is the default FixArguments function
@@ -64,7 +64,7 @@ func (service *BaseService) InitBaseService() {
 	service.Heartbeat = 3 * time.Second
 	service.ErrorDelay = 10 * time.Second
 	service.topics = make(map[string]*topic)
-	service.AddFunction("#", util.UUIDv4, Options{Simple: true})
+	service.AddFunction("#", util.UUIDv4, Option{Simple: true})
 	service.override.invokeHandler = func(
 		name string, args []reflect.Value,
 		context Context) (results []reflect.Value, err error) {
@@ -83,33 +83,33 @@ func (service *BaseService) InitBaseService() {
 // AddFunction publish a func or bound method
 // name is the method name
 // function is a func or bound method
-// options includes Mode, Simple, Oneway and NameSpace
-func (service *BaseService) AddFunction(name string, function interface{}, option ...Options) Service {
-	service.methodManager.AddFunction(name, function, option...)
+// option includes Mode, Simple, Oneway and NameSpace
+func (service *BaseService) AddFunction(name string, function interface{}, options ...Option) Service {
+	service.methodManager.AddFunction(name, function, options...)
 	return service
 }
 
 // AddFunctions is used for batch publishing service method
-func (service *BaseService) AddFunctions(names []string, functions []interface{}, option ...Options) Service {
-	service.methodManager.AddFunctions(names, functions, option...)
+func (service *BaseService) AddFunctions(names []string, functions []interface{}, options ...Option) Service {
+	service.methodManager.AddFunctions(names, functions, options...)
 	return service
 }
 
 // AddMethod is used for publishing a method on the obj with an alias
-func (service *BaseService) AddMethod(name string, obj interface{}, alias string, option ...Options) Service {
-	service.methodManager.AddMethod(name, obj, alias, option...)
+func (service *BaseService) AddMethod(name string, obj interface{}, alias string, options ...Option) Service {
+	service.methodManager.AddMethod(name, obj, alias, options...)
 	return service
 }
 
 // AddMethods is used for batch publishing methods on the obj with aliases
-func (service *BaseService) AddMethods(names []string, obj interface{}, aliases []string, option ...Options) Service {
-	service.methodManager.AddMethods(names, obj, aliases, option...)
+func (service *BaseService) AddMethods(names []string, obj interface{}, aliases []string, options ...Option) Service {
+	service.methodManager.AddMethods(names, obj, aliases, options...)
 	return service
 }
 
 // AddInstanceMethods is used for publishing all the public methods and func fields with options.
-func (service *BaseService) AddInstanceMethods(obj interface{}, option ...Options) Service {
-	service.methodManager.AddInstanceMethods(obj, option...)
+func (service *BaseService) AddInstanceMethods(obj interface{}, options ...Option) Service {
+	service.methodManager.AddInstanceMethods(obj, options...)
 	return service
 }
 
@@ -117,21 +117,21 @@ func (service *BaseService) AddInstanceMethods(obj interface{}, option ...Option
 // obj self and on its anonymous or non-anonymous struct fields (or pointer to
 // pointer ... to pointer struct fields). This is a recursive operation.
 // So it's a pit, if you do not know what you are doing, do not step on.
-func (service *BaseService) AddAllMethods(obj interface{}, option ...Options) Service {
-	service.methodManager.AddAllMethods(obj, option...)
+func (service *BaseService) AddAllMethods(obj interface{}, options ...Option) Service {
+	service.methodManager.AddAllMethods(obj, options...)
 	return service
 }
 
 // AddMissingMethod is used for publishing a method,
 // all methods not explicitly published will be redirected to this method.
-func (service *BaseService) AddMissingMethod(method MissingMethod, option ...Options) Service {
-	service.methodManager.AddMissingMethod(method, option...)
+func (service *BaseService) AddMissingMethod(method MissingMethod, options ...Option) Service {
+	service.methodManager.AddMissingMethod(method, options...)
 	return service
 }
 
 // AddNetRPCMethods is used for publishing methods defined for net/rpc.
-func (service *BaseService) AddNetRPCMethods(rcvr interface{}, option ...Options) Service {
-	service.methodManager.AddNetRPCMethods(rcvr, option...)
+func (service *BaseService) AddNetRPCMethods(rcvr interface{}, options ...Option) Service {
+	service.methodManager.AddNetRPCMethods(rcvr, options...)
 	return service
 }
 
@@ -142,14 +142,14 @@ func (service *BaseService) Remove(name string) Service {
 }
 
 // SetFilter will replace the current filter settings
-func (service *BaseService) SetFilter(filter ...Filter) Service {
-	service.filterManager.SetFilter(filter...)
+func (service *BaseService) SetFilters(filters ...Filter) Service {
+	service.filterManager.SetFilters(filters...)
 	return service
 }
 
 // AddFilter add the filter to this Service
-func (service *BaseService) AddFilter(filter ...Filter) Service {
-	service.filterManager.AddFilter(filter...)
+func (service *BaseService) AddFilters(filters ...Filter) Service {
+	service.filterManager.AddFilters(filters...)
 	return service
 }
 
@@ -160,26 +160,26 @@ func (service *BaseService) RemoveFilterByIndex(index int) Service {
 }
 
 // RemoveFilter remove the filter from this Service
-func (service *BaseService) RemoveFilter(filter ...Filter) Service {
-	service.filterManager.RemoveFilter(filter...)
+func (service *BaseService) RemoveFilters(filter ...Filter) Service {
+	service.filterManager.RemoveFilters(filter...)
 	return service
 }
 
 // AddInvokeHandler add the invoke handler to this Service
-func (service *BaseService) AddInvokeHandler(handler ...InvokeHandler) Service {
-	service.handlerManager.AddInvokeHandler(handler...)
+func (service *BaseService) AddInvokeHandlers(handlers ...InvokeHandler) Service {
+	service.handlerManager.AddInvokeHandlers(handlers...)
 	return service
 }
 
 // AddBeforeFilterHandler add the filter handler before filters
-func (service *BaseService) AddBeforeFilterHandler(handler ...FilterHandler) Service {
-	service.handlerManager.AddBeforeFilterHandler(handler...)
+func (service *BaseService) AddBeforeFilterHandlers(handlers ...FilterHandler) Service {
+	service.handlerManager.AddBeforeFilterHandlers(handlers...)
 	return service
 }
 
 // AddAfterFilterHandler add the filter handler after filters
-func (service *BaseService) AddAfterFilterHandler(handler ...FilterHandler) Service {
-	service.handlerManager.AddAfterFilterHandler(handler...)
+func (service *BaseService) AddAfterFilterHandlers(handlers ...FilterHandler) Service {
+	service.handlerManager.AddAfterFilterHandlers(handlers...)
 	return service
 }
 
@@ -584,9 +584,9 @@ func (service *BaseService) Publish(
 		heartbeat = service.Heartbeat
 	}
 	t := newTopic(heartbeat)
-	service.topicLock.Lock()
+	service.Lock()
 	service.topics[topic] = t
-	service.topicLock.Unlock()
+	service.Unlock()
 	return service.AddFunction(topic, func(id string) interface{} {
 		message := t.get(id)
 		if message == nil {
@@ -594,7 +594,7 @@ func (service *BaseService) Publish(
 			t.put(id, message)
 			fireSubscribeEvent(topic, id, service)
 		}
-		receiveMessage:
+	receiveMessage:
 		select {
 		case result := <-message:
 			if result == heartbeatSignals {
@@ -605,20 +605,20 @@ func (service *BaseService) Publish(
 			go func() {
 				select {
 				case message <- heartbeatSignals:
-					break;
+					break
 				case <-time.After(t.heartbeat):
 					service.offline(t, topic, id)
 				}
 			}()
 			return nil
 		}
-	}, Options{})
+	}, Option{})
 }
 
 func (service *BaseService) getTopic(topic string) (t *topic) {
-	service.topicLock.RLock()
+	service.RLock()
 	t = service.topics[topic]
-	service.topicLock.RUnlock()
+	service.RUnlock()
 	if t == nil {
 		panic("topic \"" + topic + "\" is not published.")
 	}
