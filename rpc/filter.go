@@ -62,7 +62,7 @@ func (fm *filterManager) FilterByIndex(index int) Filter {
 }
 
 // SetFilter will replace the current filter settings
-func (fm *filterManager) SetFilter(filter ...Filter) {
+func (fm *filterManager) SetFilter(filters ...Filter) {
 	fm.fmLocker.Lock()
 	fm.filters = make([]Filter, len(filter))
 	fm.filters = append(fm.filters, filters...)
