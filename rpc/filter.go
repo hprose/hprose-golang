@@ -65,7 +65,7 @@ func (fm *filterManager) FilterByIndex(index int) Filter {
 func (fm *filterManager) SetFilter(filter ...Filter) {
 	fm.fmLocker.Lock()
 	fm.filters = make([]Filter, len(filter))
-	fm.AddFilter(filter...)
+	fm.filters = append(fm.filters, filters...)
 	fm.fmLocker.Unlock()
 }
 
