@@ -12,7 +12,7 @@
  *                                                        *
  * hprose filter interface for Go.                        *
  *                                                        *
- * LastModified: May 22, 2017                             *
+ * LastModified: Sep 28, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -61,20 +61,24 @@ func (fm *filterManager) FilterByIndex(index int) Filter {
 	return fm.filters[index]
 }
 
+func (fm *filterManager) addFilter(filter ...Filter) {
+	if len(filter) > 0 {
+		fm.filters = append(fm.filters, filter...)
+	}
+}
+
 // SetFilter will replace the current filter settings
 func (fm *filterManager) SetFilter(filter ...Filter) {
 	fm.fmLocker.Lock()
 	fm.filters = make([]Filter, len(filter))
-	fm.AddFilter(filter...)
+	fm.addFilter(filter...)
 	fm.fmLocker.Unlock()
 }
 
 // AddFilter add the filter to this FilterManager
 func (fm *filterManager) AddFilter(filter ...Filter) {
 	fm.fmLocker.Lock()
-	if len(filter) > 0 {
-		fm.filters = append(fm.filters, filter...)
-	}
+	fm.addFilter(filter...)
 	fm.fmLocker.Unlock()
 }
 
