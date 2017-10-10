@@ -71,6 +71,10 @@ func (mm *methodManager) AddFunction(
 	if f.Kind() != reflect.Func {
 		panic("function must be func or bound method")
 	}
+	// (*func(int))(nil)
+	if f.IsNil() {
+		panic("function can't be nil")
+	}
 	var options Options
 	if len(option) > 0 {
 		options = option[0]
