@@ -108,7 +108,7 @@ func (mm *methodManager) AddMethod(
 	if alias != "" {
 		name = alias
 	}
-	if f.CanInterface() {
+	if f.IsValid() && f.CanInterface() {
 		mm.AddFunction(name, f, option...)
 	}
 }
