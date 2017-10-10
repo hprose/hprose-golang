@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"fmt"
 )
 
 // Options is the options of the published service method
@@ -78,11 +79,15 @@ func (mm *methodManager) AddFunction(
 	if options.NameSpace != "" && name != "*" {
 		name = options.NameSpace + "_" + name
 	}
+	lowerName := strings.ToLower(name)
 	mm.mmLocker.Lock()
-	if mm.RemoteMethods[strings.ToLower(name)] == nil {
+	if _, ok:= mm.RemoteMethods[lowerName]; !ok {
 		mm.MethodNames = append(mm.MethodNames, name)
+		mm.RemoteMethods[lowerName] = &Method{f, options}
+	} else {
+		mm.mmLocker.Unlock()
+		panic(fmt.Sprintf("rpc method name: [%s] already exists!!", name))
 	}
-	mm.RemoteMethods[strings.ToLower(name)] = &Method{f, options}
 	mm.mmLocker.Unlock()
 }
 
