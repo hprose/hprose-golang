@@ -119,17 +119,13 @@ func (mm *methodManager) AddMethods(
 	if obj == nil {
 		panic("obj can't be nil")
 	}
-	count := len(names)
-	if aliases == nil {
-		for i := 0; i < count; i++ {
-			mm.AddMethod(names[i], obj, "", option...)
-		}
-		return
+	if len(aliases) == 0 {
+		aliases = make([]string, len(names))
 	}
-	if len(aliases) != count {
+	if len(aliases) != len(names) {
 		panic("names and aliases must have the same length")
 	}
-	for i := 0; i < count; i++ {
+	for i := 0; i < len(names); i++ {
 		mm.AddMethod(names[i], obj, aliases[i], option...)
 	}
 }
