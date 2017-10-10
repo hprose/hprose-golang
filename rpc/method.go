@@ -136,9 +136,21 @@ func (mm *methodManager) AddMethods(
 
 func (mm *methodManager) addMethods(
 	v reflect.Value, t reflect.Type, option ...Options) {
+	t := v.Type()
+	nameSpace := t.Elem().Name()
 	n := t.NumMethod()
+	if n <= 0 {
+		if t.Kind() == reflect.Ptr {
+			v = v.Elem()
+			t = t.Elem()
+		} else {
+			v = reflect.New(t)
+			t = v.Type()
+		}
+		n = t.NumMethod()
+	}
 	for i := 0; i < n; i++ {
-		name := t.Method(i).Name
+		name = nameSpace + "_" + t.Method(i).Name
 		method := v.Method(i)
 		if method.CanInterface() {
 			mm.AddFunction(name, method, option...)
