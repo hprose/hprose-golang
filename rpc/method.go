@@ -163,6 +163,11 @@ func (mm *methodManager) addFuncField(
 	}
 	f, _ = getPtrTo(f, f.Type(), reflect.Func)
 	if f.Kind() == reflect.Func && !f.IsNil() {
+		if len(option) > 0 {
+			option[0].NameSpace = option[0].NameSpace + "_" + t.Name()
+		} else {
+			option = append(option, Options{NameSpace: t.Name()})
+		}
 		mm.AddFunction(name, f, option...)
 	}
 }
