@@ -565,6 +565,11 @@ func (client *BaseClient) buildRemoteService(v reflect.Value, ns string) {
 	ptr := reflect.New(et)
 	obj := ptr.Elem()
 	count := obj.NumField()
+	if ns == "" {
+		ns = strings.ToLower(et.Name())
+	} else {
+		ns += "_" + strings.ToLower(et.Name())
+	}
 	for i := 0; i < count; i++ {
 		f := obj.Field(i)
 		ft := f.Type()
