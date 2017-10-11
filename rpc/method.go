@@ -141,7 +141,7 @@ func (mm *methodManager) addMethods(
 		t = t.Elem()
 		v = v.Elem()
 	}
-	nameSpace = t.Name()
+	nameSpace := t.Name()
 	n := t.NumMethod()
 	if n <= 0 {
 		v = reflect.New(t)
