@@ -379,12 +379,12 @@ func (client *BaseClient) afterFilter(
 	request []byte, context *ClientContext) (response []byte, err error) {
 	response, err = client.SendAndReceive(request, context)
 	if err != nil {
-		response, err = client.retrySendReqeust(request, err, context)
+		response, err = client.retrySendRequest(request, err, context)
 	}
 	return
 }
 
-func (client *BaseClient) retrySendReqeust(
+func (client *BaseClient) retrySendRequest(
 	request []byte,
 	err error,
 	context *ClientContext) ([]byte, error) {
