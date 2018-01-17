@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc base client for Go.                         *
  *                                                        *
- * LastModified: Aug 20, 2017                             *
+ * LastModified: Jan 17, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -172,8 +172,10 @@ func (client *BaseClient) SetURIList(uriList []string) {
 	client.index = 0
 	client.failround = 0
 	client.uriList = shuffleStringSlice(uriList)
-	client.uri = client.uriList[0]
-	client.url, _ = url.Parse(client.uri)
+	if len(client.uriList) > 0 {
+		client.uri = client.uriList[0]
+		client.url, _ = url.Parse(client.uri)
+	}
 }
 
 // TLSClientConfig returns the tls config of hprose client
