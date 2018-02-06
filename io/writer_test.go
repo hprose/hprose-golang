@@ -16,6 +16,7 @@
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
 package io
 
 import (
