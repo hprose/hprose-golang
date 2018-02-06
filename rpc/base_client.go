@@ -906,7 +906,7 @@ func (client *BaseClient) Subscribe(
 		settings = new(InvokeSettings)
 	}
 	if settings.Timeout <= 0 {
-		settings.Timeout = 5 * time.Minute;
+		settings.Timeout = 5 * time.Minute
 	}
 	settings.ByRef = false
 	settings.Idempotent = true

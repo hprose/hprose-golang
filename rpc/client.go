@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc client for Go.                              *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Feb 6, 2018                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -111,7 +111,7 @@ var allSchemes = []string{"http", "https", "tcp", "tcp4", "tcp6", "unix", "ws", 
 func CheckAddresses(uriList []string, schemes []string) (scheme string) {
 	count := len(uriList)
 	if count < 1 {
-		panic(errURIListEmpty)
+		panic(ErrURIListEmpty)
 	}
 	u, err := url.Parse(uriList[0])
 	if err != nil {
@@ -127,7 +127,7 @@ func CheckAddresses(uriList []string, schemes []string) (scheme string) {
 			panic(err)
 		}
 		if scheme != u.Scheme {
-			panic(errNotSupportMultpleProtocol)
+			panic(ErrNotSupportMultpleProtocol)
 		}
 	}
 	return

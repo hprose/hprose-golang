@@ -594,7 +594,7 @@ func (service *BaseService) Publish(
 			t.put(id, message)
 			fireSubscribeEvent(topic, id, service)
 		}
-		receiveMessage:
+	receiveMessage:
 		select {
 		case result := <-message:
 			if result == heartbeatSignals {
@@ -605,7 +605,7 @@ func (service *BaseService) Publish(
 			go func() {
 				select {
 				case message <- heartbeatSignals:
-					break;
+					break
 				case <-time.After(t.heartbeat):
 					service.offline(t, topic, id)
 				}

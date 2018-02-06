@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Reader Test for Go.                             *
  *                                                        *
- * LastModified: Oct 13, 2016                             *
+ * LastModified: Feb 6, 2018                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -1620,20 +1620,20 @@ func TestUnserializeStructAsMap(t *testing.T) {
 }
 
 func TestUnserializeStructAsMapUnregisted(t *testing.T) {
-	type TestStructAsMapUnregisted_3 struct {
+	type TestStructAsMapUnregisted3 struct {
 		Id    string
-		Child *TestStructAsMapUnregisted_3
+		Child *TestStructAsMapUnregisted3
 	}
-	type TestStructAsMapUnregisted_1 struct {
+	type TestStructAsMapUnregisted1 struct {
 		Name  string
 		Age   int
 		Male  bool
-		Child *TestStructAsMapUnregisted_3
+		Child *TestStructAsMapUnregisted3
 	}
-	test := TestStructAsMapUnregisted_1{"Tom", 36, true,
-		&TestStructAsMapUnregisted_3{
+	test := TestStructAsMapUnregisted1{"Tom", 36, true,
+		&TestStructAsMapUnregisted3{
 			Id: "ok",
-			Child: &TestStructAsMapUnregisted_3{
+			Child: &TestStructAsMapUnregisted3{
 				Id: "yes",
 			},
 		},
@@ -1642,9 +1642,9 @@ func TestUnserializeStructAsMapUnregisted(t *testing.T) {
 	w.Serialize(test)
 
 	buf := bytes.Replace(w.Bytes(),
-		[]byte("TestStructAsMapUnregisted_1"), []byte("TestStructAsMapUnregisted_2"), -1)
+		[]byte("TestStructAsMapUnregisted1"), []byte("TestStructAsMapUnregisted2"), -1)
 	buf = bytes.Replace(buf,
-		[]byte("TestStructAsMapUnregisted_3"), []byte("TestStructAsMapUnregisted_4"), -1)
+		[]byte("TestStructAsMapUnregisted3"), []byte("TestStructAsMapUnregisted4"), -1)
 
 	reader := NewReader(buf, false)
 
