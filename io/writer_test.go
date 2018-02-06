@@ -16,7 +16,6 @@
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
-
 package io
 
 import (
@@ -37,7 +36,6 @@ func TestSerializeNil(t *testing.T) {
 		t.Error(w.String())
 	}
 }
-
 func BenchmarkSerializeNil(b *testing.B) {
 	w := NewWriter(true)
 	for i := 0; i < b.N; i++ {
