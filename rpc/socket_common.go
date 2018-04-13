@@ -12,7 +12,7 @@
  *                                                        *
  * hprose socket common for Go.                           *
  *                                                        *
- * LastModified: Jan 7, 2017                              *
+ * LastModified: Apr 13, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/

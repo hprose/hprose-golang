@@ -12,7 +12,7 @@
  *                                                        *
  * hprose unix service for Go.                            *
  *                                                        *
- * LastModified: Oct 5, 2016                              *
+ * LastModified: Apr 13, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -61,6 +61,8 @@ func (service *UnixService) ServeConn(conn net.Conn) {
 // until the server is stop. The caller typically invokes ServeUnix in a go
 // statement.
 func (service *UnixService) ServeUnix(listener *net.UnixListener) {
+	service.workerPool.Start();
+	defer service.workerPool.Stop();
 	var tempDelay time.Duration // how long to sleep on accept failure
 	for {
 		conn, err := listener.AcceptUnix()
@@ -72,7 +74,9 @@ func (service *UnixService) ServeUnix(listener *net.UnixListener) {
 			return
 		}
 		tempDelay = 0
-		go service.ServeUnixConn(conn)
+		service.workerPool.Go(func() {
+			service.ServeUnixConn(conn)
+		});
 	}
 }
 
