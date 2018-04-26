@@ -451,7 +451,7 @@ func (service *BaseService) doSingleInvoke(
 			context.setByRef(true)
 			tag = reader.CheckTags([]byte{io.TagEnd, io.TagCall})
 		}
-	} else {
+	} else if !context.IsMissingMethod() {
 		args = readArguments(service.FixArguments, reader, method, false, context)
 	}
 	context.setMethod(method)
