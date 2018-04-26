@@ -12,7 +12,7 @@
  *                                                        *
  * hprose filter interface for Go.                        *
  *                                                        *
- * LastModified: Oct 25, 2016                             *
+ * LastModified: Sep 28, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -61,20 +61,24 @@ func (fm *filterManager) FilterByIndex(index int) Filter {
 	return fm.filters[index]
 }
 
+func (fm *filterManager) addFilter(filter ...Filter) {
+	if len(filter) > 0 {
+		fm.filters = append(fm.filters, filter...)
+	}
+}
+
 // SetFilter will replace the current filter settings
 func (fm *filterManager) SetFilter(filter ...Filter) {
 	fm.fmLocker.Lock()
 	fm.filters = make([]Filter, len(filter))
-	fm.AddFilter(filter...)
+	fm.addFilter(filter...)
 	fm.fmLocker.Unlock()
 }
 
 // AddFilter add the filter to this FilterManager
 func (fm *filterManager) AddFilter(filter ...Filter) {
 	fm.fmLocker.Lock()
-	if len(filter) > 0 {
-		fm.filters = append(fm.filters, filter...)
-	}
+	fm.addFilter(filter...)
 	fm.fmLocker.Unlock()
 }
 
@@ -110,20 +114,32 @@ func (fm *filterManager) RemoveFilter(filter ...Filter) {
 	}
 }
 
-func (fm *filterManager) inputFilter(data []byte, context Context) []byte {
+func (fm *filterManager) inputFilter(data []byte, context Context) (out []byte, err error) {
 	fm.fmLocker.RLock()
-	defer fm.fmLocker.RUnlock()
+	defer func() {
+		if e := recover(); e != nil {
+			err = NewPanicError(e)
+		}
+		fm.fmLocker.RUnlock()
+	}()
 	for i := len(fm.filters) - 1; i >= 0; i-- {
 		data = fm.filters[i].InputFilter(data, context)
 	}
-	return data
+	out = data
+	return
 }
 
-func (fm *filterManager) outputFilter(data []byte, context Context) []byte {
+func (fm *filterManager) outputFilter(data []byte, context Context) (out []byte, err error) {
 	fm.fmLocker.RLock()
-	defer fm.fmLocker.RUnlock()
+	defer func() {
+		if e := recover(); e != nil {
+			err = NewPanicError(e)
+		}
+		defer fm.fmLocker.RUnlock()
+	}()
 	for i := range fm.filters {
 		data = fm.filters[i].OutputFilter(data, context)
 	}
-	return data
+	out = data
+	return
 }

@@ -12,7 +12,7 @@
  *                                                        *
  * hprose base service for Go.                            *
  *                                                        *
- * LastModified: Dec 3, 2016                              *
+ * LastModified: Sep 10, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -515,12 +515,14 @@ func (service *BaseService) delayError(
 
 func (service *BaseService) beforeFilter(
 	request []byte, context ServiceContext) (response []byte, err error) {
-	request = service.inputFilter(request, context)
-	response, err = service.afterFilterHandler(request, context)
+	request, err = service.inputFilter(request, context)
+	if err == nil {
+		response, err = service.afterFilterHandler(request, context)
+	}
 	if err != nil {
 		response = service.delayError(err, context)
 	}
-	return service.outputFilter(response, context), nil
+	return service.outputFilter(response, context)
 }
 
 // Handle the hprose request and return the hprose response
@@ -568,6 +570,8 @@ func (service *BaseService) offline(t *topic, topic string, id string) {
 	}
 }
 
+var heartbeatSignals = new(interface{})
+
 // Publish the hprose push topic
 func (service *BaseService) Publish(
 	topic string,
@@ -590,11 +594,22 @@ func (service *BaseService) Publish(
 			t.put(id, message)
 			fireSubscribeEvent(topic, id, service)
 		}
+	receiveMessage:
 		select {
 		case result := <-message:
+			if result == heartbeatSignals {
+				goto receiveMessage
+			}
 			return result
 		case <-time.After(timeout):
-			service.offline(t, topic, id)
+			go func() {
+				select {
+				case message <- heartbeatSignals:
+					break
+				case <-time.After(t.heartbeat):
+					service.offline(t, topic, id)
+				}
+			}()
 			return nil
 		}
 	}, Options{})

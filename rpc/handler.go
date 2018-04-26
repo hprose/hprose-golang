@@ -12,7 +12,7 @@
  *                                                        *
  * hprose handler manager for Go.                         *
  *                                                        *
- * LastModified: Oct 18, 2016                             *
+ * LastModified: May 22, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -91,7 +91,8 @@ func (hm *handlerManager) initHandlerManager() {
 				err = NewPanicError(e)
 			}
 		}()
-		return hm.override.beforeFilterHandler(request, context)
+		response, err = hm.override.beforeFilterHandler(request, context)
+		return
 	}
 	hm.defaultAfterFilterHandler = func(
 		request []byte,
@@ -101,12 +102,12 @@ func (hm *handlerManager) initHandlerManager() {
 				err = NewPanicError(e)
 			}
 		}()
-		return hm.override.afterFilterHandler(request, context)
+		response, err = hm.override.afterFilterHandler(request, context)
+		return
 	}
 	hm.invokeHandler = hm.defaultInvokeHandler
 	hm.beforeFilterHandler = hm.defaultBeforeFilterHandler
 	hm.afterFilterHandler = hm.defaultAfterFilterHandler
-	return
 }
 
 func getNextInvokeHandler(
@@ -119,7 +120,8 @@ func getNextInvokeHandler(
 				err = NewPanicError(e)
 			}
 		}()
-		return handler(name, args, context, next)
+		results, err = handler(name, args, context, next)
+		return
 	}
 }
 
@@ -131,7 +133,8 @@ func getNextFilterHandler(
 				err = NewPanicError(e)
 			}
 		}()
-		return handler(request, context, next)
+		response, err = handler(request, context, next)
+		return
 	}
 }
 

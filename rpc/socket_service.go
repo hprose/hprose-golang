@@ -12,7 +12,7 @@
  *                                                        *
  * hprose socket service for Go.                          *
  *                                                        *
- * LastModified: Nov 1, 2016                              *
+ * LastModified: Apr 13, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -61,6 +61,7 @@ type SocketService struct {
 	BaseService
 	TLSConfig   *tls.Config
 	contextPool sync.Pool
+	workerPool *WorkerPool
 }
 
 func (service *SocketService) initSocketService() {
@@ -68,6 +69,7 @@ func (service *SocketService) initSocketService() {
 	service.contextPool = sync.Pool{
 		New: func() interface{} { return new(SocketContext) },
 	}
+	service.workerPool = &WorkerPool{}
 	service.FixArguments = socketFixArguments
 	service.TLSConfig = nil
 }
@@ -161,7 +163,10 @@ func (handler *connHandler) serve(service *SocketService) {
 			break
 		}
 		if data.fullDuplex {
-			go handler.handle(service, data)
+			datacopy := data
+			service.workerPool.Go(func() {
+				handler.handle(service, datacopy)
+			});
 		} else {
 			handler.handle(service, data)
 		}

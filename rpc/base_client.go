@@ -12,7 +12,7 @@
  *                                                        *
  * hprose rpc base client for Go.                         *
  *                                                        *
- * LastModified: Jan 7, 2017                              *
+ * LastModified: Jan 17, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -169,11 +169,13 @@ func shuffleStringSlice(src []string) []string {
 
 // SetURIList set a list of server addresses
 func (client *BaseClient) SetURIList(uriList []string) {
-	client.uriList = shuffleStringSlice(uriList)
 	client.index = 0
 	client.failround = 0
-	client.uri = client.uriList[0]
-	client.url, _ = url.Parse(client.uri)
+	client.uriList = shuffleStringSlice(uriList)
+	if len(client.uriList) > 0 {
+		client.uri = client.uriList[0]
+		client.url, _ = url.Parse(client.uri)
+	}
 }
 
 // TLSClientConfig returns the tls config of hprose client
@@ -358,26 +360,31 @@ func (client *BaseClient) fireErrorEvent(name string, err error) {
 func (client *BaseClient) beforeFilter(
 	request []byte,
 	context *ClientContext) (response []byte, err error) {
-	request = client.outputFilter(request, context)
+	request, err = client.outputFilter(request, context)
+	if err != nil {
+		return
+	}
 	if context.Oneway {
 		go client.handlerManager.afterFilterHandler(request, context)
-		return nil, nil
+		return
 	}
 	response, err = client.handlerManager.afterFilterHandler(request, context)
-	response = client.inputFilter(response, context)
-	return
+	if err != nil {
+		return
+	}
+	return client.inputFilter(response, context)
 }
 
 func (client *BaseClient) afterFilter(
 	request []byte, context *ClientContext) (response []byte, err error) {
 	response, err = client.SendAndReceive(request, context)
 	if err != nil {
-		response, err = client.retrySendReqeust(request, err, context)
+		response, err = client.retrySendRequest(request, err, context)
 	}
 	return
 }
 
-func (client *BaseClient) retrySendReqeust(
+func (client *BaseClient) retrySendRequest(
 	request []byte,
 	err error,
 	context *ClientContext) ([]byte, error) {
@@ -402,13 +409,14 @@ func (client *BaseClient) retrySendReqeust(
 }
 
 func (client *BaseClient) failswitch() {
-	n := int32(len(client.uriList))
+	uriList := client.uriList
+	n := int32(len(uriList))
 	if n > 1 {
 		if atomic.CompareAndSwapInt32(&client.index, n-1, 0) {
-			client.uri = client.uriList[0]
+			client.uri = uriList[0]
 			client.failround++
 		} else {
-			client.uri = client.uriList[atomic.AddInt32(&client.index, 1)]
+			client.uri = uriList[atomic.AddInt32(&client.index, 1)]
 		}
 		client.url, _ = url.Parse(client.uri)
 	} else {
@@ -896,6 +904,9 @@ func (client *BaseClient) Subscribe(
 	}
 	if settings == nil {
 		settings = new(InvokeSettings)
+	}
+	if settings.Timeout <= 0 {
+		settings.Timeout = 5 * time.Minute
 	}
 	settings.ByRef = false
 	settings.Idempotent = true

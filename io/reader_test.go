@@ -12,7 +12,7 @@
  *                                                        *
  * hprose Reader Test for Go.                             *
  *                                                        *
- * LastModified: Oct 13, 2016                             *
+ * LastModified: Feb 6, 2018                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -20,6 +20,7 @@
 package io
 
 import (
+	"bytes"
 	"container/list"
 	"math"
 	"math/big"
@@ -1611,6 +1612,54 @@ func TestUnserializeStructAsMap(t *testing.T) {
 	m["name"] = "Tom"
 	m["age"] = 36
 	m["male"] = true
+	var p map[string]interface{}
+	reader.Unserialize(&p)
+	if !reflect.DeepEqual(p, m) {
+		t.Error(p, m)
+	}
+}
+
+func TestUnserializeStructAsMapUnregisted(t *testing.T) {
+	type TestStructAsMapUnregisted3 struct {
+		Id    string
+		Child *TestStructAsMapUnregisted3
+	}
+	type TestStructAsMapUnregisted1 struct {
+		Name  string
+		Age   int
+		Male  bool
+		Child *TestStructAsMapUnregisted3
+	}
+	test := TestStructAsMapUnregisted1{"Tom", 36, true,
+		&TestStructAsMapUnregisted3{
+			Id: "ok",
+			Child: &TestStructAsMapUnregisted3{
+				Id: "yes",
+			},
+		},
+	}
+	w := NewWriter(true)
+	w.Serialize(test)
+
+	buf := bytes.Replace(w.Bytes(),
+		[]byte("TestStructAsMapUnregisted1"), []byte("TestStructAsMapUnregisted2"), -1)
+	buf = bytes.Replace(buf,
+		[]byte("TestStructAsMapUnregisted3"), []byte("TestStructAsMapUnregisted4"), -1)
+
+	reader := NewReader(buf, false)
+
+	m := make(map[string]interface{})
+	m["name"] = "Tom"
+	m["age"] = 36
+	m["male"] = true
+	m["child"] = map[string]interface{}{
+		"id": "ok",
+		"child": map[string]interface{}{
+			"id":    "yes",
+			"child": nil,
+		},
+	}
+
 	var p map[string]interface{}
 	reader.Unserialize(&p)
 	if !reflect.DeepEqual(p, m) {

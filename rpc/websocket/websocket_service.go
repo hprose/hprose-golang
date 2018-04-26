@@ -12,7 +12,7 @@
  *                                                        *
  * hprose websocket service for Go.                       *
  *                                                        *
- * LastModified: Nov 24, 2016                             *
+ * LastModified: Feb 6, 2018                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -105,7 +105,7 @@ func (service *WebSocketService) releaseContext(context *WebSocketContext) {
 // ServeHTTP is the hprose http handler method
 func (service *WebSocketService) ServeHTTP(
 	response http.ResponseWriter, request *http.Request) {
-	if request.Method == "GET" && !strings.Contains(strings.ToLower(request.Header.Get("connection")), "upgrade") || request.Method == "POST" {
+	if request.Method == "GET" && !strings.Contains(strings.ToLower(request.Header.Get("connection")), "upgrade") || request.Method == "POST" || request.Method == "OPTIONS" {
 		service.HTTPService.ServeHTTP(response, request)
 		return
 	}

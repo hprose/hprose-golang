@@ -12,7 +12,7 @@
  *                                                        *
  * hprose tcp service for Go.                             *
  *                                                        *
- * LastModified: Oct 5, 2016                              *
+ * LastModified: Apr 13, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -79,6 +79,8 @@ func (service *TCPService) ServeConn(conn net.Conn) {
 // until the server is stop. The caller typically invokes ServeTCP in a go
 // statement.
 func (service *TCPService) ServeTCP(listener *net.TCPListener) {
+	service.workerPool.Start();
+	defer service.workerPool.Stop();
 	var tempDelay time.Duration // how long to sleep on accept failure
 	for {
 		conn, err := listener.AcceptTCP()
@@ -90,7 +92,9 @@ func (service *TCPService) ServeTCP(listener *net.TCPListener) {
 			return
 		}
 		tempDelay = 0
-		go service.ServeTCPConn(conn)
+		service.workerPool.Go(func() {
+			service.ServeTCPConn(conn)
+		});
 	}
 }
 
