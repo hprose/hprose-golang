@@ -12,7 +12,7 @@
  *                                                        *
  * hprose writer for Go.                                  *
  *                                                        *
- * LastModified: Oct 19, 2016                             *
+ * LastModified: May 17, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,6 +37,7 @@ type Writer struct {
 	Simple    bool
 	structRef map[uintptr]int
 	ref       map[uintptr]int
+	typeRef   []reflect.Type
 	refCount  int
 }
 
@@ -137,7 +138,7 @@ func (w *Writer) WriteComplex64(c complex64) {
 		w.WriteFloat(float64(real(c)), 32)
 		return
 	}
-	setWriterRef(w, nil)
+	setWriterRef(w, nil, nil)
 	writeListHeader(w, 2)
 	w.WriteFloat(float64(real(c)), 32)
 	w.WriteFloat(float64(imag(c)), 32)
@@ -150,7 +151,7 @@ func (w *Writer) WriteComplex128(c complex128) {
 		w.WriteFloat(real(c), 64)
 		return
 	}
-	setWriterRef(w, nil)
+	setWriterRef(w, nil, nil)
 	writeListHeader(w, 2)
 	w.WriteFloat(real(c), 64)
 	w.WriteFloat(imag(c), 64)
@@ -169,14 +170,14 @@ func (w *Writer) WriteString(str string) {
 		w.writeByte(TagUTF8Char)
 		w.writeString(str)
 	default:
-		setWriterRef(w, nil)
+		setWriterRef(w, nil, nil)
 		writeString(w, str, length)
 	}
 }
 
 // WriteBytes to the writer
 func (w *Writer) WriteBytes(bytes []byte) {
-	setWriterRef(w, nil)
+	setWriterRef(w, nil, nil)
 	writeBytes(w, bytes)
 }
 
@@ -193,7 +194,7 @@ func (w *Writer) WriteBigRat(br *big.Rat) {
 		w.WriteBigInt(br.Num())
 	} else {
 		str := br.String()
-		setWriterRef(w, nil)
+		setWriterRef(w, nil, nil)
 		writeString(w, str, len(str))
 	}
 }
@@ -223,10 +224,11 @@ func writeTime(w *Writer, buf []byte, hour, min, sec, nsec int) {
 // WriteTime to the writer
 func (w *Writer) WriteTime(t *time.Time) {
 	ptr := unsafe.Pointer(t)
-	if writeRef(w, ptr) {
+	typ := reflect.TypeOf(t)
+	if writeRef(w, ptr, typ) {
 		return
 	}
-	setWriterRef(w, ptr)
+	setWriterRef(w, ptr, typ)
 	year, month, day := t.Date()
 	hour, min, sec := t.Clock()
 	nsec := t.Nanosecond()
@@ -249,10 +251,11 @@ func (w *Writer) WriteTime(t *time.Time) {
 // WriteList to the writer
 func (w *Writer) WriteList(lst *list.List) {
 	ptr := unsafe.Pointer(lst)
-	if writeRef(w, ptr) {
+	typ := reflect.TypeOf(lst)
+	if writeRef(w, ptr, typ) {
 		return
 	}
-	setWriterRef(w, ptr)
+	setWriterRef(w, ptr, typ)
 	count := lst.Len()
 	if count == 0 {
 		writeEmptyList(w)
@@ -267,7 +270,7 @@ func (w *Writer) WriteList(lst *list.List) {
 
 // WriteTuple to the writer
 func (w *Writer) WriteTuple(tuple ...interface{}) {
-	setWriterRef(w, nil)
+	setWriterRef(w, nil, nil)
 	count := len(tuple)
 	if count == 0 {
 		writeEmptyList(w)
@@ -282,7 +285,7 @@ func (w *Writer) WriteTuple(tuple ...interface{}) {
 
 // WriteSlice to the writer
 func (w *Writer) WriteSlice(slice []reflect.Value) {
-	setWriterRef(w, nil)
+	setWriterRef(w, nil, nil)
 	count := len(slice)
 	if count == 0 {
 		writeEmptyList(w)
@@ -297,7 +300,7 @@ func (w *Writer) WriteSlice(slice []reflect.Value) {
 
 // WriteStringSlice to the writer
 func (w *Writer) WriteStringSlice(slice []string) {
-	setWriterRef(w, nil)
+	setWriterRef(w, nil, nil)
 	count := len(slice)
 	if count == 0 {
 		writeEmptyList(w)
@@ -324,11 +327,14 @@ func (w *Writer) Reset() {
 			delete(w.ref, k)
 		}
 	}
+	if w.typeRef != nil {
+		w.typeRef = w.typeRef[:0]
+	}
 }
 
 // private functions
 
-func writeRef(w *Writer, ref unsafe.Pointer) bool {
+func writeRef(w *Writer, ref unsafe.Pointer, typ reflect.Type) bool {
 	if w.Simple {
 		return false
 	}
@@ -337,6 +343,9 @@ func writeRef(w *Writer, ref unsafe.Pointer) bool {
 	}
 	n, found := w.ref[uintptr(ref)]
 	if found {
+		if w.typeRef[n] != typ {
+			return false
+		}
 		w.writeByte(TagRef)
 		var buf [20]byte
 		w.write(util.GetIntBytes(buf[:], int64(n)))
@@ -345,7 +354,7 @@ func writeRef(w *Writer, ref unsafe.Pointer) bool {
 	return found
 }
 
-func setWriterRef(w *Writer, ref unsafe.Pointer) {
+func setWriterRef(w *Writer, ref unsafe.Pointer, typ reflect.Type) {
 	if w.Simple {
 		return
 	}
@@ -355,6 +364,7 @@ func setWriterRef(w *Writer, ref unsafe.Pointer) {
 		}
 		w.ref[uintptr(ref)] = w.refCount
 	}
+	w.typeRef = append(w.typeRef, typ)
 	w.refCount++
 }
 
@@ -504,7 +514,8 @@ func writeMap(w *Writer, v reflect.Value) {
 
 func writeStruct(w *Writer, v reflect.Value) {
 	val := (*reflectValue)(unsafe.Pointer(&v))
-	cache := getStructCache(v.Type())
+	typ := v.Type()
+	cache := getStructCache(typ)
 	if w.structRef == nil {
 		w.structRef = map[uintptr]int{}
 	}
@@ -518,7 +529,7 @@ func writeStruct(w *Writer, v reflect.Value) {
 		w.structRef[val.typ] = index
 	}
 	ptr := val.ptr
-	setWriterRef(w, ptr)
+	setWriterRef(w, ptr, typ)
 	w.writeByte(TagObject)
 	var buf [20]byte
 	w.write(util.GetIntBytes(buf[:], int64(index)))

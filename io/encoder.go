@@ -12,7 +12,7 @@
  *                                                        *
  * hprose encoder for Go.                                 *
  *                                                        *
- * LastModified: Oct 19, 2016                             *
+ * LastModified: May 17, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -75,19 +75,20 @@ func interfaceEncoder(w *Writer, v reflect.Value) {
 }
 
 func arrayEncoder(w *Writer, v reflect.Value) {
-	setWriterRef(w, nil)
+	setWriterRef(w, nil, v.Type())
 	writeArray(w, v)
 }
 
 func sliceEncoder(w *Writer, v reflect.Value) {
-	setWriterRef(w, nil)
+	setWriterRef(w, nil, v.Type())
 	writeSlice(w, v)
 }
 
 func mapEncoder(w *Writer, v reflect.Value) {
 	ptr := (*reflectValue)(unsafe.Pointer(&v)).ptr
-	if !writeRef(w, ptr) {
-		setWriterRef(w, ptr)
+	typ := v.Type()
+	if !writeRef(w, ptr, typ) {
+		setWriterRef(w, ptr, typ)
 		writeMap(w, v)
 	}
 }
@@ -102,22 +103,25 @@ func structEncoder(w *Writer, v reflect.Value) {
 }
 
 func arrayPtrEncoder(w *Writer, v reflect.Value, ptr unsafe.Pointer) {
-	if !writeRef(w, ptr) {
-		setWriterRef(w, ptr)
+	typ := v.Type()
+	if !writeRef(w, ptr, typ) {
+		setWriterRef(w, ptr, typ)
 		writeArray(w, v)
 	}
 }
 
 func mapPtrEncoder(w *Writer, v reflect.Value, ptr unsafe.Pointer) {
-	if !writeRef(w, ptr) {
-		setWriterRef(w, ptr)
+	typ := v.Type()
+	if !writeRef(w, ptr, typ) {
+		setWriterRef(w, ptr, typ)
 		writeMap(w, v)
 	}
 }
 
 func slicePtrEncoder(w *Writer, v reflect.Value, ptr unsafe.Pointer) {
-	if !writeRef(w, ptr) {
-		setWriterRef(w, ptr)
+	typ := v.Type()
+	if !writeRef(w, ptr, typ) {
+		setWriterRef(w, ptr, typ)
 		writeSlice(w, v)
 	}
 }
@@ -134,8 +138,9 @@ func stringPtrEncoder(w *Writer, v reflect.Value, ptr unsafe.Pointer) {
 		w.writeByte(TagUTF8Char)
 		w.writeString(str)
 	default:
-		if !writeRef(w, ptr) {
-			setWriterRef(w, ptr)
+		typ := v.Type()
+		if !writeRef(w, ptr, typ) {
+			setWriterRef(w, ptr, typ)
 			writeString(w, str, length)
 		}
 	}
@@ -156,7 +161,7 @@ func structPtrEncoder(w *Writer, v reflect.Value, ptr unsafe.Pointer) {
 	case reflectValueType:
 		w.WriteValue(*(*reflect.Value)(ptr))
 	default:
-		if !writeRef(w, ptr) {
+		if !writeRef(w, ptr, v.Type()) {
 			writeStruct(w, v)
 		}
 	}
