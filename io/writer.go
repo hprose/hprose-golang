@@ -523,7 +523,9 @@ func writeStruct(w *Writer, v reflect.Value) {
 	if !found {
 		w.write(cache.Data)
 		if !w.Simple {
-			w.refCount += len(cache.Fields)
+			count := len(cache.Fields)
+			w.refCount += count
+			w.typeRef = append(w.typeRef, make([]reflect.Type, count)...)
 		}
 		index = len(w.structRef)
 		w.structRef[val.typ] = index
