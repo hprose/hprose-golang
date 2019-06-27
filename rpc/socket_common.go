@@ -24,7 +24,6 @@ import (
 	"net"
 	"time"
 
-	"base"
 	hio "github.com/hprose/hprose-golang/io"
 	"github.com/hprose/hprose-golang/util"
 )
@@ -96,7 +95,6 @@ func recvData(reader io.Reader, data *packet) (err error) {
 		}
 	}
 
-	base.Log.Debug("size:%d", size)
 	//TODO(zibin)2019-06-27 增加对超大报文的判断，防止slice内存泄露
 	if size > 10000 {
 		size = 10000
