@@ -359,7 +359,7 @@ func WriteString(writer io.Writer, s string) (err error) {
 		return WriteBytes(writer, bytes)
 	}
 	if err = writer.WriteByte(io.TagString); err == nil {
-		return writeBytes(writer, bytes, length)
+		err = writeBytes(writer, bytes, length)
 	}
 	return
 }
