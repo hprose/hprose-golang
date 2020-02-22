@@ -94,17 +94,14 @@ func toBytes(i uint64, buf []byte) (off int) {
 		p = (i - (q * 1000)) * 3
 		i = q
 		off -= 3
-		buf[off] = digit3[p]
-		buf[off+1] = digit3[p+1]
-		buf[off+2] = digit3[p+2]
+		copy(buf[off:off+3], digit3[p:p+3])
 	}
 	if i >= 10 {
 		q = i / 100
 		p = (i - (q * 100)) * 2
 		i = q
 		off -= 2
-		buf[off] = digit2[p]
-		buf[off+1] = digit2[p+1]
+		copy(buf[off:off+2], digit2[p:p+2])
 	}
 	if i > 0 {
 		off--
@@ -377,17 +374,13 @@ func writeDate(writer io.Writer, year int, month int, day int) (err error) {
 	buf[0] = io.TagDate
 	q := year / 100
 	p := q << 1
-	buf[1] = digit2[p]
-	buf[2] = digit2[p+1]
+	copy(buf[1:3], digit2[p:p+2])
 	p = (year - q*100) << 1
-	buf[3] = digit2[p]
-	buf[4] = digit2[p+1]
+	copy(buf[3:5], digit2[p:p+2])
 	p = month << 1
-	buf[5] = digit2[p]
-	buf[6] = digit2[p+1]
+	copy(buf[5:7], digit2[p:p+2])
 	p = day << 1
-	buf[7] = digit2[p]
-	buf[8] = digit2[p+1]
+	copy(buf[7:9], digit2[p:p+2])
 	_, err = writer.Write(buf[:])
 	return
 }
@@ -396,14 +389,11 @@ func writeTime(writer io.Writer, hour int, min int, sec int, nsec int) (err erro
 	var buf [17]byte
 	buf[0] = io.TagTime
 	p := hour << 1
-	buf[1] = digit2[p]
-	buf[2] = digit2[p+1]
+	copy(buf[1:3], digit2[p:p+2])
 	p = min << 1
-	buf[3] = digit2[p]
-	buf[4] = digit2[p+1]
+	copy(buf[3:5], digit2[p:p+2])
 	p = sec << 1
-	buf[5] = digit2[p]
-	buf[6] = digit2[p+1]
+	copy(buf[5:7], digit2[p:p+2])
 	if nsec == 0 {
 		_, err = writer.Write(buf[:7])
 		return
@@ -412,9 +402,7 @@ func writeTime(writer io.Writer, hour int, min int, sec int, nsec int) (err erro
 	q := nsec / 1000000
 	p = q * 3
 	nsec = nsec - q*1000000
-	buf[8] = digit3[p]
-	buf[9] = digit3[p+1]
-	buf[10] = digit3[p+2]
+	copy(buf[8:11], digit3[p:p+3])
 	if nsec == 0 {
 		_, err = writer.Write(buf[:11])
 		return
@@ -422,17 +410,13 @@ func writeTime(writer io.Writer, hour int, min int, sec int, nsec int) (err erro
 	q = nsec / 1000
 	p = q * 3
 	nsec = nsec - q*1000
-	buf[11] = digit3[p]
-	buf[12] = digit3[p+1]
-	buf[13] = digit3[p+2]
+	copy(buf[11:14], digit3[p:p+3])
 	if nsec == 0 {
 		_, err = writer.Write(buf[:14])
 		return
 	}
 	p = nsec * 3
-	buf[14] = digit3[p]
-	buf[15] = digit3[p+1]
-	buf[16] = digit3[p+2]
+	copy(buf[14:17], digit3[p:p+3])
 	_, err = writer.Write(buf[:17])
 	return
 }
