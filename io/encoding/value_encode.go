@@ -14,6 +14,7 @@
 package encoding
 
 import (
+	"errors"
 	"math"
 	"math/big"
 	"strconv"
@@ -339,8 +340,15 @@ func writeBytes(writer io.Writer, bytes []byte, length int) (err error) {
 	return
 }
 
+// ErrInvalidUTF8 means that the string is invalid UTF-8.
+var ErrInvalidUTF8 = errors.New("encoding: invalid UTF-8")
+
 func writeString(writer io.Writer, s string) (err error) {
-	return writeBytes(writer, io.StringToBytes(s), utf16Length(s))
+	length := utf16Length(s)
+	if length < 0 {
+		return ErrInvalidUTF8
+	}
+	return writeBytes(writer, io.StringToBytes(s), length)
 }
 
 // WriteBytes to writer
