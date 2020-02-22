@@ -3,11 +3,11 @@
 # Hprose 3.0 for Golang
 
 [![Join the chat at https://gitter.im/hprose/hprose-golang](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/hprose/hprose-golang?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/hprose/hprose-golang.svg?branch=master)](https://travis-ci.org/hprose/hprose-golang)
+[![Build Status](https://travis-ci.org/hprose/hprose-golang.svg?branch=v3)](https://travis-ci.org/hprose/hprose-golang)
 [![GoDoc](https://godoc.org/github.com/hprose/hprose-golang?status.svg&style=flat)](https://godoc.org/github.com/hprose/hprose-golang)
 [![Go Report Card](https://goreportcard.com/badge/github.com/hprose/hprose-golang)](https://goreportcard.com/report/github.com/hprose/hprose-golang)
 [![codebeat badge](https://img.shields.io/badge/codebeat-A-398b39.svg)](https://codebeat.co/projects/github-com-hprose-hprose-golang)
-[![Coverage Status](https://coveralls.io/repos/github/hprose/hprose-golang/badge.svg?branch=master)](https://coveralls.io/github/hprose/hprose-golang?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/hprose/hprose-golang/badge.svg?branch=v3)](https://coveralls.io/github/hprose/hprose-golang?branch=v3)
 [![License](https://img.shields.io/github/license/hprose/hprose-golang.svg)](http://opensource.org/licenses/MIT)
 
 ## Introduction
