@@ -121,6 +121,94 @@ func TestWriteUint32(t *testing.T) {
 	}
 }
 
+func TestWriteUint16(t *testing.T) {
+	sb := &strings.Builder{}
+	if err := WriteUint16(sb, 0); err != nil {
+		t.Error(err)
+	}
+	if err := WriteUint16(sb, 1); err != nil {
+		t.Error(err)
+	}
+	if err := WriteUint16(sb, 123); err != nil {
+		t.Error(err)
+	}
+	if err := WriteUint16(sb, math.MaxUint16); err != nil {
+		t.Error(err)
+	}
+	if err := WriteUint16(sb, math.MaxInt16); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != "01i123;i65535;i32767;" {
+		t.Error(sb)
+	}
+}
+
+func TestWriteInt16(t *testing.T) {
+	sb := &strings.Builder{}
+	if err := WriteInt16(sb, 0); err != nil {
+		t.Error(err)
+	}
+	if err := WriteInt16(sb, 1); err != nil {
+		t.Error(err)
+	}
+	if err := WriteInt16(sb, 123); err != nil {
+		t.Error(err)
+	}
+	if err := WriteInt16(sb, math.MinInt16); err != nil {
+		t.Error(err)
+	}
+	if err := WriteInt16(sb, math.MaxInt16); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != "01i123;i-32768;i32767;" {
+		t.Error(sb)
+	}
+}
+
+func TestWriteUint8(t *testing.T) {
+	sb := &strings.Builder{}
+	if err := WriteUint8(sb, 0); err != nil {
+		t.Error(err)
+	}
+	if err := WriteUint8(sb, 1); err != nil {
+		t.Error(err)
+	}
+	if err := WriteUint8(sb, 123); err != nil {
+		t.Error(err)
+	}
+	if err := WriteUint8(sb, math.MaxUint8); err != nil {
+		t.Error(err)
+	}
+	if err := WriteUint8(sb, math.MaxInt8); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != "01i123;i255;i127;" {
+		t.Error(sb)
+	}
+}
+
+func TestWriteInt8(t *testing.T) {
+	sb := &strings.Builder{}
+	if err := WriteInt8(sb, 0); err != nil {
+		t.Error(err)
+	}
+	if err := WriteInt8(sb, 1); err != nil {
+		t.Error(err)
+	}
+	if err := WriteInt8(sb, 123); err != nil {
+		t.Error(err)
+	}
+	if err := WriteInt8(sb, math.MinInt8); err != nil {
+		t.Error(err)
+	}
+	if err := WriteInt8(sb, math.MaxInt8); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != "01i123;i-128;i127;" {
+		t.Error(sb)
+	}
+}
+
 func TestWriteNil(t *testing.T) {
 	sb := &strings.Builder{}
 	if err := WriteNil(sb); err != nil {
@@ -183,6 +271,9 @@ func TestWriteString(t *testing.T) {
 	if err := WriteString(sb, "Hello"); err != nil {
 		t.Error(err)
 	}
+	if err := WriteString(sb, "Pokémon"); err != nil {
+		t.Error(err)
+	}
 	if err := WriteString(sb, "中文"); err != nil {
 		t.Error(err)
 	}
@@ -192,7 +283,7 @@ func TestWriteString(t *testing.T) {
 	if err := WriteString(sb, "👩‍👩‍👧‍👧"); err != nil {
 		t.Error(err)
 	}
-	if sb.String() != `s""s5"Hello"s2"中文"s4"🐱🐶"s11"👩‍👩‍👧‍👧"` {
+	if sb.String() != `s""s5"Hello"s7"Pokémon"s2"中文"s4"🐱🐶"s11"👩‍👩‍👧‍👧"` {
 		t.Error(sb)
 	}
 }
@@ -205,6 +296,9 @@ func TestWriteBytes(t *testing.T) {
 	if err := WriteBytes(sb, []byte("Hello")); err != nil {
 		t.Error(err)
 	}
+	if err := WriteBytes(sb, []byte("Pokémon")); err != nil {
+		t.Error(err)
+	}
 	if err := WriteBytes(sb, []byte("中文")); err != nil {
 		t.Error(err)
 	}
@@ -214,7 +308,7 @@ func TestWriteBytes(t *testing.T) {
 	if err := WriteBytes(sb, []byte("👩‍👩‍👧‍👧")); err != nil {
 		t.Error(err)
 	}
-	if sb.String() != `b""b5"Hello"b6"中文"b8"🐱🐶"b25"👩‍👩‍👧‍👧"` {
+	if sb.String() != `b""b5"Hello"b8"Pokémon"b6"中文"b8"🐱🐶"b25"👩‍👩‍👧‍👧"` {
 		t.Error(sb)
 	}
 }
