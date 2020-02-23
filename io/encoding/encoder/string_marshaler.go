@@ -29,7 +29,7 @@ func (m StringMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
 	length := utf16Length(s)
 	switch length {
 	case 0:
-		return enc.Writer.WriteByte(io.TagEmpty)
+		err = enc.Writer.WriteByte(io.TagEmpty)
 	case 1:
 		if err = enc.Writer.WriteByte(io.TagUTF8Char); err == nil {
 			_, err = enc.Writer.Write(io.StringToBytes(s))
@@ -38,9 +38,8 @@ func (m StringMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
 		var ok bool
 		if ok, err = enc.WriteReference(v); !ok && err == nil {
 			enc.SetReference(v)
-			return writeString(enc.Writer, s, length)
+			err = writeString(enc.Writer, s, length)
 		}
-		return
 	}
 	return
 }
