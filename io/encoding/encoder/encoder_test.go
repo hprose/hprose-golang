@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/encoder_test.go                      |
 |                                                          |
-| LastModified: Feb 24, 2020                               |
+| LastModified: Feb 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -39,12 +39,14 @@ func TestEncoderEncode(t *testing.T) {
 	e := ""
 	c := "我"
 	s := "Hello"
+	c64 := complex(float32(1), float32(2))
+	c128 := complex(float64(3), float64(4))
+	r64 := complex(float32(5), float32(0))
+	r128 := complex(float64(6), float64(0))
 	bi := big.NewInt(0)
 	bf := big.NewFloat(1)
-	c64 := complex(float32(2), float32(3))
-	c128 := complex(float64(4), float64(5))
-	r64 := complex(float32(6), float32(0))
-	r128 := complex(float64(7), float64(0))
+	br := big.NewRat(2, 3)
+	bri := big.NewRat(4, 1)
 	if err := enc.Encode(nil); err != nil {
 		t.Error(err)
 	}
@@ -96,12 +98,6 @@ func TestEncoderEncode(t *testing.T) {
 	if err := enc.Encode(s); err != nil {
 		t.Error(err)
 	}
-	if err := enc.Encode(*bi); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(*bf); err != nil {
-		t.Error(err)
-	}
 	if err := enc.Encode(c64); err != nil {
 		t.Error(err)
 	}
@@ -112,6 +108,18 @@ func TestEncoderEncode(t *testing.T) {
 		t.Error(err)
 	}
 	if err := enc.Encode(r128); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(*bi); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(*bf); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(*br); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(*bri); err != nil {
 		t.Error(err)
 	}
 	if err := enc.Encode((*int)(nil)); err != nil {
@@ -165,12 +173,6 @@ func TestEncoderEncode(t *testing.T) {
 	if err := enc.Encode(&s); err != nil {
 		t.Error(err)
 	}
-	if err := enc.Encode(bi); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(bf); err != nil {
-		t.Error(err)
-	}
 	if err := enc.Encode(&c64); err != nil {
 		t.Error(err)
 	}
@@ -183,11 +185,23 @@ func TestEncoderEncode(t *testing.T) {
 	if err := enc.Encode(&r128); err != nil {
 		t.Error(err)
 	}
+	if err := enc.Encode(bi); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(bf); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(br); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(bri); err != nil {
+		t.Error(err)
+	}
 	if sb.String() != ``+
 		`n0123456789td3.1415927;d3.141592653589793;`+
-		`eu我s5"Hello"l0;d1;a2{d2;d3;}a2{d4;d5;}d6;d7;`+
+		`eu我s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`+
 		`n0123456789td3.1415927;d3.141592653589793;`+
-		`eu我s5"Hello"l0;d1;a2{d2;d3;}a2{d4;d5;}d6;d7;` {
+		`eu我s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;` {
 		t.Error(sb)
 	}
 }
