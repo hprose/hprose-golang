@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/ptr_marshaler.go                     |
 |                                                          |
-| LastModified: Feb 24, 2020                               |
+| LastModified: Feb 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,7 +14,6 @@
 package encoder
 
 import (
-	"math/big"
 	"reflect"
 )
 
@@ -58,14 +57,10 @@ func (m PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(enc *Enc
 		return WriteComplex64(enc, *v)
 	case *complex128:
 		return WriteComplex128(enc, *v)
-	case *big.Int:
-		return WriteBigInt(enc.Writer, v)
-	case *big.Float:
-		return WriteBigFloat(enc.Writer, v)
 	default:
 		e := reflect.TypeOf(v).Elem()
 		if e.Kind() == reflect.Struct {
-			marshaler := getValueMarshaler(e)
+			marshaler := GetValueMarshaler(e)
 			if marshaler != nil {
 				return marshaler(enc, v)
 			}
