@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/marshaler.go                         |
 |                                                          |
-| LastModified: Feb 23, 2020                               |
+| LastModified: Feb 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,22 +15,13 @@ package encoder
 
 import (
 	"reflect"
-	"unsafe"
+	"sync"
 )
 
 // Marshaler is the interface that groups the basic Write and Encode methods.
 type Marshaler interface {
 	Encode(enc *Encoder, v interface{}) error
 	Write(enc *Encoder, v interface{}) error
-}
-
-// ValueMarshaler is a marshal function for value struct
-type ValueMarshaler func(enc *Encoder, v interface{}) error
-
-type typeAddr uintptr
-
-func getTypeAddr(v interface{}) typeAddr {
-	return *(*typeAddr)(unsafe.Pointer(&v))
 }
 
 func getMarshaler(v interface{}) Marshaler {
@@ -61,6 +52,22 @@ func getStructMarshaler(v interface{}) Marshaler {
 	return nil
 }
 
-func getValueMarshaler(t reflect.Type) ValueMarshaler {
-	return nil
+// ValueMarshaler is a marshal function for value struct
+type ValueMarshaler func(enc *Encoder, v interface{}) error
+
+var valueMarshalerMap = map[reflect.Type]ValueMarshaler{}
+var valueMarshalerLocker = sync.RWMutex{}
+
+// RegisterValueMarshaler ...
+func RegisterValueMarshaler(t reflect.Type, marshaler ValueMarshaler) {
+	valueMarshalerLocker.Lock()
+	defer valueMarshalerLocker.Unlock()
+	valueMarshalerMap[t] = marshaler
+}
+
+// GetValueMarshaler ...
+func GetValueMarshaler(t reflect.Type) ValueMarshaler {
+	valueMarshalerLocker.RLock()
+	defer valueMarshalerLocker.RUnlock()
+	return valueMarshalerMap[t]
 }
