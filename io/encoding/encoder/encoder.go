@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/encoder.go                           |
 |                                                          |
-| LastModified: Feb 23, 2020                               |
+| LastModified: Feb 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,7 +14,6 @@
 package encoder
 
 import (
-	"math/big"
 	"reflect"
 
 	"github.com/hprose/hprose-golang/v3/io"
@@ -69,11 +68,14 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 		return WriteComplex64(enc, value)
 	case complex128:
 		return WriteComplex128(enc, value)
-	case big.Int:
-		return WriteBigInt(enc.Writer, &value)
-	case big.Float:
-		return WriteBigFloat(enc.Writer, &value)
 	default:
+		e := reflect.TypeOf(v)
+		if e.Kind() == reflect.Struct {
+			marshaler := GetValueMarshaler(e)
+			if marshaler != nil {
+				return marshaler(enc, v)
+			}
+		}
 		if m := getMarshaler(v); m != nil {
 			return marshal(m, v)
 		}
