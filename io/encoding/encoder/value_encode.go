@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/value_encode.go                      |
 |                                                          |
-| LastModified: Feb 22, 2020                               |
+| LastModified: Feb 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -274,27 +274,6 @@ func WriteFloat64(writer io.Writer, f float64) error {
 	return writeFloat(writer, f, 64)
 }
 
-// WriteBigInt to writer
-func WriteBigInt(writer io.Writer, i *big.Int) (err error) {
-	if err = writer.WriteByte(io.TagLong); err == nil {
-		if _, err = writer.Write(io.StringToBytes(i.String())); err == nil {
-			err = writer.WriteByte(io.TagSemicolon)
-		}
-	}
-	return
-}
-
-// WriteBigFloat to writer
-func WriteBigFloat(writer io.Writer, f *big.Float) (err error) {
-	if err = writer.WriteByte(io.TagDouble); err == nil {
-		var buf [32]byte
-		if _, err = writer.Write(f.Append(buf[:0], 'g', -1)); err == nil {
-			err = writer.WriteByte(io.TagSemicolon)
-		}
-	}
-	return
-}
-
 func utf16Length(str string) (n int) {
 	length := len(str)
 	n = length
@@ -483,12 +462,42 @@ func writeComplex(enc *Encoder, r float64, i float64, bitSize int) (err error) {
 	return
 }
 
-// WriteComplex64 to writer
+// WriteComplex64 to enc.Writer
 func WriteComplex64(enc *Encoder, c complex64) error {
 	return writeComplex(enc, float64(real(c)), float64(imag(c)), 32)
 }
 
-// WriteComplex128 to writer
+// WriteComplex128 to enc.Writer
 func WriteComplex128(enc *Encoder, c complex128) error {
 	return writeComplex(enc, real(c), imag(c), 64)
+}
+
+// WriteBigInt to writer
+func WriteBigInt(writer io.Writer, i *big.Int) (err error) {
+	if err = writer.WriteByte(io.TagLong); err == nil {
+		if _, err = writer.Write(io.StringToBytes(i.String())); err == nil {
+			err = writer.WriteByte(io.TagSemicolon)
+		}
+	}
+	return
+}
+
+// WriteBigFloat to writer
+func WriteBigFloat(writer io.Writer, f *big.Float) (err error) {
+	if err = writer.WriteByte(io.TagDouble); err == nil {
+		var buf [32]byte
+		if _, err = writer.Write(f.Append(buf[:0], 'g', -1)); err == nil {
+			err = writer.WriteByte(io.TagSemicolon)
+		}
+	}
+	return
+}
+
+// WriteBigRat to enc.Writer
+func WriteBigRat(enc *Encoder, r *big.Rat) (err error) {
+	if r.IsInt() {
+		return WriteBigInt(enc.Writer, r.Num())
+	}
+	enc.AddReferenceCount(1)
+	return WriteString(enc.Writer, r.String())
 }
