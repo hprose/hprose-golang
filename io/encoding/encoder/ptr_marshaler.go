@@ -14,6 +14,7 @@
 package encoder
 
 import (
+	"math/big"
 	"reflect"
 )
 
@@ -22,7 +23,7 @@ type PtrMarshaler struct{}
 
 var ptrMarshaler PtrMarshaler
 
-func (m PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(enc *Encoder, v interface{}) error) (err error) {
+func (m PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(marshaler Marshaler, enc *Encoder, v interface{}) error) (err error) {
 	if reflect.ValueOf(v).IsNil() {
 		return WriteNil(enc.Writer)
 	}
@@ -57,29 +58,36 @@ func (m PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(enc *Enc
 		return WriteComplex64(enc, *v)
 	case *complex128:
 		return WriteComplex128(enc, *v)
-	default:
-		e := reflect.TypeOf(v).Elem()
-		if e.Kind() == reflect.Struct {
-			marshaler := GetValueMarshaler(e)
-			if marshaler != nil {
-				return marshaler(enc, v)
-			}
+	case *big.Int:
+		return WriteBigInt(enc.Writer, v)
+	case *big.Float:
+		return WriteBigFloat(enc.Writer, v)
+	case *big.Rat:
+		return WriteBigRat(enc, v)
+	}
+	t := reflect.TypeOf(v)
+	switch t.Elem().Kind() {
+	case reflect.Struct:
+		if marshaler := GetMarshaler(t); marshaler != nil {
+			return marshal(marshaler, enc, v)
 		}
-		return marshal(enc, v)
+	case reflect.String:
+		return marshal(stringMarshaler, enc, *(v.(*string)))
+	case reflect.Array:
+	case reflect.Slice:
+	case reflect.Map:
+	case reflect.Ptr:
+	case reflect.Interface:
 	}
+	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }
 
-func (m PtrMarshaler) encode(enc *Encoder, v interface{}) (err error) {
-	var ok bool
-	if ok, err = enc.WriteReference(v); !ok && err == nil {
-		err = m.write(enc, v)
-	}
-	return
+func (m PtrMarshaler) encode(marshaler Marshaler, enc *Encoder, v interface{}) (err error) {
+	return marshaler.Encode(enc, v)
 }
 
-func (m PtrMarshaler) write(enc *Encoder, v interface{}) (err error) {
-	enc.SetReference(v)
-	return enc.Encode(reflect.ValueOf(v).Elem().Interface())
+func (m PtrMarshaler) write(marshaler Marshaler, enc *Encoder, v interface{}) (err error) {
+	return marshaler.Write(enc, v)
 }
 
 // Encode writes the hprose encoding of v to stream
