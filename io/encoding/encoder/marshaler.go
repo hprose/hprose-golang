@@ -31,7 +31,9 @@ func getMarshaler(v interface{}) Marshaler {
 	case reflect.Ptr:
 		return ptrMarshaler
 	case reflect.Array:
-		return getArrayMarshaler(v)
+		// return arrayMarshaler
+	case reflect.Slice:
+		return getSliceMarshaler(v)
 	case reflect.Map:
 		return getMapMarshaler(v)
 	case reflect.Struct:
@@ -40,7 +42,7 @@ func getMarshaler(v interface{}) Marshaler {
 	return nil
 }
 
-func getArrayMarshaler(v interface{}) Marshaler {
+func getSliceMarshaler(v interface{}) Marshaler {
 	return nil
 }
 
@@ -52,22 +54,19 @@ func getStructMarshaler(v interface{}) Marshaler {
 	return nil
 }
 
-// ValueMarshaler is a marshal function for value struct
-type ValueMarshaler func(enc *Encoder, v interface{}) error
+var marshalerMap = map[reflect.Type]Marshaler{}
+var marshalerLocker = sync.RWMutex{}
 
-var valueMarshalerMap = map[reflect.Type]ValueMarshaler{}
-var valueMarshalerLocker = sync.RWMutex{}
-
-// RegisterValueMarshaler ...
-func RegisterValueMarshaler(t reflect.Type, marshaler ValueMarshaler) {
-	valueMarshalerLocker.Lock()
-	defer valueMarshalerLocker.Unlock()
-	valueMarshalerMap[t] = marshaler
+// RegisterMarshaler ...
+func RegisterMarshaler(t reflect.Type, marshaler Marshaler) {
+	marshalerLocker.Lock()
+	defer marshalerLocker.Unlock()
+	marshalerMap[t] = marshaler
 }
 
-// GetValueMarshaler ...
-func GetValueMarshaler(t reflect.Type) ValueMarshaler {
-	valueMarshalerLocker.RLock()
-	defer valueMarshalerLocker.RUnlock()
-	return valueMarshalerMap[t]
+// GetMarshaler ...
+func GetMarshaler(t reflect.Type) Marshaler {
+	marshalerLocker.RLock()
+	defer marshalerLocker.RUnlock()
+	return marshalerMap[t]
 }
