@@ -14,7 +14,9 @@
 package encoder
 
 import (
+	"math/big"
 	"reflect"
+	"unsafe"
 
 	"github.com/hprose/hprose-golang/v3/io"
 )
@@ -29,58 +31,123 @@ func (e *UnsupportedTypeError) Error() string {
 	return "hprose: unsupported type: " + e.Type.String()
 }
 
+type emptyInterface struct {
+	typ uintptr
+	ptr unsafe.Pointer
+}
+
+func getUnsafePointer(v interface{}) unsafe.Pointer {
+	return (*emptyInterface)(unsafe.Pointer(&v)).ptr
+}
+
+type encoderRefer struct {
+	ref  map[interface{}]uint64
+	last uint64
+}
+
+func newEncoderRefer() *encoderRefer {
+	return &encoderRefer{
+		ref:  make(map[interface{}]uint64),
+		last: 0,
+	}
+}
+
+func (r *encoderRefer) AddCount(count int) {
+	r.last += uint64(count)
+}
+
+func (r *encoderRefer) Set(v interface{}) {
+	r.ref[v] = r.last
+	r.last++
+}
+
+func (r *encoderRefer) Write(writer io.Writer, v interface{}) (ok bool, err error) {
+	var i uint64
+	if i, ok = r.ref[v]; ok {
+		if err = writer.WriteByte(io.TagRef); err == nil {
+			if err = writeUint64(writer, i); err == nil {
+				err = writer.WriteByte(io.TagSemicolon)
+			}
+		}
+	}
+	return
+}
+func (r *encoderRefer) Reset() {
+	r.ref = map[interface{}]uint64{}
+	r.last = 0
+}
+
 // An Encoder writes hprose data to an output stream
 type Encoder struct {
 	io.Writer
+	refer *encoderRefer
+	ref   map[reflect.Type]uint64
+	last  uint64
+}
+
+// NewEncoder create an encoder object
+func NewEncoder(writer io.Writer, simple bool) (encoder *Encoder) {
+	encoder = &Encoder{
+		Writer: writer,
+		ref:    make(map[reflect.Type]uint64),
+		last:   0,
+	}
+	if !simple {
+		encoder.refer = newEncoderRefer()
+	}
+	return
 }
 
 func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface{}) error) error {
-	switch value := v.(type) {
+	switch v := v.(type) {
 	case nil:
 		return WriteNil(enc.Writer)
 	case int:
-		return WriteInt(enc.Writer, value)
+		return WriteInt(enc.Writer, v)
 	case int8:
-		return WriteInt8(enc.Writer, value)
+		return WriteInt8(enc.Writer, v)
 	case int16:
-		return WriteInt16(enc.Writer, value)
+		return WriteInt16(enc.Writer, v)
 	case int32:
-		return WriteInt32(enc.Writer, value)
+		return WriteInt32(enc.Writer, v)
 	case int64:
-		return WriteInt64(enc.Writer, value)
+		return WriteInt64(enc.Writer, v)
 	case uint:
-		return WriteUint(enc.Writer, value)
+		return WriteUint(enc.Writer, v)
 	case uint8:
-		return WriteUint8(enc.Writer, value)
+		return WriteUint8(enc.Writer, v)
 	case uint16:
-		return WriteUint16(enc.Writer, value)
+		return WriteUint16(enc.Writer, v)
 	case uint32:
-		return WriteUint32(enc.Writer, value)
+		return WriteUint32(enc.Writer, v)
 	case uint64:
-		return WriteUint64(enc.Writer, value)
+		return WriteUint64(enc.Writer, v)
 	case bool:
-		return WriteBool(enc.Writer, value)
+		return WriteBool(enc.Writer, v)
 	case float32:
-		return WriteFloat32(enc.Writer, value)
+		return WriteFloat32(enc.Writer, v)
 	case float64:
-		return WriteFloat64(enc.Writer, value)
+		return WriteFloat64(enc.Writer, v)
 	case complex64:
-		return WriteComplex64(enc, value)
+		return WriteComplex64(enc, v)
 	case complex128:
-		return WriteComplex128(enc, value)
-	default:
-		e := reflect.TypeOf(v)
-		if e.Kind() == reflect.Struct {
-			marshaler := GetValueMarshaler(e)
-			if marshaler != nil {
-				return marshaler(enc, v)
-			}
-		}
-		if m := getMarshaler(v); m != nil {
-			return marshal(m, v)
-		}
-		return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
+		return WriteComplex128(enc, v)
+	case big.Int:
+		return WriteBigInt(enc.Writer, &v)
+	case big.Float:
+		return WriteBigFloat(enc.Writer, &v)
+	case big.Rat:
+		return WriteBigRat(enc, &v)
 	}
+	if t := reflect.TypeOf(v); t.Kind() == reflect.Struct {
+		if m := GetMarshaler(reflect.PtrTo(t)); m != nil {
+			return marshal(m, reflect.NewAt(t, getUnsafePointer(v)).Interface())
+		}
+	}
+	if m := getMarshaler(v); m != nil {
+		return marshal(m, v)
+	}
+	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }
 
 func (enc *Encoder) encode(m Marshaler, v interface{}) error {
@@ -105,15 +172,24 @@ func (enc *Encoder) Write(v interface{}) error {
 
 // WriteReference of v to stream
 func (enc *Encoder) WriteReference(v interface{}) (bool, error) {
+	if enc.refer != nil {
+		return enc.refer.Write(enc.Writer, v)
+	}
 	return false, nil
 }
 
 // SetReference of v
 func (enc *Encoder) SetReference(v interface{}) {
+	if enc.refer != nil {
+		enc.refer.Set(v)
+	}
 }
 
 // AddReferenceCount n
 func (enc *Encoder) AddReferenceCount(n int) {
+	if enc.refer != nil {
+		enc.refer.AddCount(n)
+	}
 }
 
 // WriteStructType of t to stream with action
@@ -123,5 +199,9 @@ func (enc *Encoder) WriteStructType(t reflect.Type, action func()) (int, error) 
 
 // Reset the value reference and struct type reference
 func (enc *Encoder) Reset() {
-
+	if enc.refer != nil {
+		enc.refer.Reset()
+	}
+	enc.ref = make(map[reflect.Type]uint64)
+	enc.last = 0
 }
