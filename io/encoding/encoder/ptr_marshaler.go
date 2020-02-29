@@ -24,22 +24,7 @@ type PtrMarshaler struct{}
 var ptrMarshaler PtrMarshaler
 
 func (m PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(marshaler Marshaler, enc *Encoder, v interface{}) error) (err error) {
-	if reflect.ValueOf(v).IsNil() {
-		return WriteNil(enc.Writer)
-	}
 	switch v := v.(type) {
-	case *int:
-		return WriteInt(enc.Writer, *v)
-	case *int8:
-		return WriteInt8(enc.Writer, *v)
-	case *int16:
-		return WriteInt16(enc.Writer, *v)
-	case *int32:
-		return WriteInt32(enc.Writer, *v)
-	case *int64:
-		return WriteInt64(enc.Writer, *v)
-	case *uint:
-		return WriteUint(enc.Writer, *v)
 	case *uint8:
 		return WriteUint8(enc.Writer, *v)
 	case *uint16:
@@ -48,6 +33,18 @@ func (m PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(marshale
 		return WriteUint32(enc.Writer, *v)
 	case *uint64:
 		return WriteUint64(enc.Writer, *v)
+	case *uint:
+		return WriteUint(enc.Writer, *v)
+	case *int8:
+		return WriteInt8(enc.Writer, *v)
+	case *int16:
+		return WriteInt16(enc.Writer, *v)
+	case *int32:
+		return WriteInt32(enc.Writer, *v)
+	case *int64:
+		return WriteInt64(enc.Writer, *v)
+	case *int:
+		return WriteInt(enc.Writer, *v)
 	case *bool:
 		return WriteBool(enc.Writer, *v)
 	case *float32:
@@ -65,19 +62,30 @@ func (m PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(marshale
 	case *big.Rat:
 		return WriteBigRat(enc, v)
 	}
-	t := reflect.TypeOf(v)
-	switch t.Elem().Kind() {
-	case reflect.Struct:
-		if marshaler := GetMarshaler(t); marshaler != nil {
-			return marshal(marshaler, enc, v)
-		}
+	e := reflect.ValueOf(v).Elem()
+	switch e.Kind() {
 	case reflect.String:
 		return marshal(stringMarshaler, enc, *(v.(*string)))
 	case reflect.Array:
-	case reflect.Slice:
-	case reflect.Map:
-	case reflect.Ptr:
-	case reflect.Interface:
+		// return arrayMarshaler
+	case reflect.Struct:
+		if marshaler := GetMarshaler(reflect.TypeOf(v)); marshaler != nil {
+			return marshal(marshaler, enc, v)
+		}
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface:
+		if e.IsNil() {
+			return WriteNil(enc.Writer)
+		}
+		switch e.Kind() {
+		case reflect.Slice:
+			return marshal(sliceMarshaler, enc, v)
+		case reflect.Map:
+			// return mapMarshaler
+		case reflect.Ptr:
+			return marshal(ptrMarshaler, enc, e.Interface())
+		case reflect.Interface:
+			// return interfaceMarshaler
+		}
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }

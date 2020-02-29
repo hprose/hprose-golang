@@ -306,7 +306,7 @@ func utf16Length(str string) (n int) {
 	return n
 }
 
-func writeBytes(writer io.Writer, bytes []byte, length int) (err error) {
+func writeBinary(writer io.Writer, bytes []byte, length int) (err error) {
 	if length > 0 {
 		err = writeUint64(writer, uint64(length))
 	}
@@ -320,38 +320,21 @@ func writeBytes(writer io.Writer, bytes []byte, length int) (err error) {
 	return
 }
 
+func writeBytes(writer io.Writer, bytes []byte) (err error) {
+	if err = writer.WriteByte(io.TagBytes); err == nil {
+		err = writeBinary(writer, bytes, len(bytes))
+	}
+	return
+}
+
 func writeString(writer io.Writer, s string, length int) (err error) {
 	if length < 0 {
-		return WriteBytes(writer, io.StringToBytes(s))
+		return writeBytes(writer, io.StringToBytes(s))
 	}
 	if err = writer.WriteByte(io.TagString); err == nil {
-		err = writeBytes(writer, io.StringToBytes(s), length)
+		err = writeBinary(writer, io.StringToBytes(s), length)
 	}
 	return
-}
-
-// ErrInvalidUTF8 means that the string is invalid UTF-8.
-var ErrInvalidUTF8 = errors.New("encoding: invalid UTF-8")
-
-// func writeString(writer io.Writer, s string) (err error) {
-// 	length := utf16Length(s)
-// 	if length < 0 {
-// 		return ErrInvalidUTF8
-// 	}
-// 	return writeBytes(writer, io.StringToBytes(s), length)
-// }
-
-// WriteBytes to writer
-func WriteBytes(writer io.Writer, bytes []byte) (err error) {
-	if err = writer.WriteByte(io.TagBytes); err == nil {
-		err = writeBytes(writer, bytes, len(bytes))
-	}
-	return
-}
-
-// WriteString to writer
-func WriteString(writer io.Writer, s string) (err error) {
-	return writeString(writer, s, utf16Length(s))
 }
 
 func writeDate(writer io.Writer, year int, month int, day int) (err error) {
@@ -499,5 +482,17 @@ func WriteBigRat(enc *Encoder, r *big.Rat) (err error) {
 		return WriteBigInt(enc.Writer, r.Num())
 	}
 	enc.AddReferenceCount(1)
-	return WriteString(enc.Writer, r.String())
+	s := r.String()
+	return writeString(enc.Writer, s, len(s))
+}
+
+// ErrInvalidUTF8 means that the string is invalid UTF-8.
+var ErrInvalidUTF8 = errors.New("encoding: invalid UTF-8")
+
+func writeFieldName(writer io.Writer, s string) (err error) {
+	length := utf16Length(s)
+	if length < 0 {
+		return ErrInvalidUTF8
+	}
+	return writeBinary(writer, io.StringToBytes(s), length)
 }

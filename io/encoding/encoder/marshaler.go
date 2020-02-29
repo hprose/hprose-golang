@@ -24,36 +24,6 @@ type Marshaler interface {
 	Write(enc *Encoder, v interface{}) error
 }
 
-func getMarshaler(v interface{}) Marshaler {
-	switch reflect.TypeOf(v).Kind() {
-	case reflect.String:
-		return stringMarshaler
-	case reflect.Ptr:
-		return ptrMarshaler
-	case reflect.Array:
-		// return arrayMarshaler
-	case reflect.Slice:
-		return getSliceMarshaler(v)
-	case reflect.Map:
-		return getMapMarshaler(v)
-	case reflect.Struct:
-		return getStructMarshaler(v)
-	}
-	return nil
-}
-
-func getSliceMarshaler(v interface{}) Marshaler {
-	return nil
-}
-
-func getMapMarshaler(v interface{}) Marshaler {
-	return nil
-}
-
-func getStructMarshaler(v interface{}) Marshaler {
-	return nil
-}
-
 var marshalerMap = map[reflect.Type]Marshaler{}
 var marshalerLocker = sync.RWMutex{}
 

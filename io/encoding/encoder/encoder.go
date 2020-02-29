@@ -31,13 +31,13 @@ func (e *UnsupportedTypeError) Error() string {
 	return "hprose: unsupported type: " + e.Type.String()
 }
 
-type emptyInterface struct {
-	typ uintptr
+type interfaceStruct struct {
+	typ unsafe.Pointer
 	ptr unsafe.Pointer
 }
 
-func getUnsafePointer(v interface{}) unsafe.Pointer {
-	return (*emptyInterface)(unsafe.Pointer(&v)).ptr
+func interfacePointer(p *interface{}) *interfaceStruct {
+	return (*interfaceStruct)(unsafe.Pointer(p))
 }
 
 type encoderRefer struct {
@@ -102,18 +102,6 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 	switch v := v.(type) {
 	case nil:
 		return WriteNil(enc.Writer)
-	case int:
-		return WriteInt(enc.Writer, v)
-	case int8:
-		return WriteInt8(enc.Writer, v)
-	case int16:
-		return WriteInt16(enc.Writer, v)
-	case int32:
-		return WriteInt32(enc.Writer, v)
-	case int64:
-		return WriteInt64(enc.Writer, v)
-	case uint:
-		return WriteUint(enc.Writer, v)
 	case uint8:
 		return WriteUint8(enc.Writer, v)
 	case uint16:
@@ -122,6 +110,18 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 		return WriteUint32(enc.Writer, v)
 	case uint64:
 		return WriteUint64(enc.Writer, v)
+	case uint:
+		return WriteUint(enc.Writer, v)
+	case int8:
+		return WriteInt8(enc.Writer, v)
+	case int16:
+		return WriteInt16(enc.Writer, v)
+	case int32:
+		return WriteInt32(enc.Writer, v)
+	case int64:
+		return WriteInt64(enc.Writer, v)
+	case int:
+		return WriteInt(enc.Writer, v)
 	case bool:
 		return WriteBool(enc.Writer, v)
 	case float32:
@@ -139,13 +139,30 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 	case big.Rat:
 		return WriteBigRat(enc, &v)
 	}
-	if t := reflect.TypeOf(v); t.Kind() == reflect.Struct {
+	t := reflect.TypeOf(v)
+	switch t.Kind() {
+	case reflect.String:
+		return marshal(stringMarshaler, v)
+	case reflect.Array:
+		// return arrayMarshaler
+	case reflect.Struct:
 		if m := GetMarshaler(reflect.PtrTo(t)); m != nil {
-			return marshal(m, reflect.NewAt(t, getUnsafePointer(v)).Interface())
+			return marshal(m, reflect.NewAt(t, interfacePointer(&v).ptr).Interface())
 		}
-	}
-	if m := getMarshaler(v); m != nil {
-		return marshal(m, v)
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface:
+		if reflect.ValueOf(v).IsNil() {
+			return WriteNil(enc.Writer)
+		}
+		switch t.Kind() {
+		case reflect.Slice:
+			return WriteSlice(enc, v)
+		case reflect.Map:
+			// return mapMarshaler
+		case reflect.Ptr:
+			return marshal(ptrMarshaler, v)
+		case reflect.Interface:
+			// return interfaceMarshaler
+		}
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }

@@ -263,66 +263,6 @@ func TestWriteFloat(t *testing.T) {
 	}
 }
 
-func TestWriteString(t *testing.T) {
-	sb := &strings.Builder{}
-	if err := WriteString(sb, ""); err != nil {
-		t.Error(err)
-	}
-	if err := WriteString(sb, "Hello"); err != nil {
-		t.Error(err)
-	}
-	if err := WriteString(sb, "Pokémon"); err != nil {
-		t.Error(err)
-	}
-	if err := WriteString(sb, "中文"); err != nil {
-		t.Error(err)
-	}
-	if err := WriteString(sb, "🐱🐶"); err != nil {
-		t.Error(err)
-	}
-	if err := WriteString(sb, "👩‍👩‍👧‍👧"); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `s""s5"Hello"s7"Pokémon"s2"中文"s4"🐱🐶"s11"👩‍👩‍👧‍👧"` {
-		t.Error(sb)
-	}
-}
-
-func TestWriteBadString(t *testing.T) {
-	sb := &strings.Builder{}
-	if err := WriteString(sb, string([]byte{254, 254})); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `b2"`+string([]byte{254, 254})+`"` {
-		t.Error(sb)
-	}
-}
-
-func TestWriteBytes(t *testing.T) {
-	sb := &strings.Builder{}
-	if err := WriteBytes(sb, []byte("")); err != nil {
-		t.Error(err)
-	}
-	if err := WriteBytes(sb, []byte("Hello")); err != nil {
-		t.Error(err)
-	}
-	if err := WriteBytes(sb, []byte("Pokémon")); err != nil {
-		t.Error(err)
-	}
-	if err := WriteBytes(sb, []byte("中文")); err != nil {
-		t.Error(err)
-	}
-	if err := WriteBytes(sb, []byte("🐱🐶")); err != nil {
-		t.Error(err)
-	}
-	if err := WriteBytes(sb, []byte("👩‍👩‍👧‍👧")); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `b""b5"Hello"b8"Pokémon"b6"中文"b8"🐱🐶"b25"👩‍👩‍👧‍👧"` {
-		t.Error(sb)
-	}
-}
-
 func TestWriteBigInt(t *testing.T) {
 	sb := &strings.Builder{}
 	if err := WriteBigInt(sb, big.NewInt(math.MaxInt64)); err != nil {

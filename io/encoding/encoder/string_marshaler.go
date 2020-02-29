@@ -48,5 +48,6 @@ func (m StringMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
 // if v is already written to stream, it will writes it as value
 func (m StringMarshaler) Write(enc *Encoder, v interface{}) (err error) {
 	enc.SetReference(v)
-	return WriteString(enc.Writer, v.(string))
+	s := v.(string)
+	return writeString(enc.Writer, s, utf16Length(s))
 }
