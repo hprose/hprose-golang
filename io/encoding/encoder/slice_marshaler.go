@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/slice_marshaler.go                   |
 |                                                          |
-| LastModified: Feb 29, 2020                               |
+| LastModified: Mar 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -20,7 +20,7 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// SliceMarshaler is the implementation of Marshaler for slice.
+// SliceMarshaler is the implementation of Marshaler for *slice.
 type SliceMarshaler struct{}
 
 var sliceMarshaler SliceMarshaler
