@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/encoder.go                           |
 |                                                          |
-| LastModified: Feb 25, 2020                               |
+| LastModified: Mar 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -142,31 +142,29 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 		return WriteBigRat(enc, &v)
 	}
 	t := reflect.TypeOf(v)
-	switch t.Kind() {
+	kind := t.Kind()
+	switch kind {
 	case reflect.String:
 		return marshal(stringMarshaler, v)
 	case reflect.Array:
-		// return arrayMarshaler
+		return WriteArray(enc, v)
 	case reflect.Struct:
 		if m := GetMarshaler(reflect.PtrTo(t)); m != nil {
 			return marshal(m, reflect.NewAt(t, interfacePointer(&v).ptr).Interface())
 		}
-	case reflect.Invalid:
+	}
+	if reflect.ValueOf(v).IsNil() {
 		return WriteNil(enc.Writer)
-	default:
-		if reflect.ValueOf(v).IsNil() {
-			return WriteNil(enc.Writer)
-		}
-		switch t.Kind() {
-		case reflect.Slice:
-			return WriteSlice(enc, v)
-		case reflect.Map:
-			// return mapMarshaler
-		case reflect.Ptr:
-			return marshal(ptrMarshaler, v)
-		case reflect.Interface:
-			// return interfaceMarshaler
-		}
+	}
+	switch kind {
+	case reflect.Slice:
+		return WriteSlice(enc, v)
+	case reflect.Map:
+		// return mapMarshaler
+	case reflect.Ptr:
+		return marshal(ptrMarshaler, v)
+	case reflect.Interface:
+		// return interfaceMarshaler
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }

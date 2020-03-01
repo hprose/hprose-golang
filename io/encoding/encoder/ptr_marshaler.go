@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/ptr_marshaler.go                     |
 |                                                          |
-| LastModified: Feb 25, 2020                               |
+| LastModified: Mar 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,7 +23,7 @@ type PtrMarshaler struct{}
 
 var ptrMarshaler PtrMarshaler
 
-func (m PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(marshaler Marshaler, enc *Encoder, v interface{}) error) (err error) {
+func (PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(m Marshaler, enc *Encoder, v interface{}) error) (err error) {
 	switch v := v.(type) {
 	case *uint8:
 		return WriteUint8(enc.Writer, *v)
@@ -65,41 +65,39 @@ func (m PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(marshale
 		return WriteBigRat(enc, v)
 	}
 	e := reflect.ValueOf(v).Elem()
-	switch e.Kind() {
+	kind := e.Kind()
+	switch kind {
 	case reflect.String:
 		return marshal(stringMarshaler, enc, *(v.(*string)))
 	case reflect.Array:
-		// return arrayMarshaler
+		return marshal(arrayMarshaler, enc, v)
 	case reflect.Struct:
 		if marshaler := GetMarshaler(reflect.TypeOf(v)); marshaler != nil {
 			return marshal(marshaler, enc, v)
 		}
-	case reflect.Invalid:
+	}
+	if e.IsNil() {
 		return WriteNil(enc.Writer)
-	default:
-		if e.IsNil() {
-			return WriteNil(enc.Writer)
-		}
-		switch e.Kind() {
-		case reflect.Slice:
-			return marshal(sliceMarshaler, enc, v)
-		case reflect.Map:
-			// return mapMarshaler
-		case reflect.Ptr:
-			return marshal(ptrMarshaler, enc, e.Interface())
-		case reflect.Interface:
-			// return interfaceMarshaler
-		}
+	}
+	switch kind {
+	case reflect.Slice:
+		return marshal(sliceMarshaler, enc, v)
+	case reflect.Map:
+		// return mapMarshaler
+	case reflect.Ptr:
+		return marshal(ptrMarshaler, enc, e.Interface())
+	case reflect.Interface:
+		// return interfaceMarshaler
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }
 
-func (m PtrMarshaler) encode(marshaler Marshaler, enc *Encoder, v interface{}) (err error) {
-	return marshaler.Encode(enc, v)
+func (PtrMarshaler) encode(m Marshaler, enc *Encoder, v interface{}) (err error) {
+	return m.Encode(enc, v)
 }
 
-func (m PtrMarshaler) write(marshaler Marshaler, enc *Encoder, v interface{}) (err error) {
-	return marshaler.Write(enc, v)
+func (PtrMarshaler) write(m Marshaler, enc *Encoder, v interface{}) (err error) {
+	return m.Write(enc, v)
 }
 
 // Encode writes the hprose encoding of v to stream

@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/encoder_test.go                      |
 |                                                          |
-| LastModified: Feb 25, 2020                               |
+| LastModified: Mar 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -33,6 +33,7 @@ func TestEncoderEncode(t *testing.T) {
 	u16 := uint16(7)
 	u32 := uint32(8)
 	u64 := uint64(9)
+	uptr := uintptr(10)
 	b := true
 	f32 := float32(math.Pi)
 	f64 := float64(math.Pi)
@@ -78,6 +79,9 @@ func TestEncoderEncode(t *testing.T) {
 		t.Error(err)
 	}
 	if err := enc.Encode(u64); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(uptr); err != nil {
 		t.Error(err)
 	}
 	if err := enc.Encode(b); err != nil {
@@ -155,6 +159,9 @@ func TestEncoderEncode(t *testing.T) {
 	if err := enc.Encode(&u64); err != nil {
 		t.Error(err)
 	}
+	if err := enc.Encode(&uptr); err != nil {
+		t.Error(err)
+	}
 	if err := enc.Encode(&b); err != nil {
 		t.Error(err)
 	}
@@ -198,9 +205,9 @@ func TestEncoderEncode(t *testing.T) {
 		t.Error(err)
 	}
 	if sb.String() != ``+
-		`n0123456789td3.1415927;d3.141592653589793;`+
+		`n0123456789i10;td3.1415927;d3.141592653589793;`+
 		`eu我s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`+
-		`n0123456789td3.1415927;d3.141592653589793;`+
+		`n0123456789i10;td3.1415927;d3.141592653589793;`+
 		`eu我r0;a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;` {
 		t.Error(sb)
 	}
@@ -913,11 +920,106 @@ func TestEncodeBigIntSlice(t *testing.T) {
 	}
 }
 
-func BenchmarkSlice1(b *testing.B) {
+func TestEncodeByteArray(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
-	slice := []int16{1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}
+	hello := [5]byte{'H', 'e', 'l', 'l', 'o'}
+	if err := enc.Encode([0]byte{}); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(hello); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(hello); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&hello); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&hello); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `b""b5"Hello"b5"Hello"b5"Hello"r3;` {
+		t.Error(sb)
+	}
+}
+
+func TestEncodeBigIntArray(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	array := [2]*big.Int{big.NewInt(1), big.NewInt(2)}
+	var emptyArray [0]*big.Int
+	if err := enc.Encode(emptyArray); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode([2]*big.Int{}); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(array); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(array); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&array); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&array); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `a{}a2{nn}a2{l1;l2;}a2{l1;l2;}a2{l1;l2;}r4;` {
+		t.Error(sb)
+	}
+}
+
+func TestEncodeInvalid(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	var x interface{} = nil
+	var i interface{} = (****int)(nil)
+	if err := enc.Encode(nil); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(x); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&x); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(i); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `nnnn` {
+		t.Error(sb)
+	}
+}
+
+func BenchmarkSlice(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	slice := []int16{
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+	}
 	for i := 0; i < b.N; i++ {
-		enc.Encode(slice)
+		enc.Write(slice)
+	}
+}
+
+func BenchmarkArray(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	array := [50]int16{
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Write(array)
 	}
 }
