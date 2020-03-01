@@ -209,16 +209,6 @@ func TestWriteInt8(t *testing.T) {
 	}
 }
 
-func TestWriteNil(t *testing.T) {
-	sb := &strings.Builder{}
-	if err := WriteNil(sb); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != "n" {
-		t.Error(sb)
-	}
-}
-
 func TestWriteBool(t *testing.T) {
 	sb := &strings.Builder{}
 	if err := WriteBool(sb, true); err != nil {

@@ -87,7 +87,7 @@ func (PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(m Marshale
 	case reflect.Ptr:
 		return marshal(ptrMarshaler, enc, e.Interface())
 	case reflect.Interface:
-		// return interfaceMarshaler
+		return marshal(interfaceMarshaler, enc, e.Interface())
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }

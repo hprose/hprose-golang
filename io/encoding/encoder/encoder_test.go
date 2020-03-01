@@ -972,11 +972,13 @@ func TestEncodeBigIntArray(t *testing.T) {
 	}
 }
 
-func TestEncodeInvalid(t *testing.T) {
+func TestEncodeNil(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	var x interface{} = nil
+	var xp interface{} = &x
 	var i interface{} = (****int)(nil)
+	var ip interface{} = &i
 	if err := enc.Encode(nil); err != nil {
 		t.Error(err)
 	}
@@ -986,10 +988,52 @@ func TestEncodeInvalid(t *testing.T) {
 	if err := enc.Encode(&x); err != nil {
 		t.Error(err)
 	}
+	if err := enc.Encode(&xp); err != nil {
+		t.Error(err)
+	}
 	if err := enc.Encode(i); err != nil {
 		t.Error(err)
 	}
-	if sb.String() != `nnnn` {
+	if err := enc.Encode(&i); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&ip); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `nnnnnnn` {
+		t.Error(sb)
+	}
+}
+
+func TestWriteNil(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	var x interface{} = nil
+	var xp interface{} = &x
+	var i interface{} = (****int)(nil)
+	var ip interface{} = &i
+	if err := enc.Write(nil); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(x); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(&x); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(&xp); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(i); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(&i); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(&ip); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `nnnnnnn` {
 		t.Error(sb)
 	}
 }
