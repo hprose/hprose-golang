@@ -122,6 +122,8 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 		return WriteInt64(enc.Writer, v)
 	case int:
 		return WriteInt(enc.Writer, v)
+	case uintptr:
+		return WriteUint64(enc.Writer, uint64(v))
 	case bool:
 		return WriteBool(enc.Writer, v)
 	case float32:
@@ -149,7 +151,9 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 		if m := GetMarshaler(reflect.PtrTo(t)); m != nil {
 			return marshal(m, reflect.NewAt(t, interfacePointer(&v).ptr).Interface())
 		}
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface:
+	case reflect.Invalid:
+		return WriteNil(enc.Writer)
+	default:
 		if reflect.ValueOf(v).IsNil() {
 			return WriteNil(enc.Writer)
 		}
