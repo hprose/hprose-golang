@@ -20,7 +20,7 @@ import (
 	"github.com/hprose/hprose-golang/v3/io"
 )
 
-// ArrayMarshaler is the implementation of Marshaler for array.
+// ArrayMarshaler is the implementation of Marshaler for *array.
 type ArrayMarshaler struct{}
 
 var arrayMarshaler ArrayMarshaler
