@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/io"
+	"github.com/modern-go/reflect2"
 )
 
 const (
@@ -329,10 +330,10 @@ func writeBytes(writer io.Writer, bytes []byte) (err error) {
 
 func writeString(writer io.Writer, s string, length int) (err error) {
 	if length < 0 {
-		return writeBytes(writer, io.StringToBytes(s))
+		return writeBytes(writer, reflect2.UnsafeCastString(s))
 	}
 	if err = writer.WriteByte(io.TagString); err == nil {
-		err = writeBinary(writer, io.StringToBytes(s), length)
+		err = writeBinary(writer, reflect2.UnsafeCastString(s), length)
 	}
 	return
 }
@@ -458,7 +459,7 @@ func WriteComplex128(enc *Encoder, c complex128) error {
 // WriteBigInt to writer
 func WriteBigInt(writer io.Writer, i *big.Int) (err error) {
 	if err = writer.WriteByte(io.TagLong); err == nil {
-		if _, err = writer.Write(io.StringToBytes(i.String())); err == nil {
+		if _, err = writer.Write(reflect2.UnsafeCastString(i.String())); err == nil {
 			err = writer.WriteByte(io.TagSemicolon)
 		}
 	}
@@ -494,5 +495,5 @@ func writeFieldName(writer io.Writer, s string) (err error) {
 	if length < 0 {
 		return ErrInvalidUTF8
 	}
-	return writeBinary(writer, io.StringToBytes(s), length)
+	return writeBinary(writer, reflect2.UnsafeCastString(s), length)
 }

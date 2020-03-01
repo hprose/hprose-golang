@@ -15,6 +15,7 @@ package encoder
 
 import (
 	"github.com/hprose/hprose-golang/v3/io"
+	"github.com/modern-go/reflect2"
 )
 
 // StringMarshaler is the implementation of Marshaler for string.
@@ -32,7 +33,7 @@ func (m StringMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
 		err = enc.Writer.WriteByte(io.TagEmpty)
 	case 1:
 		if err = enc.Writer.WriteByte(io.TagUTF8Char); err == nil {
-			_, err = enc.Writer.Write(io.StringToBytes(s))
+			_, err = enc.Writer.Write(reflect2.UnsafeCastString(s))
 		}
 	default:
 		var ok bool
