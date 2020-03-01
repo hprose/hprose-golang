@@ -24,19 +24,17 @@ type Marshaler interface {
 	Write(enc *Encoder, v interface{}) error
 }
 
-var marshalerMap = map[reflect.Type]Marshaler{}
-var marshalerLocker = sync.RWMutex{}
+var marshalers = sync.Map{}
 
 // RegisterMarshaler ...
 func RegisterMarshaler(t reflect.Type, marshaler Marshaler) {
-	marshalerLocker.Lock()
-	defer marshalerLocker.Unlock()
-	marshalerMap[t] = marshaler
+	marshalers.Store(t, marshaler)
 }
 
 // GetMarshaler ...
 func GetMarshaler(t reflect.Type) Marshaler {
-	marshalerLocker.RLock()
-	defer marshalerLocker.RUnlock()
-	return marshalerMap[t]
+	if m, ok := marshalers.Load(t); ok {
+		return m.(Marshaler)
+	}
+	return nil
 }

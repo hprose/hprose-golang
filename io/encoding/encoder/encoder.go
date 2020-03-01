@@ -32,7 +32,7 @@ func (e *UnsupportedTypeError) Error() string {
 }
 
 type interfaceStruct struct {
-	typ unsafe.Pointer
+	typ uintptr
 	ptr unsafe.Pointer
 }
 
@@ -42,12 +42,14 @@ func interfacePointer(p *interface{}) *interfaceStruct {
 
 type encoderRefer struct {
 	ref  map[interface{}]uint64
+	sref map[string]uint64
 	last uint64
 }
 
 func newEncoderRefer() *encoderRefer {
 	return &encoderRefer{
 		ref:  make(map[interface{}]uint64),
+		sref: make(map[string]uint64),
 		last: 0,
 	}
 }
@@ -56,14 +58,19 @@ func (r *encoderRefer) AddCount(count int) {
 	r.last += uint64(count)
 }
 
-func (r *encoderRefer) Set(v interface{}) {
-	r.ref[v] = r.last
+func (r *encoderRefer) Set(p interface{}) {
+	r.ref[p] = r.last
 	r.last++
 }
 
-func (r *encoderRefer) Write(writer io.Writer, v interface{}) (ok bool, err error) {
+func (r *encoderRefer) SetString(s string) {
+	r.sref[s] = r.last
+	r.last++
+}
+
+func (r *encoderRefer) Write(writer io.Writer, p interface{}) (ok bool, err error) {
 	var i uint64
-	if i, ok = r.ref[v]; ok {
+	if i, ok = r.ref[p]; ok {
 		if err = writer.WriteByte(io.TagRef); err == nil {
 			if err = writeUint64(writer, i); err == nil {
 				err = writer.WriteByte(io.TagSemicolon)
@@ -72,8 +79,22 @@ func (r *encoderRefer) Write(writer io.Writer, v interface{}) (ok bool, err erro
 	}
 	return
 }
+
+func (r *encoderRefer) WriteString(writer io.Writer, s string) (ok bool, err error) {
+	var i uint64
+	if i, ok = r.sref[s]; ok {
+		if err = writer.WriteByte(io.TagRef); err == nil {
+			if err = writeUint64(writer, i); err == nil {
+				err = writer.WriteByte(io.TagSemicolon)
+			}
+		}
+	}
+	return
+}
+
 func (r *encoderRefer) Reset() {
-	r.ref = map[interface{}]uint64{}
+	r.ref = make(map[interface{}]uint64)
+	r.sref = make(map[string]uint64)
 	r.last = 0
 }
 
@@ -160,7 +181,7 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 	case reflect.Slice:
 		return WriteSlice(enc, v)
 	case reflect.Map:
-		// return mapMarshaler
+		return WriteMap(enc, v)
 	case reflect.Ptr:
 		return marshal(ptrMarshaler, v)
 	}
@@ -195,10 +216,25 @@ func (enc *Encoder) WriteReference(v interface{}) (bool, error) {
 	return false, nil
 }
 
+// WriteStringReference of v to stream
+func (enc *Encoder) WriteStringReference(s string) (bool, error) {
+	if enc.refer != nil {
+		return enc.refer.WriteString(enc.Writer, s)
+	}
+	return false, nil
+}
+
 // SetReference of v
 func (enc *Encoder) SetReference(v interface{}) {
 	if enc.refer != nil {
 		enc.refer.Set(v)
+	}
+}
+
+// SetStringReference of v
+func (enc *Encoder) SetStringReference(s string) {
+	if enc.refer != nil {
+		enc.refer.SetString(s)
 	}
 }
 

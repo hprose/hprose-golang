@@ -78,7 +78,7 @@ func writeArray(enc *Encoder, array interface{}) (err error) {
 	if err = WriteHead(writer, count, io.TagList); err == nil {
 		var slice interface{}
 		sliceStruct := (*interfaceStruct)(unsafe.Pointer(&slice))
-		sliceStruct.typ = sliceType
+		sliceStruct.typ = uintptr(sliceType)
 		sliceStruct.ptr = makeSlice(&array, count)
 		if err = writeSliceBody(enc, slice); err == nil {
 			err = WriteFoot(writer)

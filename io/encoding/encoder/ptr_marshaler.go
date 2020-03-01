@@ -83,7 +83,7 @@ func (PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(m Marshale
 	case reflect.Slice:
 		return marshal(sliceMarshaler, enc, v)
 	case reflect.Map:
-		// return mapMarshaler
+		return marshal(mapMarshaler, enc, v)
 	case reflect.Ptr:
 		return marshal(ptrMarshaler, enc, e.Interface())
 	case reflect.Interface:

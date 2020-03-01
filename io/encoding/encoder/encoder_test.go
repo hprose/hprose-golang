@@ -18,6 +18,8 @@ import (
 	"math/big"
 	"strings"
 	"testing"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 func TestEncoderEncode(t *testing.T) {
@@ -1038,7 +1040,30 @@ func TestWriteNil(t *testing.T) {
 	}
 }
 
-func BenchmarkSlice(b *testing.B) {
+func TestEncodeMap(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	m := map[string]string{
+		"hello": "world",
+	}
+	if err := enc.Write(m); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(&m); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(m); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&m); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `m1{s5"hello"s5"world"}m1{r1;r2;}m1{r1;r2;}r3;` {
+		t.Error(sb)
+	}
+}
+
+func BenchmarkWriteSlice(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	slice := []int16{
@@ -1053,7 +1078,7 @@ func BenchmarkSlice(b *testing.B) {
 	}
 }
 
-func BenchmarkArray(b *testing.B) {
+func BenchmarkWriteArray(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	array := [50]int16{
@@ -1065,5 +1090,65 @@ func BenchmarkArray(b *testing.B) {
 	}
 	for i := 0; i < b.N; i++ {
 		enc.Write(array)
+	}
+}
+
+func BenchmarkWriteMap(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	m := map[string]string{
+		"hello1":  "world",
+		"hello2":  "world",
+		"hello3":  "world",
+		"hello4":  "world",
+		"hello5":  "world",
+		"hello6":  "world",
+		"hello7":  "world",
+		"hello8":  "world",
+		"hello9":  "world",
+		"hello10": "world",
+		"hello11": "world",
+		"hello12": "world",
+		"hello13": "world",
+		"hello14": "world",
+		"hello15": "world",
+		"hello16": "world",
+		"hello17": "world",
+		"hello18": "world",
+		"hello19": "world",
+		"hello20": "world",
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Write(m)
+	}
+}
+
+func BenchmarkJsonWriteMap(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := jsoniter.NewEncoder(sb)
+	m := map[string]string{
+		"hello1":  "world",
+		"hello2":  "world",
+		"hello3":  "world",
+		"hello4":  "world",
+		"hello5":  "world",
+		"hello6":  "world",
+		"hello7":  "world",
+		"hello8":  "world",
+		"hello9":  "world",
+		"hello10": "world",
+		"hello11": "world",
+		"hello12": "world",
+		"hello13": "world",
+		"hello14": "world",
+		"hello15": "world",
+		"hello16": "world",
+		"hello17": "world",
+		"hello18": "world",
+		"hello19": "world",
+		"hello20": "world",
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Encode(m)
 	}
 }

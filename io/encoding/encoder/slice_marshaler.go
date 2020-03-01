@@ -247,7 +247,7 @@ func writeComplex128SliceBody(enc *Encoder, slice []complex128) (err error) {
 
 func writeStringSliceBody(enc *Encoder, slice []string) (err error) {
 	for _, e := range slice {
-		err = stringMarshaler.Encode(enc, e)
+		err = stringMarshaler.encode(enc, e)
 		if err != nil {
 			return
 		}

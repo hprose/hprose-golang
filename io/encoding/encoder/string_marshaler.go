@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder/string_marshaler.go                  |
 |                                                          |
-| LastModified: Feb 24, 2020                               |
+| LastModified: Mar 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,10 +23,7 @@ type StringMarshaler struct{}
 
 var stringMarshaler StringMarshaler
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (m StringMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
-	s := v.(string)
+func (m StringMarshaler) encode(enc *Encoder, s string) (err error) {
 	length := utf16Length(s)
 	switch length {
 	case 0:
@@ -37,18 +34,27 @@ func (m StringMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
 		}
 	default:
 		var ok bool
-		if ok, err = enc.WriteReference(v); !ok && err == nil {
-			enc.SetReference(v)
+		if ok, err = enc.WriteStringReference(s); !ok && err == nil {
+			enc.SetStringReference(s)
 			err = writeString(enc.Writer, s, length)
 		}
 	}
 	return
 }
 
+func (m StringMarshaler) write(enc *Encoder, s string) (err error) {
+	enc.SetStringReference(s)
+	return writeString(enc.Writer, s, utf16Length(s))
+}
+
+// Encode writes the hprose encoding of v to stream
+// if v is already written to stream, it will writes it as reference
+func (m StringMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
+	return m.encode(enc, v.(string))
+}
+
 // Write writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as value
 func (m StringMarshaler) Write(enc *Encoder, v interface{}) (err error) {
-	enc.SetReference(v)
-	s := v.(string)
-	return writeString(enc.Writer, s, utf16Length(s))
+	return m.write(enc, v.(string))
 }
