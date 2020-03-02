@@ -3,14 +3,15 @@ language: go
 sudo: false
 
 go:
+  - "1.9"
+  - "1.10"
   - "1.11"
   - "1.12"
   - "1.13"
   - "1.14"
 
 before_install:
-  - export GO111MODULE=on
-  - go install
+  - go get github.com/json-iterator/go
   - go get github.com/wadey/gocovmerge
   - go get github.com/mattn/goveralls
   - go get golang.org/x/tools/cmd/cover
