@@ -4,14 +4,14 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/map_marshaler.go                     |
+| io/encoding/map_encoder.go                               |
 |                                                          |
-| LastModified: Mar 1, 2020                                |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
 import (
 	"reflect"
@@ -21,24 +21,24 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// MapMarshaler is the implementation of Marshaler for *map.
-type MapMarshaler struct{}
+// MapEncoder is the implementation of ValueEncoder for *map.
+type MapEncoder struct{}
 
-var mapMarshaler MapMarshaler
+var mapEncoder MapEncoder
 
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
-func (m MapMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc MapEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	var ok bool
 	if ok, err = enc.WriteReference(v); !ok && err == nil {
-		err = m.Write(enc, v)
+		err = valenc.Write(enc, v)
 	}
 	return
 }
 
 // Write writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as value
-func (m MapMarshaler) Write(enc *Encoder, v interface{}) (err error) {
+func (MapEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	enc.SetReference(v)
 	return writeMap(enc, reflect.ValueOf(v).Elem().Interface())
 }
@@ -68,8 +68,8 @@ func writeMap(enc *Encoder, v interface{}) (err error) {
 
 func writeMapBody(enc *Encoder, v interface{}) error {
 	switch v := v.(type) {
-	case map[string]string:
-		return writeStringStringMapBody(enc, v)
+	// case map[string]string:
+	// 	return writeStringStringMapBody(enc, v)
 	// case map[string]int:
 	// 	return writeStringStringMapBody(enc.Writer, v)
 	// case map[string]interface{}:
@@ -94,10 +94,10 @@ func writeMapBody(enc *Encoder, v interface{}) error {
 func writeStringStringMapBody(enc *Encoder, v interface{}) (err error) {
 	m := v.(map[string]string)
 	for k, v := range m {
-		if err = stringMarshaler.encode(enc, k); err != nil {
+		if err = EncodeString(enc, k); err != nil {
 			return
 		}
-		if err = stringMarshaler.encode(enc, v); err != nil {
+		if err = EncodeString(enc, v); err != nil {
 			return
 		}
 	}
@@ -106,12 +106,11 @@ func writeStringStringMapBody(enc *Encoder, v interface{}) (err error) {
 
 func writeOtherMapBody(enc *Encoder, v interface{}) (err error) {
 	mapType := reflect2.TypeOf(v).(*reflect2.UnsafeMapType)
-	ptr := unsafe.Pointer(&(*interfaceStruct)(unsafe.Pointer(&v)).ptr)
-	p := reflect.NewAt(reflect.TypeOf(v), ptr).Interface()
-	iter := mapType.Iterate(p)
+	ptr := reflect2.PtrOf(v)
+	iter := mapType.UnsafeIterate(unsafe.Pointer(&ptr))
 	var key, value interface{}
-	kp := (*interfaceStruct)(unsafe.Pointer(&key))
-	vp := (*interfaceStruct)(unsafe.Pointer(&value))
+	kp := unpackEFace(&key)
+	vp := unpackEFace(&value)
 	kp.typ = mapType.Key().RType()
 	vp.typ = mapType.Elem().RType()
 	for iter.HasNext() {

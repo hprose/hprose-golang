@@ -4,99 +4,22 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/encoder.go                           |
+| io/encoding/encoder.go                                   |
 |                                                          |
-| LastModified: Mar 1, 2020                                |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
 import (
 	"math/big"
 	"reflect"
-	"unsafe"
 
 	"github.com/hprose/hprose-golang/v3/io"
+	"github.com/modern-go/reflect2"
 )
-
-// An UnsupportedTypeError is returned by Marshal when attempting
-// to encode an unsupported value type.
-type UnsupportedTypeError struct {
-	Type reflect.Type
-}
-
-func (e *UnsupportedTypeError) Error() string {
-	return "hprose: unsupported type: " + e.Type.String()
-}
-
-type interfaceStruct struct {
-	typ uintptr
-	ptr unsafe.Pointer
-}
-
-func interfacePointer(p *interface{}) *interfaceStruct {
-	return (*interfaceStruct)(unsafe.Pointer(p))
-}
-
-type encoderRefer struct {
-	ref  map[interface{}]uint64
-	sref map[string]uint64
-	last uint64
-}
-
-func newEncoderRefer() *encoderRefer {
-	return &encoderRefer{
-		ref:  make(map[interface{}]uint64),
-		sref: make(map[string]uint64),
-		last: 0,
-	}
-}
-
-func (r *encoderRefer) AddCount(count int) {
-	r.last += uint64(count)
-}
-
-func (r *encoderRefer) Set(p interface{}) {
-	r.ref[p] = r.last
-	r.last++
-}
-
-func (r *encoderRefer) SetString(s string) {
-	r.sref[s] = r.last
-	r.last++
-}
-
-func (r *encoderRefer) Write(writer io.Writer, p interface{}) (ok bool, err error) {
-	var i uint64
-	if i, ok = r.ref[p]; ok {
-		if err = writer.WriteByte(io.TagRef); err == nil {
-			if err = writeUint64(writer, i); err == nil {
-				err = writer.WriteByte(io.TagSemicolon)
-			}
-		}
-	}
-	return
-}
-
-func (r *encoderRefer) WriteString(writer io.Writer, s string) (ok bool, err error) {
-	var i uint64
-	if i, ok = r.sref[s]; ok {
-		if err = writer.WriteByte(io.TagRef); err == nil {
-			if err = writeUint64(writer, i); err == nil {
-				err = writer.WriteByte(io.TagSemicolon)
-			}
-		}
-	}
-	return
-}
-
-func (r *encoderRefer) Reset() {
-	r.ref = make(map[interface{}]uint64)
-	r.sref = make(map[string]uint64)
-	r.last = 0
-}
 
 // An Encoder writes hprose data to an output stream
 type Encoder struct {
@@ -119,7 +42,7 @@ func NewEncoder(writer io.Writer, simple bool) (encoder *Encoder) {
 	return
 }
 
-func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface{}) error) error {
+func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v interface{}) error) error {
 	switch v := v.(type) {
 	case nil:
 		return WriteNil(enc.Writer)
@@ -166,12 +89,12 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 	kind := t.Kind()
 	switch kind {
 	case reflect.String:
-		return marshal(stringMarshaler, v)
+		return encode(stringEncoder, v)
 	case reflect.Array:
 		return WriteArray(enc, v)
 	case reflect.Struct:
-		if m := GetMarshaler(reflect.PtrTo(t)); m != nil {
-			return marshal(m, reflect.NewAt(t, interfacePointer(&v).ptr).Interface())
+		if m := GetEncoder(reflect.PtrTo(t)); m != nil {
+			return encode(m, reflect.NewAt(t, reflect2.PtrOf(v)).Interface())
 		}
 	}
 	if reflect.ValueOf(v).IsNil() {
@@ -183,29 +106,25 @@ func (enc *Encoder) marshal(v interface{}, marshal func(m Marshaler, v interface
 	case reflect.Map:
 		return WriteMap(enc, v)
 	case reflect.Ptr:
-		return marshal(ptrMarshaler, v)
+		return encode(ptrEncoder, v)
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
-}
-
-func (enc *Encoder) encode(m Marshaler, v interface{}) error {
-	return m.Encode(enc, v)
-}
-
-func (enc *Encoder) write(m Marshaler, v interface{}) error {
-	return m.Write(enc, v)
 }
 
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
 func (enc *Encoder) Encode(v interface{}) error {
-	return enc.marshal(v, enc.encode)
+	return enc.writeValue(v, func(valenc ValueEncoder, v interface{}) error {
+		return valenc.Encode(enc, v)
+	})
 }
 
 // Write writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as value
 func (enc *Encoder) Write(v interface{}) error {
-	return enc.marshal(v, enc.write)
+	return enc.writeValue(v, func(valenc ValueEncoder, v interface{}) error {
+		return valenc.Write(enc, v)
+	})
 }
 
 // WriteReference of v to stream

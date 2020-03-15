@@ -4,14 +4,14 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/encoder_test.go                      |
+| io/encoding/encoder_test.go                              |
 |                                                          |
-| LastModified: Mar 1, 2020                                |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
 import (
 	"math"
@@ -894,6 +894,63 @@ func TestEncodeComplex128Slice(t *testing.T) {
 	}
 }
 
+func TestEncodeInterfaceSlice(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	slice := []interface{}{1, "hello", true}
+	var nilslice []interface{}
+	if err := enc.Encode(nilslice); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode([]interface{}{}); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(slice); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(slice); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&slice); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&slice); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `na{}a3{1s5"hello"t}a3{1r2;t}a3{1r2;t}r4;` {
+		t.Error(sb)
+	}
+}
+
+func TestTeset(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	slice := []interface{}{1, "hello", true}
+	var nilslice []interface{}
+	if err := enc.Encode(nilslice); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode([]interface{}{}); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(slice); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(slice); err != nil {
+		t.Error(err)
+	}
+	enc.Reset()
+	if err := enc.Encode(&slice); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&slice); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `na{}a3{1s5"hello"t}a3{1r2;t}a3{1s5"hello"t}r0;` {
+		t.Error(sb)
+	}
+}
+
 func TestEncodeBigIntSlice(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
@@ -1046,6 +1103,13 @@ func TestEncodeMap(t *testing.T) {
 	m := map[string]string{
 		"hello": "world",
 	}
+	var nilmap map[string]string
+	if err := enc.Encode(nilmap); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(map[string]string{}); err != nil {
+		t.Error(err)
+	}
 	if err := enc.Write(m); err != nil {
 		t.Error(err)
 	}
@@ -1058,12 +1122,12 @@ func TestEncodeMap(t *testing.T) {
 	if err := enc.Encode(&m); err != nil {
 		t.Error(err)
 	}
-	if sb.String() != `m1{s5"hello"s5"world"}m1{r1;r2;}m1{r1;r2;}r3;` {
+	if sb.String() != `nm{}m1{s5"hello"s5"world"}m1{r2;r3;}m1{r2;r3;}r4;` {
 		t.Error(sb)
 	}
 }
 
-func BenchmarkWriteSlice(b *testing.B) {
+func BenchmarkEncodeSlice(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	slice := []int16{
@@ -1074,11 +1138,26 @@ func BenchmarkWriteSlice(b *testing.B) {
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
 	}
 	for i := 0; i < b.N; i++ {
-		enc.Write(slice)
+		enc.Encode(slice)
 	}
 }
 
-func BenchmarkWriteArray(b *testing.B) {
+func BenchmarkJsonEncodeSlice(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := jsoniter.NewEncoder(sb)
+	slice := []int16{
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Encode(slice)
+	}
+}
+
+func BenchmarkEncodeArray(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	array := [50]int16{
@@ -1089,11 +1168,26 @@ func BenchmarkWriteArray(b *testing.B) {
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
 	}
 	for i := 0; i < b.N; i++ {
-		enc.Write(array)
+		enc.Encode(array)
 	}
 }
 
-func BenchmarkWriteMap(b *testing.B) {
+func BenchmarkJsonEncodeArray(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := jsoniter.NewEncoder(sb)
+	array := [50]int16{
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Encode(array)
+	}
+}
+
+func BenchmarkEncodeMap(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	m := map[string]string{
@@ -1119,11 +1213,11 @@ func BenchmarkWriteMap(b *testing.B) {
 		"hello20": "world",
 	}
 	for i := 0; i < b.N; i++ {
-		enc.Write(m)
+		enc.Encode(m)
 	}
 }
 
-func BenchmarkJsonWriteMap(b *testing.B) {
+func BenchmarkJsonEncodeMap(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := jsoniter.NewEncoder(sb)
 	m := map[string]string{

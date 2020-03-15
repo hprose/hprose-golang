@@ -4,26 +4,42 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/ptr_marshaler.go                     |
+| io/encoding/ptr_encoder.go                               |
 |                                                          |
-| LastModified: Mar 1, 2020                                |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
 import (
 	"math/big"
 	"reflect"
 )
 
-// PtrMarshaler is the implementation of Marshaler for ptr.
-type PtrMarshaler struct{}
+// PtrEncoder is the implementation of ValueEncoder for ptr.
+type PtrEncoder struct{}
 
-var ptrMarshaler PtrMarshaler
+var ptrEncoder PtrEncoder
 
-func (PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(m Marshaler, enc *Encoder, v interface{}) error) (err error) {
+// Encode writes the hprose encoding of v to stream
+// if v is already written to stream, it will writes it as reference
+func (PtrEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+	return writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) error {
+		return valenc.Encode(enc, v)
+	})
+}
+
+// Write writes the hprose encoding of v to stream
+// if v is already written to stream, it will writes it as value
+func (PtrEncoder) Write(enc *Encoder, v interface{}) (err error) {
+	return writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) error {
+		return valenc.Write(enc, v)
+	})
+}
+
+func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Encoder, v interface{}) error) (err error) {
 	switch v := v.(type) {
 	case *uint8:
 		return WriteUint8(enc.Writer, *v)
@@ -68,12 +84,12 @@ func (PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(m Marshale
 	kind := e.Kind()
 	switch kind {
 	case reflect.String:
-		return marshal(stringMarshaler, enc, *(v.(*string)))
+		return encode(stringEncoder, enc, *(v.(*string)))
 	case reflect.Array:
-		return marshal(arrayMarshaler, enc, v)
+		return encode(arrayEncoder, enc, v)
 	case reflect.Struct:
-		if marshaler := GetMarshaler(reflect.TypeOf(v)); marshaler != nil {
-			return marshal(marshaler, enc, v)
+		if valenc := GetEncoder(reflect.TypeOf(v)); valenc != nil {
+			return encode(valenc, enc, v)
 		}
 	}
 	if e.IsNil() {
@@ -81,33 +97,13 @@ func (PtrMarshaler) marshal(enc *Encoder, v interface{}, marshal func(m Marshale
 	}
 	switch kind {
 	case reflect.Slice:
-		return marshal(sliceMarshaler, enc, v)
+		return encode(sliceEncoder, enc, v)
 	case reflect.Map:
-		return marshal(mapMarshaler, enc, v)
+		return encode(mapEncoder, enc, v)
 	case reflect.Ptr:
-		return marshal(ptrMarshaler, enc, e.Interface())
+		return encode(ptrEncoder, enc, e.Interface())
 	case reflect.Interface:
-		return marshal(interfaceMarshaler, enc, e.Interface())
+		return encode(interfaceEncoder, enc, e.Interface())
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
-}
-
-func (PtrMarshaler) encode(m Marshaler, enc *Encoder, v interface{}) (err error) {
-	return m.Encode(enc, v)
-}
-
-func (PtrMarshaler) write(m Marshaler, enc *Encoder, v interface{}) (err error) {
-	return m.Write(enc, v)
-}
-
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (m PtrMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
-	return m.marshal(enc, v, m.encode)
-}
-
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (m PtrMarshaler) Write(enc *Encoder, v interface{}) (err error) {
-	return m.marshal(enc, v, m.write)
 }

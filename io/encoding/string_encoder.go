@@ -4,26 +4,39 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/string_marshaler.go                  |
+| io/encoding/string_encoder.go                            |
 |                                                          |
-| LastModified: Mar 1, 2020                                |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
 import (
 	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
-// StringMarshaler is the implementation of Marshaler for string.
-type StringMarshaler struct{}
+// StringEncoder is the implementation of ValueEncoder for string.
+type StringEncoder struct{}
 
-var stringMarshaler StringMarshaler
+var stringEncoder StringEncoder
 
-func (m StringMarshaler) encode(enc *Encoder, s string) (err error) {
+// Encode writes the hprose encoding of v to stream
+// if v is already written to stream, it will writes it as reference
+func (StringEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+	return EncodeString(enc, v.(string))
+}
+
+// Write writes the hprose encoding of v to stream
+// if v is already written to stream, it will writes it as value
+func (StringEncoder) Write(enc *Encoder, v interface{}) (err error) {
+	return WriteString(enc, v.(string))
+}
+
+// EncodeString to encoder
+func EncodeString(enc *Encoder, s string) (err error) {
 	length := utf16Length(s)
 	switch length {
 	case 0:
@@ -42,19 +55,8 @@ func (m StringMarshaler) encode(enc *Encoder, s string) (err error) {
 	return
 }
 
-func (m StringMarshaler) write(enc *Encoder, s string) (err error) {
+// WriteString to encoder
+func WriteString(enc *Encoder, s string) (err error) {
 	enc.SetStringReference(s)
 	return writeString(enc.Writer, s, utf16Length(s))
-}
-
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (m StringMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
-	return m.encode(enc, v.(string))
-}
-
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (m StringMarshaler) Write(enc *Encoder, v interface{}) (err error) {
-	return m.write(enc, v.(string))
 }

@@ -4,25 +4,48 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/value_encode.go                      |
+| io/encoding/value_encoder.go                             |
 |                                                          |
-| LastModified: Feb 25, 2020                               |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
 import (
 	"errors"
 	"math"
 	"math/big"
+	"reflect"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
+
+// ValueEncoder is the interface that groups the basic Write and Encode methods.
+type ValueEncoder interface {
+	Encode(enc *Encoder, v interface{}) error
+	Write(enc *Encoder, v interface{}) error
+}
+
+var encoderMap = sync.Map{}
+
+// RegisterEncoder ...
+func RegisterEncoder(t reflect.Type, valenc ValueEncoder) {
+	encoderMap.Store(t, valenc)
+}
+
+// GetEncoder ...
+func GetEncoder(t reflect.Type) ValueEncoder {
+	if valenc, ok := encoderMap.Load(t); ok {
+		return valenc.(ValueEncoder)
+	}
+	return nil
+}
 
 const (
 	digits = "0123456789"

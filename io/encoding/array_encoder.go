@@ -4,40 +4,40 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/array_marshaler.go                   |
+| io/encoding/array_encoder.go                             |
 |                                                          |
-| LastModified: Mar 1, 2020                                |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
 import (
 	"reflect"
 	"unsafe"
 
-	"github.com/hprose/hprose-golang/v3/io"
+	"github.com/modern-go/reflect2"
 )
 
-// ArrayMarshaler is the implementation of Marshaler for *array.
-type ArrayMarshaler struct{}
+// ArrayEncoder is the implementation of ValueEncoder for *array.
+type ArrayEncoder struct{}
 
-var arrayMarshaler ArrayMarshaler
+var arrayEncoder ArrayEncoder
 
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
-func (m ArrayMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc ArrayEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	var ok bool
 	if ok, err = enc.WriteReference(v); !ok && err == nil {
-		err = m.Write(enc, v)
+		err = valenc.Write(enc, v)
 	}
 	return
 }
 
 // Write writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as value
-func (m ArrayMarshaler) Write(enc *Encoder, v interface{}) (err error) {
+func (ArrayEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	enc.SetReference(v)
 	return writeArray(enc, reflect.ValueOf(v).Elem().Interface())
 }
@@ -48,15 +48,9 @@ func WriteArray(enc *Encoder, v interface{}) (err error) {
 	return writeArray(enc, v)
 }
 
-func getType(v interface{}) unsafe.Pointer {
-	return *(*unsafe.Pointer)(unsafe.Pointer(&v))
-}
-
-var bytesType = getType(([]byte)(nil))
-
-func makeSlice(ptr *interface{}, count int) unsafe.Pointer {
+func makeSlice(array interface{}, count int) unsafe.Pointer {
 	return unsafe.Pointer(&reflect.SliceHeader{
-		Data: (uintptr)((*interfaceStruct)(unsafe.Pointer(ptr)).ptr),
+		Data: (uintptr)(reflect2.PtrOf(array)),
 		Len:  count,
 		Cap:  count,
 	})
@@ -64,25 +58,10 @@ func makeSlice(ptr *interface{}, count int) unsafe.Pointer {
 
 func writeArray(enc *Encoder, array interface{}) (err error) {
 	t := reflect.TypeOf(array)
-	st := reflect.SliceOf(t.Elem())
-	sliceType := (*interfaceStruct)(unsafe.Pointer(&st)).ptr
-	count := t.Len()
-	writer := enc.Writer
-	if sliceType == bytesType {
-		return writeBytes(writer, *(*[]byte)(makeSlice(&array, count)))
-	}
-	if count == 0 {
-		_, err = writer.Write(emptySlice)
-		return
-	}
-	if err = WriteHead(writer, count, io.TagList); err == nil {
-		var slice interface{}
-		sliceStruct := (*interfaceStruct)(unsafe.Pointer(&slice))
-		sliceStruct.typ = uintptr(sliceType)
-		sliceStruct.ptr = makeSlice(&array, count)
-		if err = writeSliceBody(enc, slice); err == nil {
-			err = WriteFoot(writer)
-		}
-	}
-	return
+	sliceType := reflect.SliceOf(t.Elem())
+	var slice interface{}
+	sliceStruct := unpackEFace(&slice)
+	sliceStruct.typ = (uintptr)(reflect2.PtrOf(sliceType))
+	sliceStruct.ptr = makeSlice(array, t.Len())
+	return writeSlice(enc, slice)
 }

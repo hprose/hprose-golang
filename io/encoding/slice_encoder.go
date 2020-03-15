@@ -4,14 +4,14 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/slice_marshaler.go                   |
+| io/encoding/slice_encoder.go                             |
 |                                                          |
-| LastModified: Mar 1, 2020                                |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
 import (
 	"reflect"
@@ -20,24 +20,24 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// SliceMarshaler is the implementation of Marshaler for *slice.
-type SliceMarshaler struct{}
+// SliceEncoder is the implementation of ValueEncoder for *slice.
+type SliceEncoder struct{}
 
-var sliceMarshaler SliceMarshaler
+var sliceEncoder SliceEncoder
 
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
-func (m SliceMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc SliceEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	var ok bool
 	if ok, err = enc.WriteReference(v); !ok && err == nil {
-		err = m.Write(enc, v)
+		err = valenc.Write(enc, v)
 	}
 	return
 }
 
 // Write writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as value
-func (m SliceMarshaler) Write(enc *Encoder, v interface{}) (err error) {
+func (SliceEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	enc.SetReference(v)
 	return writeSlice(enc, reflect.ValueOf(v).Elem().Interface())
 }
@@ -55,7 +55,7 @@ func writeSlice(enc *Encoder, v interface{}) (err error) {
 	if bytes, ok := v.([]byte); ok {
 		return writeBytes(writer, bytes)
 	}
-	count := (*reflect.SliceHeader)(interfacePointer(&v).ptr).Len
+	count := (*reflect.SliceHeader)(reflect2.PtrOf(v)).Len
 	if count == 0 {
 		_, err = writer.Write(emptySlice)
 		return
@@ -100,14 +100,16 @@ func writeSliceBody(enc *Encoder, v interface{}) error {
 		return writeComplex128SliceBody(enc, v)
 	case []string:
 		return writeStringSliceBody(enc, v)
+	case []interface{}:
+		return writeInterfaceSliceBody(enc, v)
 	default:
 		return writeOtherSliceBody(enc, v)
 	}
 }
 
 func writeInt8SliceBody(writer io.Writer, slice []int8) (err error) {
-	for _, e := range slice {
-		err = WriteInt8(writer, e)
+	for i := range slice {
+		err = WriteInt8(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -116,8 +118,8 @@ func writeInt8SliceBody(writer io.Writer, slice []int8) (err error) {
 }
 
 func writeInt16SliceBody(writer io.Writer, slice []int16) (err error) {
-	for _, e := range slice {
-		err = WriteInt16(writer, e)
+	for i := range slice {
+		err = WriteInt16(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -126,8 +128,8 @@ func writeInt16SliceBody(writer io.Writer, slice []int16) (err error) {
 }
 
 func writeInt32SliceBody(writer io.Writer, slice []int32) (err error) {
-	for _, e := range slice {
-		err = WriteInt32(writer, e)
+	for i := range slice {
+		err = WriteInt32(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -136,8 +138,8 @@ func writeInt32SliceBody(writer io.Writer, slice []int32) (err error) {
 }
 
 func writeInt64SliceBody(writer io.Writer, slice []int64) (err error) {
-	for _, e := range slice {
-		err = WriteInt64(writer, e)
+	for i := range slice {
+		err = WriteInt64(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -146,8 +148,8 @@ func writeInt64SliceBody(writer io.Writer, slice []int64) (err error) {
 }
 
 func writeIntSliceBody(writer io.Writer, slice []int) (err error) {
-	for _, e := range slice {
-		err = WriteInt(writer, e)
+	for i := range slice {
+		err = WriteInt(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -156,8 +158,8 @@ func writeIntSliceBody(writer io.Writer, slice []int) (err error) {
 }
 
 func writeUint16SliceBody(writer io.Writer, slice []uint16) (err error) {
-	for _, e := range slice {
-		err = WriteUint16(writer, e)
+	for i := range slice {
+		err = WriteUint16(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -166,8 +168,8 @@ func writeUint16SliceBody(writer io.Writer, slice []uint16) (err error) {
 }
 
 func writeUint32SliceBody(writer io.Writer, slice []uint32) (err error) {
-	for _, e := range slice {
-		err = WriteUint32(writer, e)
+	for i := range slice {
+		err = WriteUint32(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -176,8 +178,8 @@ func writeUint32SliceBody(writer io.Writer, slice []uint32) (err error) {
 }
 
 func writeUint64SliceBody(writer io.Writer, slice []uint64) (err error) {
-	for _, e := range slice {
-		err = WriteUint64(writer, e)
+	for i := range slice {
+		err = WriteUint64(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -186,8 +188,8 @@ func writeUint64SliceBody(writer io.Writer, slice []uint64) (err error) {
 }
 
 func writeUintSliceBody(writer io.Writer, slice []uint) (err error) {
-	for _, e := range slice {
-		err = WriteUint(writer, e)
+	for i := range slice {
+		err = WriteUint(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -196,8 +198,8 @@ func writeUintSliceBody(writer io.Writer, slice []uint) (err error) {
 }
 
 func writeBoolSliceBody(writer io.Writer, slice []bool) (err error) {
-	for _, e := range slice {
-		err = WriteBool(writer, e)
+	for i := range slice {
+		err = WriteBool(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -206,8 +208,8 @@ func writeBoolSliceBody(writer io.Writer, slice []bool) (err error) {
 }
 
 func writeFloat32SliceBody(writer io.Writer, slice []float32) (err error) {
-	for _, e := range slice {
-		err = WriteFloat32(writer, e)
+	for i := range slice {
+		err = WriteFloat32(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -216,8 +218,8 @@ func writeFloat32SliceBody(writer io.Writer, slice []float32) (err error) {
 }
 
 func writeFloat64SliceBody(writer io.Writer, slice []float64) (err error) {
-	for _, e := range slice {
-		err = WriteFloat64(writer, e)
+	for i := range slice {
+		err = WriteFloat64(writer, slice[i])
 		if err != nil {
 			return
 		}
@@ -226,8 +228,8 @@ func writeFloat64SliceBody(writer io.Writer, slice []float64) (err error) {
 }
 
 func writeComplex64SliceBody(enc *Encoder, slice []complex64) (err error) {
-	for _, e := range slice {
-		err = WriteComplex64(enc, e)
+	for i := range slice {
+		err = WriteComplex64(enc, slice[i])
 		if err != nil {
 			return
 		}
@@ -236,8 +238,8 @@ func writeComplex64SliceBody(enc *Encoder, slice []complex64) (err error) {
 }
 
 func writeComplex128SliceBody(enc *Encoder, slice []complex128) (err error) {
-	for _, e := range slice {
-		err = WriteComplex128(enc, e)
+	for i := range slice {
+		err = WriteComplex128(enc, slice[i])
 		if err != nil {
 			return
 		}
@@ -246,8 +248,18 @@ func writeComplex128SliceBody(enc *Encoder, slice []complex128) (err error) {
 }
 
 func writeStringSliceBody(enc *Encoder, slice []string) (err error) {
-	for _, e := range slice {
-		err = stringMarshaler.encode(enc, e)
+	for i := range slice {
+		err = EncodeString(enc, slice[i])
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func writeInterfaceSliceBody(enc *Encoder, slice []interface{}) (err error) {
+	for i := range slice {
+		err = enc.Encode(slice[i])
 		if err != nil {
 			return
 		}

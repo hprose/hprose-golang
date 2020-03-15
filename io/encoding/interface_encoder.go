@@ -4,28 +4,28 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/interface_marshaler.go               |
+| io/encoding/interface_encoder.go                         |
 |                                                          |
-| LastModified: Mar 1, 2020                                |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
-// InterfaceMarshaler is the implementation of Marshaler for interface.
-type InterfaceMarshaler struct{}
+// InterfaceEncoder is the implementation of ValueEncoder for interface.
+type InterfaceEncoder struct{}
 
-var interfaceMarshaler InterfaceMarshaler
+var interfaceEncoder InterfaceEncoder
 
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
-func (m InterfaceMarshaler) Encode(enc *Encoder, v interface{}) (err error) {
+func (InterfaceEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return enc.Encode(v)
 }
 
 // Write writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as value
-func (m InterfaceMarshaler) Write(enc *Encoder, v interface{}) (err error) {
+func (InterfaceEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return enc.Write(v)
 }

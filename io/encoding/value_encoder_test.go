@@ -4,14 +4,14 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder/value_encode_test.go                 |
+| io/encoding/value_encode_test.go                         |
 |                                                          |
-| LastModified: Feb 22, 2020                               |
+| LastModified: Mar 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoder
+package encoding
 
 import (
 	"math"
