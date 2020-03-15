@@ -1097,7 +1097,7 @@ func TestWriteNil(t *testing.T) {
 	}
 }
 
-func TestEncodeMap(t *testing.T) {
+func TestEncodeStringStringMap(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	m := map[string]string{
@@ -1113,7 +1113,67 @@ func TestEncodeMap(t *testing.T) {
 	if err := enc.Write(m); err != nil {
 		t.Error(err)
 	}
-	if err := enc.Write(&m); err != nil {
+	if err := enc.Encode(&m); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(m); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&m); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `nm{}m1{s5"hello"s5"world"}m1{r2;r3;}m1{r2;r3;}r4;` {
+		t.Error(sb)
+	}
+}
+
+func TestEncodeIntBigIntMap(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	m := map[int]*big.Int{
+		1: big.NewInt(1),
+	}
+	var nilmap map[int]*big.Int
+	if err := enc.Encode(nilmap); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(map[int]*big.Int{}); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(m); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&m); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(m); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&m); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `nm{}m1{1l1;}m1{1l1;}m1{1l1;}r2;` {
+		t.Error(sb)
+	}
+}
+
+func TestEncodeStringInterfaceMap(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	m := map[string]interface{}{
+		"hello": "world",
+	}
+	var nilmap map[string]interface{}
+	if err := enc.Encode(nilmap); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(map[string]interface{}{}); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(m); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Encode(&m); err != nil {
 		t.Error(err)
 	}
 	if err := enc.Encode(m); err != nil {

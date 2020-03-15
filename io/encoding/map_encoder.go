@@ -68,8 +68,8 @@ func writeMap(enc *Encoder, v interface{}) (err error) {
 
 func writeMapBody(enc *Encoder, v interface{}) error {
 	switch v := v.(type) {
-	// case map[string]string:
-	// 	return writeStringStringMapBody(enc, v)
+	case map[string]string:
+		return writeStringStringMapBody(enc, v)
 	// case map[string]int:
 	// 	return writeStringStringMapBody(enc.Writer, v)
 	// case map[string]interface{}:
@@ -106,19 +106,16 @@ func writeStringStringMapBody(enc *Encoder, v interface{}) (err error) {
 
 func writeOtherMapBody(enc *Encoder, v interface{}) (err error) {
 	mapType := reflect2.TypeOf(v).(*reflect2.UnsafeMapType)
-	ptr := reflect2.PtrOf(v)
-	iter := mapType.UnsafeIterate(unsafe.Pointer(&ptr))
-	var key, value interface{}
-	kp := unpackEFace(&key)
-	vp := unpackEFace(&value)
-	kp.typ = mapType.Key().RType()
-	vp.typ = mapType.Elem().RType()
+	p := reflect2.PtrOf(v)
+	iter := mapType.UnsafeIterate(unsafe.Pointer(&p))
+	kt := mapType.Key()
+	vt := mapType.Elem()
 	for iter.HasNext() {
-		kp.ptr, vp.ptr = iter.UnsafeNext()
-		if err = enc.Encode(key); err != nil {
+		kp, vp := iter.UnsafeNext()
+		if err = enc.Encode(kt.UnsafeIndirect(kp)); err != nil {
 			return
 		}
-		if err = enc.Encode(value); err != nil {
+		if err = enc.Encode(vt.UnsafeIndirect(vp)); err != nil {
 			return
 		}
 	}

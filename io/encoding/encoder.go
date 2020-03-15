@@ -107,6 +107,8 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 		return WriteMap(enc, v)
 	case reflect.Ptr:
 		return encode(ptrEncoder, v)
+	case reflect.Interface:
+		return encode(interfaceEncoder, v)
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }
