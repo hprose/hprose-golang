@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/slice_encoder.go                             |
 |                                                          |
-| LastModified: Mar 15, 2020                               |
+| LastModified: Mar 17, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -109,9 +109,8 @@ func writeSliceBody(enc *Encoder, v interface{}) error {
 
 func writeInt8SliceBody(writer io.Writer, slice []int8) (err error) {
 	for i := range slice {
-		err = WriteInt8(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteInt8(writer, slice[i])
 		}
 	}
 	return
@@ -119,9 +118,8 @@ func writeInt8SliceBody(writer io.Writer, slice []int8) (err error) {
 
 func writeInt16SliceBody(writer io.Writer, slice []int16) (err error) {
 	for i := range slice {
-		err = WriteInt16(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteInt16(writer, slice[i])
 		}
 	}
 	return
@@ -129,9 +127,8 @@ func writeInt16SliceBody(writer io.Writer, slice []int16) (err error) {
 
 func writeInt32SliceBody(writer io.Writer, slice []int32) (err error) {
 	for i := range slice {
-		err = WriteInt32(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteInt32(writer, slice[i])
 		}
 	}
 	return
@@ -139,9 +136,8 @@ func writeInt32SliceBody(writer io.Writer, slice []int32) (err error) {
 
 func writeInt64SliceBody(writer io.Writer, slice []int64) (err error) {
 	for i := range slice {
-		err = WriteInt64(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteInt64(writer, slice[i])
 		}
 	}
 	return
@@ -149,9 +145,8 @@ func writeInt64SliceBody(writer io.Writer, slice []int64) (err error) {
 
 func writeIntSliceBody(writer io.Writer, slice []int) (err error) {
 	for i := range slice {
-		err = WriteInt(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteInt(writer, slice[i])
 		}
 	}
 	return
@@ -159,9 +154,8 @@ func writeIntSliceBody(writer io.Writer, slice []int) (err error) {
 
 func writeUint16SliceBody(writer io.Writer, slice []uint16) (err error) {
 	for i := range slice {
-		err = WriteUint16(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteUint16(writer, slice[i])
 		}
 	}
 	return
@@ -169,9 +163,8 @@ func writeUint16SliceBody(writer io.Writer, slice []uint16) (err error) {
 
 func writeUint32SliceBody(writer io.Writer, slice []uint32) (err error) {
 	for i := range slice {
-		err = WriteUint32(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteUint32(writer, slice[i])
 		}
 	}
 	return
@@ -179,9 +172,8 @@ func writeUint32SliceBody(writer io.Writer, slice []uint32) (err error) {
 
 func writeUint64SliceBody(writer io.Writer, slice []uint64) (err error) {
 	for i := range slice {
-		err = WriteUint64(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteUint64(writer, slice[i])
 		}
 	}
 	return
@@ -189,9 +181,8 @@ func writeUint64SliceBody(writer io.Writer, slice []uint64) (err error) {
 
 func writeUintSliceBody(writer io.Writer, slice []uint) (err error) {
 	for i := range slice {
-		err = WriteUint(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteUint(writer, slice[i])
 		}
 	}
 	return
@@ -199,9 +190,8 @@ func writeUintSliceBody(writer io.Writer, slice []uint) (err error) {
 
 func writeBoolSliceBody(writer io.Writer, slice []bool) (err error) {
 	for i := range slice {
-		err = WriteBool(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteBool(writer, slice[i])
 		}
 	}
 	return
@@ -209,9 +199,8 @@ func writeBoolSliceBody(writer io.Writer, slice []bool) (err error) {
 
 func writeFloat32SliceBody(writer io.Writer, slice []float32) (err error) {
 	for i := range slice {
-		err = WriteFloat32(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteFloat32(writer, slice[i])
 		}
 	}
 	return
@@ -219,9 +208,8 @@ func writeFloat32SliceBody(writer io.Writer, slice []float32) (err error) {
 
 func writeFloat64SliceBody(writer io.Writer, slice []float64) (err error) {
 	for i := range slice {
-		err = WriteFloat64(writer, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteFloat64(writer, slice[i])
 		}
 	}
 	return
@@ -229,9 +217,8 @@ func writeFloat64SliceBody(writer io.Writer, slice []float64) (err error) {
 
 func writeComplex64SliceBody(enc *Encoder, slice []complex64) (err error) {
 	for i := range slice {
-		err = WriteComplex64(enc, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteComplex64(enc, slice[i])
 		}
 	}
 	return
@@ -239,9 +226,8 @@ func writeComplex64SliceBody(enc *Encoder, slice []complex64) (err error) {
 
 func writeComplex128SliceBody(enc *Encoder, slice []complex128) (err error) {
 	for i := range slice {
-		err = WriteComplex128(enc, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = WriteComplex128(enc, slice[i])
 		}
 	}
 	return
@@ -249,9 +235,8 @@ func writeComplex128SliceBody(enc *Encoder, slice []complex128) (err error) {
 
 func writeStringSliceBody(enc *Encoder, slice []string) (err error) {
 	for i := range slice {
-		err = EncodeString(enc, slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = EncodeString(enc, slice[i])
 		}
 	}
 	return
@@ -259,9 +244,8 @@ func writeStringSliceBody(enc *Encoder, slice []string) (err error) {
 
 func writeInterfaceSliceBody(enc *Encoder, slice []interface{}) (err error) {
 	for i := range slice {
-		err = enc.Encode(slice[i])
-		if err != nil {
-			return
+		if err == nil {
+			err = enc.Encode(slice[i])
 		}
 	}
 	return
@@ -272,10 +256,8 @@ func writeOtherSliceBody(enc *Encoder, slice interface{}) (err error) {
 	et := t.Elem()
 	ptr := reflect2.PtrOf(slice)
 	n := t.UnsafeLengthOf(ptr)
-	for i := 0; i < n; i++ {
-		if err = enc.Encode(et.UnsafeIndirect(t.UnsafeGetIndex(ptr, i))); err != nil {
-			return
-		}
+	for i := 0; i < n && err == nil; i++ {
+		err = enc.Encode(et.UnsafeIndirect(t.UnsafeGetIndex(ptr, i)))
 	}
 	return
 }
