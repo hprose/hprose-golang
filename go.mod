@@ -1,6 +1,6 @@
 module github.com/hprose/hprose-golang/v3
 
-go 1.12
+go 1.11
 
 require (
 	github.com/json-iterator/go v1.1.9
