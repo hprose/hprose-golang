@@ -9,6 +9,7 @@ go:
   - "1.14"
 
 before_install:
+  - export GO111MODULE="on"
   - go get github.com/json-iterator/go
   - go get github.com/wadey/gocovmerge
   - go get github.com/mattn/goveralls
