@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder_test.go                              |
 |                                                          |
-| LastModified: Mar 15, 2020                               |
+| LastModified: Mar 17, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -1250,27 +1250,17 @@ func BenchmarkJsonEncodeArray(b *testing.B) {
 func BenchmarkEncodeMap(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
-	m := map[string]string{
-		"hello1":  "world",
-		"hello2":  "world",
-		"hello3":  "world",
-		"hello4":  "world",
-		"hello5":  "world",
-		"hello6":  "world",
-		"hello7":  "world",
-		"hello8":  "world",
-		"hello9":  "world",
-		"hello10": "world",
-		"hello11": "world",
-		"hello12": "world",
-		"hello13": "world",
-		"hello14": "world",
-		"hello15": "world",
-		"hello16": "world",
-		"hello17": "world",
-		"hello18": "world",
-		"hello19": "world",
-		"hello20": "world",
+	m := map[int16]int16{
+		1: 1,
+		2: 2,
+		3: 3,
+		4: 4,
+		5: 5,
+		6: 6,
+		7: 7,
+		8: 8,
+		9: 9,
+		0: 0,
 	}
 	for i := 0; i < b.N; i++ {
 		enc.Encode(m)
@@ -1280,27 +1270,17 @@ func BenchmarkEncodeMap(b *testing.B) {
 func BenchmarkJsonEncodeMap(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := jsoniter.NewEncoder(sb)
-	m := map[string]string{
-		"hello1":  "world",
-		"hello2":  "world",
-		"hello3":  "world",
-		"hello4":  "world",
-		"hello5":  "world",
-		"hello6":  "world",
-		"hello7":  "world",
-		"hello8":  "world",
-		"hello9":  "world",
-		"hello10": "world",
-		"hello11": "world",
-		"hello12": "world",
-		"hello13": "world",
-		"hello14": "world",
-		"hello15": "world",
-		"hello16": "world",
-		"hello17": "world",
-		"hello18": "world",
-		"hello19": "world",
-		"hello20": "world",
+	m := map[int16]int16{
+		1: 1,
+		2: 2,
+		3: 3,
+		4: 4,
+		5: 5,
+		6: 6,
+		7: 7,
+		8: 8,
+		9: 9,
+		0: 0,
 	}
 	for i := 0; i < b.N; i++ {
 		enc.Encode(m)
