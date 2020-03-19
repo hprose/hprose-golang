@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/relect.go                                    |
 |                                                          |
-| LastModified: Mar 15, 2020                               |
+| LastModified: Mar 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,6 +14,8 @@
 package encoding
 
 import "unsafe"
+
+var defaultTagName = "hprose"
 
 type eface struct {
 	typ uintptr
