@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder_test.go                              |
 |                                                          |
-| LastModified: Mar 17, 2020                               |
+| LastModified: Mar 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -18,6 +18,7 @@ import (
 	"math/big"
 	"strings"
 	"testing"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -585,6 +586,23 @@ func TestWriteNil(t *testing.T) {
 	}
 }
 
+func TestWriteDuration(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	d := time.Duration(1000)
+	dp := &d
+	if err := enc.Write(d); err != nil {
+		t.Error(err)
+	}
+	if err := enc.Write(dp); err != nil {
+		t.Error(err)
+	}
+	if sb.String() != `i1000;i1000;` {
+		t.Error(sb)
+	}
+
+}
+
 func TestEncodeStringStringMap(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
@@ -772,5 +790,45 @@ func BenchmarkJsonEncodeMap(b *testing.B) {
 	}
 	for i := 0; i < b.N; i++ {
 		enc.Encode(m)
+	}
+}
+
+func BenchmarkEncodeStruct(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	type TestStruct struct {
+		Name     string
+		Age      int
+		Birthday time.Time
+		Male     bool
+	}
+	ts := TestStruct{
+		Name:     "Tom",
+		Age:      18,
+		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male:     true,
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Encode(ts)
+	}
+}
+
+func BenchmarkJsonEncodeStruct(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := jsoniter.NewEncoder(sb)
+	type TestStruct struct {
+		Name     string
+		Age      int
+		Birthday time.Time
+		Male     bool
+	}
+	ts := TestStruct{
+		Name:     "Tom",
+		Age:      18,
+		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male:     true,
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Encode(ts)
 	}
 }
