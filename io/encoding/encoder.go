@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder.go                                   |
 |                                                          |
-| LastModified: Mar 15, 2020                               |
+| LastModified: Mar 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -25,15 +25,15 @@ import (
 type Encoder struct {
 	io.Writer
 	refer *encoderRefer
-	ref   map[reflect.Type]uint64
-	last  uint64
+	ref   map[reflect.Type]int
+	last  int
 }
 
 // NewEncoder create an encoder object
 func NewEncoder(writer io.Writer, simple bool) (encoder *Encoder) {
 	encoder = &Encoder{
 		Writer: writer,
-		ref:    make(map[reflect.Type]uint64),
+		ref:    make(map[reflect.Type]int),
 		last:   0,
 	}
 	if !simple {
@@ -46,16 +46,8 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	switch v := v.(type) {
 	case nil:
 		return WriteNil(enc.Writer)
-	case uint8:
-		return WriteUint8(enc.Writer, v)
-	case uint16:
-		return WriteUint16(enc.Writer, v)
-	case uint32:
-		return WriteUint32(enc.Writer, v)
-	case uint64:
-		return WriteUint64(enc.Writer, v)
-	case uint:
-		return WriteUint(enc.Writer, v)
+	case int:
+		return WriteInt(enc.Writer, v)
 	case int8:
 		return WriteInt8(enc.Writer, v)
 	case int16:
@@ -64,8 +56,16 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 		return WriteInt32(enc.Writer, v)
 	case int64:
 		return WriteInt64(enc.Writer, v)
-	case int:
-		return WriteInt(enc.Writer, v)
+	case uint:
+		return WriteUint(enc.Writer, v)
+	case uint8:
+		return WriteUint8(enc.Writer, v)
+	case uint16:
+		return WriteUint16(enc.Writer, v)
+	case uint32:
+		return WriteUint32(enc.Writer, v)
+	case uint64:
+		return WriteUint64(enc.Writer, v)
 	case uintptr:
 		return WriteUint64(enc.Writer, uint64(v))
 	case bool:
@@ -88,19 +88,51 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	t := reflect.TypeOf(v)
 	kind := t.Kind()
 	switch kind {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface:
+		if reflect.ValueOf(v).IsNil() {
+			return WriteNil(enc.Writer)
+		}
+	}
+	if valenc := getOtherEncoder(t); valenc != nil {
+		return encode(valenc, v)
+	}
+	switch kind {
+	case reflect.Int:
+		return WriteInt(enc.Writer, *(*int)(reflect2.PtrOf(v)))
+	case reflect.Int8:
+		return WriteInt8(enc.Writer, *(*int8)(reflect2.PtrOf(v)))
+	case reflect.Int16:
+		return WriteInt16(enc.Writer, *(*int16)(reflect2.PtrOf(v)))
+	case reflect.Int32:
+		return WriteInt32(enc.Writer, *(*int32)(reflect2.PtrOf(v)))
+	case reflect.Int64:
+		return WriteInt64(enc.Writer, *(*int64)(reflect2.PtrOf(v)))
+	case reflect.Uint:
+		return WriteUint(enc.Writer, *(*uint)(reflect2.PtrOf(v)))
+	case reflect.Uint8:
+		return WriteUint8(enc.Writer, *(*uint8)(reflect2.PtrOf(v)))
+	case reflect.Uint16:
+		return WriteUint16(enc.Writer, *(*uint16)(reflect2.PtrOf(v)))
+	case reflect.Uint32:
+		return WriteUint32(enc.Writer, *(*uint32)(reflect2.PtrOf(v)))
+	case reflect.Uint64, reflect.Uintptr:
+		return WriteUint64(enc.Writer, *(*uint64)(reflect2.PtrOf(v)))
+	case reflect.Bool:
+		return WriteBool(enc.Writer, *(*bool)(reflect2.PtrOf(v)))
+	case reflect.Float32:
+		return WriteFloat32(enc.Writer, *(*float32)(reflect2.PtrOf(v)))
+	case reflect.Float64:
+		return WriteFloat64(enc.Writer, *(*float64)(reflect2.PtrOf(v)))
+	case reflect.Complex64:
+		return WriteComplex64(enc, *(*complex64)(reflect2.PtrOf(v)))
+	case reflect.Complex128:
+		return WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
 	case reflect.String:
 		return encode(stringEncoder, v)
 	case reflect.Array:
 		return WriteArray(enc, v)
 	case reflect.Struct:
-		if m := GetEncoder(reflect.PtrTo(t)); m != nil {
-			return encode(m, reflect.NewAt(t, reflect2.PtrOf(v)).Interface())
-		}
-	}
-	if reflect.ValueOf(v).IsNil() {
-		return WriteNil(enc.Writer)
-	}
-	switch kind {
+		return getStructEncoder(t).Write(enc, v)
 	case reflect.Slice:
 		return WriteSlice(enc, v)
 	case reflect.Map:
@@ -167,8 +199,16 @@ func (enc *Encoder) AddReferenceCount(n int) {
 }
 
 // WriteStructType of t to stream with action
-func (enc *Encoder) WriteStructType(t reflect.Type, action func()) (int, error) {
-	return 0, nil
+func (enc *Encoder) WriteStructType(t reflect.Type, action func() error) (r int, err error) {
+	if r, ok := enc.ref[t]; ok {
+		return r, nil
+	}
+	if err = action(); err == nil {
+		r = enc.last
+		enc.last++
+		enc.ref[t] = r
+	}
+	return
 }
 
 // Reset the value reference and struct type reference
@@ -176,6 +216,6 @@ func (enc *Encoder) Reset() {
 	if enc.refer != nil {
 		enc.refer.Reset()
 	}
-	enc.ref = make(map[reflect.Type]uint64)
+	enc.ref = make(map[reflect.Type]int)
 	enc.last = 0
 }
