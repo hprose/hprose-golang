@@ -13,7 +13,10 @@
 
 package io
 
-import "testing"
+import (
+	"math/rand"
+	"testing"
+)
 
 func TestBytesPool(t *testing.T) {
 	bytes := AcquireBytes(0)
@@ -53,8 +56,8 @@ func TestBytesPool(t *testing.T) {
 }
 
 func BenchmarkBytesPool(b *testing.B) {
-	n := 1 << 10
 	for i := 0; i < b.N; i++ {
+		n := rand.Intn(10000) + 10
 		bytes := AcquireBytes(n)
 		bytes[n-1] = byte(i)
 		ReleaseBytes(bytes)
@@ -62,8 +65,8 @@ func BenchmarkBytesPool(b *testing.B) {
 }
 
 func BenchmarkMakeBytes(b *testing.B) {
-	n := 1 << 10
 	for i := 0; i < b.N; i++ {
+		n := rand.Intn(10000) + 10
 		bytes := make([]byte, n)
 		bytes[n-1] = byte(i)
 	}
