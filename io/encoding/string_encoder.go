@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/string_encoder.go                            |
 |                                                          |
-| LastModified: Mar 15, 2020                               |
+| LastModified: Mar 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -26,13 +26,13 @@ var stringEncoder StringEncoder
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
 func (StringEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	return EncodeString(enc, v.(string))
+	return EncodeString(enc, *(*string)(reflect2.PtrOf(v)))
 }
 
 // Write writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as value
 func (StringEncoder) Write(enc *Encoder, v interface{}) (err error) {
-	return WriteString(enc, v.(string))
+	return WriteString(enc, *(*string)(reflect2.PtrOf(v)))
 }
 
 // EncodeString to encoder
