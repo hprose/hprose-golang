@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/value_encoder.go                             |
 |                                                          |
-| LastModified: Mar 15, 2020                               |
+| LastModified: Mar 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,12 +14,9 @@
 package encoding
 
 import (
-	"errors"
 	"math"
 	"math/big"
-	"reflect"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/io"
@@ -30,21 +27,6 @@ import (
 type ValueEncoder interface {
 	Encode(enc *Encoder, v interface{}) error
 	Write(enc *Encoder, v interface{}) error
-}
-
-var encoderMap = sync.Map{}
-
-// RegisterEncoder ...
-func RegisterEncoder(t reflect.Type, valenc ValueEncoder) {
-	encoderMap.Store(t, valenc)
-}
-
-// GetEncoder ...
-func GetEncoder(t reflect.Type) ValueEncoder {
-	if valenc, ok := encoderMap.Load(t); ok {
-		return valenc.(ValueEncoder)
-	}
-	return nil
 }
 
 const (
@@ -448,6 +430,16 @@ func WriteHead(writer io.Writer, n int, tag byte) (err error) {
 	return
 }
 
+// WriteObjectHead to writer, r is the reference number of struct
+func WriteObjectHead(writer io.Writer, r int) (err error) {
+	if err = writer.WriteByte(io.TagObject); err == nil {
+		if err = writeUint64(writer, uint64(r)); err == nil {
+			err = writer.WriteByte(io.TagOpenbrace)
+		}
+	}
+	return
+}
+
 // WriteFoot of list or map to writer
 func WriteFoot(writer io.Writer) error {
 	return writer.WriteByte(io.TagClosebrace)
@@ -508,15 +500,4 @@ func WriteBigRat(enc *Encoder, r *big.Rat) (err error) {
 	enc.AddReferenceCount(1)
 	s := r.String()
 	return writeString(enc.Writer, s, len(s))
-}
-
-// ErrInvalidUTF8 means that the string is invalid UTF-8.
-var ErrInvalidUTF8 = errors.New("encoding: invalid UTF-8")
-
-func writeFieldName(writer io.Writer, s string) (err error) {
-	length := utf16Length(s)
-	if length < 0 {
-		return ErrInvalidUTF8
-	}
-	return writeBinary(writer, reflect2.UnsafeCastString(s), length)
 }
