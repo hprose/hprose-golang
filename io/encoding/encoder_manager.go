@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder_manager.go                           |
 |                                                          |
-| LastModified: Mar 20, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -41,7 +41,11 @@ func getStructEncoder(t reflect.Type) ValueEncoder {
 	if valenc, ok := structEncoderMap.Load(t); ok {
 		return valenc.(ValueEncoder)
 	}
-	return newStructEncoder(t, t.Name(), []string{"json"})
+	name := t.Name()
+	if name == "" {
+		return newAnonymousStructEncoder(t)
+	}
+	return newStructEncoder(t, name, []string{"json"})
 }
 
 func getOtherEncoder(t reflect.Type) ValueEncoder {
