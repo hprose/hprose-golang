@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder.go                                   |
 |                                                          |
-| LastModified: Mar 20, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -31,7 +31,7 @@ type field struct {
 	encode encodeFunc
 }
 
-// StructEncoder is the implementation of ValueEncoder for struct/*struct.
+// StructEncoder is the implementation of ValueEncoder for named struct/*struct.
 type StructEncoder struct {
 	fields   []field
 	metadata []byte
@@ -40,17 +40,7 @@ type StructEncoder struct {
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
 func (valenc *StructEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	if reflect.TypeOf(v).Kind() == reflect.Struct {
-		return valenc.Write(enc, v)
-	}
-	if reflect2.IsNil(v) {
-		return WriteNil(enc.Writer)
-	}
-	var ok bool
-	if ok, err = enc.WriteReference(v); !ok && err == nil {
-		err = valenc.Write(enc, v)
-	}
-	return
+	return ReferenceEncode(valenc, enc, v)
 }
 
 // Write writes the hprose encoding of v to stream
@@ -576,4 +566,46 @@ func getPtrEncode(t reflect.Type) encodeFunc {
 		return getStructPtrEncode(t)
 	}
 	return nil
+}
+
+// AnonymousStructEncoder is the implementation of ValueEncoder for anonymous struct/*struct.
+type AnonymousStructEncoder struct {
+	fields []field
+	names  []string
+}
+
+func newAnonymousStructEncoder(t reflect.Type) ValueEncoder {
+	encoder := &AnonymousStructEncoder{}
+	registerEncoder(t, encoder)
+	encoder.names, encoder.fields = getFields(reflect2.Type2(t).(reflect2.StructType), []string{"json"}, map[string]bool{}, nil, nil)
+	return encoder
+}
+
+// Encode writes the hprose encoding of v to stream
+// if v is already written to stream, it will writes it as reference
+func (valenc *AnonymousStructEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+	return ReferenceEncode(valenc, enc, v)
+}
+
+// Write writes the hprose encoding of v to stream
+// if v is already written to stream, it will writes it as value
+func (valenc *AnonymousStructEncoder) Write(enc *Encoder, v interface{}) (err error) {
+	SetReference(enc, v)
+	writer := enc.Writer
+	names, fields := valenc.names, valenc.fields
+	n := len(names)
+	if n == 0 {
+		_, err = writer.Write(emptyMap)
+		return
+	}
+	p := reflect2.PtrOf(v)
+	err = WriteHead(writer, n, io.TagMap)
+	for i := 0; i < n && err == nil; i++ {
+		EncodeString(enc, names[i])
+		err = fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
+	}
+	if err == nil {
+		err = WriteFoot(writer)
+	}
+	return
 }
