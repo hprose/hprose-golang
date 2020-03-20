@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/value_encoder.go                             |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,6 +16,7 @@ package encoding
 import (
 	"math"
 	"math/big"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -500,4 +501,26 @@ func WriteBigRat(enc *Encoder, r *big.Rat) (err error) {
 	enc.AddReferenceCount(1)
 	s := r.String()
 	return writeString(enc.Writer, s, len(s))
+}
+
+// ReferenceEncode to enc
+func ReferenceEncode(valenc ValueEncoder, enc *Encoder, v interface{}) (err error) {
+	if reflect2.IsNil(v) {
+		return WriteNil(enc.Writer)
+	}
+	var ok bool
+	if ok, err = enc.WriteReference(v); !ok && err == nil {
+		err = valenc.Write(enc, v)
+	}
+	return
+}
+
+// SetReference to enc
+func SetReference(enc *Encoder, v interface{}) {
+	t := reflect.TypeOf(v)
+	if t.Kind() == reflect.Ptr {
+		enc.SetReference(v)
+	} else {
+		enc.AddReferenceCount(1)
+	}
 }
