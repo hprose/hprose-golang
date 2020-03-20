@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/time_encoder.go                              |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 20, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -43,15 +43,12 @@ func (valenc TimeEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 // if v is already written to stream, it will writes it as value
 func (TimeEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	t := reflect.TypeOf(v)
-	var dt time.Time
 	if t.Kind() == reflect.Ptr {
 		enc.SetReference(v)
-		dt = *(v.(*time.Time))
 	} else {
 		enc.AddReferenceCount(1)
-		dt = v.(time.Time)
 	}
-	return WriteTime(enc.Writer, dt)
+	return WriteTime(enc.Writer, *(*time.Time)(reflect2.PtrOf(v)))
 }
 
 func init() {
