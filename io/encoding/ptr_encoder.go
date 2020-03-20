@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/ptr_encoder.go                               |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 20, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -81,6 +81,8 @@ func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Enco
 		return WriteBigFloat(enc.Writer, v)
 	case *big.Rat:
 		return WriteBigRat(enc, v)
+	case *error:
+		return WriteError(enc, *v)
 	}
 	e := reflect.ValueOf(v).Elem()
 	kind := e.Kind()
