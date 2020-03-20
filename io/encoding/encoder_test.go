@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder_test.go                              |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 20, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,13 +14,16 @@
 package encoding
 
 import (
+	"errors"
 	"math"
 	"math/big"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncoderEncode(t *testing.T) {
@@ -51,169 +54,62 @@ func TestEncoderEncode(t *testing.T) {
 	bf := big.NewFloat(1)
 	br := big.NewRat(2, 3)
 	bri := big.NewRat(4, 1)
-	if err := enc.Encode(nil); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(i); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(i8); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(i16); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(i32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(i64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(u); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(u8); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(u16); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(u32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(u64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(uptr); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(b); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(f32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(f64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(e); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(c); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(c64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(c128); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(r64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(r128); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(*bi); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(*bf); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(*br); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(*bri); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode((*int)(nil)); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&i); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&i8); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&i16); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&i32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&i64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&u); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&u8); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&u16); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&u32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&u64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&uptr); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&b); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&f32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&f64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&e); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&c); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&c64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&c128); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&r64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&r128); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(bi); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(bf); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(br); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(bri); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != ``+
-		`n0123456789i10;td3.1415927;d3.141592653589793;`+
+	assert.NoError(t, enc.Encode(nil))
+	assert.NoError(t, enc.Encode(i))
+	assert.NoError(t, enc.Encode(i8))
+	assert.NoError(t, enc.Encode(i16))
+	assert.NoError(t, enc.Encode(i32))
+	assert.NoError(t, enc.Encode(i64))
+	assert.NoError(t, enc.Encode(u))
+	assert.NoError(t, enc.Encode(u8))
+	assert.NoError(t, enc.Encode(u16))
+	assert.NoError(t, enc.Encode(u32))
+	assert.NoError(t, enc.Encode(u64))
+	assert.NoError(t, enc.Encode(uptr))
+	assert.NoError(t, enc.Encode(b))
+	assert.NoError(t, enc.Encode(f32))
+	assert.NoError(t, enc.Encode(f64))
+	assert.NoError(t, enc.Encode(e))
+	assert.NoError(t, enc.Encode(c))
+	assert.NoError(t, enc.Encode(s))
+	assert.NoError(t, enc.Encode(c64))
+	assert.NoError(t, enc.Encode(c128))
+	assert.NoError(t, enc.Encode(r64))
+	assert.NoError(t, enc.Encode(r128))
+	assert.NoError(t, enc.Encode(*bi))
+	assert.NoError(t, enc.Encode(*bf))
+	assert.NoError(t, enc.Encode(*br))
+	assert.NoError(t, enc.Encode(*bri))
+	assert.NoError(t, enc.Encode((*int)(nil)))
+	assert.NoError(t, enc.Encode(&i))
+	assert.NoError(t, enc.Encode(&i8))
+	assert.NoError(t, enc.Encode(&i16))
+	assert.NoError(t, enc.Encode(&i32))
+	assert.NoError(t, enc.Encode(&i64))
+	assert.NoError(t, enc.Encode(&u))
+	assert.NoError(t, enc.Encode(&u8))
+	assert.NoError(t, enc.Encode(&u16))
+	assert.NoError(t, enc.Encode(&u32))
+	assert.NoError(t, enc.Encode(&u64))
+	assert.NoError(t, enc.Encode(&uptr))
+	assert.NoError(t, enc.Encode(&b))
+	assert.NoError(t, enc.Encode(&f32))
+	assert.NoError(t, enc.Encode(&f64))
+	assert.NoError(t, enc.Encode(&e))
+	assert.NoError(t, enc.Encode(&c))
+	assert.NoError(t, enc.Encode(&s))
+	assert.NoError(t, enc.Encode(&c64))
+	assert.NoError(t, enc.Encode(&c128))
+	assert.NoError(t, enc.Encode(&r64))
+	assert.NoError(t, enc.Encode(&r128))
+	assert.NoError(t, enc.Encode(bi))
+	assert.NoError(t, enc.Encode(bf))
+	assert.NoError(t, enc.Encode(br))
+	assert.NoError(t, enc.Encode(bri))
+	assert.Equal(t, `n0123456789i10;td3.1415927;d3.141592653589793;`+
 		`eu我s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`+
 		`n0123456789i10;td3.1415927;d3.141592653589793;`+
-		`eu我r0;a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;` {
-		t.Error(sb)
-	}
+		`eu我r0;a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`, sb.String())
 }
 
 func TestEncoderWrite(t *testing.T) {
@@ -243,253 +139,128 @@ func TestEncoderWrite(t *testing.T) {
 	bf := big.NewFloat(1)
 	br := big.NewRat(2, 3)
 	bri := big.NewRat(4, 1)
-	if err := enc.Write(nil); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(i); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(i8); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(i16); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(i32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(i64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(u); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(u8); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(u16); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(u32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(u64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(b); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(f32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(f64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(e); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(c); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(c64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(c128); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(r64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(r128); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(*bi); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(*bf); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(*br); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(*bri); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write((*int)(nil)); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&i); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&i8); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&i16); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&i32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&i64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&u); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&u8); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&u16); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&u32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&u64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&b); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&f32); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&f64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&e); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&c); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&c64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&c128); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&r64); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&r128); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(bi); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(bf); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(br); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(bri); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != ``+
-		`n0123456789td3.1415927;d3.141592653589793;`+
+	assert.NoError(t, enc.Write(nil))
+	assert.NoError(t, enc.Write(i))
+	assert.NoError(t, enc.Write(i8))
+	assert.NoError(t, enc.Write(i16))
+	assert.NoError(t, enc.Write(i32))
+	assert.NoError(t, enc.Write(i64))
+	assert.NoError(t, enc.Write(u))
+	assert.NoError(t, enc.Write(u8))
+	assert.NoError(t, enc.Write(u16))
+	assert.NoError(t, enc.Write(u32))
+	assert.NoError(t, enc.Write(u64))
+	assert.NoError(t, enc.Write(b))
+	assert.NoError(t, enc.Write(f32))
+	assert.NoError(t, enc.Write(f64))
+	assert.NoError(t, enc.Write(e))
+	assert.NoError(t, enc.Write(c))
+	assert.NoError(t, enc.Write(s))
+	assert.NoError(t, enc.Write(c64))
+	assert.NoError(t, enc.Write(c128))
+	assert.NoError(t, enc.Write(r64))
+	assert.NoError(t, enc.Write(r128))
+	assert.NoError(t, enc.Write(*bi))
+	assert.NoError(t, enc.Write(*bf))
+	assert.NoError(t, enc.Write(*br))
+	assert.NoError(t, enc.Write(*bri))
+	assert.NoError(t, enc.Write((*int)(nil)))
+	assert.NoError(t, enc.Write(&i))
+	assert.NoError(t, enc.Write(&i8))
+	assert.NoError(t, enc.Write(&i16))
+	assert.NoError(t, enc.Write(&i32))
+	assert.NoError(t, enc.Write(&i64))
+	assert.NoError(t, enc.Write(&u))
+	assert.NoError(t, enc.Write(&u8))
+	assert.NoError(t, enc.Write(&u16))
+	assert.NoError(t, enc.Write(&u32))
+	assert.NoError(t, enc.Write(&u64))
+	assert.NoError(t, enc.Write(&b))
+	assert.NoError(t, enc.Write(&f32))
+	assert.NoError(t, enc.Write(&f64))
+	assert.NoError(t, enc.Write(&e))
+	assert.NoError(t, enc.Write(&c))
+	assert.NoError(t, enc.Write(&s))
+	assert.NoError(t, enc.Write(&c64))
+	assert.NoError(t, enc.Write(&c128))
+	assert.NoError(t, enc.Write(&r64))
+	assert.NoError(t, enc.Write(&r128))
+	assert.NoError(t, enc.Write(bi))
+	assert.NoError(t, enc.Write(bf))
+	assert.NoError(t, enc.Write(br))
+	assert.NoError(t, enc.Write(bri))
+	assert.Equal(t, `n0123456789td3.1415927;d3.141592653589793;`+
 		`s""s1"我"s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`+
 		`n0123456789td3.1415927;d3.141592653589793;`+
-		`s""s1"我"s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;` {
-		t.Error(sb)
-	}
+		`s""s1"我"s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`, sb.String())
 }
 
-func TestWriteString(t *testing.T) {
+func TestEncodeError(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
-	if err := enc.Write(""); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write("Hello"); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write("Pokémon"); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write("中文"); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write("🐱🐶"); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write("👩‍👩‍👧‍👧"); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `s""s5"Hello"s7"Pokémon"s2"中文"s4"🐱🐶"s11"👩‍👩‍👧‍👧"` {
-		t.Error(sb)
-	}
+	enc := NewEncoder(sb, true)
+	e := errors.New("test error")
+	assert.NoError(t, enc.Encode(e))
+	assert.NoError(t, enc.Encode(&e))
+	assert.NoError(t, enc.Encode(&e))
+	assert.Equal(t, `Es10"test error"Es10"test error"Es10"test error"`, sb.String())
+}
+
+func TestEncodeString(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, true)
+	assert.NoError(t, enc.Encode(""))
+	assert.NoError(t, enc.Encode("Hello"))
+	assert.NoError(t, enc.Encode("Pokémon"))
+	assert.NoError(t, enc.Encode("中文"))
+	assert.NoError(t, enc.Encode("🐱🐶"))
+	assert.NoError(t, enc.Encode("👩‍👩‍👧‍👧"))
+	assert.Equal(t, `es5"Hello"s7"Pokémon"s2"中文"s4"🐱🐶"s11"👩‍👩‍👧‍👧"`, sb.String())
 }
 
 func TestWriteBadString(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
-	if err := enc.Write(string([]byte{254, 254})); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `b2"`+string([]byte{254, 254})+`"` {
-		t.Error(sb)
-	}
+	assert.NoError(t, enc.Write(string([]byte{254, 254})))
+	assert.Equal(t, "b2\"\xfe\xfe\"", sb.String())
 }
 
-func TestTeset(t *testing.T) {
+func TestReset(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	slice := []interface{}{1, "hello", true}
 	var nilslice []interface{}
-	if err := enc.Encode(nilslice); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode([]interface{}{}); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(slice); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(slice); err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, enc.Encode(nilslice))
+	assert.NoError(t, enc.Encode([]interface{}{}))
+	assert.NoError(t, enc.Encode(slice))
+	assert.NoError(t, enc.Encode(slice))
 	enc.Reset()
-	if err := enc.Encode(&slice); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&slice); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `na{}a3{1s5"hello"t}a3{1r2;t}a3{1s5"hello"t}r0;` {
-		t.Error(sb)
-	}
+	assert.NoError(t, enc.Encode(&slice))
+	assert.NoError(t, enc.Encode(&slice))
+	assert.Equal(t, `na{}a3{1s5"hello"t}a3{1r2;t}a3{1s5"hello"t}r0;`, sb.String())
 }
 
 func TestEncodeByteArray(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	hello := [5]byte{'H', 'e', 'l', 'l', 'o'}
-	if err := enc.Encode([0]byte{}); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(hello); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(hello); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&hello); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&hello); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `b""b5"Hello"b5"Hello"b5"Hello"r3;` {
-		t.Error(sb)
-	}
+	assert.NoError(t, enc.Encode([0]byte{}))
+	assert.NoError(t, enc.Encode(hello))
+	assert.NoError(t, enc.Encode(hello))
+	assert.NoError(t, enc.Encode(&hello))
+	assert.NoError(t, enc.Encode(&hello))
+	assert.Equal(t, `b""b5"Hello"b5"Hello"b5"Hello"r3;`, sb.String())
+}
+
+func TestEncodeByteArray2(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, true)
+	hello := [5]byte{'H', 'e', 'l', 'l', 'o'}
+	assert.NoError(t, enc.Encode([0]byte{}))
+	assert.NoError(t, enc.Encode(hello))
+	assert.NoError(t, enc.Encode(hello))
+	assert.NoError(t, enc.Encode(&hello))
+	assert.NoError(t, enc.Encode(&hello))
+	assert.Equal(t, `b""b5"Hello"b5"Hello"b5"Hello"b5"Hello"`, sb.String())
 }
 
 func TestEncodeBigIntArray(t *testing.T) {
@@ -497,27 +268,13 @@ func TestEncodeBigIntArray(t *testing.T) {
 	enc := NewEncoder(sb, false)
 	array := [2]*big.Int{big.NewInt(1), big.NewInt(2)}
 	var emptyArray [0]*big.Int
-	if err := enc.Encode(emptyArray); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode([2]*big.Int{}); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(array); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(array); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&array); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&array); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `a{}a2{nn}a2{l1;l2;}a2{l1;l2;}a2{l1;l2;}r4;` {
-		t.Error(sb)
-	}
+	assert.NoError(t, enc.Encode(emptyArray))
+	assert.NoError(t, enc.Encode([2]*big.Int{}))
+	assert.NoError(t, enc.Encode(array))
+	assert.NoError(t, enc.Encode(array))
+	assert.NoError(t, enc.Encode(&array))
+	assert.NoError(t, enc.Encode(&array))
+	assert.Equal(t, `a{}a2{nn}a2{l1;l2;}a2{l1;l2;}a2{l1;l2;}r4;`, sb.String())
 }
 
 func TestEncodeNil(t *testing.T) {
@@ -527,30 +284,14 @@ func TestEncodeNil(t *testing.T) {
 	var xp interface{} = &x
 	var i interface{} = (****int)(nil)
 	var ip interface{} = &i
-	if err := enc.Encode(nil); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(x); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&x); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&xp); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(i); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&i); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&ip); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `nnnnnnn` {
-		t.Error(sb)
-	}
+	assert.NoError(t, enc.Encode(nil))
+	assert.NoError(t, enc.Encode(x))
+	assert.NoError(t, enc.Encode(&x))
+	assert.NoError(t, enc.Encode(&xp))
+	assert.NoError(t, enc.Encode(i))
+	assert.NoError(t, enc.Encode(&i))
+	assert.NoError(t, enc.Encode(&ip))
+	assert.Equal(t, `nnnnnnn`, sb.String())
 }
 
 func TestWriteNil(t *testing.T) {
@@ -560,47 +301,23 @@ func TestWriteNil(t *testing.T) {
 	var xp interface{} = &x
 	var i interface{} = (****int)(nil)
 	var ip interface{} = &i
-	if err := enc.Write(nil); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(x); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&x); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&xp); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(i); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&i); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(&ip); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `nnnnnnn` {
-		t.Error(sb)
-	}
+	assert.NoError(t, enc.Write(nil))
+	assert.NoError(t, enc.Write(x))
+	assert.NoError(t, enc.Write(&x))
+	assert.NoError(t, enc.Write(&xp))
+	assert.NoError(t, enc.Write(i))
+	assert.NoError(t, enc.Write(&i))
+	assert.NoError(t, enc.Write(&ip))
+	assert.Equal(t, `nnnnnnn`, sb.String())
 }
 
 func TestWriteDuration(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	d := time.Duration(1000)
-	dp := &d
-	if err := enc.Write(d); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(dp); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `i1000;i1000;` {
-		t.Error(sb)
-	}
-
+	assert.NoError(t, enc.Write(d))
+	assert.NoError(t, enc.Write(&d))
+	assert.Equal(t, `i1000;i1000;`, sb.String())
 }
 
 func TestEncodeStringStringMap(t *testing.T) {
@@ -610,27 +327,13 @@ func TestEncodeStringStringMap(t *testing.T) {
 		"hello": "world",
 	}
 	var nilmap map[string]string
-	if err := enc.Encode(nilmap); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(map[string]string{}); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(m); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&m); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(m); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&m); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `nm{}m1{s5"hello"s5"world"}m1{r2;r3;}m1{r2;r3;}r4;` {
-		t.Error(sb)
-	}
+	assert.NoError(t, enc.Encode(nilmap))
+	assert.NoError(t, enc.Encode(map[string]string{}))
+	assert.NoError(t, enc.Encode(m))
+	assert.NoError(t, enc.Encode(&m))
+	assert.NoError(t, enc.Encode(m))
+	assert.NoError(t, enc.Encode(&m))
+	assert.Equal(t, `nm{}m1{s5"hello"s5"world"}m1{r2;r3;}m1{r2;r3;}r4;`, sb.String())
 }
 
 func TestEncodeIntBigIntMap(t *testing.T) {
@@ -640,27 +343,13 @@ func TestEncodeIntBigIntMap(t *testing.T) {
 		1: big.NewInt(1),
 	}
 	var nilmap map[int]*big.Int
-	if err := enc.Encode(nilmap); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(map[int]*big.Int{}); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(m); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&m); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(m); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&m); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `nm{}m1{1l1;}m1{1l1;}m1{1l1;}r2;` {
-		t.Error(sb)
-	}
+	assert.NoError(t, enc.Encode(nilmap))
+	assert.NoError(t, enc.Encode(map[int]*big.Int{}))
+	assert.NoError(t, enc.Encode(m))
+	assert.NoError(t, enc.Encode(&m))
+	assert.NoError(t, enc.Encode(m))
+	assert.NoError(t, enc.Encode(&m))
+	assert.Equal(t, `nm{}m1{1l1;}m1{1l1;}m1{1l1;}r2;`, sb.String())
 }
 
 func TestEncodeStringInterfaceMap(t *testing.T) {
@@ -670,27 +359,112 @@ func TestEncodeStringInterfaceMap(t *testing.T) {
 		"hello": "world",
 	}
 	var nilmap map[string]interface{}
-	if err := enc.Encode(nilmap); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(map[string]interface{}{}); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Write(m); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&m); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(m); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&m); err != nil {
-		t.Error(err)
-	}
-	if sb.String() != `nm{}m1{s5"hello"s5"world"}m1{r2;r3;}m1{r2;r3;}r4;` {
-		t.Error(sb)
-	}
+	assert.NoError(t, enc.Encode(nilmap))
+	assert.NoError(t, enc.Encode(map[string]interface{}{}))
+	assert.NoError(t, enc.Encode(m))
+	assert.NoError(t, enc.Encode(&m))
+	assert.NoError(t, enc.Encode(m))
+	assert.NoError(t, enc.Encode(&m))
+	assert.Equal(t, `nm{}m1{s5"hello"s5"world"}m1{r2;r3;}m1{r2;r3;}r4;`, sb.String())
+}
+
+func TestEncodeCustomType(t *testing.T) {
+	type IntType int
+	type Int8Type int8
+	type Int16Type int16
+	type Int32Type int32
+	type Int64Type int64
+	type UintType uint
+	type Uint8Type uint8
+	type Uint16Type uint16
+	type Uint32Type uint32
+	type Uint64Type uint64
+	type UintptrType uintptr
+	type BoolType bool
+	type Float32Type float32
+	type Float64Type float64
+	type Complex64Type complex64
+	type Complex128Type complex128
+	type StringType string
+	type BigIntType big.Int
+
+	RegisterEncoder((*BigIntType)(nil), BigIntEncoder{})
+
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	i := IntType(0)
+	i8 := Int8Type(1)
+	i16 := Int16Type(2)
+	i32 := Int32Type(3)
+	i64 := Int64Type(4)
+	u := UintType(5)
+	u8 := Uint8Type(6)
+	u16 := Uint16Type(7)
+	u32 := Uint32Type(8)
+	u64 := Uint64Type(9)
+	uptr := UintptrType(10)
+	b := BoolType(true)
+	f32 := Float32Type(3.14159)
+	f64 := Float64Type(2.17828)
+	c64 := Complex64Type(complex(1, 2))
+	c128 := Complex128Type(complex(3, 4))
+	s := StringType("hello")
+	bi := (*BigIntType)(big.NewInt(100))
+
+	assert.NoError(t, enc.Encode(i))
+	assert.NoError(t, enc.Encode(i8))
+	assert.NoError(t, enc.Encode(i16))
+	assert.NoError(t, enc.Encode(i32))
+	assert.NoError(t, enc.Encode(i64))
+	assert.NoError(t, enc.Encode(u))
+	assert.NoError(t, enc.Encode(u8))
+	assert.NoError(t, enc.Encode(u16))
+	assert.NoError(t, enc.Encode(u32))
+	assert.NoError(t, enc.Encode(u64))
+	assert.NoError(t, enc.Encode(uptr))
+	assert.NoError(t, enc.Encode(b))
+	assert.NoError(t, enc.Encode(f32))
+	assert.NoError(t, enc.Encode(f64))
+	assert.NoError(t, enc.Encode(c64))
+	assert.NoError(t, enc.Encode(c128))
+	assert.NoError(t, enc.Encode(s))
+	assert.NoError(t, enc.Encode(bi))
+	assert.NoError(t, enc.Encode(&i))
+	assert.NoError(t, enc.Encode(&i8))
+	assert.NoError(t, enc.Encode(&i16))
+	assert.NoError(t, enc.Encode(&i32))
+	assert.NoError(t, enc.Encode(&i64))
+	assert.NoError(t, enc.Encode(&u))
+	assert.NoError(t, enc.Encode(&u8))
+	assert.NoError(t, enc.Encode(&u16))
+	assert.NoError(t, enc.Encode(&u32))
+	assert.NoError(t, enc.Encode(&u64))
+	assert.NoError(t, enc.Encode(&uptr))
+	assert.NoError(t, enc.Encode(&b))
+	assert.NoError(t, enc.Encode(&f32))
+	assert.NoError(t, enc.Encode(&f64))
+	assert.NoError(t, enc.Encode(&c64))
+	assert.NoError(t, enc.Encode(&c128))
+	assert.NoError(t, enc.Encode(&s))
+	assert.NoError(t, enc.Encode(&bi))
+	assert.Equal(t, `0123456789i10;td3.14159;d2.17828;a2{d1;d2;}a2{d3;d4;}s5"hello"l100;`+
+		`0123456789i10;td3.14159;d2.17828;a2{d1;d2;}a2{d3;d4;}r2;l100;`, sb.String())
+}
+
+func TestGetEncoder(t *testing.T) {
+	assert.Equal(t, BigIntEncoder{}, GetEncoder((*big.Int)(nil)))
+	assert.Equal(t, ErrorEncoder{}, GetEncoder((*error)(nil)))
+}
+
+func TestUnsupportedTypeError(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	f := func() {}
+	var ch chan int
+	assert.Equal(t, &UnsupportedTypeError{Type: reflect.TypeOf(f)}, enc.Encode(f))
+	assert.Equal(t, &UnsupportedTypeError{Type: reflect.TypeOf(ch)}, enc.Encode(ch))
+	assert.Equal(t, &UnsupportedTypeError{Type: reflect.TypeOf(&f)}, enc.Encode(&f))
+	assert.Equal(t, &UnsupportedTypeError{Type: reflect.TypeOf(&ch)}, enc.Encode(&ch))
 }
 
 func BenchmarkEncodeSlice(b *testing.B) {
