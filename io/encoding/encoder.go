@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder.go                                   |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 20, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -84,6 +84,8 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 		return WriteBigFloat(enc.Writer, &v)
 	case big.Rat:
 		return WriteBigRat(enc, &v)
+	case error:
+		return WriteError(enc, v)
 	}
 	t := reflect.TypeOf(v)
 	kind := t.Kind()
