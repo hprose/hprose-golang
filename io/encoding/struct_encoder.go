@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder.go                                   |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 20, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"sync"
 
 	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
@@ -379,6 +378,9 @@ func fieldAlias(tag reflect.StructTag, name string, tagnames []string) string {
 }
 
 func getEncode(t reflect.Type) encodeFunc {
+	if f := getOtherEncode(t); f != nil {
+		return f
+	}
 	switch t.Kind() {
 	case reflect.Int:
 		return intEncode
@@ -461,10 +463,8 @@ func getFields(t reflect2.StructType, tagnames []string, mapping map[string]bool
 		field.typ = ft
 		field.field = f
 		typ := ft.Type1()
-		if field.encode = getOtherPtrEncode(typ); field.encode == nil {
-			if field.encode = getEncode(typ); field.encode == nil {
-				continue
-			}
+		if field.encode = getEncode(typ); field.encode == nil {
+			continue
 		}
 
 		mapping[name] = true
@@ -494,53 +494,6 @@ func newStructEncoder(t reflect.Type, name string, tagnames []string) ValueEncod
 	buffer.WriteByte(io.TagClosebrace)
 	encoder.metadata = buffer.Bytes()
 	return encoder
-}
-
-var structEncoderMap = sync.Map{}
-var otherEncoderMap = sync.Map{}
-
-func checkType(v interface{}) reflect.Type {
-	t := reflect.TypeOf(v)
-	for t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	return t
-}
-
-func registerEncoder(t reflect.Type, valenc ValueEncoder) {
-	if t.Kind() == reflect.Struct {
-		structEncoderMap.Store(t, valenc)
-	} else {
-		otherEncoderMap.Store(t, valenc)
-	}
-}
-
-func getStructEncoder(t reflect.Type) ValueEncoder {
-	if valenc, ok := structEncoderMap.Load(t); ok {
-		return valenc.(ValueEncoder)
-	}
-	return newStructEncoder(t, t.Name(), []string{"json"})
-}
-
-func getOtherEncoder(t reflect.Type) ValueEncoder {
-	if valenc, ok := otherEncoderMap.Load(t); ok {
-		return valenc.(ValueEncoder)
-	}
-	return nil
-}
-
-// RegisterEncoder ...
-func RegisterEncoder(v interface{}, valenc ValueEncoder) {
-	registerEncoder(checkType(v), valenc)
-}
-
-// GetEncoder ...
-func GetEncoder(v interface{}) ValueEncoder {
-	t := checkType(v)
-	if t.Kind() == reflect.Struct {
-		return getStructEncoder(t)
-	}
-	return getOtherEncoder(t)
 }
 
 func getStructEncode(t reflect.Type) encodeFunc {
