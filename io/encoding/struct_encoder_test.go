@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/struct_encoder_test.go                       |
 |                                                          |
-| LastModified: Mar 20, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -304,4 +304,13 @@ func TestAmbiguousFields(t *testing.T) {
 		enc := NewEncoder(sb, false)
 		enc.Encode(TestStruct{})
 	})
+}
+
+func TestEmptyAnonymousStruct(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	var s struct{}
+	assert.NoError(t, enc.Encode(s))
+	assert.NoError(t, enc.Encode((*struct{})(nil)))
+	assert.Equal(t, `m{}n`, sb.String())
 }
