@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/struct_encoder_test.go                       |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 20, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,6 +14,7 @@
 package encoding
 
 import (
+	"errors"
 	"math/big"
 	"strings"
 	"testing"
@@ -186,18 +187,10 @@ func TestEncodeStruct(t *testing.T) {
 	s.NilInterfacePtrValue = &s.NilInterfaceValue
 	s.StructPtrValue = &s.StructValue
 
-	if err := enc.Encode(s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode((*TestStruct)(nil)); err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, enc.Encode(s))
+	assert.NoError(t, enc.Encode(&s))
+	assert.NoError(t, enc.Encode(&s))
+	assert.NoError(t, enc.Encode((*TestStruct)(nil)))
 	assert.Equal(t, `c10"TestStruct"`+
 		`85{s1"a"s4"json"s1"d"s4"test"s1"i"s2"i8"s3"i16"s3"i32"s3"i64"s1"u"s2"u8"s3"u16"s3"u32"s3"u64"s2"up"s1"`+
 		`b"s3"f32"s3"f64"s3"c64"s4"c128"s4"iarr"s6"islice"s6"eslice"s6"nslice"s4"imap"s4"emap"s4"nmap"s1"s"s2"es"`+
@@ -244,15 +237,9 @@ func TestEncodeSomeStructField(t *testing.T) {
 	s.D = *s.A
 	s.E = *s.B
 	s.F = *s.C
-	if err := enc.Encode(s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&s); err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, enc.Encode(s))
+	assert.NoError(t, enc.Encode(&s))
+	assert.NoError(t, enc.Encode(&s))
 	assert.Equal(t, `c11"TestStruct2"6{s1"a"s1"b"s1"c"s1"d"s1"e"s1"f"}`+
 		`o0{l1;d2;s3"3/4"l1;d2;s3"3/4"}o0{l1;d2;s3"3/4"l1;d2;s3"3/4"}r9;`, sb.String())
 	enc.Reset()
@@ -265,6 +252,8 @@ func TestEncodeTimeStructField(t *testing.T) {
 		B time.Duration
 		C *time.Time
 		D *time.Duration
+		E *time.Time
+		F *time.Duration
 	}
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
@@ -273,18 +262,46 @@ func TestEncodeTimeStructField(t *testing.T) {
 	s.B = time.Duration(1000)
 	s.C = &s.A
 	s.D = &s.B
-	if err := enc.Encode(s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&s); err != nil {
-		t.Error(err)
-	}
-	if err := enc.Encode(&s); err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, `c11"TestStruct3"4{s1"a"s1"b"s1"c"s1"d"}`+
-		`o0{D19801201T020304.000000005;i1000;D19801201T020304.000000005;i1000;}`+
-		`o0{D19801201T020304.000000005;i1000;r6;i1000;}r7;`, sb.String())
+	assert.NoError(t, enc.Encode(s))
+	assert.NoError(t, enc.Encode(&s))
+	assert.NoError(t, enc.Encode(&s))
+	assert.Equal(t, `c11"TestStruct3"6{s1"a"s1"b"s1"c"s1"d"s1"e"s1"f"}`+
+		`o0{D19801201T020304.000000005;i1000;D19801201T020304.000000005;i1000;nn}`+
+		`o0{D19801201T020304.000000005;i1000;r8;i1000;nn}r9;`, sb.String())
 	enc.Reset()
 	sb.Reset()
+}
+
+func TestEncodeErrorStructField(t *testing.T) {
+	type TestStruct4 struct {
+		A error
+		B *error
+		C **error
+	}
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, false)
+	var s TestStruct4
+	s.A = errors.New("test error")
+	s.B = &s.A
+	s.C = nil
+	assert.NoError(t, enc.Encode(s))
+	assert.NoError(t, enc.Encode(&s))
+	assert.NoError(t, enc.Encode(&s))
+	assert.Equal(t, `c11"TestStruct4"3{s1"a"s1"b"s1"c"}`+
+		`o0{Es10"test error"Es10"test error"n}`+
+		`o0{Es10"test error"Es10"test error"n}r6;`, sb.String())
+	enc.Reset()
+	sb.Reset()
+}
+
+func TestAmbiguousFields(t *testing.T) {
+	assert.PanicsWithValue(t, "ambiguous fields with the same name or alias: a", func() {
+		type TestStruct struct {
+			A int `hprose:"a"`
+			B int `json:"a"`
+		}
+		sb := &strings.Builder{}
+		enc := NewEncoder(sb, false)
+		enc.Encode(TestStruct{})
+	})
 }
