@@ -141,7 +141,7 @@ func writeSliceBody(enc *Encoder, v interface{}) error {
 	}
 }
 
-func writeInt8SliceBody(writer io.Writer, slice []int8) (err error) {
+func writeInt8SliceBody(writer io.BytesWriter, slice []int8) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt8(writer, slice[i])
@@ -149,7 +149,7 @@ func writeInt8SliceBody(writer io.Writer, slice []int8) (err error) {
 	return
 }
 
-func writeInt16SliceBody(writer io.Writer, slice []int16) (err error) {
+func writeInt16SliceBody(writer io.BytesWriter, slice []int16) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt16(writer, slice[i])
@@ -157,7 +157,7 @@ func writeInt16SliceBody(writer io.Writer, slice []int16) (err error) {
 	return
 }
 
-func writeInt32SliceBody(writer io.Writer, slice []int32) (err error) {
+func writeInt32SliceBody(writer io.BytesWriter, slice []int32) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt32(writer, slice[i])
@@ -165,7 +165,7 @@ func writeInt32SliceBody(writer io.Writer, slice []int32) (err error) {
 	return
 }
 
-func writeInt64SliceBody(writer io.Writer, slice []int64) (err error) {
+func writeInt64SliceBody(writer io.BytesWriter, slice []int64) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt64(writer, slice[i])
@@ -173,7 +173,7 @@ func writeInt64SliceBody(writer io.Writer, slice []int64) (err error) {
 	return
 }
 
-func writeIntSliceBody(writer io.Writer, slice []int) (err error) {
+func writeIntSliceBody(writer io.BytesWriter, slice []int) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt(writer, slice[i])
@@ -181,7 +181,7 @@ func writeIntSliceBody(writer io.Writer, slice []int) (err error) {
 	return
 }
 
-func writeUint16SliceBody(writer io.Writer, slice []uint16) (err error) {
+func writeUint16SliceBody(writer io.BytesWriter, slice []uint16) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteUint16(writer, slice[i])
@@ -189,7 +189,7 @@ func writeUint16SliceBody(writer io.Writer, slice []uint16) (err error) {
 	return
 }
 
-func writeUint32SliceBody(writer io.Writer, slice []uint32) (err error) {
+func writeUint32SliceBody(writer io.BytesWriter, slice []uint32) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteUint32(writer, slice[i])
@@ -197,7 +197,7 @@ func writeUint32SliceBody(writer io.Writer, slice []uint32) (err error) {
 	return
 }
 
-func writeUint64SliceBody(writer io.Writer, slice []uint64) (err error) {
+func writeUint64SliceBody(writer io.BytesWriter, slice []uint64) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteUint64(writer, slice[i])
@@ -205,7 +205,7 @@ func writeUint64SliceBody(writer io.Writer, slice []uint64) (err error) {
 	return
 }
 
-func writeUintSliceBody(writer io.Writer, slice []uint) (err error) {
+func writeUintSliceBody(writer io.BytesWriter, slice []uint) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteUint(writer, slice[i])
@@ -213,7 +213,7 @@ func writeUintSliceBody(writer io.Writer, slice []uint) (err error) {
 	return
 }
 
-func writeBoolSliceBody(writer io.Writer, slice []bool) (err error) {
+func writeBoolSliceBody(writer io.BytesWriter, slice []bool) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteBool(writer, slice[i])
@@ -221,7 +221,7 @@ func writeBoolSliceBody(writer io.Writer, slice []bool) (err error) {
 	return
 }
 
-func writeFloat32SliceBody(writer io.Writer, slice []float32) (err error) {
+func writeFloat32SliceBody(writer io.BytesWriter, slice []float32) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteFloat32(writer, slice[i])
@@ -229,7 +229,7 @@ func writeFloat32SliceBody(writer io.Writer, slice []float32) (err error) {
 	return
 }
 
-func writeFloat64SliceBody(writer io.Writer, slice []float64) (err error) {
+func writeFloat64SliceBody(writer io.BytesWriter, slice []float64) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteFloat64(writer, slice[i])
