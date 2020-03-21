@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/error_encoder.go                             |
 |                                                          |
-| LastModified: Mar 20, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -21,7 +21,7 @@ import (
 
 // WriteError to encoder
 func WriteError(enc *Encoder, e error) (err error) {
-	if err = enc.WriteByte(io.TagError); err == nil {
+	if err = enc.Writer.WriteByte(io.TagError); err == nil {
 		enc.AddReferenceCount(1)
 		s := e.Error()
 		err = writeString(enc.Writer, s, utf16Length(s))
