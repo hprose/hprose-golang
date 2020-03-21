@@ -23,14 +23,14 @@ import (
 
 // An Encoder writes hprose data to an output stream
 type Encoder struct {
-	io.Writer
-	refer *encoderRefer
-	ref   map[reflect.Type]int
-	last  int
+	Writer io.BytesWriter
+	refer  *encoderRefer
+	ref    map[reflect.Type]int
+	last   int
 }
 
 // NewEncoder create an encoder object
-func NewEncoder(writer io.Writer, simple bool) (encoder *Encoder) {
+func NewEncoder(writer io.BytesWriter, simple bool) (encoder *Encoder) {
 	encoder = &Encoder{
 		Writer: writer,
 		ref:    make(map[reflect.Type]int),
