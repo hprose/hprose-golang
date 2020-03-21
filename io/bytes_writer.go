@@ -4,9 +4,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/writer.go                                             |
+| io/bytes_writer.go                                       |
 |                                                          |
-| LastModified: Feb 22, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,8 +15,8 @@ package io
 
 import "io"
 
-// Writer is the interface that groups the basic Write and WriteByte methods.
-type Writer interface {
+// BytesWriter is the interface that groups the basic Write and WriteByte methods.
+type BytesWriter interface {
 	io.Writer
 	io.ByteWriter
 }
