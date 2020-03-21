@@ -29,21 +29,17 @@ type field struct {
 	encode EncodeHandler
 }
 
-// StructEncoder is the implementation of ValueEncoder for named struct/*struct.
-type StructEncoder struct {
+// structEncoder is the implementation of ValueEncoder for named struct/*struct.
+type structEncoder struct {
 	fields   []field
 	metadata []byte
 }
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (valenc *StructEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc *structEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return EncodeReference(valenc, enc, v)
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (valenc *StructEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (valenc *structEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	t := reflect.TypeOf(v)
 	st := t
 	if t.Kind() == reflect.Ptr {
@@ -160,7 +156,7 @@ func getFields(t reflect2.StructType, tagnames []string, mapping map[string]bool
 }
 
 func newStructEncoder(t reflect.Type, name string, tagnames []string) ValueEncoder {
-	encoder := &StructEncoder{}
+	encoder := &structEncoder{}
 	registerValueEncoder(t, encoder)
 	var names []string
 	names, encoder.fields = getFields(reflect2.Type2(t).(reflect2.StructType), tagnames, map[string]bool{}, nil, nil)
@@ -181,28 +177,24 @@ func newStructEncoder(t reflect.Type, name string, tagnames []string) ValueEncod
 	return encoder
 }
 
-// AnonymousStructEncoder is the implementation of ValueEncoder for anonymous struct/*struct.
-type AnonymousStructEncoder struct {
+// anonymousStructEncoder is the implementation of ValueEncoder for anonymous struct/*struct.
+type anonymousStructEncoder struct {
 	fields []field
 	names  []string
 }
 
 func newAnonymousStructEncoder(t reflect.Type) ValueEncoder {
-	encoder := &AnonymousStructEncoder{}
+	encoder := &anonymousStructEncoder{}
 	registerValueEncoder(t, encoder)
 	encoder.names, encoder.fields = getFields(reflect2.Type2(t).(reflect2.StructType), []string{"json"}, map[string]bool{}, nil, nil)
 	return encoder
 }
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (valenc *AnonymousStructEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc *anonymousStructEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return EncodeReference(valenc, enc, v)
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (valenc *AnonymousStructEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	SetReference(enc, v)
 	writer := enc.Writer
 	names, fields := valenc.names, valenc.fields

@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/big_encoder.go                               |
 |                                                          |
-| LastModified: Mar 20, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,13 +23,11 @@ import (
 type BigIntEncoder struct{}
 
 // Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
 func (valenc BigIntEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return valenc.Write(enc, v)
 }
 
 // Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
 func (BigIntEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return WriteBigInt(enc.Writer, (*big.Int)(reflect2.PtrOf(v)))
 }
@@ -38,13 +36,11 @@ func (BigIntEncoder) Write(enc *Encoder, v interface{}) (err error) {
 type BigFloatEncoder struct{}
 
 // Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
 func (valenc BigFloatEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return valenc.Write(enc, v)
 }
 
 // Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
 func (BigFloatEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return WriteBigFloat(enc.Writer, (*big.Float)(reflect2.PtrOf(v)))
 }
@@ -53,13 +49,11 @@ func (BigFloatEncoder) Write(enc *Encoder, v interface{}) (err error) {
 type BigRatEncoder struct{}
 
 // Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
 func (valenc BigRatEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return valenc.Write(enc, v)
 }
 
 // Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
 func (BigRatEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return WriteBigRat(enc, (*big.Rat)(reflect2.PtrOf(v)))
 }

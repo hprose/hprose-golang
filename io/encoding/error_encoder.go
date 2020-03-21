@@ -13,29 +13,23 @@
 
 package encoding
 
-import (
-	"reflect"
-)
-
-// ErrorEncoder is the implementation of ValueEncoder for error.
+// ErrorEncoder is the implementation of ValueEncoder for error/*error.
 type ErrorEncoder struct{}
 
 // Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
 func (valenc ErrorEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return valenc.Write(enc, v)
 }
 
 // Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
 func (ErrorEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	switch v := v.(type) {
 	case error:
-		return WriteError(enc, v)
+		err = WriteError(enc, v)
 	case *error:
-		return WriteError(enc, *v)
+		err = WriteError(enc, *v)
 	}
-	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
+	return
 }
 
 func init() {
