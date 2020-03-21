@@ -4,9 +4,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/reader.go                                             |
+| io/bytes_reader.go                                       |
 |                                                          |
-| LastModified: Feb 22, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,8 +15,8 @@ package io
 
 import "io"
 
-// Reader is the interface that groups the basic Read and ReadByte methods.
-type Reader interface {
+// BytesReader is the interface that groups the basic Read and ReadByte methods.
+type BytesReader interface {
 	io.Reader
 	io.ByteReader
 }
