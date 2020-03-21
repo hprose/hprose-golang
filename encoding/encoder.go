@@ -14,17 +14,19 @@
 package encoding
 
 import (
-	"bufio"
 	"io"
 	"math/big"
 	"reflect"
+	"unsafe"
 
 	"github.com/modern-go/reflect2"
 )
 
 // An Encoder writes hprose data to an output stream
 type Encoder struct {
-	writer bytesWriter
+	Writer io.Writer
+	buf    []byte
+	off    int
 	refer  *encoderRefer
 	ref    map[reflect.Type]int
 	last   int
@@ -32,159 +34,218 @@ type Encoder struct {
 
 // NewEncoder create an encoder object
 func NewEncoder(w io.Writer, simple bool) (encoder *Encoder) {
-	encoder = &Encoder{
-		ref:  make(map[reflect.Type]int),
-		last: 0,
-	}
-	if writer, ok := w.(bytesWriter); ok {
-		encoder.writer = writer
-	} else {
-		encoder.writer = bufio.NewWriter(w)
-	}
+	encoder = &Encoder{Writer: w}
 	if !simple {
-		encoder.refer = newEncoderRefer()
+		encoder.refer = &encoderRefer{}
 	}
 	return
 }
 
-func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v interface{}) error) error {
+func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v interface{})) {
 	switch v := v.(type) {
 	case nil:
-		return WriteNil(enc)
+		WriteNil(enc)
+		return
 	case int:
-		return WriteInt(enc, v)
+		WriteInt(enc, v)
+		return
 	case int8:
-		return WriteInt8(enc, v)
+		WriteInt8(enc, v)
+		return
 	case int16:
-		return WriteInt16(enc, v)
+		WriteInt16(enc, v)
+		return
 	case int32:
-		return WriteInt32(enc, v)
+		WriteInt32(enc, v)
+		return
 	case int64:
-		return WriteInt64(enc, v)
+		WriteInt64(enc, v)
+		return
 	case uint:
-		return WriteUint(enc, v)
+		WriteUint(enc, v)
+		return
 	case uint8:
-		return WriteUint8(enc, v)
+		WriteUint8(enc, v)
+		return
 	case uint16:
-		return WriteUint16(enc, v)
+		WriteUint16(enc, v)
+		return
 	case uint32:
-		return WriteUint32(enc, v)
+		WriteUint32(enc, v)
+		return
 	case uint64:
-		return WriteUint64(enc, v)
+		WriteUint64(enc, v)
+		return
 	case uintptr:
-		return WriteUint64(enc, uint64(v))
+		WriteUint64(enc, uint64(v))
+		return
 	case bool:
-		return WriteBool(enc, v)
+		WriteBool(enc, v)
+		return
 	case float32:
-		return WriteFloat32(enc, v)
+		WriteFloat32(enc, v)
+		return
 	case float64:
-		return WriteFloat64(enc, v)
+		WriteFloat64(enc, v)
+		return
 	case complex64:
-		return WriteComplex64(enc, v)
+		WriteComplex64(enc, v)
+		return
 	case complex128:
-		return WriteComplex128(enc, v)
+		WriteComplex128(enc, v)
+		return
 	case big.Int:
-		return WriteBigInt(enc, &v)
+		WriteBigInt(enc, &v)
+		return
 	case big.Float:
-		return WriteBigFloat(enc, &v)
+		WriteBigFloat(enc, &v)
+		return
 	case big.Rat:
-		return WriteBigRat(enc, &v)
+		WriteBigRat(enc, &v)
+		return
 	case error:
-		return WriteError(enc, v)
+		WriteError(enc, v)
+		return
 	}
 	t := reflect.TypeOf(v)
 	kind := t.Kind()
 	switch kind {
 	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface:
 		if reflect.ValueOf(v).IsNil() {
-			return WriteNil(enc)
+			WriteNil(enc)
+			return
 		}
 	}
 	if valenc := getOtherEncoder(t); valenc != nil {
-		return encode(valenc, v)
+		encode(valenc, v)
+		return
 	}
 	switch kind {
 	case reflect.Int:
-		return WriteInt(enc, *(*int)(reflect2.PtrOf(v)))
+		WriteInt(enc, *(*int)(reflect2.PtrOf(v)))
+		return
 	case reflect.Int8:
-		return WriteInt8(enc, *(*int8)(reflect2.PtrOf(v)))
+		WriteInt8(enc, *(*int8)(reflect2.PtrOf(v)))
+		return
 	case reflect.Int16:
-		return WriteInt16(enc, *(*int16)(reflect2.PtrOf(v)))
+		WriteInt16(enc, *(*int16)(reflect2.PtrOf(v)))
+		return
 	case reflect.Int32:
-		return WriteInt32(enc, *(*int32)(reflect2.PtrOf(v)))
+		WriteInt32(enc, *(*int32)(reflect2.PtrOf(v)))
+		return
 	case reflect.Int64:
-		return WriteInt64(enc, *(*int64)(reflect2.PtrOf(v)))
+		WriteInt64(enc, *(*int64)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint:
-		return WriteUint(enc, *(*uint)(reflect2.PtrOf(v)))
+		WriteUint(enc, *(*uint)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint8:
-		return WriteUint8(enc, *(*uint8)(reflect2.PtrOf(v)))
+		WriteUint8(enc, *(*uint8)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint16:
-		return WriteUint16(enc, *(*uint16)(reflect2.PtrOf(v)))
+		WriteUint16(enc, *(*uint16)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint32:
-		return WriteUint32(enc, *(*uint32)(reflect2.PtrOf(v)))
+		WriteUint32(enc, *(*uint32)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint64, reflect.Uintptr:
-		return WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
+		WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
+		return
 	case reflect.Bool:
-		return WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
+		WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
+		return
 	case reflect.Float32:
-		return WriteFloat32(enc, *(*float32)(reflect2.PtrOf(v)))
+		WriteFloat32(enc, *(*float32)(reflect2.PtrOf(v)))
+		return
 	case reflect.Float64:
-		return WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
+		WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
+		return
 	case reflect.Complex64:
-		return WriteComplex64(enc, *(*complex64)(reflect2.PtrOf(v)))
+		WriteComplex64(enc, *(*complex64)(reflect2.PtrOf(v)))
+		return
 	case reflect.Complex128:
-		return WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
+		WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
+		return
 	case reflect.String:
-		return encode(strenc, v)
+		encode(strenc, v)
+		return
 	case reflect.Array:
-		return WriteArray(enc, v)
+		WriteArray(enc, v)
+		return
 	case reflect.Struct:
-		return getStructEncoder(t).Write(enc, v)
+		getStructEncoder(t).Write(enc, v)
+		return
 	case reflect.Slice:
-		return WriteSlice(enc, v)
+		WriteSlice(enc, v)
+		return
 	case reflect.Map:
-		return WriteMap(enc, v)
+		WriteMap(enc, v)
+		return
 	case reflect.Ptr:
-		return encode(ptrenc, v)
+		encode(ptrenc, v)
+		return
 	}
-	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
+	panic(&UnsupportedTypeError{Type: reflect.TypeOf(v)})
 }
 
-// Writer returns returns the output destination for the encoder.
-func (enc *Encoder) Writer() io.Writer {
-	return enc.writer
+func (enc *Encoder) encode(v interface{}) {
+	enc.writeValue(v, func(valenc ValueEncoder, v interface{}) {
+		valenc.Encode(enc, v)
+	})
+}
+
+func (enc *Encoder) write(v interface{}) {
+	enc.writeValue(v, func(valenc ValueEncoder, v interface{}) {
+		valenc.Write(enc, v)
+	})
+}
+
+func (enc *Encoder) flush() (err error) {
+	if enc.Writer != nil {
+		_, err = enc.Writer.Write(enc.buf[enc.off:])
+		enc.off = len(enc.buf)
+	}
+	return
 }
 
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
-func (enc *Encoder) Encode(v interface{}) error {
-	return enc.writeValue(v, func(valenc ValueEncoder, v interface{}) error {
-		return valenc.Encode(enc, v)
-	})
+func (enc *Encoder) Encode(v interface{}) (err error) {
+	enc.encode(v)
+	return enc.flush()
 }
 
 // Write writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as value
-func (enc *Encoder) Write(v interface{}) error {
-	return enc.writeValue(v, func(valenc ValueEncoder, v interface{}) error {
-		return valenc.Write(enc, v)
-	})
+func (enc *Encoder) Write(v interface{}) (err error) {
+	enc.write(v)
+	return enc.flush()
+}
+
+// Bytes returns the accumulated bytes.
+func (enc *Encoder) Bytes() []byte {
+	return enc.buf
+}
+
+// String returns the accumulated string.
+func (enc *Encoder) String() string {
+	return *(*string)(unsafe.Pointer(&enc.buf))
 }
 
 // WriteReference of v to stream
-func (enc *Encoder) WriteReference(v interface{}) (bool, error) {
+func (enc *Encoder) WriteReference(v interface{}) bool {
 	if enc.refer != nil {
 		return enc.refer.Write(enc, v)
 	}
-	return false, nil
+	return false
 }
 
 // WriteStringReference of v to stream
-func (enc *Encoder) WriteStringReference(s string) (bool, error) {
+func (enc *Encoder) WriteStringReference(s string) bool {
 	if enc.refer != nil {
 		return enc.refer.WriteString(enc, s)
 	}
-	return false, nil
+	return false
 }
 
 // SetReference of v
@@ -209,15 +270,17 @@ func (enc *Encoder) AddReferenceCount(n int) {
 }
 
 // WriteStruct of t to stream with action
-func (enc *Encoder) WriteStruct(t reflect.Type, action func() error) (r int, err error) {
+func (enc *Encoder) WriteStruct(t reflect.Type, action func()) (r int) {
+	if enc.ref == nil {
+		enc.ref = make(map[reflect.Type]int)
+	}
 	if r, ok := enc.ref[t]; ok {
-		return r, nil
+		return r
 	}
-	if err = action(); err == nil {
-		r = enc.last
-		enc.last++
-		enc.ref[t] = r
-	}
+	action()
+	r = enc.last
+	enc.last++
+	enc.ref[t] = r
 	return
 }
 
@@ -226,6 +289,6 @@ func (enc *Encoder) Reset() {
 	if enc.refer != nil {
 		enc.refer.Reset()
 	}
-	enc.ref = make(map[reflect.Type]int)
+	enc.ref = nil
 	enc.last = 0
 }

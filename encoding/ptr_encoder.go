@@ -25,118 +25,162 @@ type ptrEncoder struct{}
 
 var ptrenc ptrEncoder
 
-func (ptrEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	return writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) error {
-		return valenc.Encode(enc, v)
+func (ptrEncoder) Encode(enc *Encoder, v interface{}) {
+	writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) {
+		valenc.Encode(enc, v)
 	})
 }
 
-func (ptrEncoder) Write(enc *Encoder, v interface{}) (err error) {
-	return writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) error {
-		return valenc.Write(enc, v)
+func (ptrEncoder) Write(enc *Encoder, v interface{}) {
+	writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) {
+		valenc.Write(enc, v)
 	})
 }
 
-func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Encoder, v interface{}) error) (err error) {
+func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Encoder, v interface{})) {
 	switch v := v.(type) {
 	case *int:
-		return WriteInt(enc, *v)
+		WriteInt(enc, *v)
+		return
 	case *int8:
-		return WriteInt8(enc, *v)
+		WriteInt8(enc, *v)
+		return
 	case *int16:
-		return WriteInt16(enc, *v)
+		WriteInt16(enc, *v)
+		return
 	case *int32:
-		return WriteInt32(enc, *v)
+		WriteInt32(enc, *v)
+		return
 	case *int64:
-		return WriteInt64(enc, *v)
+		WriteInt64(enc, *v)
+		return
 	case *uint:
-		return WriteUint(enc, *v)
+		WriteUint(enc, *v)
+		return
 	case *uint8:
-		return WriteUint8(enc, *v)
+		WriteUint8(enc, *v)
+		return
 	case *uint16:
-		return WriteUint16(enc, *v)
+		WriteUint16(enc, *v)
+		return
 	case *uint32:
-		return WriteUint32(enc, *v)
+		WriteUint32(enc, *v)
+		return
 	case *uint64:
-		return WriteUint64(enc, *v)
+		WriteUint64(enc, *v)
+		return
 	case *uintptr:
-		return WriteUint64(enc, uint64(*v))
+		WriteUint64(enc, uint64(*v))
+		return
 	case *bool:
-		return WriteBool(enc, *v)
+		WriteBool(enc, *v)
+		return
 	case *float32:
-		return WriteFloat32(enc, *v)
+		WriteFloat32(enc, *v)
+		return
 	case *float64:
-		return WriteFloat64(enc, *v)
+		WriteFloat64(enc, *v)
+		return
 	case *complex64:
-		return WriteComplex64(enc, *v)
+		WriteComplex64(enc, *v)
+		return
 	case *complex128:
-		return WriteComplex128(enc, *v)
+		WriteComplex128(enc, *v)
+		return
 	case *big.Int:
-		return WriteBigInt(enc, v)
+		WriteBigInt(enc, v)
+		return
 	case *big.Float:
-		return WriteBigFloat(enc, v)
+		WriteBigFloat(enc, v)
+		return
 	case *big.Rat:
-		return WriteBigRat(enc, v)
+		WriteBigRat(enc, v)
+		return
 	case *error:
-		return WriteError(enc, *v)
+		WriteError(enc, *v)
+		return
 	}
 	e := reflect.ValueOf(v).Elem()
 	kind := e.Kind()
 	switch kind {
 	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface:
 		if e.IsNil() {
-			return WriteNil(enc)
+			WriteNil(enc)
+			return
 		}
 	}
 	et := e.Type()
 	if valenc := getOtherEncoder(et); valenc != nil {
-		return encode(valenc, enc, v)
+		encode(valenc, enc, v)
+		return
 	}
 	switch kind {
 	case reflect.Int:
-		return WriteInt(enc, *(*int)(reflect2.PtrOf(v)))
+		WriteInt(enc, *(*int)(reflect2.PtrOf(v)))
+		return
 	case reflect.Int8:
-		return WriteInt8(enc, *(*int8)(reflect2.PtrOf(v)))
+		WriteInt8(enc, *(*int8)(reflect2.PtrOf(v)))
+		return
 	case reflect.Int16:
-		return WriteInt16(enc, *(*int16)(reflect2.PtrOf(v)))
+		WriteInt16(enc, *(*int16)(reflect2.PtrOf(v)))
+		return
 	case reflect.Int32:
-		return WriteInt32(enc, *(*int32)(reflect2.PtrOf(v)))
+		WriteInt32(enc, *(*int32)(reflect2.PtrOf(v)))
+		return
 	case reflect.Int64:
-		return WriteInt64(enc, *(*int64)(reflect2.PtrOf(v)))
+		WriteInt64(enc, *(*int64)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint:
-		return WriteUint(enc, *(*uint)(reflect2.PtrOf(v)))
+		WriteUint(enc, *(*uint)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint8:
-		return WriteUint8(enc, *(*uint8)(reflect2.PtrOf(v)))
+		WriteUint8(enc, *(*uint8)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint16:
-		return WriteUint16(enc, *(*uint16)(reflect2.PtrOf(v)))
+		WriteUint16(enc, *(*uint16)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint32:
-		return WriteUint32(enc, *(*uint32)(reflect2.PtrOf(v)))
+		WriteUint32(enc, *(*uint32)(reflect2.PtrOf(v)))
+		return
 	case reflect.Uint64, reflect.Uintptr:
-		return WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
+		WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
+		return
 	case reflect.Bool:
-		return WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
+		WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
+		return
 	case reflect.Float32:
-		return WriteFloat32(enc, *(*float32)(reflect2.PtrOf(v)))
+		WriteFloat32(enc, *(*float32)(reflect2.PtrOf(v)))
+		return
 	case reflect.Float64:
-		return WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
+		WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
+		return
 	case reflect.Complex64:
-		return WriteComplex64(enc, *(*complex64)(reflect2.PtrOf(v)))
+		WriteComplex64(enc, *(*complex64)(reflect2.PtrOf(v)))
+		return
 	case reflect.Complex128:
-		return WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
+		WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
+		return
 	case reflect.String:
-		return encode(strenc, enc, e.String())
+		encode(strenc, enc, e.String())
+		return
 	case reflect.Array:
-		return encode(arrayenc, enc, v)
+		encode(arrayenc, enc, v)
+		return
 	case reflect.Struct:
-		return encode(getStructEncoder(et), enc, v)
+		encode(getStructEncoder(et), enc, v)
+		return
 	case reflect.Slice:
-		return encode(slcenc, enc, v)
+		encode(slcenc, enc, v)
+		return
 	case reflect.Map:
-		return encode(mapenc, enc, v)
+		encode(mapenc, enc, v)
+		return
 	case reflect.Ptr:
-		return encode(ptrenc, enc, e.Interface())
+		encode(ptrenc, enc, e.Interface())
+		return
 	case reflect.Interface:
-		return encode(intfenc, enc, e.Interface())
+		encode(intfenc, enc, e.Interface())
+		return
 	}
-	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
+	panic(&UnsupportedTypeError{Type: reflect.TypeOf(v)})
 }

@@ -22,44 +22,42 @@ import (
 // listEncoder is the implementation of ValueEncoder for list.List/*list.List.
 type listEncoder struct{}
 
-func (valenc listEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	return EncodeReference(valenc, enc, v)
+func (valenc listEncoder) Encode(enc *Encoder, v interface{}) {
+	EncodeReference(valenc, enc, v)
 }
 
-func (listEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (listEncoder) Write(enc *Encoder, v interface{}) {
 	SetReference(enc, v)
-	return writeList(enc, (*list.List)(reflect2.PtrOf(v)))
+	writeList(enc, (*list.List)(reflect2.PtrOf(v)))
 }
 
-func writeList(enc *Encoder, lst *list.List) (err error) {
+func writeList(enc *Encoder, lst *list.List) {
 	count := lst.Len()
 	if count == 0 {
-		_, err = enc.writer.Write(emptySlice)
+		enc.buf = append(enc.buf, TagList, TagOpenbrace, TagClosebrace)
 		return
 	}
-	err = WriteHead(enc, count, TagList)
-	for e := lst.Front(); e != nil && err == nil; e = e.Next() {
-		err = enc.Encode(e.Value)
+	WriteHead(enc, count, TagList)
+	for e := lst.Front(); e != nil; e = e.Next() {
+		enc.encode(e.Value)
 	}
-	if err == nil {
-		err = WriteFoot(enc)
-	}
-	return
+	WriteFoot(enc)
 }
 
 // elementEncoder is the implementation of ValueEncoder for list.Element/*list.Element.
 type elementEncoder struct{}
 
-func (valenc elementEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc elementEncoder) Encode(enc *Encoder, v interface{}) {
 	e := (*list.Element)(reflect2.PtrOf(v))
 	if e == nil {
-		return WriteNil(enc)
+		WriteNil(enc)
+	} else {
+		enc.encode(e.Value)
 	}
-	return enc.Encode(e.Value)
 }
 
-func (elementEncoder) Write(enc *Encoder, v interface{}) (err error) {
-	return enc.Write((*list.Element)(reflect2.PtrOf(v)).Value)
+func (elementEncoder) Write(enc *Encoder, v interface{}) {
+	enc.write((*list.Element)(reflect2.PtrOf(v)).Value)
 }
 
 func init() {

@@ -109,173 +109,151 @@ func toBytes(i uint64, buf []byte) (off int) {
 	return
 }
 
-func writeInt64(writer bytesWriter, i int64) (err error) {
+// AppendInt64 i to buf
+func AppendInt64(buf []byte, i int64) []byte {
 	if i >= 0 {
-		return writeUint64(writer, uint64(i))
+		return AppendUint64(buf, uint64(i))
 	}
 	if i == math.MinInt64 {
-		_, err = writer.Write(minInt64Buf)
-		return err
+		return append(buf, minInt64Buf...)
 	}
 	var u uint64 = uint64(-i)
-	var buf [20]byte
-	off := toBytes(u, buf[:]) - 1
-	buf[off] = '-'
-	_, err = writer.Write(buf[off:])
-	return
+	var buffer [20]byte
+	off := toBytes(u, buffer[:]) - 1
+	buffer[off] = '-'
+	return append(buf, buffer[off:]...)
 }
 
-func writeUint64(writer bytesWriter, i uint64) (err error) {
+// AppendUint64 i to buf
+func AppendUint64(buf []byte, i uint64) []byte {
 	if (i >= 0) && (i <= 9) {
-		return writer.WriteByte(digits[i])
+		return append(buf, digits[i])
 	}
-	var buf [20]byte
-	off := toBytes(i, buf[:])
-	_, err = writer.Write(buf[off:])
-	return
+	var buffer [20]byte
+	off := toBytes(i, buffer[:])
+	return append(buf, buffer[off:]...)
 }
 
 // WriteInt64 to encoder
-func WriteInt64(enc *Encoder, i int64) (err error) {
-	writer := enc.writer
+func WriteInt64(enc *Encoder, i int64) {
 	if (i >= 0) && (i <= 9) {
-		return writer.WriteByte(digits[i])
-	}
-	var tag = TagInteger
-	if (i < math.MinInt32) || (i > math.MaxInt32) {
-		tag = TagLong
-	}
-	if err = writer.WriteByte(tag); err == nil {
-		if err = writeInt64(writer, i); err == nil {
-			err = writer.WriteByte(TagSemicolon)
+		enc.buf = append(enc.buf, digits[i])
+	} else {
+		var tag = TagInteger
+		if (i < math.MinInt32) || (i > math.MaxInt32) {
+			tag = TagLong
 		}
+		enc.buf = append(enc.buf, tag)
+		enc.buf = AppendInt64(enc.buf, i)
+		enc.buf = append(enc.buf, TagSemicolon)
 	}
-	return
 }
 
 // WriteUint64 to encoder
-func WriteUint64(enc *Encoder, i uint64) (err error) {
-	writer := enc.writer
+func WriteUint64(enc *Encoder, i uint64) {
 	if (i >= 0) && (i <= 9) {
-		return writer.WriteByte(digits[i])
-	}
-	var tag = TagInteger
-	if i > math.MaxInt32 {
-		tag = TagLong
-	}
-	if err = writer.WriteByte(tag); err == nil {
-		if err = writeUint64(writer, i); err == nil {
-			err = writer.WriteByte(TagSemicolon)
+		enc.buf = append(enc.buf, digits[i])
+	} else {
+		var tag = TagInteger
+		if i > math.MaxInt32 {
+			tag = TagLong
 		}
+		enc.buf = append(enc.buf, tag)
+		enc.buf = AppendUint64(enc.buf, i)
+		enc.buf = append(enc.buf, TagSemicolon)
 	}
-	return
 }
 
 // WriteInt32 to encoder
-func WriteInt32(enc *Encoder, i int32) (err error) {
-	writer := enc.writer
+func WriteInt32(enc *Encoder, i int32) {
 	if (i >= 0) && (i <= 9) {
-		return writer.WriteByte(digits[i])
+		enc.buf = append(enc.buf, digits[i])
+	} else {
+		enc.buf = append(enc.buf, TagInteger)
+		enc.buf = AppendInt64(enc.buf, int64(i))
+		enc.buf = append(enc.buf, TagSemicolon)
 	}
-	if err = writer.WriteByte(TagInteger); err == nil {
-		if err = writeInt64(writer, int64(i)); err == nil {
-			err = writer.WriteByte(TagSemicolon)
-		}
-	}
-	return
 }
 
 // WriteUint32 to encoder
-func WriteUint32(enc *Encoder, i uint32) (err error) {
-	return WriteUint64(enc, uint64(i))
+func WriteUint32(enc *Encoder, i uint32) {
+	WriteUint64(enc, uint64(i))
 }
 
 // WriteInt16 to encoder
-func WriteInt16(enc *Encoder, i int16) (err error) {
-	return WriteInt32(enc, int32(i))
+func WriteInt16(enc *Encoder, i int16) {
+	WriteInt32(enc, int32(i))
 }
 
 // WriteUint16 to encoder
-func WriteUint16(enc *Encoder, i uint16) (err error) {
-	writer := enc.writer
+func WriteUint16(enc *Encoder, i uint16) {
 	if (i >= 0) && (i <= 9) {
-		return writer.WriteByte(digits[i])
+		enc.buf = append(enc.buf, digits[i])
+		return
 	}
-	if err = writer.WriteByte(TagInteger); err == nil {
-		if err = writeUint64(writer, uint64(i)); err == nil {
-			err = writer.WriteByte(TagSemicolon)
-		}
-	}
+	enc.buf = append(enc.buf, TagInteger)
+	enc.buf = AppendUint64(enc.buf, uint64(i))
+	enc.buf = append(enc.buf, TagSemicolon)
 	return
 }
 
 // WriteInt8 to encoder
-func WriteInt8(enc *Encoder, i int8) (err error) {
-	return WriteInt32(enc, int32(i))
+func WriteInt8(enc *Encoder, i int8) {
+	WriteInt32(enc, int32(i))
 }
 
 // WriteUint8 to encoder
-func WriteUint8(enc *Encoder, i uint8) (err error) {
-	return WriteUint16(enc, uint16(i))
+func WriteUint8(enc *Encoder, i uint8) {
+	WriteUint16(enc, uint16(i))
 }
 
 // WriteInt to encoder
-func WriteInt(enc *Encoder, i int) (err error) {
-	return WriteInt64(enc, int64(i))
+func WriteInt(enc *Encoder, i int) {
+	WriteInt64(enc, int64(i))
 }
 
 // WriteUint to encoder
-func WriteUint(enc *Encoder, i uint) (err error) {
-	return WriteUint64(enc, uint64(i))
+func WriteUint(enc *Encoder, i uint) {
+	WriteUint64(enc, uint64(i))
 }
 
 // WriteNil to encoder
-func WriteNil(enc *Encoder) (err error) {
-	return enc.writer.WriteByte(TagNull)
+func WriteNil(enc *Encoder) {
+	enc.buf = append(enc.buf, TagNull)
 }
 
 // WriteBool to encoder
-func WriteBool(enc *Encoder, b bool) (err error) {
+func WriteBool(enc *Encoder, b bool) {
 	if b {
-		return enc.writer.WriteByte(TagTrue)
+		enc.buf = append(enc.buf, TagTrue)
+	} else {
+		enc.buf = append(enc.buf, TagFalse)
 	}
-	return enc.writer.WriteByte(TagFalse)
 }
 
-func writeFloat(enc *Encoder, f float64, bitSize int) (err error) {
-	writer := enc.writer
-	if f != f {
-		return writer.WriteByte(TagNaN)
+func writeFloat(enc *Encoder, f float64, bitSize int) {
+	switch {
+	case f != f:
+		enc.buf = append(enc.buf, TagNaN)
+	case f > math.MaxFloat64:
+		enc.buf = append(enc.buf, TagInfinity, TagPos)
+	case f < -math.MaxFloat64:
+		enc.buf = append(enc.buf, TagInfinity, TagNeg)
+	default:
+		enc.buf = append(enc.buf, TagDouble)
+		enc.buf = strconv.AppendFloat(enc.buf, f, 'g', -1, bitSize)
+		enc.buf = append(enc.buf, TagSemicolon)
 	}
-	if f > math.MaxFloat64 {
-		if err = writer.WriteByte(TagInfinity); err == nil {
-			err = writer.WriteByte(TagPos)
-		}
-		return
-	}
-	if f < -math.MaxFloat64 {
-		if err = writer.WriteByte(TagInfinity); err == nil {
-			err = writer.WriteByte(TagNeg)
-		}
-		return
-	}
-	if err = writer.WriteByte(TagDouble); err == nil {
-		var buf [24]byte
-		if _, err = writer.Write(strconv.AppendFloat(buf[:0], f, 'g', -1, bitSize)); err == nil {
-			err = writer.WriteByte(TagSemicolon)
-		}
-	}
-	return
 }
 
 // WriteFloat32 to encoder
-func WriteFloat32(enc *Encoder, f float32) error {
-	return writeFloat(enc, float64(f), 32)
+func WriteFloat32(enc *Encoder, f float32) {
+	writeFloat(enc, float64(f), 32)
 }
 
 // WriteFloat64 to encoder
-func WriteFloat64(enc *Encoder, f float64) error {
-	return writeFloat(enc, f, 64)
+func WriteFloat64(enc *Encoder, f float64) {
+	writeFloat(enc, f, 64)
 }
 
 func utf16Length(str string) (n int) {
@@ -285,16 +263,17 @@ func utf16Length(str string) (n int) {
 	for i := 0; i < length; i++ {
 		a := str[i]
 		if c == 0 {
-			if (a & 0xe0) == 0xc0 {
+			switch {
+			case (a & 0xe0) == 0xc0:
 				c = 1
 				n--
-			} else if (a & 0xf0) == 0xe0 {
+			case (a & 0xf0) == 0xe0:
 				c = 2
 				n -= 2
-			} else if (a & 0xf8) == 0xf0 {
+			case (a & 0xf8) == 0xf0:
 				c = 3
 				n -= 2
-			} else if (a & 0x80) == 0x80 {
+			case (a & 0x80) == 0x80:
 				return -1
 			}
 		} else {
@@ -310,146 +289,114 @@ func utf16Length(str string) (n int) {
 	return n
 }
 
-func writeBinary(writer bytesWriter, bytes []byte, length int) (err error) {
+func appendBinary(buf []byte, bytes []byte, length int) []byte {
 	if length > 0 {
-		err = writeUint64(writer, uint64(length))
+		buf = AppendUint64(buf, uint64(length))
 	}
-	if err == nil {
-		if err = writer.WriteByte(TagQuote); err == nil {
-			if _, err = writer.Write(bytes); err == nil {
-				err = writer.WriteByte(TagQuote)
-			}
-		}
-	}
-	return
+	buf = append(buf, TagQuote)
+	buf = append(buf, bytes...)
+	buf = append(buf, TagQuote)
+	return buf
 }
 
-func writeBytes(writer bytesWriter, bytes []byte) (err error) {
-	if err = writer.WriteByte(TagBytes); err == nil {
-		err = writeBinary(writer, bytes, len(bytes))
-	}
-	return
+func appendBytes(buf []byte, bytes []byte) []byte {
+	buf = append(buf, TagBytes)
+	buf = appendBinary(buf, bytes, len(bytes))
+	return buf
 }
 
-func writeString(writer bytesWriter, s string, length int) (err error) {
+func appendString(buf []byte, s string, length int) []byte {
 	if length < 0 {
-		return writeBytes(writer, reflect2.UnsafeCastString(s))
+		return appendBytes(buf, reflect2.UnsafeCastString(s))
 	}
-	if err = writer.WriteByte(TagString); err == nil {
-		err = writeBinary(writer, reflect2.UnsafeCastString(s), length)
-	}
-	return
+	buf = append(buf, TagString)
+	buf = appendBinary(buf, reflect2.UnsafeCastString(s), length)
+	return buf
 }
 
 // WriteHead to encoder, n is the count of elements in list or map
-func WriteHead(enc *Encoder, n int, tag byte) (err error) {
-	writer := enc.writer
-	if err = writer.WriteByte(tag); err == nil {
-		if n > 0 {
-			err = writeUint64(writer, uint64(n))
-		}
-		if err == nil {
-			err = writer.WriteByte(TagOpenbrace)
-		}
+func WriteHead(enc *Encoder, n int, tag byte) {
+	enc.buf = append(enc.buf, tag)
+	if n > 0 {
+		enc.buf = AppendUint64(enc.buf, uint64(n))
 	}
-	return
+	enc.buf = append(enc.buf, TagOpenbrace)
 }
 
 // WriteObjectHead to encoder, r is the reference number of struct
-func WriteObjectHead(enc *Encoder, r int) (err error) {
-	writer := enc.writer
-	if err = writer.WriteByte(TagObject); err == nil {
-		if err = writeUint64(writer, uint64(r)); err == nil {
-			err = writer.WriteByte(TagOpenbrace)
-		}
-	}
-	return
+func WriteObjectHead(enc *Encoder, r int) {
+	enc.buf = append(enc.buf, TagObject)
+	enc.buf = AppendUint64(enc.buf, uint64(r))
+	enc.buf = append(enc.buf, TagOpenbrace)
 }
 
 // WriteFoot of list or map to encoder
-func WriteFoot(enc *Encoder) error {
-	return enc.writer.WriteByte(TagClosebrace)
+func WriteFoot(enc *Encoder) {
+	enc.buf = append(enc.buf, TagClosebrace)
 }
 
-func writeComplex(enc *Encoder, r float64, i float64, bitSize int) (err error) {
+func writeComplex(enc *Encoder, r float64, i float64, bitSize int) {
 	if i == 0 {
-		return writeFloat(enc, r, bitSize)
+		writeFloat(enc, r, bitSize)
+	} else {
+		enc.AddReferenceCount(1)
+		WriteHead(enc, 2, TagList)
+		writeFloat(enc, r, bitSize)
+		writeFloat(enc, i, bitSize)
+		WriteFoot(enc)
 	}
-	enc.AddReferenceCount(1)
-	if err = WriteHead(enc, 2, TagList); err == nil {
-		if err = writeFloat(enc, r, bitSize); err == nil {
-			if err = writeFloat(enc, i, bitSize); err == nil {
-				err = WriteFoot(enc)
-			}
-		}
-	}
-	return
 }
 
 // WriteComplex64 to encoder
-func WriteComplex64(enc *Encoder, c complex64) error {
-	return writeComplex(enc, float64(real(c)), float64(imag(c)), 32)
+func WriteComplex64(enc *Encoder, c complex64) {
+	writeComplex(enc, float64(real(c)), float64(imag(c)), 32)
 }
 
 // WriteComplex128 to encoder
-func WriteComplex128(enc *Encoder, c complex128) error {
-	return writeComplex(enc, real(c), imag(c), 64)
+func WriteComplex128(enc *Encoder, c complex128) {
+	writeComplex(enc, real(c), imag(c), 64)
 }
 
 // WriteBigInt to encoder
-func WriteBigInt(enc *Encoder, i *big.Int) (err error) {
-	writer := enc.writer
-	if err = writer.WriteByte(TagLong); err == nil {
-		if _, err = writer.Write(reflect2.UnsafeCastString(i.String())); err == nil {
-			err = writer.WriteByte(TagSemicolon)
-		}
-	}
-	return
+func WriteBigInt(enc *Encoder, i *big.Int) {
+	enc.buf = append(enc.buf, TagLong)
+	enc.buf = append(enc.buf, i.String()...)
+	enc.buf = append(enc.buf, TagSemicolon)
 }
 
 // WriteBigFloat to encoder
-func WriteBigFloat(enc *Encoder, f *big.Float) (err error) {
-	writer := enc.writer
-	if err = writer.WriteByte(TagDouble); err == nil {
-		var buf [32]byte
-		if _, err = writer.Write(f.Append(buf[:0], 'g', -1)); err == nil {
-			err = writer.WriteByte(TagSemicolon)
-		}
-	}
-	return
+func WriteBigFloat(enc *Encoder, f *big.Float) {
+	enc.buf = append(enc.buf, TagDouble)
+	enc.buf = f.Append(enc.buf, 'g', -1)
+	enc.buf = append(enc.buf, TagSemicolon)
 }
 
 // WriteBigRat to encoder
-func WriteBigRat(enc *Encoder, r *big.Rat) (err error) {
+func WriteBigRat(enc *Encoder, r *big.Rat) {
 	if r.IsInt() {
-		return WriteBigInt(enc, r.Num())
+		WriteBigInt(enc, r.Num())
+	} else {
+		enc.AddReferenceCount(1)
+		s := r.String()
+		enc.buf = appendString(enc.buf, s, len(s))
 	}
-	enc.AddReferenceCount(1)
-	s := r.String()
-	return writeString(enc.writer, s, len(s))
 }
 
 // WriteError to encoder
-func WriteError(enc *Encoder, e error) (err error) {
-	writer := enc.writer
-	if err = writer.WriteByte(TagError); err == nil {
-		enc.AddReferenceCount(1)
-		s := e.Error()
-		err = writeString(writer, s, utf16Length(s))
-	}
-	return
+func WriteError(enc *Encoder, e error) {
+	enc.buf = append(enc.buf, TagError)
+	enc.AddReferenceCount(1)
+	s := e.Error()
+	enc.buf = appendString(enc.buf, s, utf16Length(s))
 }
 
 // EncodeReference to encoder
-func EncodeReference(valenc ValueEncoder, enc *Encoder, v interface{}) (err error) {
+func EncodeReference(valenc ValueEncoder, enc *Encoder, v interface{}) {
 	if reflect2.IsNil(v) {
-		return WriteNil(enc)
+		WriteNil(enc)
+	} else if ok := enc.WriteReference(v); !ok {
+		valenc.Write(enc, v)
 	}
-	var ok bool
-	if ok, err = enc.WriteReference(v); !ok && err == nil {
-		err = valenc.Write(enc, v)
-	}
-	return
 }
 
 // SetReference to encoder

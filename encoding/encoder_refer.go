@@ -19,56 +19,54 @@ type encoderRefer struct {
 	last uint64
 }
 
-func newEncoderRefer() *encoderRefer {
-	return &encoderRefer{
-		ref:  make(map[interface{}]uint64),
-		sref: make(map[string]uint64),
-		last: 0,
-	}
-}
-
 func (r *encoderRefer) AddCount(count int) {
 	r.last += uint64(count)
 }
 
 func (r *encoderRefer) Set(p interface{}) {
+	if r.ref == nil {
+		r.ref = make(map[interface{}]uint64)
+	}
 	r.ref[p] = r.last
 	r.last++
 }
 
 func (r *encoderRefer) SetString(s string) {
+	if r.sref == nil {
+		r.sref = make(map[string]uint64)
+	}
 	r.sref[s] = r.last
 	r.last++
 }
 
-func (r *encoderRefer) Write(enc *Encoder, p interface{}) (ok bool, err error) {
-	writer := enc.writer
+func (r *encoderRefer) Write(enc *Encoder, p interface{}) (ok bool) {
+	if r.ref == nil {
+		return false
+	}
 	var i uint64
 	if i, ok = r.ref[p]; ok {
-		if err = writer.WriteByte(TagRef); err == nil {
-			if err = writeUint64(writer, i); err == nil {
-				err = writer.WriteByte(TagSemicolon)
-			}
-		}
+		enc.buf = append(enc.buf, TagRef)
+		enc.buf = AppendUint64(enc.buf, i)
+		enc.buf = append(enc.buf, TagSemicolon)
 	}
 	return
 }
 
-func (r *encoderRefer) WriteString(enc *Encoder, s string) (ok bool, err error) {
-	writer := enc.writer
+func (r *encoderRefer) WriteString(enc *Encoder, s string) (ok bool) {
+	if r.sref == nil {
+		return false
+	}
 	var i uint64
 	if i, ok = r.sref[s]; ok {
-		if err = writer.WriteByte(TagRef); err == nil {
-			if err = writeUint64(writer, i); err == nil {
-				err = writer.WriteByte(TagSemicolon)
-			}
-		}
+		enc.buf = append(enc.buf, TagRef)
+		enc.buf = AppendUint64(enc.buf, i)
+		enc.buf = append(enc.buf, TagSemicolon)
 	}
 	return
 }
 
 func (r *encoderRefer) Reset() {
-	r.ref = make(map[interface{}]uint64)
-	r.sref = make(map[string]uint64)
+	r.ref = nil
+	r.sref = nil
 	r.last = 0
 }

@@ -20,8 +20,8 @@ import (
 
 // ValueEncoder is the interface that groups the basic Write and Encode methods.
 type ValueEncoder interface {
-	Encode(enc *Encoder, v interface{}) error
-	Write(enc *Encoder, v interface{}) error
+	Encode(enc *Encoder, v interface{})
+	Write(enc *Encoder, v interface{})
 }
 
 var structEncoderMap = sync.Map{}

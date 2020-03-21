@@ -14,7 +14,6 @@
 package encoding
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"strings"
@@ -34,11 +33,11 @@ type structEncoder struct {
 	metadata []byte
 }
 
-func (valenc *structEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	return EncodeReference(valenc, enc, v)
+func (valenc *structEncoder) Encode(enc *Encoder, v interface{}) {
+	EncodeReference(valenc, enc, v)
 }
 
-func (valenc *structEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
 	t := reflect.TypeOf(v)
 	st := t
 	if t.Kind() == reflect.Ptr {
@@ -46,36 +45,29 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	}
 	fields := valenc.fields
 	n := len(fields)
-	var r int
-	r, err = enc.WriteStruct(st, func() (err error) {
+	var r = enc.WriteStruct(st, func() {
 		enc.AddReferenceCount(n)
-		_, err = enc.writer.Write(valenc.metadata)
-		return
+		enc.buf = append(enc.buf, valenc.metadata...)
 	})
-	if err == nil {
-		if t.Kind() == reflect.Ptr {
-			enc.SetReference(v)
-		} else {
-			enc.AddReferenceCount(1)
-		}
-		p := reflect2.PtrOf(v)
-		err = WriteObjectHead(enc, r)
-		for i := 0; i < n && err == nil; i++ {
-			err = fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
-		}
-		if err == nil {
-			err = WriteFoot(enc)
-		}
+	if t.Kind() == reflect.Ptr {
+		enc.SetReference(v)
+	} else {
+		enc.AddReferenceCount(1)
 	}
-	return
+	p := reflect2.PtrOf(v)
+	WriteObjectHead(enc, r)
+	for i := 0; i < n; i++ {
+		fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
+	}
+	WriteFoot(enc)
 }
 
-func writeName(writer bytesWriter, s string) (err error) {
+func appendName(buf []byte, s string) []byte {
 	length := utf16Length(s)
 	if length < 0 {
-		return ErrInvalidUTF8
+		panic(ErrInvalidUTF8)
 	}
-	return writeBinary(writer, reflect2.UnsafeCastString(s), length)
+	return appendBinary(buf, reflect2.UnsafeCastString(s), length)
 }
 
 func stripOptions(tag string) string {
@@ -159,19 +151,19 @@ func newStructEncoder(t reflect.Type, name string, tagnames []string) ValueEncod
 	var names []string
 	names, encoder.fields = getFields(reflect2.Type2(t).(reflect2.StructType), tagnames, map[string]bool{}, nil, nil)
 	n := len(names)
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(TagClass)
-	writeName(buffer, name)
+	var buf []byte
+	buf = append(buf, TagClass)
+	buf = appendName(buf, name)
 	if n > 0 {
-		writeUint64(buffer, uint64(n))
+		buf = AppendUint64(buf, uint64(n))
 	}
-	buffer.WriteByte(TagOpenbrace)
+	buf = append(buf, TagOpenbrace)
 	for i := 0; i < n; i++ {
-		buffer.WriteByte(TagString)
-		writeName(buffer, names[i])
+		buf = append(buf, TagString)
+		buf = appendName(buf, names[i])
 	}
-	buffer.WriteByte(TagClosebrace)
-	encoder.metadata = buffer.Bytes()
+	buf = append(buf, TagClosebrace)
+	encoder.metadata = buf
 	return encoder
 }
 
@@ -188,26 +180,23 @@ func newAnonymousStructEncoder(t reflect.Type) ValueEncoder {
 	return encoder
 }
 
-func (valenc *anonymousStructEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	return EncodeReference(valenc, enc, v)
+func (valenc *anonymousStructEncoder) Encode(enc *Encoder, v interface{}) {
+	EncodeReference(valenc, enc, v)
 }
 
-func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) {
 	SetReference(enc, v)
 	names, fields := valenc.names, valenc.fields
 	n := len(names)
 	if n == 0 {
-		_, err = enc.writer.Write(emptyMap)
+		enc.buf = append(enc.buf, TagMap, TagOpenbrace, TagClosebrace)
 		return
 	}
 	p := reflect2.PtrOf(v)
-	err = WriteHead(enc, n, TagMap)
-	for i := 0; i < n && err == nil; i++ {
+	WriteHead(enc, n, TagMap)
+	for i := 0; i < n; i++ {
 		EncodeString(enc, names[i])
-		err = fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
+		fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
 	}
-	if err == nil {
-		err = WriteFoot(enc)
-	}
-	return
+	WriteFoot(enc)
 }

@@ -18,10 +18,10 @@ type interfaceEncoder struct{}
 
 var intfenc interfaceEncoder
 
-func (interfaceEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	return enc.Encode(v)
+func (interfaceEncoder) Encode(enc *Encoder, v interface{}) {
+	enc.encode(v)
 }
 
-func (interfaceEncoder) Write(enc *Encoder, v interface{}) (err error) {
-	return enc.Write(v)
+func (interfaceEncoder) Write(enc *Encoder, v interface{}) {
+	enc.write(v)
 }

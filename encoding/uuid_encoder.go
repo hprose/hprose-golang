@@ -23,26 +23,21 @@ import (
 // uuidEncoder is the implementation of ValueEncoder for uuid.UUID/*uuid.UUID.
 type uuidEncoder struct{}
 
-func (valenc uuidEncoder) Encode(enc *Encoder, v interface{}) error {
-	return EncodeReference(valenc, enc, v)
+func (valenc uuidEncoder) Encode(enc *Encoder, v interface{}) {
+	EncodeReference(valenc, enc, v)
 }
 
-func (uuidEncoder) Write(enc *Encoder, v interface{}) error {
+func (uuidEncoder) Write(enc *Encoder, v interface{}) {
 	SetReference(enc, v)
-	return writeUUID(enc.writer, *(*[16]byte)(reflect2.PtrOf(v)))
+	writeUUID(enc, *(*[16]byte)(reflect2.PtrOf(v)))
 }
 
-func writeUUID(writer bytesWriter, id [16]byte) (err error) {
+func writeUUID(enc *Encoder, id [16]byte) {
 	var buf [36]byte
 	encodeHex(buf[:], id)
-	if err = writer.WriteByte(TagGUID); err == nil {
-		if err = writer.WriteByte(TagOpenbrace); err == nil {
-			if _, err = writer.Write(buf[:]); err == nil {
-				err = writer.WriteByte(TagClosebrace)
-			}
-		}
-	}
-	return
+	enc.buf = append(enc.buf, TagGUID, TagOpenbrace)
+	enc.buf = append(enc.buf, buf[:]...)
+	enc.buf = append(enc.buf, TagClosebrace)
 }
 
 func encodeHex(dst []byte, uuid [16]byte) {

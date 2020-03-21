@@ -25,23 +25,21 @@ type arrayEncoder struct{}
 
 var arrayenc arrayEncoder
 
-func (valenc arrayEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	var ok bool
-	if ok, err = enc.WriteReference(v); !ok && err == nil {
-		err = valenc.Write(enc, v)
+func (valenc arrayEncoder) Encode(enc *Encoder, v interface{}) {
+	if ok := enc.WriteReference(v); !ok {
+		valenc.Write(enc, v)
 	}
-	return
 }
 
-func (arrayEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (arrayEncoder) Write(enc *Encoder, v interface{}) {
 	enc.SetReference(v)
-	return writeArray(enc, reflect.ValueOf(v).Elem().Interface())
+	writeArray(enc, reflect.ValueOf(v).Elem().Interface())
 }
 
 // WriteArray to encoder
-func WriteArray(enc *Encoder, v interface{}) (err error) {
+func WriteArray(enc *Encoder, v interface{}) {
 	enc.AddReferenceCount(1)
-	return writeArray(enc, v)
+	writeArray(enc, v)
 }
 
 func makeSlice(array interface{}, count int) unsafe.Pointer {
@@ -52,12 +50,12 @@ func makeSlice(array interface{}, count int) unsafe.Pointer {
 	})
 }
 
-func writeArray(enc *Encoder, array interface{}) (err error) {
+func writeArray(enc *Encoder, array interface{}) {
 	t := reflect.TypeOf(array)
 	sliceType := reflect.SliceOf(t.Elem())
 	var slice interface{}
 	sliceStruct := unpackEFace(&slice)
 	sliceStruct.typ = (uintptr)(reflect2.PtrOf(sliceType))
 	sliceStruct.ptr = makeSlice(array, t.Len())
-	return writeSlice(enc, slice)
+	writeSlice(enc, slice)
 }

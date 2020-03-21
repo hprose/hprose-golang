@@ -16,18 +16,17 @@ package encoding
 // errorEncoder is the implementation of ValueEncoder for error/*error.
 type errorEncoder struct{}
 
-func (valenc errorEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	return valenc.Write(enc, v)
+func (valenc errorEncoder) Encode(enc *Encoder, v interface{}) {
+	valenc.Write(enc, v)
 }
 
-func (errorEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (errorEncoder) Write(enc *Encoder, v interface{}) {
 	switch v := v.(type) {
 	case error:
-		err = WriteError(enc, v)
+		WriteError(enc, v)
 	case *error:
-		err = WriteError(enc, *v)
+		WriteError(enc, *v)
 	}
-	return
 }
 
 func init() {
