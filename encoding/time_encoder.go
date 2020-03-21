@@ -32,7 +32,7 @@ func (valenc TimeEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 // if v is already written to stream, it will writes it as value
 func (TimeEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	SetReference(enc, v)
-	return writeTime(enc.Writer, *(*time.Time)(reflect2.PtrOf(v)))
+	return writeTime(enc.writer, *(*time.Time)(reflect2.PtrOf(v)))
 }
 
 func writeDatePart(writer BytesWriter, year int, month int, day int) (err error) {

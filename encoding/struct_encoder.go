@@ -44,13 +44,12 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	if t.Kind() == reflect.Ptr {
 		st = t.Elem()
 	}
-	writer := enc.Writer
 	fields := valenc.fields
 	n := len(fields)
 	var r int
 	r, err = enc.WriteStructType(st, func() (err error) {
 		enc.AddReferenceCount(n)
-		_, err = writer.Write(valenc.metadata)
+		_, err = enc.writer.Write(valenc.metadata)
 		return
 	})
 	if err == nil {
@@ -60,12 +59,12 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) (err error) {
 			enc.AddReferenceCount(1)
 		}
 		p := reflect2.PtrOf(v)
-		err = WriteObjectHead(writer, r)
+		err = WriteObjectHead(enc, r)
 		for i := 0; i < n && err == nil; i++ {
 			err = fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
 		}
 		if err == nil {
-			err = WriteFoot(writer)
+			err = WriteFoot(enc)
 		}
 	}
 	return
@@ -195,21 +194,20 @@ func (valenc *anonymousStructEncoder) Encode(enc *Encoder, v interface{}) (err e
 
 func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	SetReference(enc, v)
-	writer := enc.Writer
 	names, fields := valenc.names, valenc.fields
 	n := len(names)
 	if n == 0 {
-		_, err = writer.Write(emptyMap)
+		_, err = enc.writer.Write(emptyMap)
 		return
 	}
 	p := reflect2.PtrOf(v)
-	err = WriteHead(writer, n, TagMap)
+	err = WriteHead(enc, n, TagMap)
 	for i := 0; i < n && err == nil; i++ {
 		EncodeString(enc, names[i])
 		err = fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
 	}
 	if err == nil {
-		err = WriteFoot(writer)
+		err = WriteFoot(enc)
 	}
 	return
 }

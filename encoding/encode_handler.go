@@ -77,55 +77,55 @@ func GetEncodeHandler(t reflect.Type) EncodeHandler {
 }
 
 func boolEncode(enc *Encoder, v interface{}) error {
-	return WriteBool(enc.Writer, *(*bool)(reflect2.PtrOf(v)))
+	return WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
 }
 
 func intEncode(enc *Encoder, v interface{}) error {
-	return WriteInt(enc.Writer, *(*int)(reflect2.PtrOf(v)))
+	return WriteInt(enc, *(*int)(reflect2.PtrOf(v)))
 }
 
 func int8Encode(enc *Encoder, v interface{}) error {
-	return WriteInt8(enc.Writer, *(*int8)(reflect2.PtrOf(v)))
+	return WriteInt8(enc, *(*int8)(reflect2.PtrOf(v)))
 }
 
 func int16Encode(enc *Encoder, v interface{}) error {
-	return WriteInt16(enc.Writer, *(*int16)(reflect2.PtrOf(v)))
+	return WriteInt16(enc, *(*int16)(reflect2.PtrOf(v)))
 }
 
 func int32Encode(enc *Encoder, v interface{}) error {
-	return WriteInt32(enc.Writer, *(*int32)(reflect2.PtrOf(v)))
+	return WriteInt32(enc, *(*int32)(reflect2.PtrOf(v)))
 }
 
 func int64Encode(enc *Encoder, v interface{}) error {
-	return WriteInt64(enc.Writer, *(*int64)(reflect2.PtrOf(v)))
+	return WriteInt64(enc, *(*int64)(reflect2.PtrOf(v)))
 }
 
 func uintEncode(enc *Encoder, v interface{}) error {
-	return WriteUint(enc.Writer, *(*uint)(reflect2.PtrOf(v)))
+	return WriteUint(enc, *(*uint)(reflect2.PtrOf(v)))
 }
 
 func uint8Encode(enc *Encoder, v interface{}) error {
-	return WriteUint8(enc.Writer, *(*uint8)(reflect2.PtrOf(v)))
+	return WriteUint8(enc, *(*uint8)(reflect2.PtrOf(v)))
 }
 
 func uint16Encode(enc *Encoder, v interface{}) error {
-	return WriteUint16(enc.Writer, *(*uint16)(reflect2.PtrOf(v)))
+	return WriteUint16(enc, *(*uint16)(reflect2.PtrOf(v)))
 }
 
 func uint32Encode(enc *Encoder, v interface{}) error {
-	return WriteUint32(enc.Writer, *(*uint32)(reflect2.PtrOf(v)))
+	return WriteUint32(enc, *(*uint32)(reflect2.PtrOf(v)))
 }
 
 func uint64Encode(enc *Encoder, v interface{}) error {
-	return WriteUint64(enc.Writer, *(*uint64)(reflect2.PtrOf(v)))
+	return WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
 }
 
 func float32Encode(enc *Encoder, v interface{}) error {
-	return WriteFloat32(enc.Writer, *(*float32)(reflect2.PtrOf(v)))
+	return WriteFloat32(enc, *(*float32)(reflect2.PtrOf(v)))
 }
 
 func float64Encode(enc *Encoder, v interface{}) error {
-	return WriteFloat64(enc.Writer, *(*float64)(reflect2.PtrOf(v)))
+	return WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
 }
 
 func complex64Encode(enc *Encoder, v interface{}) error {
@@ -146,14 +146,14 @@ func arrayEncode(enc *Encoder, v interface{}) error {
 
 func mapEncode(enc *Encoder, v interface{}) error {
 	if reflect.ValueOf(v).IsNil() {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return WriteMap(enc, v)
 }
 
 func sliceEncode(enc *Encoder, v interface{}) error {
 	if reflect.ValueOf(v).IsNil() {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return WriteSlice(enc, v)
 }
@@ -165,111 +165,111 @@ func interfaceEncode(enc *Encoder, v interface{}) error {
 func boolPtrEncode(enc *Encoder, v interface{}) error {
 	p := (*bool)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteBool(enc.Writer, *p)
+	return WriteBool(enc, *p)
 }
 
 func intPtrEncode(enc *Encoder, v interface{}) error {
 	p := (*int)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteInt(enc.Writer, *p)
+	return WriteInt(enc, *p)
 }
 
 func int8PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*int8)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteInt8(enc.Writer, *p)
+	return WriteInt8(enc, *p)
 }
 
 func int16PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*int16)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteInt16(enc.Writer, *p)
+	return WriteInt16(enc, *p)
 }
 
 func int32PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*int32)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteInt32(enc.Writer, *p)
+	return WriteInt32(enc, *p)
 }
 
 func int64PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*int64)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteInt64(enc.Writer, *p)
+	return WriteInt64(enc, *p)
 }
 
 func uintPtrEncode(enc *Encoder, v interface{}) error {
 	p := (*uint)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteUint(enc.Writer, *p)
+	return WriteUint(enc, *p)
 }
 
 func uint8PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*uint8)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteUint8(enc.Writer, *p)
+	return WriteUint8(enc, *p)
 }
 
 func uint16PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*uint16)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteUint16(enc.Writer, *p)
+	return WriteUint16(enc, *p)
 }
 
 func uint32PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*uint32)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteUint32(enc.Writer, *p)
+	return WriteUint32(enc, *p)
 }
 
 func uint64PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*uint64)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteUint64(enc.Writer, *p)
+	return WriteUint64(enc, *p)
 }
 
 func float32PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*float32)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteFloat32(enc.Writer, *p)
+	return WriteFloat32(enc, *p)
 }
 
 func float64PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*float64)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
-	return WriteFloat64(enc.Writer, *p)
+	return WriteFloat64(enc, *p)
 }
 
 func complex64PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*complex64)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return WriteComplex64(enc, *p)
 }
@@ -277,7 +277,7 @@ func complex64PtrEncode(enc *Encoder, v interface{}) error {
 func complex128PtrEncode(enc *Encoder, v interface{}) error {
 	p := (*complex128)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return WriteComplex128(enc, *p)
 }
@@ -285,28 +285,28 @@ func complex128PtrEncode(enc *Encoder, v interface{}) error {
 func stringPtrEncode(enc *Encoder, v interface{}) error {
 	p := (*string)(reflect2.PtrOf(v))
 	if p == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return EncodeString(enc, *p)
 }
 
 func arrayPtrEncode(enc *Encoder, v interface{}) error {
 	if reflect2.IsNil(v) {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return arrayenc.Encode(enc, v)
 }
 
 func mapPtrEncode(enc *Encoder, v interface{}) error {
 	if rv := reflect.ValueOf(v); rv.IsNil() || rv.Elem().IsNil() {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return mapenc.Encode(enc, v)
 }
 
 func slicePtrEncode(enc *Encoder, v interface{}) error {
 	if rv := reflect.ValueOf(v); rv.IsNil() || rv.Elem().IsNil() {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return slcenc.Encode(enc, v)
 }
@@ -314,14 +314,14 @@ func slicePtrEncode(enc *Encoder, v interface{}) error {
 func interfacePtrEncode(enc *Encoder, v interface{}) error {
 	rv := reflect.ValueOf(v)
 	if rv.IsNil() {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return enc.Encode(rv.Elem().Interface())
 }
 
 func ptrEncode(enc *Encoder, v interface{}) error {
 	if reflect2.IsNil(v) {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return ptrenc.Encode(enc, v)
 }

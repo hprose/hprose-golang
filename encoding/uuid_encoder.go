@@ -33,7 +33,7 @@ func (valenc UUIDEncoder) Encode(enc *Encoder, v interface{}) error {
 // if v is already written to stream, it will writes it as value
 func (UUIDEncoder) Write(enc *Encoder, v interface{}) error {
 	SetReference(enc, v)
-	return writeUUID(enc.Writer, *(*[16]byte)(reflect2.PtrOf(v)))
+	return writeUUID(enc.writer, *(*[16]byte)(reflect2.PtrOf(v)))
 }
 
 func writeUUID(writer BytesWriter, id [16]byte) (err error) {

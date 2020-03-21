@@ -41,7 +41,8 @@ func (r *encoderRefer) SetString(s string) {
 	r.last++
 }
 
-func (r *encoderRefer) Write(writer BytesWriter, p interface{}) (ok bool, err error) {
+func (r *encoderRefer) Write(enc *Encoder, p interface{}) (ok bool, err error) {
+	writer := enc.writer
 	var i uint64
 	if i, ok = r.ref[p]; ok {
 		if err = writer.WriteByte(TagRef); err == nil {
@@ -53,7 +54,8 @@ func (r *encoderRefer) Write(writer BytesWriter, p interface{}) (ok bool, err er
 	return
 }
 
-func (r *encoderRefer) WriteString(writer BytesWriter, s string) (ok bool, err error) {
+func (r *encoderRefer) WriteString(enc *Encoder, s string) (ok bool, err error) {
+	writer := enc.writer
 	var i uint64
 	if i, ok = r.sref[s]; ok {
 		if err = writer.WriteByte(TagRef); err == nil {

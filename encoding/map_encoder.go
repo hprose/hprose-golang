@@ -47,15 +47,14 @@ func WriteMap(enc *Encoder, v interface{}) (err error) {
 var emptyMap = []byte{TagMap, TagOpenbrace, TagClosebrace}
 
 func writeMap(enc *Encoder, v interface{}) (err error) {
-	writer := enc.Writer
 	count := reflect.ValueOf(v).Len()
 	if count == 0 {
-		_, err = writer.Write(emptyMap)
+		_, err = enc.writer.Write(emptyMap)
 		return
 	}
-	if err = WriteHead(writer, count, TagMap); err == nil {
+	if err = WriteHead(enc, count, TagMap); err == nil {
 		if err = writeMapBody(enc, v); err == nil {
-			err = WriteFoot(writer)
+			err = WriteFoot(enc)
 		}
 	}
 	return
@@ -503,7 +502,7 @@ func writeStringIntMapBody(enc *Encoder, m map[string]int) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -514,7 +513,7 @@ func writeStringInt8MapBody(enc *Encoder, m map[string]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -525,7 +524,7 @@ func writeStringInt16MapBody(enc *Encoder, m map[string]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -536,7 +535,7 @@ func writeStringInt32MapBody(enc *Encoder, m map[string]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -547,7 +546,7 @@ func writeStringInt64MapBody(enc *Encoder, m map[string]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -558,7 +557,7 @@ func writeStringUintMapBody(enc *Encoder, m map[string]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -569,7 +568,7 @@ func writeStringUint8MapBody(enc *Encoder, m map[string]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -580,7 +579,7 @@ func writeStringUint16MapBody(enc *Encoder, m map[string]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -591,7 +590,7 @@ func writeStringUint32MapBody(enc *Encoder, m map[string]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -602,7 +601,7 @@ func writeStringUint64MapBody(enc *Encoder, m map[string]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -613,7 +612,7 @@ func writeStringBoolMapBody(enc *Encoder, m map[string]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -624,7 +623,7 @@ func writeStringFloat32MapBody(enc *Encoder, m map[string]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -635,7 +634,7 @@ func writeStringFloat64MapBody(enc *Encoder, m map[string]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = EncodeString(enc, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -656,7 +655,7 @@ func writeStringInterfaceMapBody(enc *Encoder, m map[string]interface{}) (err er
 func writeIntStringMapBody(enc *Encoder, m map[int]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
+			if err = WriteInt(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -667,8 +666,8 @@ func writeIntStringMapBody(enc *Encoder, m map[int]string) (err error) {
 func writeIntIntMapBody(enc *Encoder, m map[int]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -678,8 +677,8 @@ func writeIntIntMapBody(enc *Encoder, m map[int]int) (err error) {
 func writeIntInt8MapBody(enc *Encoder, m map[int]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -689,8 +688,8 @@ func writeIntInt8MapBody(enc *Encoder, m map[int]int8) (err error) {
 func writeIntInt16MapBody(enc *Encoder, m map[int]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -700,8 +699,8 @@ func writeIntInt16MapBody(enc *Encoder, m map[int]int16) (err error) {
 func writeIntInt32MapBody(enc *Encoder, m map[int]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -711,8 +710,8 @@ func writeIntInt32MapBody(enc *Encoder, m map[int]int32) (err error) {
 func writeIntInt64MapBody(enc *Encoder, m map[int]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -722,8 +721,8 @@ func writeIntInt64MapBody(enc *Encoder, m map[int]int64) (err error) {
 func writeIntUintMapBody(enc *Encoder, m map[int]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -733,8 +732,8 @@ func writeIntUintMapBody(enc *Encoder, m map[int]uint) (err error) {
 func writeIntUint8MapBody(enc *Encoder, m map[int]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -744,8 +743,8 @@ func writeIntUint8MapBody(enc *Encoder, m map[int]uint8) (err error) {
 func writeIntUint16MapBody(enc *Encoder, m map[int]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -755,8 +754,8 @@ func writeIntUint16MapBody(enc *Encoder, m map[int]uint16) (err error) {
 func writeIntUint32MapBody(enc *Encoder, m map[int]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -766,8 +765,8 @@ func writeIntUint32MapBody(enc *Encoder, m map[int]uint32) (err error) {
 func writeIntUint64MapBody(enc *Encoder, m map[int]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -777,8 +776,8 @@ func writeIntUint64MapBody(enc *Encoder, m map[int]uint64) (err error) {
 func writeIntBoolMapBody(enc *Encoder, m map[int]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -788,8 +787,8 @@ func writeIntBoolMapBody(enc *Encoder, m map[int]bool) (err error) {
 func writeIntFloat32MapBody(enc *Encoder, m map[int]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -799,8 +798,8 @@ func writeIntFloat32MapBody(enc *Encoder, m map[int]float32) (err error) {
 func writeIntFloat64MapBody(enc *Encoder, m map[int]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteInt(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -810,7 +809,7 @@ func writeIntFloat64MapBody(enc *Encoder, m map[int]float64) (err error) {
 func writeIntInterfaceMapBody(enc *Encoder, m map[int]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt(enc.Writer, k); err == nil {
+			if err = WriteInt(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -821,7 +820,7 @@ func writeIntInterfaceMapBody(enc *Encoder, m map[int]interface{}) (err error) {
 func writeInt8StringMapBody(enc *Encoder, m map[int8]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
+			if err = WriteInt8(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -832,8 +831,8 @@ func writeInt8StringMapBody(enc *Encoder, m map[int8]string) (err error) {
 func writeInt8IntMapBody(enc *Encoder, m map[int8]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -843,8 +842,8 @@ func writeInt8IntMapBody(enc *Encoder, m map[int8]int) (err error) {
 func writeInt8Int8MapBody(enc *Encoder, m map[int8]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -854,8 +853,8 @@ func writeInt8Int8MapBody(enc *Encoder, m map[int8]int8) (err error) {
 func writeInt8Int16MapBody(enc *Encoder, m map[int8]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -865,8 +864,8 @@ func writeInt8Int16MapBody(enc *Encoder, m map[int8]int16) (err error) {
 func writeInt8Int32MapBody(enc *Encoder, m map[int8]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -876,8 +875,8 @@ func writeInt8Int32MapBody(enc *Encoder, m map[int8]int32) (err error) {
 func writeInt8Int64MapBody(enc *Encoder, m map[int8]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -887,8 +886,8 @@ func writeInt8Int64MapBody(enc *Encoder, m map[int8]int64) (err error) {
 func writeInt8UintMapBody(enc *Encoder, m map[int8]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -898,8 +897,8 @@ func writeInt8UintMapBody(enc *Encoder, m map[int8]uint) (err error) {
 func writeInt8Uint8MapBody(enc *Encoder, m map[int8]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -909,8 +908,8 @@ func writeInt8Uint8MapBody(enc *Encoder, m map[int8]uint8) (err error) {
 func writeInt8Uint16MapBody(enc *Encoder, m map[int8]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -920,8 +919,8 @@ func writeInt8Uint16MapBody(enc *Encoder, m map[int8]uint16) (err error) {
 func writeInt8Uint32MapBody(enc *Encoder, m map[int8]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -931,8 +930,8 @@ func writeInt8Uint32MapBody(enc *Encoder, m map[int8]uint32) (err error) {
 func writeInt8Uint64MapBody(enc *Encoder, m map[int8]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -942,8 +941,8 @@ func writeInt8Uint64MapBody(enc *Encoder, m map[int8]uint64) (err error) {
 func writeInt8BoolMapBody(enc *Encoder, m map[int8]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -953,8 +952,8 @@ func writeInt8BoolMapBody(enc *Encoder, m map[int8]bool) (err error) {
 func writeInt8Float32MapBody(enc *Encoder, m map[int8]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -964,8 +963,8 @@ func writeInt8Float32MapBody(enc *Encoder, m map[int8]float32) (err error) {
 func writeInt8Float64MapBody(enc *Encoder, m map[int8]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteInt8(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -975,7 +974,7 @@ func writeInt8Float64MapBody(enc *Encoder, m map[int8]float64) (err error) {
 func writeInt8InterfaceMapBody(enc *Encoder, m map[int8]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt8(enc.Writer, k); err == nil {
+			if err = WriteInt8(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -986,7 +985,7 @@ func writeInt8InterfaceMapBody(enc *Encoder, m map[int8]interface{}) (err error)
 func writeInt16StringMapBody(enc *Encoder, m map[int16]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
+			if err = WriteInt16(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -997,8 +996,8 @@ func writeInt16StringMapBody(enc *Encoder, m map[int16]string) (err error) {
 func writeInt16IntMapBody(enc *Encoder, m map[int16]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -1008,8 +1007,8 @@ func writeInt16IntMapBody(enc *Encoder, m map[int16]int) (err error) {
 func writeInt16Int8MapBody(enc *Encoder, m map[int16]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -1019,8 +1018,8 @@ func writeInt16Int8MapBody(enc *Encoder, m map[int16]int8) (err error) {
 func writeInt16Int16MapBody(enc *Encoder, m map[int16]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -1030,8 +1029,8 @@ func writeInt16Int16MapBody(enc *Encoder, m map[int16]int16) (err error) {
 func writeInt16Int32MapBody(enc *Encoder, m map[int16]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -1041,8 +1040,8 @@ func writeInt16Int32MapBody(enc *Encoder, m map[int16]int32) (err error) {
 func writeInt16Int64MapBody(enc *Encoder, m map[int16]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -1052,8 +1051,8 @@ func writeInt16Int64MapBody(enc *Encoder, m map[int16]int64) (err error) {
 func writeInt16UintMapBody(enc *Encoder, m map[int16]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -1063,8 +1062,8 @@ func writeInt16UintMapBody(enc *Encoder, m map[int16]uint) (err error) {
 func writeInt16Uint8MapBody(enc *Encoder, m map[int16]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -1074,8 +1073,8 @@ func writeInt16Uint8MapBody(enc *Encoder, m map[int16]uint8) (err error) {
 func writeInt16Uint16MapBody(enc *Encoder, m map[int16]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -1085,8 +1084,8 @@ func writeInt16Uint16MapBody(enc *Encoder, m map[int16]uint16) (err error) {
 func writeInt16Uint32MapBody(enc *Encoder, m map[int16]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -1096,8 +1095,8 @@ func writeInt16Uint32MapBody(enc *Encoder, m map[int16]uint32) (err error) {
 func writeInt16Uint64MapBody(enc *Encoder, m map[int16]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -1107,8 +1106,8 @@ func writeInt16Uint64MapBody(enc *Encoder, m map[int16]uint64) (err error) {
 func writeInt16BoolMapBody(enc *Encoder, m map[int16]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -1118,8 +1117,8 @@ func writeInt16BoolMapBody(enc *Encoder, m map[int16]bool) (err error) {
 func writeInt16Float32MapBody(enc *Encoder, m map[int16]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -1129,8 +1128,8 @@ func writeInt16Float32MapBody(enc *Encoder, m map[int16]float32) (err error) {
 func writeInt16Float64MapBody(enc *Encoder, m map[int16]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteInt16(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -1140,7 +1139,7 @@ func writeInt16Float64MapBody(enc *Encoder, m map[int16]float64) (err error) {
 func writeInt16InterfaceMapBody(enc *Encoder, m map[int16]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt16(enc.Writer, k); err == nil {
+			if err = WriteInt16(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -1151,7 +1150,7 @@ func writeInt16InterfaceMapBody(enc *Encoder, m map[int16]interface{}) (err erro
 func writeInt32StringMapBody(enc *Encoder, m map[int32]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
+			if err = WriteInt32(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -1162,8 +1161,8 @@ func writeInt32StringMapBody(enc *Encoder, m map[int32]string) (err error) {
 func writeInt32IntMapBody(enc *Encoder, m map[int32]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -1173,8 +1172,8 @@ func writeInt32IntMapBody(enc *Encoder, m map[int32]int) (err error) {
 func writeInt32Int8MapBody(enc *Encoder, m map[int32]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -1184,8 +1183,8 @@ func writeInt32Int8MapBody(enc *Encoder, m map[int32]int8) (err error) {
 func writeInt32Int16MapBody(enc *Encoder, m map[int32]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -1195,8 +1194,8 @@ func writeInt32Int16MapBody(enc *Encoder, m map[int32]int16) (err error) {
 func writeInt32Int32MapBody(enc *Encoder, m map[int32]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -1206,8 +1205,8 @@ func writeInt32Int32MapBody(enc *Encoder, m map[int32]int32) (err error) {
 func writeInt32Int64MapBody(enc *Encoder, m map[int32]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -1217,8 +1216,8 @@ func writeInt32Int64MapBody(enc *Encoder, m map[int32]int64) (err error) {
 func writeInt32UintMapBody(enc *Encoder, m map[int32]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -1228,8 +1227,8 @@ func writeInt32UintMapBody(enc *Encoder, m map[int32]uint) (err error) {
 func writeInt32Uint8MapBody(enc *Encoder, m map[int32]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -1239,8 +1238,8 @@ func writeInt32Uint8MapBody(enc *Encoder, m map[int32]uint8) (err error) {
 func writeInt32Uint16MapBody(enc *Encoder, m map[int32]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -1250,8 +1249,8 @@ func writeInt32Uint16MapBody(enc *Encoder, m map[int32]uint16) (err error) {
 func writeInt32Uint32MapBody(enc *Encoder, m map[int32]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -1261,8 +1260,8 @@ func writeInt32Uint32MapBody(enc *Encoder, m map[int32]uint32) (err error) {
 func writeInt32Uint64MapBody(enc *Encoder, m map[int32]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -1272,8 +1271,8 @@ func writeInt32Uint64MapBody(enc *Encoder, m map[int32]uint64) (err error) {
 func writeInt32BoolMapBody(enc *Encoder, m map[int32]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -1283,8 +1282,8 @@ func writeInt32BoolMapBody(enc *Encoder, m map[int32]bool) (err error) {
 func writeInt32Float32MapBody(enc *Encoder, m map[int32]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -1294,8 +1293,8 @@ func writeInt32Float32MapBody(enc *Encoder, m map[int32]float32) (err error) {
 func writeInt32Float64MapBody(enc *Encoder, m map[int32]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteInt32(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -1305,7 +1304,7 @@ func writeInt32Float64MapBody(enc *Encoder, m map[int32]float64) (err error) {
 func writeInt32InterfaceMapBody(enc *Encoder, m map[int32]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt32(enc.Writer, k); err == nil {
+			if err = WriteInt32(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -1316,7 +1315,7 @@ func writeInt32InterfaceMapBody(enc *Encoder, m map[int32]interface{}) (err erro
 func writeInt64StringMapBody(enc *Encoder, m map[int64]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
+			if err = WriteInt64(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -1327,8 +1326,8 @@ func writeInt64StringMapBody(enc *Encoder, m map[int64]string) (err error) {
 func writeInt64IntMapBody(enc *Encoder, m map[int64]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -1338,8 +1337,8 @@ func writeInt64IntMapBody(enc *Encoder, m map[int64]int) (err error) {
 func writeInt64Int8MapBody(enc *Encoder, m map[int64]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -1349,8 +1348,8 @@ func writeInt64Int8MapBody(enc *Encoder, m map[int64]int8) (err error) {
 func writeInt64Int16MapBody(enc *Encoder, m map[int64]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -1360,8 +1359,8 @@ func writeInt64Int16MapBody(enc *Encoder, m map[int64]int16) (err error) {
 func writeInt64Int32MapBody(enc *Encoder, m map[int64]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -1371,8 +1370,8 @@ func writeInt64Int32MapBody(enc *Encoder, m map[int64]int32) (err error) {
 func writeInt64Int64MapBody(enc *Encoder, m map[int64]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -1382,8 +1381,8 @@ func writeInt64Int64MapBody(enc *Encoder, m map[int64]int64) (err error) {
 func writeInt64UintMapBody(enc *Encoder, m map[int64]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -1393,8 +1392,8 @@ func writeInt64UintMapBody(enc *Encoder, m map[int64]uint) (err error) {
 func writeInt64Uint8MapBody(enc *Encoder, m map[int64]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -1404,8 +1403,8 @@ func writeInt64Uint8MapBody(enc *Encoder, m map[int64]uint8) (err error) {
 func writeInt64Uint16MapBody(enc *Encoder, m map[int64]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -1415,8 +1414,8 @@ func writeInt64Uint16MapBody(enc *Encoder, m map[int64]uint16) (err error) {
 func writeInt64Uint32MapBody(enc *Encoder, m map[int64]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -1426,8 +1425,8 @@ func writeInt64Uint32MapBody(enc *Encoder, m map[int64]uint32) (err error) {
 func writeInt64Uint64MapBody(enc *Encoder, m map[int64]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -1437,8 +1436,8 @@ func writeInt64Uint64MapBody(enc *Encoder, m map[int64]uint64) (err error) {
 func writeInt64BoolMapBody(enc *Encoder, m map[int64]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -1448,8 +1447,8 @@ func writeInt64BoolMapBody(enc *Encoder, m map[int64]bool) (err error) {
 func writeInt64Float32MapBody(enc *Encoder, m map[int64]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -1459,8 +1458,8 @@ func writeInt64Float32MapBody(enc *Encoder, m map[int64]float32) (err error) {
 func writeInt64Float64MapBody(enc *Encoder, m map[int64]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteInt64(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -1470,7 +1469,7 @@ func writeInt64Float64MapBody(enc *Encoder, m map[int64]float64) (err error) {
 func writeInt64InterfaceMapBody(enc *Encoder, m map[int64]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteInt64(enc.Writer, k); err == nil {
+			if err = WriteInt64(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -1481,7 +1480,7 @@ func writeInt64InterfaceMapBody(enc *Encoder, m map[int64]interface{}) (err erro
 func writeUintStringMapBody(enc *Encoder, m map[uint]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
+			if err = WriteUint(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -1492,8 +1491,8 @@ func writeUintStringMapBody(enc *Encoder, m map[uint]string) (err error) {
 func writeUintIntMapBody(enc *Encoder, m map[uint]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -1503,8 +1502,8 @@ func writeUintIntMapBody(enc *Encoder, m map[uint]int) (err error) {
 func writeUintInt8MapBody(enc *Encoder, m map[uint]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -1514,8 +1513,8 @@ func writeUintInt8MapBody(enc *Encoder, m map[uint]int8) (err error) {
 func writeUintInt16MapBody(enc *Encoder, m map[uint]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -1525,8 +1524,8 @@ func writeUintInt16MapBody(enc *Encoder, m map[uint]int16) (err error) {
 func writeUintInt32MapBody(enc *Encoder, m map[uint]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -1536,8 +1535,8 @@ func writeUintInt32MapBody(enc *Encoder, m map[uint]int32) (err error) {
 func writeUintInt64MapBody(enc *Encoder, m map[uint]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -1547,8 +1546,8 @@ func writeUintInt64MapBody(enc *Encoder, m map[uint]int64) (err error) {
 func writeUintUintMapBody(enc *Encoder, m map[uint]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -1558,8 +1557,8 @@ func writeUintUintMapBody(enc *Encoder, m map[uint]uint) (err error) {
 func writeUintUint8MapBody(enc *Encoder, m map[uint]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -1569,8 +1568,8 @@ func writeUintUint8MapBody(enc *Encoder, m map[uint]uint8) (err error) {
 func writeUintUint16MapBody(enc *Encoder, m map[uint]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -1580,8 +1579,8 @@ func writeUintUint16MapBody(enc *Encoder, m map[uint]uint16) (err error) {
 func writeUintUint32MapBody(enc *Encoder, m map[uint]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -1591,8 +1590,8 @@ func writeUintUint32MapBody(enc *Encoder, m map[uint]uint32) (err error) {
 func writeUintUint64MapBody(enc *Encoder, m map[uint]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -1602,8 +1601,8 @@ func writeUintUint64MapBody(enc *Encoder, m map[uint]uint64) (err error) {
 func writeUintBoolMapBody(enc *Encoder, m map[uint]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -1613,8 +1612,8 @@ func writeUintBoolMapBody(enc *Encoder, m map[uint]bool) (err error) {
 func writeUintFloat32MapBody(enc *Encoder, m map[uint]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -1624,8 +1623,8 @@ func writeUintFloat32MapBody(enc *Encoder, m map[uint]float32) (err error) {
 func writeUintFloat64MapBody(enc *Encoder, m map[uint]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteUint(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -1635,7 +1634,7 @@ func writeUintFloat64MapBody(enc *Encoder, m map[uint]float64) (err error) {
 func writeUintInterfaceMapBody(enc *Encoder, m map[uint]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint(enc.Writer, k); err == nil {
+			if err = WriteUint(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -1645,7 +1644,7 @@ func writeUintInterfaceMapBody(enc *Encoder, m map[uint]interface{}) (err error)
 func writeUint8StringMapBody(enc *Encoder, m map[uint8]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
+			if err = WriteUint8(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -1656,8 +1655,8 @@ func writeUint8StringMapBody(enc *Encoder, m map[uint8]string) (err error) {
 func writeUint8IntMapBody(enc *Encoder, m map[uint8]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -1667,8 +1666,8 @@ func writeUint8IntMapBody(enc *Encoder, m map[uint8]int) (err error) {
 func writeUint8Int8MapBody(enc *Encoder, m map[uint8]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -1678,8 +1677,8 @@ func writeUint8Int8MapBody(enc *Encoder, m map[uint8]int8) (err error) {
 func writeUint8Int16MapBody(enc *Encoder, m map[uint8]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -1689,8 +1688,8 @@ func writeUint8Int16MapBody(enc *Encoder, m map[uint8]int16) (err error) {
 func writeUint8Int32MapBody(enc *Encoder, m map[uint8]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -1700,8 +1699,8 @@ func writeUint8Int32MapBody(enc *Encoder, m map[uint8]int32) (err error) {
 func writeUint8Int64MapBody(enc *Encoder, m map[uint8]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -1711,8 +1710,8 @@ func writeUint8Int64MapBody(enc *Encoder, m map[uint8]int64) (err error) {
 func writeUint8UintMapBody(enc *Encoder, m map[uint8]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -1722,8 +1721,8 @@ func writeUint8UintMapBody(enc *Encoder, m map[uint8]uint) (err error) {
 func writeUint8Uint8MapBody(enc *Encoder, m map[uint8]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -1733,8 +1732,8 @@ func writeUint8Uint8MapBody(enc *Encoder, m map[uint8]uint8) (err error) {
 func writeUint8Uint16MapBody(enc *Encoder, m map[uint8]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -1744,8 +1743,8 @@ func writeUint8Uint16MapBody(enc *Encoder, m map[uint8]uint16) (err error) {
 func writeUint8Uint32MapBody(enc *Encoder, m map[uint8]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -1755,8 +1754,8 @@ func writeUint8Uint32MapBody(enc *Encoder, m map[uint8]uint32) (err error) {
 func writeUint8Uint64MapBody(enc *Encoder, m map[uint8]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -1766,8 +1765,8 @@ func writeUint8Uint64MapBody(enc *Encoder, m map[uint8]uint64) (err error) {
 func writeUint8BoolMapBody(enc *Encoder, m map[uint8]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -1777,8 +1776,8 @@ func writeUint8BoolMapBody(enc *Encoder, m map[uint8]bool) (err error) {
 func writeUint8Float32MapBody(enc *Encoder, m map[uint8]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -1788,8 +1787,8 @@ func writeUint8Float32MapBody(enc *Encoder, m map[uint8]float32) (err error) {
 func writeUint8Float64MapBody(enc *Encoder, m map[uint8]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteUint8(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -1799,7 +1798,7 @@ func writeUint8Float64MapBody(enc *Encoder, m map[uint8]float64) (err error) {
 func writeUint8InterfaceMapBody(enc *Encoder, m map[uint8]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint8(enc.Writer, k); err == nil {
+			if err = WriteUint8(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -1810,7 +1809,7 @@ func writeUint8InterfaceMapBody(enc *Encoder, m map[uint8]interface{}) (err erro
 func writeUint16StringMapBody(enc *Encoder, m map[uint16]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
+			if err = WriteUint16(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -1821,8 +1820,8 @@ func writeUint16StringMapBody(enc *Encoder, m map[uint16]string) (err error) {
 func writeUint16IntMapBody(enc *Encoder, m map[uint16]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -1832,8 +1831,8 @@ func writeUint16IntMapBody(enc *Encoder, m map[uint16]int) (err error) {
 func writeUint16Int8MapBody(enc *Encoder, m map[uint16]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -1843,8 +1842,8 @@ func writeUint16Int8MapBody(enc *Encoder, m map[uint16]int8) (err error) {
 func writeUint16Int16MapBody(enc *Encoder, m map[uint16]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -1854,8 +1853,8 @@ func writeUint16Int16MapBody(enc *Encoder, m map[uint16]int16) (err error) {
 func writeUint16Int32MapBody(enc *Encoder, m map[uint16]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -1865,8 +1864,8 @@ func writeUint16Int32MapBody(enc *Encoder, m map[uint16]int32) (err error) {
 func writeUint16Int64MapBody(enc *Encoder, m map[uint16]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -1876,8 +1875,8 @@ func writeUint16Int64MapBody(enc *Encoder, m map[uint16]int64) (err error) {
 func writeUint16UintMapBody(enc *Encoder, m map[uint16]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -1887,8 +1886,8 @@ func writeUint16UintMapBody(enc *Encoder, m map[uint16]uint) (err error) {
 func writeUint16Uint8MapBody(enc *Encoder, m map[uint16]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -1898,8 +1897,8 @@ func writeUint16Uint8MapBody(enc *Encoder, m map[uint16]uint8) (err error) {
 func writeUint16Uint16MapBody(enc *Encoder, m map[uint16]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -1909,8 +1908,8 @@ func writeUint16Uint16MapBody(enc *Encoder, m map[uint16]uint16) (err error) {
 func writeUint16Uint32MapBody(enc *Encoder, m map[uint16]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -1920,8 +1919,8 @@ func writeUint16Uint32MapBody(enc *Encoder, m map[uint16]uint32) (err error) {
 func writeUint16Uint64MapBody(enc *Encoder, m map[uint16]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -1931,8 +1930,8 @@ func writeUint16Uint64MapBody(enc *Encoder, m map[uint16]uint64) (err error) {
 func writeUint16BoolMapBody(enc *Encoder, m map[uint16]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -1942,8 +1941,8 @@ func writeUint16BoolMapBody(enc *Encoder, m map[uint16]bool) (err error) {
 func writeUint16Float32MapBody(enc *Encoder, m map[uint16]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -1953,8 +1952,8 @@ func writeUint16Float32MapBody(enc *Encoder, m map[uint16]float32) (err error) {
 func writeUint16Float64MapBody(enc *Encoder, m map[uint16]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteUint16(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -1964,7 +1963,7 @@ func writeUint16Float64MapBody(enc *Encoder, m map[uint16]float64) (err error) {
 func writeUint16InterfaceMapBody(enc *Encoder, m map[uint16]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint16(enc.Writer, k); err == nil {
+			if err = WriteUint16(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -1975,7 +1974,7 @@ func writeUint16InterfaceMapBody(enc *Encoder, m map[uint16]interface{}) (err er
 func writeUint32StringMapBody(enc *Encoder, m map[uint32]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
+			if err = WriteUint32(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -1986,8 +1985,8 @@ func writeUint32StringMapBody(enc *Encoder, m map[uint32]string) (err error) {
 func writeUint32IntMapBody(enc *Encoder, m map[uint32]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -1997,8 +1996,8 @@ func writeUint32IntMapBody(enc *Encoder, m map[uint32]int) (err error) {
 func writeUint32Int8MapBody(enc *Encoder, m map[uint32]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -2008,8 +2007,8 @@ func writeUint32Int8MapBody(enc *Encoder, m map[uint32]int8) (err error) {
 func writeUint32Int16MapBody(enc *Encoder, m map[uint32]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -2019,8 +2018,8 @@ func writeUint32Int16MapBody(enc *Encoder, m map[uint32]int16) (err error) {
 func writeUint32Int32MapBody(enc *Encoder, m map[uint32]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -2030,8 +2029,8 @@ func writeUint32Int32MapBody(enc *Encoder, m map[uint32]int32) (err error) {
 func writeUint32Int64MapBody(enc *Encoder, m map[uint32]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -2041,8 +2040,8 @@ func writeUint32Int64MapBody(enc *Encoder, m map[uint32]int64) (err error) {
 func writeUint32UintMapBody(enc *Encoder, m map[uint32]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -2052,8 +2051,8 @@ func writeUint32UintMapBody(enc *Encoder, m map[uint32]uint) (err error) {
 func writeUint32Uint8MapBody(enc *Encoder, m map[uint32]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -2063,8 +2062,8 @@ func writeUint32Uint8MapBody(enc *Encoder, m map[uint32]uint8) (err error) {
 func writeUint32Uint16MapBody(enc *Encoder, m map[uint32]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -2074,8 +2073,8 @@ func writeUint32Uint16MapBody(enc *Encoder, m map[uint32]uint16) (err error) {
 func writeUint32Uint32MapBody(enc *Encoder, m map[uint32]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -2085,8 +2084,8 @@ func writeUint32Uint32MapBody(enc *Encoder, m map[uint32]uint32) (err error) {
 func writeUint32Uint64MapBody(enc *Encoder, m map[uint32]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -2096,8 +2095,8 @@ func writeUint32Uint64MapBody(enc *Encoder, m map[uint32]uint64) (err error) {
 func writeUint32BoolMapBody(enc *Encoder, m map[uint32]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -2107,8 +2106,8 @@ func writeUint32BoolMapBody(enc *Encoder, m map[uint32]bool) (err error) {
 func writeUint32Float32MapBody(enc *Encoder, m map[uint32]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -2118,8 +2117,8 @@ func writeUint32Float32MapBody(enc *Encoder, m map[uint32]float32) (err error) {
 func writeUint32Float64MapBody(enc *Encoder, m map[uint32]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteUint32(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -2129,7 +2128,7 @@ func writeUint32Float64MapBody(enc *Encoder, m map[uint32]float64) (err error) {
 func writeUint32InterfaceMapBody(enc *Encoder, m map[uint32]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint32(enc.Writer, k); err == nil {
+			if err = WriteUint32(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -2140,7 +2139,7 @@ func writeUint32InterfaceMapBody(enc *Encoder, m map[uint32]interface{}) (err er
 func writeUint64StringMapBody(enc *Encoder, m map[uint64]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
+			if err = WriteUint64(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -2151,8 +2150,8 @@ func writeUint64StringMapBody(enc *Encoder, m map[uint64]string) (err error) {
 func writeUint64IntMapBody(enc *Encoder, m map[uint64]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -2162,8 +2161,8 @@ func writeUint64IntMapBody(enc *Encoder, m map[uint64]int) (err error) {
 func writeUint64Int8MapBody(enc *Encoder, m map[uint64]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -2173,8 +2172,8 @@ func writeUint64Int8MapBody(enc *Encoder, m map[uint64]int8) (err error) {
 func writeUint64Int16MapBody(enc *Encoder, m map[uint64]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -2184,8 +2183,8 @@ func writeUint64Int16MapBody(enc *Encoder, m map[uint64]int16) (err error) {
 func writeUint64Int32MapBody(enc *Encoder, m map[uint64]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -2195,8 +2194,8 @@ func writeUint64Int32MapBody(enc *Encoder, m map[uint64]int32) (err error) {
 func writeUint64Int64MapBody(enc *Encoder, m map[uint64]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -2206,8 +2205,8 @@ func writeUint64Int64MapBody(enc *Encoder, m map[uint64]int64) (err error) {
 func writeUint64UintMapBody(enc *Encoder, m map[uint64]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -2217,8 +2216,8 @@ func writeUint64UintMapBody(enc *Encoder, m map[uint64]uint) (err error) {
 func writeUint64Uint8MapBody(enc *Encoder, m map[uint64]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -2228,8 +2227,8 @@ func writeUint64Uint8MapBody(enc *Encoder, m map[uint64]uint8) (err error) {
 func writeUint64Uint16MapBody(enc *Encoder, m map[uint64]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -2239,8 +2238,8 @@ func writeUint64Uint16MapBody(enc *Encoder, m map[uint64]uint16) (err error) {
 func writeUint64Uint32MapBody(enc *Encoder, m map[uint64]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -2250,8 +2249,8 @@ func writeUint64Uint32MapBody(enc *Encoder, m map[uint64]uint32) (err error) {
 func writeUint64Uint64MapBody(enc *Encoder, m map[uint64]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -2261,8 +2260,8 @@ func writeUint64Uint64MapBody(enc *Encoder, m map[uint64]uint64) (err error) {
 func writeUint64BoolMapBody(enc *Encoder, m map[uint64]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -2272,8 +2271,8 @@ func writeUint64BoolMapBody(enc *Encoder, m map[uint64]bool) (err error) {
 func writeUint64Float32MapBody(enc *Encoder, m map[uint64]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -2283,8 +2282,8 @@ func writeUint64Float32MapBody(enc *Encoder, m map[uint64]float32) (err error) {
 func writeUint64Float64MapBody(enc *Encoder, m map[uint64]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteUint64(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -2294,7 +2293,7 @@ func writeUint64Float64MapBody(enc *Encoder, m map[uint64]float64) (err error) {
 func writeUint64InterfaceMapBody(enc *Encoder, m map[uint64]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteUint64(enc.Writer, k); err == nil {
+			if err = WriteUint64(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -2305,7 +2304,7 @@ func writeUint64InterfaceMapBody(enc *Encoder, m map[uint64]interface{}) (err er
 func writeFloat32StringMapBody(enc *Encoder, m map[float32]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
+			if err = WriteFloat32(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -2316,8 +2315,8 @@ func writeFloat32StringMapBody(enc *Encoder, m map[float32]string) (err error) {
 func writeFloat32IntMapBody(enc *Encoder, m map[float32]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -2327,8 +2326,8 @@ func writeFloat32IntMapBody(enc *Encoder, m map[float32]int) (err error) {
 func writeFloat32Int8MapBody(enc *Encoder, m map[float32]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -2338,8 +2337,8 @@ func writeFloat32Int8MapBody(enc *Encoder, m map[float32]int8) (err error) {
 func writeFloat32Int16MapBody(enc *Encoder, m map[float32]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -2349,8 +2348,8 @@ func writeFloat32Int16MapBody(enc *Encoder, m map[float32]int16) (err error) {
 func writeFloat32Int32MapBody(enc *Encoder, m map[float32]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -2360,8 +2359,8 @@ func writeFloat32Int32MapBody(enc *Encoder, m map[float32]int32) (err error) {
 func writeFloat32Int64MapBody(enc *Encoder, m map[float32]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -2371,8 +2370,8 @@ func writeFloat32Int64MapBody(enc *Encoder, m map[float32]int64) (err error) {
 func writeFloat32UintMapBody(enc *Encoder, m map[float32]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -2382,8 +2381,8 @@ func writeFloat32UintMapBody(enc *Encoder, m map[float32]uint) (err error) {
 func writeFloat32Uint8MapBody(enc *Encoder, m map[float32]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -2393,8 +2392,8 @@ func writeFloat32Uint8MapBody(enc *Encoder, m map[float32]uint8) (err error) {
 func writeFloat32Uint16MapBody(enc *Encoder, m map[float32]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -2404,8 +2403,8 @@ func writeFloat32Uint16MapBody(enc *Encoder, m map[float32]uint16) (err error) {
 func writeFloat32Uint32MapBody(enc *Encoder, m map[float32]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -2415,8 +2414,8 @@ func writeFloat32Uint32MapBody(enc *Encoder, m map[float32]uint32) (err error) {
 func writeFloat32Uint64MapBody(enc *Encoder, m map[float32]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -2426,8 +2425,8 @@ func writeFloat32Uint64MapBody(enc *Encoder, m map[float32]uint64) (err error) {
 func writeFloat32BoolMapBody(enc *Encoder, m map[float32]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -2437,8 +2436,8 @@ func writeFloat32BoolMapBody(enc *Encoder, m map[float32]bool) (err error) {
 func writeFloat32Float32MapBody(enc *Encoder, m map[float32]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -2448,8 +2447,8 @@ func writeFloat32Float32MapBody(enc *Encoder, m map[float32]float32) (err error)
 func writeFloat32Float64MapBody(enc *Encoder, m map[float32]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteFloat32(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -2459,7 +2458,7 @@ func writeFloat32Float64MapBody(enc *Encoder, m map[float32]float64) (err error)
 func writeFloat32InterfaceMapBody(enc *Encoder, m map[float32]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat32(enc.Writer, k); err == nil {
+			if err = WriteFloat32(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -2470,7 +2469,7 @@ func writeFloat32InterfaceMapBody(enc *Encoder, m map[float32]interface{}) (err 
 func writeFloat64StringMapBody(enc *Encoder, m map[float64]string) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
+			if err = WriteFloat64(enc, k); err == nil {
 				err = EncodeString(enc, v)
 			}
 		}
@@ -2481,8 +2480,8 @@ func writeFloat64StringMapBody(enc *Encoder, m map[float64]string) (err error) {
 func writeFloat64IntMapBody(enc *Encoder, m map[float64]int) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteInt(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -2492,8 +2491,8 @@ func writeFloat64IntMapBody(enc *Encoder, m map[float64]int) (err error) {
 func writeFloat64Int8MapBody(enc *Encoder, m map[float64]int8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -2503,8 +2502,8 @@ func writeFloat64Int8MapBody(enc *Encoder, m map[float64]int8) (err error) {
 func writeFloat64Int16MapBody(enc *Encoder, m map[float64]int16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -2514,8 +2513,8 @@ func writeFloat64Int16MapBody(enc *Encoder, m map[float64]int16) (err error) {
 func writeFloat64Int32MapBody(enc *Encoder, m map[float64]int32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -2525,8 +2524,8 @@ func writeFloat64Int32MapBody(enc *Encoder, m map[float64]int32) (err error) {
 func writeFloat64Int64MapBody(enc *Encoder, m map[float64]int64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -2536,8 +2535,8 @@ func writeFloat64Int64MapBody(enc *Encoder, m map[float64]int64) (err error) {
 func writeFloat64UintMapBody(enc *Encoder, m map[float64]uint) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteUint(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -2547,8 +2546,8 @@ func writeFloat64UintMapBody(enc *Encoder, m map[float64]uint) (err error) {
 func writeFloat64Uint8MapBody(enc *Encoder, m map[float64]uint8) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -2558,8 +2557,8 @@ func writeFloat64Uint8MapBody(enc *Encoder, m map[float64]uint8) (err error) {
 func writeFloat64Uint16MapBody(enc *Encoder, m map[float64]uint16) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -2569,8 +2568,8 @@ func writeFloat64Uint16MapBody(enc *Encoder, m map[float64]uint16) (err error) {
 func writeFloat64Uint32MapBody(enc *Encoder, m map[float64]uint32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -2580,8 +2579,8 @@ func writeFloat64Uint32MapBody(enc *Encoder, m map[float64]uint32) (err error) {
 func writeFloat64Uint64MapBody(enc *Encoder, m map[float64]uint64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -2591,8 +2590,8 @@ func writeFloat64Uint64MapBody(enc *Encoder, m map[float64]uint64) (err error) {
 func writeFloat64BoolMapBody(enc *Encoder, m map[float64]bool) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteBool(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -2602,8 +2601,8 @@ func writeFloat64BoolMapBody(enc *Encoder, m map[float64]bool) (err error) {
 func writeFloat64Float32MapBody(enc *Encoder, m map[float64]float32) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -2613,8 +2612,8 @@ func writeFloat64Float32MapBody(enc *Encoder, m map[float64]float32) (err error)
 func writeFloat64Float64MapBody(enc *Encoder, m map[float64]float64) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+			if err = WriteFloat64(enc, k); err == nil {
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}
@@ -2624,7 +2623,7 @@ func writeFloat64Float64MapBody(enc *Encoder, m map[float64]float64) (err error)
 func writeFloat64InterfaceMapBody(enc *Encoder, m map[float64]interface{}) (err error) {
 	for k, v := range m {
 		if err == nil {
-			if err = WriteFloat64(enc.Writer, k); err == nil {
+			if err = WriteFloat64(enc, k); err == nil {
 				err = enc.Encode(v)
 			}
 		}
@@ -2647,7 +2646,7 @@ func writeInterfaceIntMapBody(enc *Encoder, m map[interface{}]int) (err error) {
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteInt(enc.Writer, v)
+				err = WriteInt(enc, v)
 			}
 		}
 	}
@@ -2658,7 +2657,7 @@ func writeInterfaceInt8MapBody(enc *Encoder, m map[interface{}]int8) (err error)
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteInt8(enc.Writer, v)
+				err = WriteInt8(enc, v)
 			}
 		}
 	}
@@ -2669,7 +2668,7 @@ func writeInterfaceInt16MapBody(enc *Encoder, m map[interface{}]int16) (err erro
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteInt16(enc.Writer, v)
+				err = WriteInt16(enc, v)
 			}
 		}
 	}
@@ -2680,7 +2679,7 @@ func writeInterfaceInt32MapBody(enc *Encoder, m map[interface{}]int32) (err erro
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteInt32(enc.Writer, v)
+				err = WriteInt32(enc, v)
 			}
 		}
 	}
@@ -2691,7 +2690,7 @@ func writeInterfaceInt64MapBody(enc *Encoder, m map[interface{}]int64) (err erro
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteInt64(enc.Writer, v)
+				err = WriteInt64(enc, v)
 			}
 		}
 	}
@@ -2702,7 +2701,7 @@ func writeInterfaceUintMapBody(enc *Encoder, m map[interface{}]uint) (err error)
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteUint(enc.Writer, v)
+				err = WriteUint(enc, v)
 			}
 		}
 	}
@@ -2713,7 +2712,7 @@ func writeInterfaceUint8MapBody(enc *Encoder, m map[interface{}]uint8) (err erro
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteUint8(enc.Writer, v)
+				err = WriteUint8(enc, v)
 			}
 		}
 	}
@@ -2724,7 +2723,7 @@ func writeInterfaceUint16MapBody(enc *Encoder, m map[interface{}]uint16) (err er
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteUint16(enc.Writer, v)
+				err = WriteUint16(enc, v)
 			}
 		}
 	}
@@ -2735,7 +2734,7 @@ func writeInterfaceUint32MapBody(enc *Encoder, m map[interface{}]uint32) (err er
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteUint32(enc.Writer, v)
+				err = WriteUint32(enc, v)
 			}
 		}
 	}
@@ -2746,7 +2745,7 @@ func writeInterfaceUint64MapBody(enc *Encoder, m map[interface{}]uint64) (err er
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteUint64(enc.Writer, v)
+				err = WriteUint64(enc, v)
 			}
 		}
 	}
@@ -2757,7 +2756,7 @@ func writeInterfaceBoolMapBody(enc *Encoder, m map[interface{}]bool) (err error)
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteBool(enc.Writer, v)
+				err = WriteBool(enc, v)
 			}
 		}
 	}
@@ -2768,7 +2767,7 @@ func writeInterfaceFloat32MapBody(enc *Encoder, m map[interface{}]float32) (err 
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteFloat32(enc.Writer, v)
+				err = WriteFloat32(enc, v)
 			}
 		}
 	}
@@ -2779,7 +2778,7 @@ func writeInterfaceFloat64MapBody(enc *Encoder, m map[interface{}]float64) (err 
 	for k, v := range m {
 		if err == nil {
 			if err = enc.Encode(k); err == nil {
-				err = WriteFloat64(enc.Writer, v)
+				err = WriteFloat64(enc, v)
 			}
 		}
 	}

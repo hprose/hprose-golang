@@ -29,7 +29,7 @@ func (valenc BigIntEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 
 // Write writes the hprose encoding of v to stream
 func (BigIntEncoder) Write(enc *Encoder, v interface{}) (err error) {
-	return WriteBigInt(enc.Writer, (*big.Int)(reflect2.PtrOf(v)))
+	return WriteBigInt(enc, (*big.Int)(reflect2.PtrOf(v)))
 }
 
 // BigFloatEncoder is the implementation of ValueEncoder for big.Float/*bit.Float.
@@ -42,7 +42,7 @@ func (valenc BigFloatEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 
 // Write writes the hprose encoding of v to stream
 func (BigFloatEncoder) Write(enc *Encoder, v interface{}) (err error) {
-	return WriteBigFloat(enc.Writer, (*big.Float)(reflect2.PtrOf(v)))
+	return WriteBigFloat(enc, (*big.Float)(reflect2.PtrOf(v)))
 }
 
 // BigRatEncoder is the implementation of ValueEncoder for big.Rat/*bit.Rat.

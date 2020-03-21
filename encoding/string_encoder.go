@@ -35,16 +35,16 @@ func EncodeString(enc *Encoder, s string) (err error) {
 	length := utf16Length(s)
 	switch length {
 	case 0:
-		err = enc.Writer.WriteByte(TagEmpty)
+		err = enc.writer.WriteByte(TagEmpty)
 	case 1:
-		if err = enc.Writer.WriteByte(TagUTF8Char); err == nil {
-			_, err = enc.Writer.Write(reflect2.UnsafeCastString(s))
+		if err = enc.writer.WriteByte(TagUTF8Char); err == nil {
+			_, err = enc.writer.Write(reflect2.UnsafeCastString(s))
 		}
 	default:
 		var ok bool
 		if ok, err = enc.WriteStringReference(s); !ok && err == nil {
 			enc.SetStringReference(s)
-			err = writeString(enc.Writer, s, length)
+			err = writeString(enc.writer, s, length)
 		}
 	}
 	return
@@ -53,5 +53,5 @@ func EncodeString(enc *Encoder, s string) (err error) {
 // WriteString to encoder
 func WriteString(enc *Encoder, s string) (err error) {
 	enc.SetStringReference(s)
-	return writeString(enc.Writer, s, utf16Length(s))
+	return writeString(enc.writer, s, utf16Length(s))
 }

@@ -36,18 +36,17 @@ func (ListEncoder) Write(enc *Encoder, v interface{}) (err error) {
 }
 
 func writeList(enc *Encoder, lst *list.List) (err error) {
-	writer := enc.Writer
 	count := lst.Len()
 	if count == 0 {
-		_, err = writer.Write(emptySlice)
+		_, err = enc.writer.Write(emptySlice)
 		return
 	}
-	err = WriteHead(writer, count, TagList)
+	err = WriteHead(enc, count, TagList)
 	for e := lst.Front(); e != nil && err == nil; e = e.Next() {
 		err = enc.Encode(e.Value)
 	}
 	if err == nil {
-		err = WriteFoot(writer)
+		err = WriteFoot(enc)
 	}
 	return
 }
@@ -60,7 +59,7 @@ type ElementEncoder struct{}
 func (valenc ElementEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	e := (*list.Element)(reflect2.PtrOf(v))
 	if e == nil {
-		return WriteNil(enc.Writer)
+		return WriteNil(enc)
 	}
 	return enc.Encode(e.Value)
 }
