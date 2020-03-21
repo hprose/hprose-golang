@@ -47,7 +47,7 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	fields := valenc.fields
 	n := len(fields)
 	var r int
-	r, err = enc.WriteStructType(st, func() (err error) {
+	r, err = enc.WriteStruct(st, func() (err error) {
 		enc.AddReferenceCount(n)
 		_, err = enc.writer.Write(valenc.metadata)
 		return

@@ -208,8 +208,8 @@ func (enc *Encoder) AddReferenceCount(n int) {
 	}
 }
 
-// WriteStructType of t to stream with action
-func (enc *Encoder) WriteStructType(t reflect.Type, action func() error) (r int, err error) {
+// WriteStruct of t to stream with action
+func (enc *Encoder) WriteStruct(t reflect.Type, action func() error) (r int, err error) {
 	if r, ok := enc.ref[t]; ok {
 		return r, nil
 	}

@@ -135,7 +135,7 @@ func writeUint64(writer bytesWriter, i uint64) (err error) {
 	return
 }
 
-// WriteInt64 to writer
+// WriteInt64 to encoder
 func WriteInt64(enc *Encoder, i int64) (err error) {
 	writer := enc.writer
 	if (i >= 0) && (i <= 9) {
@@ -153,7 +153,7 @@ func WriteInt64(enc *Encoder, i int64) (err error) {
 	return
 }
 
-// WriteUint64 to writer
+// WriteUint64 to encoder
 func WriteUint64(enc *Encoder, i uint64) (err error) {
 	writer := enc.writer
 	if (i >= 0) && (i <= 9) {
@@ -171,7 +171,7 @@ func WriteUint64(enc *Encoder, i uint64) (err error) {
 	return
 }
 
-// WriteInt32 to writer
+// WriteInt32 to encoder
 func WriteInt32(enc *Encoder, i int32) (err error) {
 	writer := enc.writer
 	if (i >= 0) && (i <= 9) {
@@ -185,17 +185,17 @@ func WriteInt32(enc *Encoder, i int32) (err error) {
 	return
 }
 
-// WriteUint32 to writer
+// WriteUint32 to encoder
 func WriteUint32(enc *Encoder, i uint32) (err error) {
 	return WriteUint64(enc, uint64(i))
 }
 
-// WriteInt16 to writer
+// WriteInt16 to encoder
 func WriteInt16(enc *Encoder, i int16) (err error) {
 	return WriteInt32(enc, int32(i))
 }
 
-// WriteUint16 to writer
+// WriteUint16 to encoder
 func WriteUint16(enc *Encoder, i uint16) (err error) {
 	writer := enc.writer
 	if (i >= 0) && (i <= 9) {
@@ -209,32 +209,32 @@ func WriteUint16(enc *Encoder, i uint16) (err error) {
 	return
 }
 
-// WriteInt8 to writer
+// WriteInt8 to encoder
 func WriteInt8(enc *Encoder, i int8) (err error) {
 	return WriteInt32(enc, int32(i))
 }
 
-// WriteUint8 to writer
+// WriteUint8 to encoder
 func WriteUint8(enc *Encoder, i uint8) (err error) {
 	return WriteUint16(enc, uint16(i))
 }
 
-// WriteInt to writer
+// WriteInt to encoder
 func WriteInt(enc *Encoder, i int) (err error) {
 	return WriteInt64(enc, int64(i))
 }
 
-// WriteUint to writer
+// WriteUint to encoder
 func WriteUint(enc *Encoder, i uint) (err error) {
 	return WriteUint64(enc, uint64(i))
 }
 
-// WriteNil to writer
+// WriteNil to encoder
 func WriteNil(enc *Encoder) (err error) {
 	return enc.writer.WriteByte(TagNull)
 }
 
-// WriteBool to writer
+// WriteBool to encoder
 func WriteBool(enc *Encoder, b bool) (err error) {
 	if b {
 		return enc.writer.WriteByte(TagTrue)
@@ -268,12 +268,12 @@ func writeFloat(enc *Encoder, f float64, bitSize int) (err error) {
 	return
 }
 
-// WriteFloat32 to writer
+// WriteFloat32 to encoder
 func WriteFloat32(enc *Encoder, f float32) error {
 	return writeFloat(enc, float64(f), 32)
 }
 
-// WriteFloat64 to writer
+// WriteFloat64 to encoder
 func WriteFloat64(enc *Encoder, f float64) error {
 	return writeFloat(enc, f, 64)
 }
@@ -341,7 +341,7 @@ func writeString(writer bytesWriter, s string, length int) (err error) {
 	return
 }
 
-// WriteHead to writer, n is the count of elements in list or map
+// WriteHead to encoder, n is the count of elements in list or map
 func WriteHead(enc *Encoder, n int, tag byte) (err error) {
 	writer := enc.writer
 	if err = writer.WriteByte(tag); err == nil {
@@ -355,7 +355,7 @@ func WriteHead(enc *Encoder, n int, tag byte) (err error) {
 	return
 }
 
-// WriteObjectHead to writer, r is the reference number of struct
+// WriteObjectHead to encoder, r is the reference number of struct
 func WriteObjectHead(enc *Encoder, r int) (err error) {
 	writer := enc.writer
 	if err = writer.WriteByte(TagObject); err == nil {
@@ -366,7 +366,7 @@ func WriteObjectHead(enc *Encoder, r int) (err error) {
 	return
 }
 
-// WriteFoot of list or map to writer
+// WriteFoot of list or map to encoder
 func WriteFoot(enc *Encoder) error {
 	return enc.writer.WriteByte(TagClosebrace)
 }
@@ -386,17 +386,17 @@ func writeComplex(enc *Encoder, r float64, i float64, bitSize int) (err error) {
 	return
 }
 
-// WriteComplex64 to enc.Writer
+// WriteComplex64 to encoder
 func WriteComplex64(enc *Encoder, c complex64) error {
 	return writeComplex(enc, float64(real(c)), float64(imag(c)), 32)
 }
 
-// WriteComplex128 to enc.Writer
+// WriteComplex128 to encoder
 func WriteComplex128(enc *Encoder, c complex128) error {
 	return writeComplex(enc, real(c), imag(c), 64)
 }
 
-// WriteBigInt to writer
+// WriteBigInt to encoder
 func WriteBigInt(enc *Encoder, i *big.Int) (err error) {
 	writer := enc.writer
 	if err = writer.WriteByte(TagLong); err == nil {
@@ -407,7 +407,7 @@ func WriteBigInt(enc *Encoder, i *big.Int) (err error) {
 	return
 }
 
-// WriteBigFloat to writer
+// WriteBigFloat to encoder
 func WriteBigFloat(enc *Encoder, f *big.Float) (err error) {
 	writer := enc.writer
 	if err = writer.WriteByte(TagDouble); err == nil {
@@ -419,7 +419,7 @@ func WriteBigFloat(enc *Encoder, f *big.Float) (err error) {
 	return
 }
 
-// WriteBigRat to enc.Writer
+// WriteBigRat to encoder
 func WriteBigRat(enc *Encoder, r *big.Rat) (err error) {
 	if r.IsInt() {
 		return WriteBigInt(enc, r.Num())
@@ -440,7 +440,7 @@ func WriteError(enc *Encoder, e error) (err error) {
 	return
 }
 
-// EncodeReference to enc
+// EncodeReference to encoder
 func EncodeReference(valenc ValueEncoder, enc *Encoder, v interface{}) (err error) {
 	if reflect2.IsNil(v) {
 		return WriteNil(enc)
@@ -452,7 +452,7 @@ func EncodeReference(valenc ValueEncoder, enc *Encoder, v interface{}) (err erro
 	return
 }
 
-// SetReference to enc
+// SetReference to encoder
 func SetReference(enc *Encoder, v interface{}) {
 	t := reflect.TypeOf(v)
 	if t.Kind() == reflect.Ptr {
