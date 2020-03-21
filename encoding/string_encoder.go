@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/string_encoder.go                            |
+| encoding/string_encoder.go                               |
 |                                                          |
 | LastModified: Mar 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -14,7 +14,6 @@
 package encoding
 
 import (
-	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
@@ -36,9 +35,9 @@ func EncodeString(enc *Encoder, s string) (err error) {
 	length := utf16Length(s)
 	switch length {
 	case 0:
-		err = enc.Writer.WriteByte(io.TagEmpty)
+		err = enc.Writer.WriteByte(TagEmpty)
 	case 1:
-		if err = enc.Writer.WriteByte(io.TagUTF8Char); err == nil {
+		if err = enc.Writer.WriteByte(TagUTF8Char); err == nil {
 			_, err = enc.Writer.Write(reflect2.UnsafeCastString(s))
 		}
 	default:

@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encode.go                                    |
+| encoding/encode.go                                       |
 |                                                          |
 | LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -19,7 +19,6 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
@@ -110,7 +109,7 @@ func toBytes(i uint64, buf []byte) (off int) {
 	return
 }
 
-func writeInt64(writer io.BytesWriter, i int64) (err error) {
+func writeInt64(writer BytesWriter, i int64) (err error) {
 	if i >= 0 {
 		return writeUint64(writer, uint64(i))
 	}
@@ -126,7 +125,7 @@ func writeInt64(writer io.BytesWriter, i int64) (err error) {
 	return
 }
 
-func writeUint64(writer io.BytesWriter, i uint64) (err error) {
+func writeUint64(writer BytesWriter, i uint64) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
@@ -137,140 +136,140 @@ func writeUint64(writer io.BytesWriter, i uint64) (err error) {
 }
 
 // WriteInt64 to writer
-func WriteInt64(writer io.BytesWriter, i int64) (err error) {
+func WriteInt64(writer BytesWriter, i int64) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
-	var tag = io.TagInteger
+	var tag = TagInteger
 	if (i < math.MinInt32) || (i > math.MaxInt32) {
-		tag = io.TagLong
+		tag = TagLong
 	}
 	if err = writer.WriteByte(tag); err == nil {
 		if err = writeInt64(writer, i); err == nil {
-			err = writer.WriteByte(io.TagSemicolon)
+			err = writer.WriteByte(TagSemicolon)
 		}
 	}
 	return
 }
 
 // WriteUint64 to writer
-func WriteUint64(writer io.BytesWriter, i uint64) (err error) {
+func WriteUint64(writer BytesWriter, i uint64) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
-	var tag = io.TagInteger
+	var tag = TagInteger
 	if i > math.MaxInt32 {
-		tag = io.TagLong
+		tag = TagLong
 	}
 	if err = writer.WriteByte(tag); err == nil {
 		if err = writeUint64(writer, i); err == nil {
-			err = writer.WriteByte(io.TagSemicolon)
+			err = writer.WriteByte(TagSemicolon)
 		}
 	}
 	return
 }
 
 // WriteInt32 to writer
-func WriteInt32(writer io.BytesWriter, i int32) (err error) {
+func WriteInt32(writer BytesWriter, i int32) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
-	if err = writer.WriteByte(io.TagInteger); err == nil {
+	if err = writer.WriteByte(TagInteger); err == nil {
 		if err = writeInt64(writer, int64(i)); err == nil {
-			err = writer.WriteByte(io.TagSemicolon)
+			err = writer.WriteByte(TagSemicolon)
 		}
 	}
 	return
 }
 
 // WriteUint32 to writer
-func WriteUint32(writer io.BytesWriter, i uint32) (err error) {
+func WriteUint32(writer BytesWriter, i uint32) (err error) {
 	return WriteUint64(writer, uint64(i))
 }
 
 // WriteInt16 to writer
-func WriteInt16(writer io.BytesWriter, i int16) (err error) {
+func WriteInt16(writer BytesWriter, i int16) (err error) {
 	return WriteInt32(writer, int32(i))
 }
 
 // WriteUint16 to writer
-func WriteUint16(writer io.BytesWriter, i uint16) (err error) {
+func WriteUint16(writer BytesWriter, i uint16) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
-	if err = writer.WriteByte(io.TagInteger); err == nil {
+	if err = writer.WriteByte(TagInteger); err == nil {
 		if err = writeUint64(writer, uint64(i)); err == nil {
-			err = writer.WriteByte(io.TagSemicolon)
+			err = writer.WriteByte(TagSemicolon)
 		}
 	}
 	return
 }
 
 // WriteInt8 to writer
-func WriteInt8(writer io.BytesWriter, i int8) (err error) {
+func WriteInt8(writer BytesWriter, i int8) (err error) {
 	return WriteInt32(writer, int32(i))
 }
 
 // WriteUint8 to writer
-func WriteUint8(writer io.BytesWriter, i uint8) (err error) {
+func WriteUint8(writer BytesWriter, i uint8) (err error) {
 	return WriteUint16(writer, uint16(i))
 }
 
 // WriteInt to writer
-func WriteInt(writer io.BytesWriter, i int) (err error) {
+func WriteInt(writer BytesWriter, i int) (err error) {
 	return WriteInt64(writer, int64(i))
 }
 
 // WriteUint to writer
-func WriteUint(writer io.BytesWriter, i uint) (err error) {
+func WriteUint(writer BytesWriter, i uint) (err error) {
 	return WriteUint64(writer, uint64(i))
 }
 
 // WriteNil to writer
-func WriteNil(writer io.BytesWriter) (err error) {
-	return writer.WriteByte(io.TagNull)
+func WriteNil(writer BytesWriter) (err error) {
+	return writer.WriteByte(TagNull)
 }
 
 // WriteBool to writer
-func WriteBool(writer io.BytesWriter, b bool) (err error) {
+func WriteBool(writer BytesWriter, b bool) (err error) {
 	if b {
-		return writer.WriteByte(io.TagTrue)
+		return writer.WriteByte(TagTrue)
 	}
-	return writer.WriteByte(io.TagFalse)
+	return writer.WriteByte(TagFalse)
 }
 
-func writeFloat(writer io.BytesWriter, f float64, bitSize int) (err error) {
+func writeFloat(writer BytesWriter, f float64, bitSize int) (err error) {
 	if f != f {
-		return writer.WriteByte(io.TagNaN)
+		return writer.WriteByte(TagNaN)
 	}
 	if f > math.MaxFloat64 {
-		if err = writer.WriteByte(io.TagInfinity); err == nil {
-			err = writer.WriteByte(io.TagPos)
+		if err = writer.WriteByte(TagInfinity); err == nil {
+			err = writer.WriteByte(TagPos)
 		}
 		return
 	}
 	if f < -math.MaxFloat64 {
-		if err = writer.WriteByte(io.TagInfinity); err == nil {
-			err = writer.WriteByte(io.TagNeg)
+		if err = writer.WriteByte(TagInfinity); err == nil {
+			err = writer.WriteByte(TagNeg)
 		}
 		return
 	}
-	if err = writer.WriteByte(io.TagDouble); err == nil {
+	if err = writer.WriteByte(TagDouble); err == nil {
 		var buf [24]byte
 		if _, err = writer.Write(strconv.AppendFloat(buf[:0], f, 'g', -1, bitSize)); err == nil {
-			err = writer.WriteByte(io.TagSemicolon)
+			err = writer.WriteByte(TagSemicolon)
 		}
 	}
 	return
 }
 
 // WriteFloat32 to writer
-func WriteFloat32(writer io.BytesWriter, f float32) error {
+func WriteFloat32(writer BytesWriter, f float32) error {
 	return writeFloat(writer, float64(f), 32)
 }
 
 // WriteFloat64 to writer
-func WriteFloat64(writer io.BytesWriter, f float64) error {
+func WriteFloat64(writer BytesWriter, f float64) error {
 	return writeFloat(writer, f, 64)
 }
 
@@ -306,63 +305,63 @@ func utf16Length(str string) (n int) {
 	return n
 }
 
-func writeBinary(writer io.BytesWriter, bytes []byte, length int) (err error) {
+func writeBinary(writer BytesWriter, bytes []byte, length int) (err error) {
 	if length > 0 {
 		err = writeUint64(writer, uint64(length))
 	}
 	if err == nil {
-		if err = writer.WriteByte(io.TagQuote); err == nil {
+		if err = writer.WriteByte(TagQuote); err == nil {
 			if _, err = writer.Write(bytes); err == nil {
-				err = writer.WriteByte(io.TagQuote)
+				err = writer.WriteByte(TagQuote)
 			}
 		}
 	}
 	return
 }
 
-func writeBytes(writer io.BytesWriter, bytes []byte) (err error) {
-	if err = writer.WriteByte(io.TagBytes); err == nil {
+func writeBytes(writer BytesWriter, bytes []byte) (err error) {
+	if err = writer.WriteByte(TagBytes); err == nil {
 		err = writeBinary(writer, bytes, len(bytes))
 	}
 	return
 }
 
-func writeString(writer io.BytesWriter, s string, length int) (err error) {
+func writeString(writer BytesWriter, s string, length int) (err error) {
 	if length < 0 {
 		return writeBytes(writer, reflect2.UnsafeCastString(s))
 	}
-	if err = writer.WriteByte(io.TagString); err == nil {
+	if err = writer.WriteByte(TagString); err == nil {
 		err = writeBinary(writer, reflect2.UnsafeCastString(s), length)
 	}
 	return
 }
 
 // WriteHead to writer, n is the count of elements in list or map
-func WriteHead(writer io.BytesWriter, n int, tag byte) (err error) {
+func WriteHead(writer BytesWriter, n int, tag byte) (err error) {
 	if err = writer.WriteByte(tag); err == nil {
 		if n > 0 {
 			err = writeUint64(writer, uint64(n))
 		}
 		if err == nil {
-			err = writer.WriteByte(io.TagOpenbrace)
+			err = writer.WriteByte(TagOpenbrace)
 		}
 	}
 	return
 }
 
 // WriteObjectHead to writer, r is the reference number of struct
-func WriteObjectHead(writer io.BytesWriter, r int) (err error) {
-	if err = writer.WriteByte(io.TagObject); err == nil {
+func WriteObjectHead(writer BytesWriter, r int) (err error) {
+	if err = writer.WriteByte(TagObject); err == nil {
 		if err = writeUint64(writer, uint64(r)); err == nil {
-			err = writer.WriteByte(io.TagOpenbrace)
+			err = writer.WriteByte(TagOpenbrace)
 		}
 	}
 	return
 }
 
 // WriteFoot of list or map to writer
-func WriteFoot(writer io.BytesWriter) error {
-	return writer.WriteByte(io.TagClosebrace)
+func WriteFoot(writer BytesWriter) error {
+	return writer.WriteByte(TagClosebrace)
 }
 
 func writeComplex(enc *Encoder, r float64, i float64, bitSize int) (err error) {
@@ -371,7 +370,7 @@ func writeComplex(enc *Encoder, r float64, i float64, bitSize int) (err error) {
 		return writeFloat(writer, r, bitSize)
 	}
 	enc.AddReferenceCount(1)
-	if err = WriteHead(writer, 2, io.TagList); err == nil {
+	if err = WriteHead(writer, 2, TagList); err == nil {
 		if err = writeFloat(writer, r, bitSize); err == nil {
 			if err = writeFloat(writer, i, bitSize); err == nil {
 				err = WriteFoot(writer)
@@ -392,21 +391,21 @@ func WriteComplex128(enc *Encoder, c complex128) error {
 }
 
 // WriteBigInt to writer
-func WriteBigInt(writer io.BytesWriter, i *big.Int) (err error) {
-	if err = writer.WriteByte(io.TagLong); err == nil {
+func WriteBigInt(writer BytesWriter, i *big.Int) (err error) {
+	if err = writer.WriteByte(TagLong); err == nil {
 		if _, err = writer.Write(reflect2.UnsafeCastString(i.String())); err == nil {
-			err = writer.WriteByte(io.TagSemicolon)
+			err = writer.WriteByte(TagSemicolon)
 		}
 	}
 	return
 }
 
 // WriteBigFloat to writer
-func WriteBigFloat(writer io.BytesWriter, f *big.Float) (err error) {
-	if err = writer.WriteByte(io.TagDouble); err == nil {
+func WriteBigFloat(writer BytesWriter, f *big.Float) (err error) {
+	if err = writer.WriteByte(TagDouble); err == nil {
 		var buf [32]byte
 		if _, err = writer.Write(f.Append(buf[:0], 'g', -1)); err == nil {
-			err = writer.WriteByte(io.TagSemicolon)
+			err = writer.WriteByte(TagSemicolon)
 		}
 	}
 	return
@@ -424,7 +423,7 @@ func WriteBigRat(enc *Encoder, r *big.Rat) (err error) {
 
 // WriteError to encoder
 func WriteError(enc *Encoder, e error) (err error) {
-	if err = enc.Writer.WriteByte(io.TagError); err == nil {
+	if err = enc.Writer.WriteByte(TagError); err == nil {
 		enc.AddReferenceCount(1)
 		s := e.Error()
 		err = writeString(enc.Writer, s, utf16Length(s))

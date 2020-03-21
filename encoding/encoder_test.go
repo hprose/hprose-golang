@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder_test.go                              |
+| encoding/encoder_test.go                                 |
 |                                                          |
 | LastModified: Mar 20, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |

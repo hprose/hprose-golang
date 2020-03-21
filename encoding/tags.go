@@ -4,14 +4,14 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/tags.go                                               |
+| encoding/tags.go                                         |
 |                                                          |
-| LastModified: Feb 22, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package io
+package encoding
 
 // Hprose Tags
 const (

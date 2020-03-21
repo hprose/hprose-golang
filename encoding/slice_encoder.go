@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/slice_encoder.go                             |
+| encoding/slice_encoder.go                                |
 |                                                          |
 | LastModified: Mar 17, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -16,7 +16,6 @@ package encoding
 import (
 	"reflect"
 
-	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
@@ -44,7 +43,7 @@ func WriteSlice(enc *Encoder, v interface{}) (err error) {
 	return writeSlice(enc, v)
 }
 
-var emptySlice = []byte{io.TagList, io.TagOpenbrace, io.TagClosebrace}
+var emptySlice = []byte{TagList, TagOpenbrace, TagClosebrace}
 
 func writeSlice(enc *Encoder, v interface{}) (err error) {
 	writer := enc.Writer
@@ -56,7 +55,7 @@ func writeSlice(enc *Encoder, v interface{}) (err error) {
 		_, err = writer.Write(emptySlice)
 		return
 	}
-	if err = WriteHead(writer, count, io.TagList); err == nil {
+	if err = WriteHead(writer, count, TagList); err == nil {
 		if err = writeSliceBody(enc, v); err == nil {
 			err = WriteFoot(writer)
 		}
@@ -137,7 +136,7 @@ func writeSliceBody(enc *Encoder, v interface{}) error {
 	}
 }
 
-func writeInt8SliceBody(writer io.BytesWriter, slice []int8) (err error) {
+func writeInt8SliceBody(writer BytesWriter, slice []int8) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt8(writer, slice[i])
@@ -145,7 +144,7 @@ func writeInt8SliceBody(writer io.BytesWriter, slice []int8) (err error) {
 	return
 }
 
-func writeInt16SliceBody(writer io.BytesWriter, slice []int16) (err error) {
+func writeInt16SliceBody(writer BytesWriter, slice []int16) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt16(writer, slice[i])
@@ -153,7 +152,7 @@ func writeInt16SliceBody(writer io.BytesWriter, slice []int16) (err error) {
 	return
 }
 
-func writeInt32SliceBody(writer io.BytesWriter, slice []int32) (err error) {
+func writeInt32SliceBody(writer BytesWriter, slice []int32) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt32(writer, slice[i])
@@ -161,7 +160,7 @@ func writeInt32SliceBody(writer io.BytesWriter, slice []int32) (err error) {
 	return
 }
 
-func writeInt64SliceBody(writer io.BytesWriter, slice []int64) (err error) {
+func writeInt64SliceBody(writer BytesWriter, slice []int64) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt64(writer, slice[i])
@@ -169,7 +168,7 @@ func writeInt64SliceBody(writer io.BytesWriter, slice []int64) (err error) {
 	return
 }
 
-func writeIntSliceBody(writer io.BytesWriter, slice []int) (err error) {
+func writeIntSliceBody(writer BytesWriter, slice []int) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteInt(writer, slice[i])
@@ -177,7 +176,7 @@ func writeIntSliceBody(writer io.BytesWriter, slice []int) (err error) {
 	return
 }
 
-func writeUint16SliceBody(writer io.BytesWriter, slice []uint16) (err error) {
+func writeUint16SliceBody(writer BytesWriter, slice []uint16) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteUint16(writer, slice[i])
@@ -185,7 +184,7 @@ func writeUint16SliceBody(writer io.BytesWriter, slice []uint16) (err error) {
 	return
 }
 
-func writeUint32SliceBody(writer io.BytesWriter, slice []uint32) (err error) {
+func writeUint32SliceBody(writer BytesWriter, slice []uint32) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteUint32(writer, slice[i])
@@ -193,7 +192,7 @@ func writeUint32SliceBody(writer io.BytesWriter, slice []uint32) (err error) {
 	return
 }
 
-func writeUint64SliceBody(writer io.BytesWriter, slice []uint64) (err error) {
+func writeUint64SliceBody(writer BytesWriter, slice []uint64) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteUint64(writer, slice[i])
@@ -201,7 +200,7 @@ func writeUint64SliceBody(writer io.BytesWriter, slice []uint64) (err error) {
 	return
 }
 
-func writeUintSliceBody(writer io.BytesWriter, slice []uint) (err error) {
+func writeUintSliceBody(writer BytesWriter, slice []uint) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteUint(writer, slice[i])
@@ -209,7 +208,7 @@ func writeUintSliceBody(writer io.BytesWriter, slice []uint) (err error) {
 	return
 }
 
-func writeBoolSliceBody(writer io.BytesWriter, slice []bool) (err error) {
+func writeBoolSliceBody(writer BytesWriter, slice []bool) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteBool(writer, slice[i])
@@ -217,7 +216,7 @@ func writeBoolSliceBody(writer io.BytesWriter, slice []bool) (err error) {
 	return
 }
 
-func writeFloat32SliceBody(writer io.BytesWriter, slice []float32) (err error) {
+func writeFloat32SliceBody(writer BytesWriter, slice []float32) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteFloat32(writer, slice[i])
@@ -225,7 +224,7 @@ func writeFloat32SliceBody(writer io.BytesWriter, slice []float32) (err error) {
 	return
 }
 
-func writeFloat64SliceBody(writer io.BytesWriter, slice []float64) (err error) {
+func writeFloat64SliceBody(writer BytesWriter, slice []float64) (err error) {
 	n := len(slice)
 	for i := 0; i < n && err == nil; i++ {
 		err = WriteFloat64(writer, slice[i])
@@ -271,7 +270,7 @@ func write2dInt8SliceBody(enc *Encoder, slice [][]int8) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteInt8(writer, slice[i][j])
 		}
@@ -288,7 +287,7 @@ func write2dInt16SliceBody(enc *Encoder, slice [][]int16) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteInt16(writer, slice[i][j])
 		}
@@ -305,7 +304,7 @@ func write2dInt32SliceBody(enc *Encoder, slice [][]int32) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteInt32(writer, slice[i][j])
 		}
@@ -322,7 +321,7 @@ func write2dInt64SliceBody(enc *Encoder, slice [][]int64) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteInt64(writer, slice[i][j])
 		}
@@ -339,7 +338,7 @@ func write2dIntSliceBody(enc *Encoder, slice [][]int) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteInt(writer, slice[i][j])
 		}
@@ -356,7 +355,7 @@ func write2dUint16SliceBody(enc *Encoder, slice [][]uint16) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteUint16(writer, slice[i][j])
 		}
@@ -373,7 +372,7 @@ func write2dUint32SliceBody(enc *Encoder, slice [][]uint32) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteUint32(writer, slice[i][j])
 		}
@@ -390,7 +389,7 @@ func write2dUint64SliceBody(enc *Encoder, slice [][]uint64) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteUint64(writer, slice[i][j])
 		}
@@ -407,7 +406,7 @@ func write2dUintSliceBody(enc *Encoder, slice [][]uint) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteUint(writer, slice[i][j])
 		}
@@ -424,7 +423,7 @@ func write2dBoolSliceBody(enc *Encoder, slice [][]bool) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteBool(writer, slice[i][j])
 		}
@@ -441,7 +440,7 @@ func write2dFloat32SliceBody(enc *Encoder, slice [][]float32) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteFloat32(writer, slice[i][j])
 		}
@@ -458,7 +457,7 @@ func write2dFloat64SliceBody(enc *Encoder, slice [][]float64) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteFloat64(writer, slice[i][j])
 		}
@@ -475,7 +474,7 @@ func write2dComplex64SliceBody(enc *Encoder, slice [][]complex64) (err error) {
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteComplex64(enc, slice[i][j])
 		}
@@ -492,7 +491,7 @@ func write2dComplex128SliceBody(enc *Encoder, slice [][]complex128) (err error) 
 	writer := enc.Writer
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = WriteComplex128(enc, slice[i][j])
 		}
@@ -509,7 +508,7 @@ func write2dStringSliceBody(enc *Encoder, slice [][]string) (err error) {
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
 		enc.AddReferenceCount(1)
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = EncodeString(enc, slice[i][j])
 		}
@@ -526,7 +525,7 @@ func write2dInterfaceSliceBody(enc *Encoder, slice [][]interface{}) (err error) 
 	for i := 0; i < n && err == nil; i++ {
 		m := len(slice[i])
 		enc.AddReferenceCount(1)
-		err = WriteHead(writer, m, io.TagList)
+		err = WriteHead(writer, m, TagList)
 		for j := 0; j < m && err == nil; j++ {
 			err = enc.Encode(slice[i][j])
 		}

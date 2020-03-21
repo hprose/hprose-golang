@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/uuid_encoder.go                              |
+| encoding/uuid_encoder.go                                 |
 |                                                          |
 | LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -17,7 +17,6 @@ import (
 	"encoding/hex"
 
 	"github.com/google/uuid"
-	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
@@ -37,13 +36,13 @@ func (UUIDEncoder) Write(enc *Encoder, v interface{}) error {
 	return writeUUID(enc.Writer, *(*[16]byte)(reflect2.PtrOf(v)))
 }
 
-func writeUUID(writer io.BytesWriter, id [16]byte) (err error) {
+func writeUUID(writer BytesWriter, id [16]byte) (err error) {
 	var buf [36]byte
 	encodeHex(buf[:], id)
-	if err = writer.WriteByte(io.TagGUID); err == nil {
-		if err = writer.WriteByte(io.TagOpenbrace); err == nil {
+	if err = writer.WriteByte(TagGUID); err == nil {
+		if err = writer.WriteByte(TagOpenbrace); err == nil {
 			if _, err = writer.Write(buf[:]); err == nil {
-				err = writer.WriteByte(io.TagClosebrace)
+				err = writer.WriteByte(TagClosebrace)
 			}
 		}
 	}

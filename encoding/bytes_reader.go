@@ -4,24 +4,19 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/relect.go                                    |
+| encoding/bytes_reader.go                                 |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package encoding
 
-import "unsafe"
+import "io"
 
-var defaultTagName = "hprose"
-
-type eface struct {
-	typ uintptr
-	ptr unsafe.Pointer
-}
-
-func unpackEFace(ptr *interface{}) *eface {
-	return (*eface)(unsafe.Pointer(ptr))
+// BytesReader is the interface that groups the basic Read and ReadByte methods.
+type BytesReader interface {
+	io.Reader
+	io.ByteReader
 }

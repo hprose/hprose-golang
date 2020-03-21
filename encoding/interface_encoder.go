@@ -4,29 +4,24 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/error.go                                     |
+| encoding/interface_encoder.go                            |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package encoding
 
-import (
-	"errors"
-	"reflect"
-)
+// interfaceEncoder is the implementation of ValueEncoder for interface.
+type interfaceEncoder struct{}
 
-// An UnsupportedTypeError is returned by Marshal when attempting
-// to encode an unsupported value type.
-type UnsupportedTypeError struct {
-	Type reflect.Type
+var intfenc interfaceEncoder
+
+func (interfaceEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+	return enc.Encode(v)
 }
 
-func (e *UnsupportedTypeError) Error() string {
-	return "hprose: unsupported type: " + e.Type.String()
+func (interfaceEncoder) Write(enc *Encoder, v interface{}) (err error) {
+	return enc.Write(v)
 }
-
-// ErrInvalidUTF8 means that the string is invalid UTF-8.
-var ErrInvalidUTF8 = errors.New("encoding: invalid UTF-8")

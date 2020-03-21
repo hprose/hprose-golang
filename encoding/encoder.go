@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder.go                                   |
+| encoding/encoder.go                                      |
 |                                                          |
 | LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -17,20 +17,19 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
 // An Encoder writes hprose data to an output stream
 type Encoder struct {
-	Writer io.BytesWriter
+	Writer BytesWriter
 	refer  *encoderRefer
 	ref    map[reflect.Type]int
 	last   int
 }
 
 // NewEncoder create an encoder object
-func NewEncoder(writer io.BytesWriter, simple bool) (encoder *Encoder) {
+func NewEncoder(writer BytesWriter, simple bool) (encoder *Encoder) {
 	encoder = &Encoder{
 		Writer: writer,
 		ref:    make(map[reflect.Type]int),

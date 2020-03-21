@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/struct_encoder.go                            |
+| encoding/struct_encoder.go                               |
 |                                                          |
 | LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -19,7 +19,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
@@ -72,7 +71,7 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return
 }
 
-func writeName(writer io.BytesWriter, s string) (err error) {
+func writeName(writer BytesWriter, s string) (err error) {
 	length := utf16Length(s)
 	if length < 0 {
 		return ErrInvalidUTF8
@@ -162,17 +161,17 @@ func newStructEncoder(t reflect.Type, name string, tagnames []string) ValueEncod
 	names, encoder.fields = getFields(reflect2.Type2(t).(reflect2.StructType), tagnames, map[string]bool{}, nil, nil)
 	n := len(names)
 	buffer := &bytes.Buffer{}
-	buffer.WriteByte(io.TagClass)
+	buffer.WriteByte(TagClass)
 	writeName(buffer, name)
 	if n > 0 {
 		writeUint64(buffer, uint64(n))
 	}
-	buffer.WriteByte(io.TagOpenbrace)
+	buffer.WriteByte(TagOpenbrace)
 	for i := 0; i < n; i++ {
-		buffer.WriteByte(io.TagString)
+		buffer.WriteByte(TagString)
 		writeName(buffer, names[i])
 	}
-	buffer.WriteByte(io.TagClosebrace)
+	buffer.WriteByte(TagClosebrace)
 	encoder.metadata = buffer.Bytes()
 	return encoder
 }
@@ -204,7 +203,7 @@ func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) (err er
 		return
 	}
 	p := reflect2.PtrOf(v)
-	err = WriteHead(writer, n, io.TagMap)
+	err = WriteHead(writer, n, TagMap)
 	for i := 0; i < n && err == nil; i++ {
 		EncodeString(enc, names[i])
 		err = fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))

@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/list_encoder.go                              |
+| encoding/list_encoder.go                                 |
 |                                                          |
 | LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -16,7 +16,6 @@ package encoding
 import (
 	"container/list"
 
-	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
@@ -43,7 +42,7 @@ func writeList(enc *Encoder, lst *list.List) (err error) {
 		_, err = writer.Write(emptySlice)
 		return
 	}
-	err = WriteHead(writer, count, io.TagList)
+	err = WriteHead(writer, count, TagList)
 	for e := lst.Front(); e != nil && err == nil; e = e.Next() {
 		err = enc.Encode(e.Value)
 	}

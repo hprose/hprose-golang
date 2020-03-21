@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/time_encoder.go                              |
+| encoding/time_encoder.go                                 |
 |                                                          |
 | LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -16,7 +16,6 @@ package encoding
 import (
 	"time"
 
-	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
@@ -36,9 +35,9 @@ func (TimeEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return writeTime(enc.Writer, *(*time.Time)(reflect2.PtrOf(v)))
 }
 
-func writeDatePart(writer io.BytesWriter, year int, month int, day int) (err error) {
+func writeDatePart(writer BytesWriter, year int, month int, day int) (err error) {
 	var buf [9]byte
-	buf[0] = io.TagDate
+	buf[0] = TagDate
 	q := year / 100
 	p := q << 1
 	copy(buf[1:3], digit2[p:p+2])
@@ -52,9 +51,9 @@ func writeDatePart(writer io.BytesWriter, year int, month int, day int) (err err
 	return
 }
 
-func writeTimePart(writer io.BytesWriter, hour int, min int, sec int, nsec int) (err error) {
+func writeTimePart(writer BytesWriter, hour int, min int, sec int, nsec int) (err error) {
 	var buf [17]byte
-	buf[0] = io.TagTime
+	buf[0] = TagTime
 	p := hour << 1
 	copy(buf[1:3], digit2[p:p+2])
 	p = min << 1
@@ -65,7 +64,7 @@ func writeTimePart(writer io.BytesWriter, hour int, min int, sec int, nsec int) 
 		_, err = writer.Write(buf[:7])
 		return
 	}
-	buf[7] = io.TagPoint
+	buf[7] = TagPoint
 	q := nsec / 1000000
 	p = q * 3
 	nsec = nsec - q*1000000
@@ -89,7 +88,7 @@ func writeTimePart(writer io.BytesWriter, hour int, min int, sec int, nsec int) 
 }
 
 // WriteTime to writer
-func writeTime(writer io.BytesWriter, t time.Time) (err error) {
+func writeTime(writer BytesWriter, t time.Time) (err error) {
 	year, month, day := t.Date()
 	hour, min, sec := t.Clock()
 	nsec := t.Nanosecond()
@@ -101,9 +100,9 @@ func writeTime(writer io.BytesWriter, t time.Time) (err error) {
 		err = writeTimePart(writer, hour, min, sec, nsec)
 	}
 	if err == nil {
-		loc := io.TagSemicolon
+		loc := TagSemicolon
 		if t.Location() == time.UTC {
-			loc = io.TagUTC
+			loc = TagUTC
 		}
 		err = writer.WriteByte(loc)
 	}

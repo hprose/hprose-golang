@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/map_encoder.go                               |
+| encoding/map_encoder.go                                  |
 |                                                          |
 | LastModified: Mar 17, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -17,7 +17,6 @@ import (
 	"reflect"
 	"unsafe"
 
-	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/modern-go/reflect2"
 )
 
@@ -45,7 +44,7 @@ func WriteMap(enc *Encoder, v interface{}) (err error) {
 	return writeMap(enc, v)
 }
 
-var emptyMap = []byte{io.TagMap, io.TagOpenbrace, io.TagClosebrace}
+var emptyMap = []byte{TagMap, TagOpenbrace, TagClosebrace}
 
 func writeMap(enc *Encoder, v interface{}) (err error) {
 	writer := enc.Writer
@@ -54,7 +53,7 @@ func writeMap(enc *Encoder, v interface{}) (err error) {
 		_, err = writer.Write(emptyMap)
 		return
 	}
-	if err = WriteHead(writer, count, io.TagMap); err == nil {
+	if err = WriteHead(writer, count, TagMap); err == nil {
 		if err = writeMapBody(enc, v); err == nil {
 			err = WriteFoot(writer)
 		}

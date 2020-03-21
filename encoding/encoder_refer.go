@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder_refer.go                             |
+| encoding/encoder_refer.go                                |
 |                                                          |
 | LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -12,10 +12,6 @@
 \*________________________________________________________*/
 
 package encoding
-
-import (
-	"github.com/hprose/hprose-golang/v3/io"
-)
 
 type encoderRefer struct {
 	ref  map[interface{}]uint64
@@ -45,24 +41,24 @@ func (r *encoderRefer) SetString(s string) {
 	r.last++
 }
 
-func (r *encoderRefer) Write(writer io.BytesWriter, p interface{}) (ok bool, err error) {
+func (r *encoderRefer) Write(writer BytesWriter, p interface{}) (ok bool, err error) {
 	var i uint64
 	if i, ok = r.ref[p]; ok {
-		if err = writer.WriteByte(io.TagRef); err == nil {
+		if err = writer.WriteByte(TagRef); err == nil {
 			if err = writeUint64(writer, i); err == nil {
-				err = writer.WriteByte(io.TagSemicolon)
+				err = writer.WriteByte(TagSemicolon)
 			}
 		}
 	}
 	return
 }
 
-func (r *encoderRefer) WriteString(writer io.BytesWriter, s string) (ok bool, err error) {
+func (r *encoderRefer) WriteString(writer BytesWriter, s string) (ok bool, err error) {
 	var i uint64
 	if i, ok = r.sref[s]; ok {
-		if err = writer.WriteByte(io.TagRef); err == nil {
+		if err = writer.WriteByte(TagRef); err == nil {
 			if err = writeUint64(writer, i); err == nil {
-				err = writer.WriteByte(io.TagSemicolon)
+				err = writer.WriteByte(TagSemicolon)
 			}
 		}
 	}

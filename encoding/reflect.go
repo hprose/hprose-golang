@@ -4,19 +4,24 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/bytes_writer.go                                       |
+| encoding/relect.go                                       |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Mar 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package io
+package encoding
 
-import "io"
+import "unsafe"
 
-// BytesWriter is the interface that groups the basic Write and WriteByte methods.
-type BytesWriter interface {
-	io.Writer
-	io.ByteWriter
+var defaultTagName = "hprose"
+
+type eface struct {
+	typ uintptr
+	ptr unsafe.Pointer
+}
+
+func unpackEFace(ptr *interface{}) *eface {
+	return (*eface)(unsafe.Pointer(ptr))
 }
