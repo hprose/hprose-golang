@@ -432,8 +432,8 @@ func WriteError(enc *Encoder, e error) (err error) {
 	return
 }
 
-// ReferenceEncode to enc
-func ReferenceEncode(valenc ValueEncoder, enc *Encoder, v interface{}) (err error) {
+// EncodeReference to enc
+func EncodeReference(valenc ValueEncoder, enc *Encoder, v interface{}) (err error) {
 	if reflect2.IsNil(v) {
 		return WriteNil(enc.Writer)
 	}
