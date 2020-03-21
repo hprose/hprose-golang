@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| io/encoding/encoder.go                                   |
+| io/encoding/struct_encoder.go                            |
 |                                                          |
 | LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
@@ -328,7 +328,7 @@ func ptrEncode(enc *Encoder, v interface{}) error {
 	return ptrEncoder.Encode(enc, v)
 }
 
-func writeName(writer io.Writer, s string) (err error) {
+func writeName(writer io.BytesWriter, s string) (err error) {
 	length := utf16Length(s)
 	if length < 0 {
 		return ErrInvalidUTF8
