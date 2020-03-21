@@ -18,7 +18,6 @@ import (
 	"math/big"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -137,14 +136,4 @@ func TestWriteBigFloat(t *testing.T) {
 	sb := &strings.Builder{}
 	assert.NoError(t, WriteBigFloat(sb, big.NewFloat(math.MaxFloat64)))
 	assert.Equal(t, "d1.7976931348623157e+308;", sb.String())
-}
-
-func TestWriteTime(t *testing.T) {
-	sb := &strings.Builder{}
-	assert.NoError(t, WriteTime(sb, time.Date(2020, 2, 22, 0, 0, 0, 0, time.UTC)))
-	assert.NoError(t, WriteTime(sb, time.Date(1970, 1, 1, 12, 12, 12, 0, time.UTC)))
-	assert.NoError(t, WriteTime(sb, time.Date(1970, 1, 1, 12, 12, 12, 123456789, time.Local)))
-	assert.NoError(t, WriteTime(sb, time.Date(2020, 2, 22, 12, 12, 12, 123456000, time.Local)))
-	assert.NoError(t, WriteTime(sb, time.Date(2020, 2, 22, 12, 12, 12, 123000000, time.UTC)))
-	assert.Equal(t, "D20200222ZT121212ZT121212.123456789;D20200222T121212.123456;D20200222T121212.123Z", sb.String())
 }

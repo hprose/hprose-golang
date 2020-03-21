@@ -65,7 +65,7 @@ func (BigRatEncoder) Write(enc *Encoder, v interface{}) (err error) {
 }
 
 func init() {
-	RegisterEncoder((*big.Int)(nil), BigIntEncoder{})
-	RegisterEncoder((*big.Float)(nil), BigFloatEncoder{})
-	RegisterEncoder((*big.Rat)(nil), BigRatEncoder{})
+	RegisterValueEncoder((*big.Int)(nil), BigIntEncoder{})
+	RegisterValueEncoder((*big.Float)(nil), BigFloatEncoder{})
+	RegisterValueEncoder((*big.Rat)(nil), BigRatEncoder{})
 }

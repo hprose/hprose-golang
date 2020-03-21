@@ -34,11 +34,10 @@ func (valenc UUIDEncoder) Encode(enc *Encoder, v interface{}) error {
 // if v is already written to stream, it will writes it as value
 func (UUIDEncoder) Write(enc *Encoder, v interface{}) error {
 	SetReference(enc, v)
-	return WriteUUID(enc.Writer, *(*[16]byte)(reflect2.PtrOf(v)))
+	return writeUUID(enc.Writer, *(*[16]byte)(reflect2.PtrOf(v)))
 }
 
-// WriteUUID to writer
-func WriteUUID(writer io.BytesWriter, id [16]byte) (err error) {
+func writeUUID(writer io.BytesWriter, id [16]byte) (err error) {
 	var buf [36]byte
 	encodeHex(buf[:], id)
 	if err = writer.WriteByte(io.TagGUID); err == nil {
@@ -64,5 +63,5 @@ func encodeHex(dst []byte, uuid [16]byte) {
 }
 
 func init() {
-	RegisterEncoder((*uuid.UUID)(nil), UUIDEncoder{})
+	RegisterValueEncoder((*uuid.UUID)(nil), UUIDEncoder{})
 }

@@ -320,6 +320,17 @@ func TestWriteDuration(t *testing.T) {
 	assert.Equal(t, `i1000;i1000;`, sb.String())
 }
 
+func TestWriteTime(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, true)
+	assert.NoError(t, enc.Write(time.Date(2020, 2, 22, 0, 0, 0, 0, time.UTC)))
+	assert.NoError(t, enc.Write(time.Date(1970, 1, 1, 12, 12, 12, 0, time.UTC)))
+	assert.NoError(t, enc.Write(time.Date(1970, 1, 1, 12, 12, 12, 123456789, time.Local)))
+	assert.NoError(t, enc.Write(time.Date(2020, 2, 22, 12, 12, 12, 123456000, time.Local)))
+	assert.NoError(t, enc.Write(time.Date(2020, 2, 22, 12, 12, 12, 123000000, time.UTC)))
+	assert.Equal(t, "D20200222ZT121212ZT121212.123456789;D20200222T121212.123456;D20200222T121212.123Z", sb.String())
+}
+
 func TestEncodeStringStringMap(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
@@ -388,7 +399,7 @@ func TestEncodeCustomType(t *testing.T) {
 	type StringType string
 	type BigIntType big.Int
 
-	RegisterEncoder((*BigIntType)(nil), BigIntEncoder{})
+	RegisterValueEncoder((*BigIntType)(nil), BigIntEncoder{})
 
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
@@ -452,8 +463,8 @@ func TestEncodeCustomType(t *testing.T) {
 }
 
 func TestGetEncoder(t *testing.T) {
-	assert.Equal(t, BigIntEncoder{}, GetEncoder((*big.Int)(nil)))
-	assert.Equal(t, ErrorEncoder{}, GetEncoder((*error)(nil)))
+	assert.Equal(t, BigIntEncoder{}, GetValueEncoder((*big.Int)(nil)))
+	assert.Equal(t, ErrorEncoder{}, GetValueEncoder((*error)(nil)))
 }
 
 func TestUnsupportedTypeError(t *testing.T) {

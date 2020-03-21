@@ -73,6 +73,6 @@ func (ElementEncoder) Write(enc *Encoder, v interface{}) (err error) {
 }
 
 func init() {
-	RegisterEncoder((*list.List)(nil), ListEncoder{})
-	RegisterEncoder((*list.Element)(nil), ElementEncoder{})
+	RegisterValueEncoder((*list.List)(nil), ListEncoder{})
+	RegisterValueEncoder((*list.Element)(nil), ElementEncoder{})
 }

@@ -15,19 +15,7 @@ package encoding
 
 import (
 	"reflect"
-
-	"github.com/hprose/hprose-golang/v3/io"
 )
-
-// WriteError to encoder
-func WriteError(enc *Encoder, e error) (err error) {
-	if err = enc.Writer.WriteByte(io.TagError); err == nil {
-		enc.AddReferenceCount(1)
-		s := e.Error()
-		err = writeString(enc.Writer, s, utf16Length(s))
-	}
-	return
-}
 
 // ErrorEncoder is the implementation of ValueEncoder for error.
 type ErrorEncoder struct{}
@@ -51,5 +39,5 @@ func (ErrorEncoder) Write(enc *Encoder, v interface{}) (err error) {
 }
 
 func init() {
-	RegisterEncoder((*error)(nil), ErrorEncoder{})
+	RegisterValueEncoder((*error)(nil), ErrorEncoder{})
 }
