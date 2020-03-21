@@ -117,7 +117,7 @@ func toBytes(i uint64, buf []byte) (off int) {
 	return
 }
 
-func writeInt64(writer io.Writer, i int64) (err error) {
+func writeInt64(writer io.BytesWriter, i int64) (err error) {
 	if i >= 0 {
 		return writeUint64(writer, uint64(i))
 	}
@@ -133,7 +133,7 @@ func writeInt64(writer io.Writer, i int64) (err error) {
 	return
 }
 
-func writeUint64(writer io.Writer, i uint64) (err error) {
+func writeUint64(writer io.BytesWriter, i uint64) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
@@ -144,7 +144,7 @@ func writeUint64(writer io.Writer, i uint64) (err error) {
 }
 
 // WriteInt64 to writer
-func WriteInt64(writer io.Writer, i int64) (err error) {
+func WriteInt64(writer io.BytesWriter, i int64) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
@@ -161,7 +161,7 @@ func WriteInt64(writer io.Writer, i int64) (err error) {
 }
 
 // WriteUint64 to writer
-func WriteUint64(writer io.Writer, i uint64) (err error) {
+func WriteUint64(writer io.BytesWriter, i uint64) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
@@ -178,7 +178,7 @@ func WriteUint64(writer io.Writer, i uint64) (err error) {
 }
 
 // WriteInt32 to writer
-func WriteInt32(writer io.Writer, i int32) (err error) {
+func WriteInt32(writer io.BytesWriter, i int32) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
@@ -191,17 +191,17 @@ func WriteInt32(writer io.Writer, i int32) (err error) {
 }
 
 // WriteUint32 to writer
-func WriteUint32(writer io.Writer, i uint32) (err error) {
+func WriteUint32(writer io.BytesWriter, i uint32) (err error) {
 	return WriteUint64(writer, uint64(i))
 }
 
 // WriteInt16 to writer
-func WriteInt16(writer io.Writer, i int16) (err error) {
+func WriteInt16(writer io.BytesWriter, i int16) (err error) {
 	return WriteInt32(writer, int32(i))
 }
 
 // WriteUint16 to writer
-func WriteUint16(writer io.Writer, i uint16) (err error) {
+func WriteUint16(writer io.BytesWriter, i uint16) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
@@ -214,39 +214,39 @@ func WriteUint16(writer io.Writer, i uint16) (err error) {
 }
 
 // WriteInt8 to writer
-func WriteInt8(writer io.Writer, i int8) (err error) {
+func WriteInt8(writer io.BytesWriter, i int8) (err error) {
 	return WriteInt32(writer, int32(i))
 }
 
 // WriteUint8 to writer
-func WriteUint8(writer io.Writer, i uint8) (err error) {
+func WriteUint8(writer io.BytesWriter, i uint8) (err error) {
 	return WriteUint16(writer, uint16(i))
 }
 
 // WriteInt to writer
-func WriteInt(writer io.Writer, i int) (err error) {
+func WriteInt(writer io.BytesWriter, i int) (err error) {
 	return WriteInt64(writer, int64(i))
 }
 
 // WriteUint to writer
-func WriteUint(writer io.Writer, i uint) (err error) {
+func WriteUint(writer io.BytesWriter, i uint) (err error) {
 	return WriteUint64(writer, uint64(i))
 }
 
 // WriteNil to writer
-func WriteNil(writer io.Writer) (err error) {
+func WriteNil(writer io.BytesWriter) (err error) {
 	return writer.WriteByte(io.TagNull)
 }
 
 // WriteBool to writer
-func WriteBool(writer io.Writer, b bool) (err error) {
+func WriteBool(writer io.BytesWriter, b bool) (err error) {
 	if b {
 		return writer.WriteByte(io.TagTrue)
 	}
 	return writer.WriteByte(io.TagFalse)
 }
 
-func writeFloat(writer io.Writer, f float64, bitSize int) (err error) {
+func writeFloat(writer io.BytesWriter, f float64, bitSize int) (err error) {
 	if f != f {
 		return writer.WriteByte(io.TagNaN)
 	}
@@ -272,12 +272,12 @@ func writeFloat(writer io.Writer, f float64, bitSize int) (err error) {
 }
 
 // WriteFloat32 to writer
-func WriteFloat32(writer io.Writer, f float32) error {
+func WriteFloat32(writer io.BytesWriter, f float32) error {
 	return writeFloat(writer, float64(f), 32)
 }
 
 // WriteFloat64 to writer
-func WriteFloat64(writer io.Writer, f float64) error {
+func WriteFloat64(writer io.BytesWriter, f float64) error {
 	return writeFloat(writer, f, 64)
 }
 
@@ -313,7 +313,7 @@ func utf16Length(str string) (n int) {
 	return n
 }
 
-func writeBinary(writer io.Writer, bytes []byte, length int) (err error) {
+func writeBinary(writer io.BytesWriter, bytes []byte, length int) (err error) {
 	if length > 0 {
 		err = writeUint64(writer, uint64(length))
 	}
@@ -327,14 +327,14 @@ func writeBinary(writer io.Writer, bytes []byte, length int) (err error) {
 	return
 }
 
-func writeBytes(writer io.Writer, bytes []byte) (err error) {
+func writeBytes(writer io.BytesWriter, bytes []byte) (err error) {
 	if err = writer.WriteByte(io.TagBytes); err == nil {
 		err = writeBinary(writer, bytes, len(bytes))
 	}
 	return
 }
 
-func writeString(writer io.Writer, s string, length int) (err error) {
+func writeString(writer io.BytesWriter, s string, length int) (err error) {
 	if length < 0 {
 		return writeBytes(writer, reflect2.UnsafeCastString(s))
 	}
@@ -344,7 +344,7 @@ func writeString(writer io.Writer, s string, length int) (err error) {
 	return
 }
 
-func writeDate(writer io.Writer, year int, month int, day int) (err error) {
+func writeDate(writer io.BytesWriter, year int, month int, day int) (err error) {
 	var buf [9]byte
 	buf[0] = io.TagDate
 	q := year / 100
@@ -360,7 +360,7 @@ func writeDate(writer io.Writer, year int, month int, day int) (err error) {
 	return
 }
 
-func writeTime(writer io.Writer, hour int, min int, sec int, nsec int) (err error) {
+func writeTime(writer io.BytesWriter, hour int, min int, sec int, nsec int) (err error) {
 	var buf [17]byte
 	buf[0] = io.TagTime
 	p := hour << 1
@@ -397,7 +397,7 @@ func writeTime(writer io.Writer, hour int, min int, sec int, nsec int) (err erro
 }
 
 // WriteTime to writer
-func WriteTime(writer io.Writer, t time.Time) (err error) {
+func WriteTime(writer io.BytesWriter, t time.Time) (err error) {
 	year, month, day := t.Date()
 	hour, min, sec := t.Clock()
 	nsec := t.Nanosecond()
@@ -419,7 +419,7 @@ func WriteTime(writer io.Writer, t time.Time) (err error) {
 }
 
 // WriteHead to writer, n is the count of elements in list or map
-func WriteHead(writer io.Writer, n int, tag byte) (err error) {
+func WriteHead(writer io.BytesWriter, n int, tag byte) (err error) {
 	if err = writer.WriteByte(tag); err == nil {
 		if n > 0 {
 			err = writeUint64(writer, uint64(n))
@@ -432,7 +432,7 @@ func WriteHead(writer io.Writer, n int, tag byte) (err error) {
 }
 
 // WriteObjectHead to writer, r is the reference number of struct
-func WriteObjectHead(writer io.Writer, r int) (err error) {
+func WriteObjectHead(writer io.BytesWriter, r int) (err error) {
 	if err = writer.WriteByte(io.TagObject); err == nil {
 		if err = writeUint64(writer, uint64(r)); err == nil {
 			err = writer.WriteByte(io.TagOpenbrace)
@@ -442,7 +442,7 @@ func WriteObjectHead(writer io.Writer, r int) (err error) {
 }
 
 // WriteFoot of list or map to writer
-func WriteFoot(writer io.Writer) error {
+func WriteFoot(writer io.BytesWriter) error {
 	return writer.WriteByte(io.TagClosebrace)
 }
 
@@ -473,7 +473,7 @@ func WriteComplex128(enc *Encoder, c complex128) error {
 }
 
 // WriteBigInt to writer
-func WriteBigInt(writer io.Writer, i *big.Int) (err error) {
+func WriteBigInt(writer io.BytesWriter, i *big.Int) (err error) {
 	if err = writer.WriteByte(io.TagLong); err == nil {
 		if _, err = writer.Write(reflect2.UnsafeCastString(i.String())); err == nil {
 			err = writer.WriteByte(io.TagSemicolon)
@@ -483,7 +483,7 @@ func WriteBigInt(writer io.Writer, i *big.Int) (err error) {
 }
 
 // WriteBigFloat to writer
-func WriteBigFloat(writer io.Writer, f *big.Float) (err error) {
+func WriteBigFloat(writer io.BytesWriter, f *big.Float) (err error) {
 	if err = writer.WriteByte(io.TagDouble); err == nil {
 		var buf [32]byte
 		if _, err = writer.Write(f.Append(buf[:0], 'g', -1)); err == nil {
