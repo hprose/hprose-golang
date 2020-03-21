@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/ptr_encoder.go                               |
 |                                                          |
-| LastModified: Mar 20, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -20,22 +20,18 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// PtrEncoder is the implementation of ValueEncoder for ptr.
-type PtrEncoder struct{}
+// ptrEncoder is the implementation of ValueEncoder for ptr.
+type ptrEncoder struct{}
 
-var ptrEncoder PtrEncoder
+var ptrenc ptrEncoder
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (PtrEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (ptrEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) error {
 		return valenc.Encode(enc, v)
 	})
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (PtrEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (ptrEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) error {
 		return valenc.Write(enc, v)
 	})
@@ -128,19 +124,19 @@ func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Enco
 	case reflect.Complex128:
 		return WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
 	case reflect.String:
-		return encode(stringEncoder, enc, e.String())
+		return encode(strenc, enc, e.String())
 	case reflect.Array:
-		return encode(arrayEncoder, enc, v)
+		return encode(arrayenc, enc, v)
 	case reflect.Struct:
 		return encode(getStructEncoder(et), enc, v)
 	case reflect.Slice:
-		return encode(sliceEncoder, enc, v)
+		return encode(slcenc, enc, v)
 	case reflect.Map:
-		return encode(mapEncoder, enc, v)
+		return encode(mapenc, enc, v)
 	case reflect.Ptr:
-		return encode(ptrEncoder, enc, e.Interface())
+		return encode(ptrenc, enc, e.Interface())
 	case reflect.Interface:
-		return encode(interfaceEncoder, enc, e.Interface())
+		return encode(intfenc, enc, e.Interface())
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }

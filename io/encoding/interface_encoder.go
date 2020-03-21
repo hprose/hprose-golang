@@ -6,26 +6,22 @@
 |                                                          |
 | io/encoding/interface_encoder.go                         |
 |                                                          |
-| LastModified: Mar 15, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package encoding
 
-// InterfaceEncoder is the implementation of ValueEncoder for interface.
-type InterfaceEncoder struct{}
+// interfaceEncoder is the implementation of ValueEncoder for interface.
+type interfaceEncoder struct{}
 
-var interfaceEncoder InterfaceEncoder
+var intfenc interfaceEncoder
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (InterfaceEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (interfaceEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return enc.Encode(v)
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (InterfaceEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (interfaceEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return enc.Write(v)
 }

@@ -27,7 +27,7 @@ type UUIDEncoder struct{}
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
 func (valenc UUIDEncoder) Encode(enc *Encoder, v interface{}) error {
-	return ReferenceEncode(valenc, enc, v)
+	return EncodeReference(valenc, enc, v)
 }
 
 // Write writes the hprose encoding of v to stream

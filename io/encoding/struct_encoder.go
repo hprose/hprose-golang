@@ -38,7 +38,7 @@ type StructEncoder struct {
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
 func (valenc *StructEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	return ReferenceEncode(valenc, enc, v)
+	return EncodeReference(valenc, enc, v)
 }
 
 // Write writes the hprose encoding of v to stream
@@ -197,7 +197,7 @@ func newAnonymousStructEncoder(t reflect.Type) ValueEncoder {
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
 func (valenc *AnonymousStructEncoder) Encode(enc *Encoder, v interface{}) (err error) {
-	return ReferenceEncode(valenc, enc, v)
+	return EncodeReference(valenc, enc, v)
 }
 
 // Write writes the hprose encoding of v to stream

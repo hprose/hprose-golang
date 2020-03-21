@@ -20,14 +20,12 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// SliceEncoder is the implementation of ValueEncoder for *slice.
-type SliceEncoder struct{}
+// sliceEncoder is the implementation of ValueEncoder for *slice.
+type sliceEncoder struct{}
 
-var sliceEncoder SliceEncoder
+var slcenc sliceEncoder
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (valenc SliceEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc sliceEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	var ok bool
 	if ok, err = enc.WriteReference(v); !ok && err == nil {
 		err = valenc.Write(enc, v)
@@ -35,9 +33,7 @@ func (valenc SliceEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (SliceEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (sliceEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	enc.SetReference(v)
 	return writeSlice(enc, reflect.ValueOf(v).Elem().Interface())
 }

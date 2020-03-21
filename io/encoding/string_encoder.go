@@ -18,20 +18,16 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// StringEncoder is the implementation of ValueEncoder for string.
-type StringEncoder struct{}
+// stringEncoder is the implementation of ValueEncoder for string.
+type stringEncoder struct{}
 
-var stringEncoder StringEncoder
+var strenc stringEncoder
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (StringEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (stringEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return EncodeString(enc, *(*string)(reflect2.PtrOf(v)))
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (StringEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (stringEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return WriteString(enc, *(*string)(reflect2.PtrOf(v)))
 }
 

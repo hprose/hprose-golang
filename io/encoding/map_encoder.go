@@ -21,14 +21,12 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// MapEncoder is the implementation of ValueEncoder for *map.
-type MapEncoder struct{}
+// mapEncoder is the implementation of ValueEncoder for *map.
+type mapEncoder struct{}
 
-var mapEncoder MapEncoder
+var mapenc mapEncoder
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (valenc MapEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc mapEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	var ok bool
 	if ok, err = enc.WriteReference(v); !ok && err == nil {
 		err = valenc.Write(enc, v)
@@ -36,9 +34,7 @@ func (valenc MapEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (MapEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (mapEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	enc.SetReference(v)
 	return writeMap(enc, reflect.ValueOf(v).Elem().Interface())
 }

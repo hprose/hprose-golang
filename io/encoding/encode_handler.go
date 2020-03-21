@@ -19,10 +19,10 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// EncodeHandler ...
+// EncodeHandler is an encode handler
 type EncodeHandler func(enc *Encoder, v interface{}) error
 
-// GetEncodeHandler ...
+// GetEncodeHandler for specified type
 func GetEncodeHandler(t reflect.Type) EncodeHandler {
 	if f := getOtherEncodeHandler(t); f != nil {
 		return f
@@ -294,21 +294,21 @@ func arrayPtrEncode(enc *Encoder, v interface{}) error {
 	if reflect2.IsNil(v) {
 		return WriteNil(enc.Writer)
 	}
-	return arrayEncoder.Encode(enc, v)
+	return arrayenc.Encode(enc, v)
 }
 
 func mapPtrEncode(enc *Encoder, v interface{}) error {
 	if rv := reflect.ValueOf(v); rv.IsNil() || rv.Elem().IsNil() {
 		return WriteNil(enc.Writer)
 	}
-	return mapEncoder.Encode(enc, v)
+	return mapenc.Encode(enc, v)
 }
 
 func slicePtrEncode(enc *Encoder, v interface{}) error {
 	if rv := reflect.ValueOf(v); rv.IsNil() || rv.Elem().IsNil() {
 		return WriteNil(enc.Writer)
 	}
-	return sliceEncoder.Encode(enc, v)
+	return slcenc.Encode(enc, v)
 }
 
 func interfacePtrEncode(enc *Encoder, v interface{}) error {
@@ -323,7 +323,7 @@ func ptrEncode(enc *Encoder, v interface{}) error {
 	if reflect2.IsNil(v) {
 		return WriteNil(enc.Writer)
 	}
-	return ptrEncoder.Encode(enc, v)
+	return ptrenc.Encode(enc, v)
 }
 
 func getStructEncodeHandler(t reflect.Type) EncodeHandler {

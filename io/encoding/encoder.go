@@ -130,7 +130,7 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	case reflect.Complex128:
 		return WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
 	case reflect.String:
-		return encode(stringEncoder, v)
+		return encode(strenc, v)
 	case reflect.Array:
 		return WriteArray(enc, v)
 	case reflect.Struct:
@@ -140,7 +140,7 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	case reflect.Map:
 		return WriteMap(enc, v)
 	case reflect.Ptr:
-		return encode(ptrEncoder, v)
+		return encode(ptrenc, v)
 	}
 	return &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 }

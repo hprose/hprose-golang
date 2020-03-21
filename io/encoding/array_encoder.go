@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/array_encoder.go                             |
 |                                                          |
-| LastModified: Mar 15, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -20,14 +20,12 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// ArrayEncoder is the implementation of ValueEncoder for *array.
-type ArrayEncoder struct{}
+// arrayEncoder is the implementation of ValueEncoder for *array.
+type arrayEncoder struct{}
 
-var arrayEncoder ArrayEncoder
+var arrayenc arrayEncoder
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (valenc ArrayEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc arrayEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	var ok bool
 	if ok, err = enc.WriteReference(v); !ok && err == nil {
 		err = valenc.Write(enc, v)
@@ -35,9 +33,7 @@ func (valenc ArrayEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (ArrayEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (arrayEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	enc.SetReference(v)
 	return writeArray(enc, reflect.ValueOf(v).Elem().Interface())
 }
