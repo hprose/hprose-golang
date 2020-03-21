@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoding/encoder_refer.go                             |
 |                                                          |
-| LastModified: Mar 15, 2020                               |
+| LastModified: Mar 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -45,7 +45,7 @@ func (r *encoderRefer) SetString(s string) {
 	r.last++
 }
 
-func (r *encoderRefer) Write(writer io.Writer, p interface{}) (ok bool, err error) {
+func (r *encoderRefer) Write(writer io.BytesWriter, p interface{}) (ok bool, err error) {
 	var i uint64
 	if i, ok = r.ref[p]; ok {
 		if err = writer.WriteByte(io.TagRef); err == nil {
@@ -57,7 +57,7 @@ func (r *encoderRefer) Write(writer io.Writer, p interface{}) (ok bool, err erro
 	return
 }
 
-func (r *encoderRefer) WriteString(writer io.Writer, s string) (ok bool, err error) {
+func (r *encoderRefer) WriteString(writer io.BytesWriter, s string) (ok bool, err error) {
 	var i uint64
 	if i, ok = r.sref[s]; ok {
 		if err = writer.WriteByte(io.TagRef); err == nil {
