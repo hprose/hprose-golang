@@ -109,7 +109,7 @@ func toBytes(i uint64, buf []byte) (off int) {
 	return
 }
 
-func writeInt64(writer BytesWriter, i int64) (err error) {
+func writeInt64(writer bytesWriter, i int64) (err error) {
 	if i >= 0 {
 		return writeUint64(writer, uint64(i))
 	}
@@ -125,7 +125,7 @@ func writeInt64(writer BytesWriter, i int64) (err error) {
 	return
 }
 
-func writeUint64(writer BytesWriter, i uint64) (err error) {
+func writeUint64(writer bytesWriter, i uint64) (err error) {
 	if (i >= 0) && (i <= 9) {
 		return writer.WriteByte(digits[i])
 	}
@@ -310,7 +310,7 @@ func utf16Length(str string) (n int) {
 	return n
 }
 
-func writeBinary(writer BytesWriter, bytes []byte, length int) (err error) {
+func writeBinary(writer bytesWriter, bytes []byte, length int) (err error) {
 	if length > 0 {
 		err = writeUint64(writer, uint64(length))
 	}
@@ -324,14 +324,14 @@ func writeBinary(writer BytesWriter, bytes []byte, length int) (err error) {
 	return
 }
 
-func writeBytes(writer BytesWriter, bytes []byte) (err error) {
+func writeBytes(writer bytesWriter, bytes []byte) (err error) {
 	if err = writer.WriteByte(TagBytes); err == nil {
 		err = writeBinary(writer, bytes, len(bytes))
 	}
 	return
 }
 
-func writeString(writer BytesWriter, s string, length int) (err error) {
+func writeString(writer bytesWriter, s string, length int) (err error) {
 	if length < 0 {
 		return writeBytes(writer, reflect2.UnsafeCastString(s))
 	}

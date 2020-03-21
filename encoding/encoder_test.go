@@ -399,7 +399,7 @@ func TestEncodeCustomType(t *testing.T) {
 	type StringType string
 	type BigIntType big.Int
 
-	RegisterValueEncoder((*BigIntType)(nil), BigIntEncoder{})
+	RegisterValueEncoder((*BigIntType)(nil), bigIntEncoder{})
 
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
@@ -463,8 +463,8 @@ func TestEncodeCustomType(t *testing.T) {
 }
 
 func TestGetEncoder(t *testing.T) {
-	assert.Equal(t, BigIntEncoder{}, GetValueEncoder((*big.Int)(nil)))
-	assert.Equal(t, ErrorEncoder{}, GetValueEncoder((*error)(nil)))
+	assert.Equal(t, bigIntEncoder{}, GetValueEncoder((*big.Int)(nil)))
+	assert.Equal(t, errorEncoder{}, GetValueEncoder((*error)(nil)))
 }
 
 func TestUnsupportedTypeError(t *testing.T) {

@@ -19,47 +19,41 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// BigIntEncoder is the implementation of ValueEncoder for big.Int/*bit.Int.
-type BigIntEncoder struct{}
+// bigIntEncoder is the implementation of ValueEncoder for big.Int/*bit.Int.
+type bigIntEncoder struct{}
 
-// Encode writes the hprose encoding of v to stream
-func (valenc BigIntEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc bigIntEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return valenc.Write(enc, v)
 }
 
-// Write writes the hprose encoding of v to stream
-func (BigIntEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (bigIntEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return WriteBigInt(enc, (*big.Int)(reflect2.PtrOf(v)))
 }
 
-// BigFloatEncoder is the implementation of ValueEncoder for big.Float/*bit.Float.
-type BigFloatEncoder struct{}
+// bigFloatEncoder is the implementation of ValueEncoder for big.Float/*bit.Float.
+type bigFloatEncoder struct{}
 
-// Encode writes the hprose encoding of v to stream
-func (valenc BigFloatEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc bigFloatEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return valenc.Write(enc, v)
 }
 
-// Write writes the hprose encoding of v to stream
-func (BigFloatEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (bigFloatEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return WriteBigFloat(enc, (*big.Float)(reflect2.PtrOf(v)))
 }
 
-// BigRatEncoder is the implementation of ValueEncoder for big.Rat/*bit.Rat.
-type BigRatEncoder struct{}
+// bigRatEncoder is the implementation of ValueEncoder for big.Rat/*bit.Rat.
+type bigRatEncoder struct{}
 
-// Encode writes the hprose encoding of v to stream
-func (valenc BigRatEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc bigRatEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return valenc.Write(enc, v)
 }
 
-// Write writes the hprose encoding of v to stream
-func (BigRatEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (bigRatEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return WriteBigRat(enc, (*big.Rat)(reflect2.PtrOf(v)))
 }
 
 func init() {
-	RegisterValueEncoder((*big.Int)(nil), BigIntEncoder{})
-	RegisterValueEncoder((*big.Float)(nil), BigFloatEncoder{})
-	RegisterValueEncoder((*big.Rat)(nil), BigRatEncoder{})
+	RegisterValueEncoder((*big.Int)(nil), bigIntEncoder{})
+	RegisterValueEncoder((*big.Float)(nil), bigFloatEncoder{})
+	RegisterValueEncoder((*big.Rat)(nil), bigRatEncoder{})
 }

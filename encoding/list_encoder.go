@@ -19,18 +19,14 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// ListEncoder is the implementation of ValueEncoder for list.List/*list.List.
-type ListEncoder struct{}
+// listEncoder is the implementation of ValueEncoder for list.List/*list.List.
+type listEncoder struct{}
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (valenc ListEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc listEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return EncodeReference(valenc, enc, v)
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (ListEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (listEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	SetReference(enc, v)
 	return writeList(enc, (*list.List)(reflect2.PtrOf(v)))
 }
@@ -51,12 +47,10 @@ func writeList(enc *Encoder, lst *list.List) (err error) {
 	return
 }
 
-// ElementEncoder is the implementation of ValueEncoder for list.Element/*list.Element.
-type ElementEncoder struct{}
+// elementEncoder is the implementation of ValueEncoder for list.Element/*list.Element.
+type elementEncoder struct{}
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (valenc ElementEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc elementEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	e := (*list.Element)(reflect2.PtrOf(v))
 	if e == nil {
 		return WriteNil(enc)
@@ -64,13 +58,11 @@ func (valenc ElementEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return enc.Encode(e.Value)
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (ElementEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (elementEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return enc.Write((*list.Element)(reflect2.PtrOf(v)).Value)
 }
 
 func init() {
-	RegisterValueEncoder((*list.List)(nil), ListEncoder{})
-	RegisterValueEncoder((*list.Element)(nil), ElementEncoder{})
+	RegisterValueEncoder((*list.List)(nil), listEncoder{})
+	RegisterValueEncoder((*list.Element)(nil), elementEncoder{})
 }

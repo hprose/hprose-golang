@@ -15,8 +15,8 @@ package encoding
 
 import "io"
 
-// BytesReader is the interface that groups the basic Read and ReadByte methods.
-type BytesReader interface {
+// bytesReader is the interface that groups the basic Read and ReadByte methods.
+type bytesReader interface {
 	io.Reader
 	io.ByteReader
 }

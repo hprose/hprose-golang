@@ -15,8 +15,8 @@ package encoding
 
 import "io"
 
-// BytesWriter is the interface that groups the basic Write and WriteByte methods.
-type BytesWriter interface {
+// bytesWriter is the interface that groups the basic Write and WriteByte methods.
+type bytesWriter interface {
 	io.Writer
 	io.ByteWriter
 }

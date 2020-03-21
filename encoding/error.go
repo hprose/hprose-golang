@@ -18,7 +18,7 @@ import (
 	"reflect"
 )
 
-// An UnsupportedTypeError is returned by Marshal when attempting
+// An UnsupportedTypeError is returned by Encode/Marshal when attempting
 // to encode an unsupported value type.
 type UnsupportedTypeError struct {
 	Type reflect.Type

@@ -19,23 +19,19 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// TimeEncoder is the implementation of ValueEncoder for time.Time/*time.Time.
-type TimeEncoder struct{}
+// timeEncoder is the implementation of ValueEncoder for time.Time/*time.Time.
+type timeEncoder struct{}
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
-func (valenc TimeEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc timeEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return EncodeReference(valenc, enc, v)
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
-func (TimeEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (timeEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	SetReference(enc, v)
 	return writeTime(enc.writer, *(*time.Time)(reflect2.PtrOf(v)))
 }
 
-func writeDatePart(writer BytesWriter, year int, month int, day int) (err error) {
+func writeDatePart(writer bytesWriter, year int, month int, day int) (err error) {
 	var buf [9]byte
 	buf[0] = TagDate
 	q := year / 100
@@ -51,7 +47,7 @@ func writeDatePart(writer BytesWriter, year int, month int, day int) (err error)
 	return
 }
 
-func writeTimePart(writer BytesWriter, hour int, min int, sec int, nsec int) (err error) {
+func writeTimePart(writer bytesWriter, hour int, min int, sec int, nsec int) (err error) {
 	var buf [17]byte
 	buf[0] = TagTime
 	p := hour << 1
@@ -87,8 +83,7 @@ func writeTimePart(writer BytesWriter, hour int, min int, sec int, nsec int) (er
 	return
 }
 
-// WriteTime to writer
-func writeTime(writer BytesWriter, t time.Time) (err error) {
+func writeTime(writer bytesWriter, t time.Time) (err error) {
 	year, month, day := t.Date()
 	hour, min, sec := t.Clock()
 	nsec := t.Nanosecond()
@@ -110,5 +105,5 @@ func writeTime(writer BytesWriter, t time.Time) (err error) {
 }
 
 func init() {
-	RegisterValueEncoder((*time.Time)(nil), TimeEncoder{})
+	RegisterValueEncoder((*time.Time)(nil), timeEncoder{})
 }

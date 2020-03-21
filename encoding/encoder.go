@@ -24,7 +24,7 @@ import (
 
 // An Encoder writes hprose data to an output stream
 type Encoder struct {
-	writer BytesWriter
+	writer bytesWriter
 	refer  *encoderRefer
 	ref    map[reflect.Type]int
 	last   int
@@ -36,7 +36,7 @@ func NewEncoder(w io.Writer, simple bool) (encoder *Encoder) {
 		ref:  make(map[reflect.Type]int),
 		last: 0,
 	}
-	if writer, ok := w.(BytesWriter); ok {
+	if writer, ok := w.(bytesWriter); ok {
 		encoder.writer = writer
 	} else {
 		encoder.writer = bufio.NewWriter(w)

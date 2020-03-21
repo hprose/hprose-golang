@@ -13,16 +13,14 @@
 
 package encoding
 
-// ErrorEncoder is the implementation of ValueEncoder for error/*error.
-type ErrorEncoder struct{}
+// errorEncoder is the implementation of ValueEncoder for error/*error.
+type errorEncoder struct{}
 
-// Encode writes the hprose encoding of v to stream
-func (valenc ErrorEncoder) Encode(enc *Encoder, v interface{}) (err error) {
+func (valenc errorEncoder) Encode(enc *Encoder, v interface{}) (err error) {
 	return valenc.Write(enc, v)
 }
 
-// Write writes the hprose encoding of v to stream
-func (ErrorEncoder) Write(enc *Encoder, v interface{}) (err error) {
+func (errorEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	switch v := v.(type) {
 	case error:
 		err = WriteError(enc, v)
@@ -33,5 +31,5 @@ func (ErrorEncoder) Write(enc *Encoder, v interface{}) (err error) {
 }
 
 func init() {
-	RegisterValueEncoder((*error)(nil), ErrorEncoder{})
+	RegisterValueEncoder((*error)(nil), errorEncoder{})
 }

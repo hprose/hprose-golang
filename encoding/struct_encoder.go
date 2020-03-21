@@ -70,7 +70,7 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) (err error) {
 	return
 }
 
-func writeName(writer BytesWriter, s string) (err error) {
+func writeName(writer bytesWriter, s string) (err error) {
 	length := utf16Length(s)
 	if length < 0 {
 		return ErrInvalidUTF8
