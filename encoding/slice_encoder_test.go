@@ -279,119 +279,119 @@ func TestEncode2dSlice(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	assert.NoError(t, enc.Encode([][]int{
-		[]int{1, 2, 3}, []int{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]int8{
-		[]int8{1, 2, 3}, []int8{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]int16{
-		[]int16{1, 2, 3}, []int16{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]int32{
-		[]int32{1, 2, 3}, []int32{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]int64{
-		[]int64{1, 2, 3}, []int64{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]uint{
-		[]uint{1, 2, 3}, []uint{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]uint8{
-		[]uint8{1, 2, 3}, []uint8{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, "a2{b3\"\x01\x02\x03\"b3\"\x04\x05\x06\"}", sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]uint16{
-		[]uint16{1, 2, 3}, []uint16{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]uint32{
-		[]uint32{1, 2, 3}, []uint32{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]uint64{
-		[]uint64{1, 2, 3}, []uint64{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]bool{
-		[]bool{true, false, true}, []bool{false, true, false},
+		{true, false, true}, {false, true, false},
 	}))
 	assert.Equal(t, `a2{a3{tft}a3{ftf}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]float32{
-		[]float32{1, 2, 3}, []float32{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{d1;d2;d3;}a3{d4;d5;d6;}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]float64{
-		[]float64{1, 2, 3}, []float64{4, 5, 6},
+		{1, 2, 3}, {4, 5, 6},
 	}))
 	assert.Equal(t, `a2{a3{d1;d2;d3;}a3{d4;d5;d6;}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]complex64{
-		[]complex64{complex(1, 2), complex(3, 4)}, []complex64{5, 6},
+		{complex(1, 2), complex(3, 4)}, {5, 6},
 	}))
 	assert.Equal(t, `a2{a2{a2{d1;d2;}a2{d3;d4;}}a2{d5;d6;}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]complex128{
-		[]complex128{complex(1, 2), complex(3, 4)}, []complex128{5, 6},
+		{complex(1, 2), complex(3, 4)}, {5, 6},
 	}))
 	assert.Equal(t, `a2{a2{a2{d1;d2;}a2{d3;d4;}}a2{d5;d6;}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]string{
-		[]string{"hello", "world"}, []string{"hello", "🐱🐶"},
+		{"hello", "world"}, {"hello", "🐱🐶"},
 	}))
 	assert.Equal(t, `a2{a2{s5"hello"s5"world"}a2{r2;s4"🐱🐶"}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode([][]interface{}{
-		[]interface{}{1, 2.0}, []interface{}{"🐱🐶"},
+		{1, 2.0}, {"🐱🐶"},
 	}))
 	assert.Equal(t, `a2{a2{1d2;}a1{s4"🐱🐶"}}`, sb.String())
 	enc.Reset()
