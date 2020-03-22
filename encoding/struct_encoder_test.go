@@ -16,6 +16,7 @@ package encoding
 import (
 	"errors"
 	"math/big"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -295,11 +296,24 @@ func TestEncodeErrorStructField(t *testing.T) {
 }
 
 func TestAmbiguousFields(t *testing.T) {
-	assert.PanicsWithValue(t, "ambiguous fields with the same name or alias: a", func() {
+	assert.PanicsWithValue(t, "hprose/encoding: ambiguous fields with the same name or alias: a", func() {
 		type TestStruct struct {
 			A int `hprose:"a"`
 			B int `json:"a"`
 		}
+		sb := &strings.Builder{}
+		enc := NewEncoder(sb, false)
+		enc.Encode(TestStruct{})
+	})
+}
+
+func TestInvalidStructName(t *testing.T) {
+	assert.PanicsWithValue(t, "hprose/encoding: invalid UTF-8 in struct name", func() {
+		type TestStruct struct {
+			A int
+			B int `json:"a"`
+		}
+		newStructEncoder(reflect.TypeOf((*TestStruct)(nil)).Elem(), "\xFE", []string{})
 		sb := &strings.Builder{}
 		enc := NewEncoder(sb, false)
 		enc.Encode(TestStruct{})

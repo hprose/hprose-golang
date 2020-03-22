@@ -220,8 +220,10 @@ func TestEncodeString(t *testing.T) {
 func TestWriteBadString(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
-	assert.NoError(t, enc.Write(string([]byte{254, 254})))
-	assert.Equal(t, "b2\"\xfe\xfe\"", sb.String())
+	assert.NoError(t, enc.Write("\xfe\xfe"))
+	assert.NoError(t, enc.Write("\xf0\xfe"))
+	assert.NoError(t, enc.Write("\xf0\x80"))
+	assert.Equal(t, "b2\"\xfe\xfe\"b2\"\xf0\xfe\"b2\"\xf0\x80\"", sb.String())
 }
 
 func TestReset(t *testing.T) {
@@ -476,6 +478,16 @@ func TestUnsupportedTypeError(t *testing.T) {
 	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(ch)}).Error(), enc.Encode(ch).Error())
 	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(&f)}).Error(), enc.Encode(&f).Error())
 	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(&ch)}).Error(), enc.Encode(&ch).Error())
+}
+
+func TestEncoderCopiedByValuePanic(t *testing.T) {
+	assert.PanicsWithValue(t, "hprose/encoding: illegal use of non-zero Encoder copied by value", func() {
+		sb := &strings.Builder{}
+		enc := NewEncoder(sb, false)
+		enc.Encode(1)
+		enc2 := *enc
+		enc2.Encode(2)
+	})
 }
 
 func BenchmarkEncodeSlice(b *testing.B) {

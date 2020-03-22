@@ -65,7 +65,7 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
 func appendName(buf []byte, s string, message string) []byte {
 	length := utf16Length(s)
 	if length < 0 {
-		panic(fmt.Sprintf("invalid UTF-8 in %s", message))
+		panic(fmt.Sprintf("hprose/encoding: invalid UTF-8 in %s", message))
 	}
 	return appendBinary(buf, reflect2.UnsafeCastString(s), length)
 }
@@ -127,7 +127,7 @@ func getFields(t reflect2.StructType, tagnames []string, mapping map[string]bool
 			continue
 		}
 		if mapping[name] {
-			panic(fmt.Sprintf("ambiguous fields with the same name or alias: %s", name))
+			panic(fmt.Sprintf("hprose/encoding: ambiguous fields with the same name or alias: %s", name))
 		}
 
 		var field field

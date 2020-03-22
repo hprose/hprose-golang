@@ -65,7 +65,7 @@ func (enc *Encoder) copyCheck() {
 		// just "enc.addr = enc".
 		enc.addr = (*Encoder)(noescape(unsafe.Pointer(enc)))
 	} else if enc.addr != enc {
-		panic("hprose: illegal use of non-zero Encoder copied by value")
+		panic("hprose/encoding: illegal use of non-zero Encoder copied by value")
 	}
 }
 
