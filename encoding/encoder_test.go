@@ -490,6 +490,13 @@ func TestEncoderCopiedByValuePanic(t *testing.T) {
 	})
 }
 
+func TestEncoderBytes(t *testing.T) {
+	enc := new(Encoder)
+	assert.Nil(t, enc.Bytes())
+	enc.Encode(1)
+	assert.Equal(t, []byte{'1'}, enc.Bytes())
+}
+
 func BenchmarkEncodeSlice(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
