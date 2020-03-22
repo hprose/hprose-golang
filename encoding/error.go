@@ -24,5 +24,5 @@ type UnsupportedTypeError struct {
 }
 
 func (e *UnsupportedTypeError) Error() string {
-	return "hprose: unsupported type: " + e.Type.String()
+	return "hprose/encoding: unsupported type: " + e.Type.String()
 }
