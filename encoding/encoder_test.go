@@ -282,7 +282,7 @@ func TestEncodeBigIntArray(t *testing.T) {
 func TestEncodeNil(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
-	var x interface{} = nil
+	var x interface{}
 	var xp interface{} = &x
 	var i interface{} = (****int)(nil)
 	var ip interface{} = &i
@@ -299,7 +299,7 @@ func TestEncodeNil(t *testing.T) {
 func TestWriteNil(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
-	var x interface{} = nil
+	var x interface{}
 	var xp interface{} = &x
 	var i interface{} = (****int)(nil)
 	var ip interface{} = &i
