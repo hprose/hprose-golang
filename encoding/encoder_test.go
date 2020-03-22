@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encoder_test.go                                 |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Mar 22, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,6 +17,7 @@ import (
 	"errors"
 	"math"
 	"math/big"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -471,10 +472,10 @@ func TestUnsupportedTypeError(t *testing.T) {
 	enc := NewEncoder(sb, false)
 	f := func() {}
 	var ch chan int
-	assert.Panics(t, func() { enc.Encode(f) })
-	assert.Panics(t, func() { enc.Encode(ch) })
-	assert.Panics(t, func() { enc.Encode(&f) })
-	assert.Panics(t, func() { enc.Encode(&ch) })
+	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(f)}).Error(), enc.Encode(f).Error())
+	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(ch)}).Error(), enc.Encode(ch).Error())
+	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(&f)}).Error(), enc.Encode(&f).Error())
+	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(&ch)}).Error(), enc.Encode(&ch).Error())
 }
 
 func BenchmarkEncodeSlice(b *testing.B) {

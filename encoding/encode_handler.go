@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_encoder.go                               |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Mar 22, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,57 +23,56 @@ import (
 type EncodeHandler func(enc *Encoder, v interface{})
 
 // GetEncodeHandler for specified type
-func GetEncodeHandler(t reflect.Type) EncodeHandler {
-	if f := getOtherEncodeHandler(t); f != nil {
-		return f
+func GetEncodeHandler(t reflect.Type) (handler EncodeHandler) {
+	if handler = getOtherEncodeHandler(t); handler == nil {
+		switch t.Kind() {
+		case reflect.Int:
+			handler = intEncode
+		case reflect.Int8:
+			handler = int8Encode
+		case reflect.Int16:
+			handler = int16Encode
+		case reflect.Int32:
+			handler = int32Encode
+		case reflect.Int64:
+			handler = int64Encode
+		case reflect.Uint:
+			handler = uintEncode
+		case reflect.Uint8:
+			handler = uint8Encode
+		case reflect.Uint16:
+			handler = uint16Encode
+		case reflect.Uint32:
+			handler = uint32Encode
+		case reflect.Uint64, reflect.Uintptr:
+			handler = uint64Encode
+		case reflect.Bool:
+			handler = boolEncode
+		case reflect.Float32:
+			handler = float32Encode
+		case reflect.Float64:
+			handler = float64Encode
+		case reflect.Complex64:
+			handler = complex64Encode
+		case reflect.Complex128:
+			handler = complex128Encode
+		case reflect.Array:
+			handler = arrayEncode
+		case reflect.Interface:
+			handler = interfaceEncode
+		case reflect.Map:
+			handler = mapEncode
+		case reflect.Ptr:
+			handler = getPtrEncodeHandler(t.Elem())
+		case reflect.Slice:
+			handler = sliceEncode
+		case reflect.String:
+			handler = stringEncode
+		case reflect.Struct:
+			handler = getStructEncodeHandler(t)
+		}
 	}
-	switch t.Kind() {
-	case reflect.Int:
-		return intEncode
-	case reflect.Int8:
-		return int8Encode
-	case reflect.Int16:
-		return int16Encode
-	case reflect.Int32:
-		return int32Encode
-	case reflect.Int64:
-		return int64Encode
-	case reflect.Uint:
-		return uintEncode
-	case reflect.Uint8:
-		return uint8Encode
-	case reflect.Uint16:
-		return uint16Encode
-	case reflect.Uint32:
-		return uint32Encode
-	case reflect.Uint64, reflect.Uintptr:
-		return uint64Encode
-	case reflect.Bool:
-		return boolEncode
-	case reflect.Float32:
-		return float32Encode
-	case reflect.Float64:
-		return float64Encode
-	case reflect.Complex64:
-		return complex64Encode
-	case reflect.Complex128:
-		return complex128Encode
-	case reflect.Array:
-		return arrayEncode
-	case reflect.Interface:
-		return interfaceEncode
-	case reflect.Map:
-		return mapEncode
-	case reflect.Ptr:
-		return getPtrEncodeHandler(t.Elem())
-	case reflect.Slice:
-		return sliceEncode
-	case reflect.String:
-		return stringEncode
-	case reflect.Struct:
-		return getStructEncodeHandler(t)
-	}
-	return nil
+	return
 }
 
 func boolEncode(enc *Encoder, v interface{}) {
@@ -357,76 +356,76 @@ func getStructPtrEncodeHandler(t reflect.Type) EncodeHandler {
 	return getStructEncoder(t).Encode
 }
 
-func getOtherEncodeHandler(t reflect.Type) EncodeHandler {
+func getOtherEncodeHandler(t reflect.Type) (handler EncodeHandler) {
 	if encoder := getOtherEncoder(t); encoder != nil {
-		return encoder.Write
+		handler = encoder.Write
 	}
-	return nil
+	return
 }
 
-func getOtherPtrEncodeHandler(t reflect.Type) EncodeHandler {
+func getOtherPtrEncodeHandler(t reflect.Type) (handler EncodeHandler) {
 	if encoder := getOtherEncoder(t); encoder != nil {
-		return encoder.Encode
+		handler = encoder.Encode
 	}
-	return nil
+	return
 }
 
-func getPtrEncodeHandler(t reflect.Type) EncodeHandler {
-	if f := getOtherPtrEncodeHandler(t); f != nil {
-		return f
-	}
-	switch t.Kind() {
-	case reflect.Int:
-		return intPtrEncode
-	case reflect.Int8:
-		return int8PtrEncode
-	case reflect.Int16:
-		return int16PtrEncode
-	case reflect.Int32:
-		return int32PtrEncode
-	case reflect.Int64:
-		return int64PtrEncode
-	case reflect.Uint:
-		return uintPtrEncode
-	case reflect.Uint8:
-		return uint8PtrEncode
-	case reflect.Uint16:
-		return uint16PtrEncode
-	case reflect.Uint32:
-		return uint32PtrEncode
-	case reflect.Uint64, reflect.Uintptr:
-		return uint64PtrEncode
-	case reflect.Bool:
-		return boolPtrEncode
-	case reflect.Float32:
-		return float32PtrEncode
-	case reflect.Float64:
-		return float64PtrEncode
-	case reflect.Complex64:
-		return complex64PtrEncode
-	case reflect.Complex128:
-		return complex128PtrEncode
-	case reflect.Array:
-		return arrayPtrEncode
-	case reflect.Interface:
-		return interfacePtrEncode
-	case reflect.Map:
-		return mapPtrEncode
-	case reflect.Ptr:
-		for t.Kind() == reflect.Ptr {
-			t = t.Elem()
-		}
+func getPtrEncodeHandler(t reflect.Type) (handler EncodeHandler) {
+	if handler = getOtherPtrEncodeHandler(t); handler == nil {
 		switch t.Kind() {
-		case reflect.Func, reflect.Chan, reflect.UnsafePointer:
-			return nil
+		case reflect.Int:
+			handler = intPtrEncode
+		case reflect.Int8:
+			handler = int8PtrEncode
+		case reflect.Int16:
+			handler = int16PtrEncode
+		case reflect.Int32:
+			handler = int32PtrEncode
+		case reflect.Int64:
+			handler = int64PtrEncode
+		case reflect.Uint:
+			handler = uintPtrEncode
+		case reflect.Uint8:
+			handler = uint8PtrEncode
+		case reflect.Uint16:
+			handler = uint16PtrEncode
+		case reflect.Uint32:
+			handler = uint32PtrEncode
+		case reflect.Uint64, reflect.Uintptr:
+			handler = uint64PtrEncode
+		case reflect.Bool:
+			handler = boolPtrEncode
+		case reflect.Float32:
+			handler = float32PtrEncode
+		case reflect.Float64:
+			handler = float64PtrEncode
+		case reflect.Complex64:
+			handler = complex64PtrEncode
+		case reflect.Complex128:
+			handler = complex128PtrEncode
+		case reflect.Array:
+			handler = arrayPtrEncode
+		case reflect.Interface:
+			handler = interfacePtrEncode
+		case reflect.Map:
+			handler = mapPtrEncode
+		case reflect.Ptr:
+			for t.Kind() == reflect.Ptr {
+				t = t.Elem()
+			}
+			switch t.Kind() {
+			case reflect.Func, reflect.Chan, reflect.UnsafePointer:
+				handler = nil
+			default:
+				handler = ptrEncode
+			}
+		case reflect.Slice:
+			handler = slicePtrEncode
+		case reflect.String:
+			handler = stringPtrEncode
+		case reflect.Struct:
+			handler = getStructPtrEncodeHandler(t)
 		}
-		return ptrEncode
-	case reflect.Slice:
-		return slicePtrEncode
-	case reflect.String:
-		return stringPtrEncode
-	case reflect.Struct:
-		return getStructPtrEncodeHandler(t)
 	}
-	return nil
+	return handler
 }

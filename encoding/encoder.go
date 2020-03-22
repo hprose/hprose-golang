@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encoder.go                                      |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Mar 22, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,12 +24,14 @@ import (
 
 // An Encoder writes hprose data to an output stream
 type Encoder struct {
-	Writer io.Writer
+	addr   *Encoder // of receiver, to detect copies by value
 	buf    []byte
 	off    int
 	refer  *encoderRefer
 	ref    map[reflect.Type]int
 	last   int
+	Writer io.Writer
+	Error  error
 }
 
 // NewEncoder create an encoder object
@@ -41,70 +43,85 @@ func NewEncoder(w io.Writer, simple bool) (encoder *Encoder) {
 	return
 }
 
-func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v interface{})) {
+// noescape hides a pointer from escape analysis.  noescape is
+// the identity function but escape analysis doesn't think the
+// output depends on the input. noescape is inlined and currently
+// compiles down to zero instructions.
+// USE CAREFULLY!
+// This was copied from the runtime; see issues 23382 and 7921.
+//go:nosplit
+//go:nocheckptr
+func noescape(p unsafe.Pointer) unsafe.Pointer {
+	x := uintptr(p)
+	return unsafe.Pointer(x ^ 0)
+}
+
+func (enc *Encoder) copyCheck() {
+	if enc.addr == nil {
+		// This hack works around a failing of Go's escape analysis
+		// that was causing enc to escape and be heap allocated.
+		// See issue 23382.
+		// TODO: once issue 7921 is fixed, this should be reverted to
+		// just "enc.addr = enc".
+		enc.addr = (*Encoder)(noescape(unsafe.Pointer(enc)))
+	} else if enc.addr != enc {
+		panic("hprose: illegal use of non-zero Encoder copied by value")
+	}
+}
+
+func (enc *Encoder) fastWriteValue(v interface{}) (ok bool) {
+	ok = true
 	switch v := v.(type) {
 	case nil:
 		WriteNil(enc)
-		return
 	case int:
 		WriteInt(enc, v)
-		return
 	case int8:
 		WriteInt8(enc, v)
-		return
 	case int16:
 		WriteInt16(enc, v)
-		return
 	case int32:
 		WriteInt32(enc, v)
-		return
 	case int64:
 		WriteInt64(enc, v)
-		return
 	case uint:
 		WriteUint(enc, v)
-		return
 	case uint8:
 		WriteUint8(enc, v)
-		return
 	case uint16:
 		WriteUint16(enc, v)
-		return
 	case uint32:
 		WriteUint32(enc, v)
-		return
 	case uint64:
 		WriteUint64(enc, v)
-		return
 	case uintptr:
 		WriteUint64(enc, uint64(v))
-		return
 	case bool:
 		WriteBool(enc, v)
-		return
 	case float32:
 		WriteFloat32(enc, v)
-		return
 	case float64:
 		WriteFloat64(enc, v)
-		return
 	case complex64:
 		WriteComplex64(enc, v)
-		return
 	case complex128:
 		WriteComplex128(enc, v)
-		return
 	case big.Int:
 		WriteBigInt(enc, &v)
-		return
 	case big.Float:
 		WriteBigFloat(enc, &v)
-		return
 	case big.Rat:
 		WriteBigRat(enc, &v)
-		return
 	case error:
 		WriteError(enc, v)
+	default:
+		ok = false
+	}
+	return
+}
+
+func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v interface{})) {
+	if enc.fastWriteValue(v) {
 		return
 	}
 	t := reflect.TypeOf(v)
@@ -123,69 +140,50 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	switch kind {
 	case reflect.Int:
 		WriteInt(enc, *(*int)(reflect2.PtrOf(v)))
-		return
 	case reflect.Int8:
 		WriteInt8(enc, *(*int8)(reflect2.PtrOf(v)))
-		return
 	case reflect.Int16:
 		WriteInt16(enc, *(*int16)(reflect2.PtrOf(v)))
-		return
 	case reflect.Int32:
 		WriteInt32(enc, *(*int32)(reflect2.PtrOf(v)))
-		return
 	case reflect.Int64:
 		WriteInt64(enc, *(*int64)(reflect2.PtrOf(v)))
-		return
 	case reflect.Uint:
 		WriteUint(enc, *(*uint)(reflect2.PtrOf(v)))
-		return
 	case reflect.Uint8:
 		WriteUint8(enc, *(*uint8)(reflect2.PtrOf(v)))
-		return
 	case reflect.Uint16:
 		WriteUint16(enc, *(*uint16)(reflect2.PtrOf(v)))
-		return
 	case reflect.Uint32:
 		WriteUint32(enc, *(*uint32)(reflect2.PtrOf(v)))
-		return
 	case reflect.Uint64, reflect.Uintptr:
 		WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
-		return
 	case reflect.Bool:
 		WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
-		return
 	case reflect.Float32:
 		WriteFloat32(enc, *(*float32)(reflect2.PtrOf(v)))
-		return
 	case reflect.Float64:
 		WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
-		return
 	case reflect.Complex64:
 		WriteComplex64(enc, *(*complex64)(reflect2.PtrOf(v)))
-		return
 	case reflect.Complex128:
 		WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
-		return
 	case reflect.String:
 		encode(strenc, v)
-		return
 	case reflect.Array:
 		WriteArray(enc, v)
-		return
 	case reflect.Struct:
 		getStructEncoder(t).Write(enc, v)
-		return
 	case reflect.Slice:
 		WriteSlice(enc, v)
-		return
 	case reflect.Map:
 		WriteMap(enc, v)
-		return
 	case reflect.Ptr:
 		encode(ptrenc, v)
-		return
+	default:
+		enc.Error = &UnsupportedTypeError{Type: reflect.TypeOf(v)}
+		WriteNil(enc)
 	}
-	panic(&UnsupportedTypeError{Type: reflect.TypeOf(v)})
 }
 
 func (enc *Encoder) encode(v interface{}) {
@@ -200,8 +198,12 @@ func (enc *Encoder) write(v interface{}) {
 	})
 }
 
-func (enc *Encoder) flush() (err error) {
-	if enc.Writer != nil {
+// Flush writes the encoding data from buf to Writer
+func (enc *Encoder) Flush() (err error) {
+	if enc.Error != nil {
+		return enc.Error
+	}
+	if enc.Writer != nil && enc.off < len(enc.buf) {
 		_, err = enc.Writer.Write(enc.buf[enc.off:])
 		enc.off = len(enc.buf)
 	}
@@ -211,15 +213,17 @@ func (enc *Encoder) flush() (err error) {
 // Encode writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as reference
 func (enc *Encoder) Encode(v interface{}) (err error) {
+	enc.copyCheck()
 	enc.encode(v)
-	return enc.flush()
+	return enc.Flush()
 }
 
 // Write writes the hprose encoding of v to stream
 // if v is already written to stream, it will writes it as value
 func (enc *Encoder) Write(v interface{}) (err error) {
+	enc.copyCheck()
 	enc.write(v)
-	return enc.flush()
+	return enc.Flush()
 }
 
 // Bytes returns the accumulated bytes.

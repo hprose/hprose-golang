@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/value_encode_test.go                            |
 |                                                          |
-| LastModified: Mar 20, 2020                               |
+| LastModified: Mar 22, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,13 +16,15 @@ package encoding
 import (
 	"math"
 	"math/big"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestWriteInt(t *testing.T) {
-	enc := new(Encoder)
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb, true)
 	WriteInt(enc, -1)
 	WriteInt(enc, 0)
 	WriteInt(enc, 1)
@@ -30,7 +32,8 @@ func TestWriteInt(t *testing.T) {
 	WriteInt(enc, math.MinInt64)
 	WriteInt(enc, -math.MaxInt64)
 	WriteInt(enc, math.MaxInt64)
-	assert.Equal(t, "i-1;01i123;l-9223372036854775808;l-9223372036854775807;l9223372036854775807;", enc.String())
+	assert.NoError(t, enc.Flush())
+	assert.Equal(t, "i-1;01i123;l-9223372036854775808;l-9223372036854775807;l9223372036854775807;", sb.String())
 }
 
 func TestWriteUint(t *testing.T) {

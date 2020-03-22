@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_encoder.go                               |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Mar 22, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -62,10 +62,10 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
 	WriteFoot(enc)
 }
 
-func appendName(buf []byte, s string) []byte {
+func appendName(buf []byte, s string, message string) []byte {
 	length := utf16Length(s)
 	if length < 0 {
-		panic(ErrInvalidUTF8)
+		panic(fmt.Sprintf("invalid UTF-8 in %s", message))
 	}
 	return appendBinary(buf, reflect2.UnsafeCastString(s), length)
 }
@@ -153,14 +153,14 @@ func newStructEncoder(t reflect.Type, name string, tagnames []string) ValueEncod
 	n := len(names)
 	var buf []byte
 	buf = append(buf, TagClass)
-	buf = appendName(buf, name)
+	buf = appendName(buf, name, "struct name")
 	if n > 0 {
 		buf = AppendUint64(buf, uint64(n))
 	}
 	buf = append(buf, TagOpenbrace)
 	for i := 0; i < n; i++ {
 		buf = append(buf, TagString)
-		buf = appendName(buf, names[i])
+		buf = appendName(buf, names[i], "struct field name or alias")
 	}
 	buf = append(buf, TagClosebrace)
 	encoder.metadata = buf

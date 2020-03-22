@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/error.go                                        |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Mar 22, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,7 +14,6 @@
 package encoding
 
 import (
-	"errors"
 	"reflect"
 )
 
@@ -27,6 +26,3 @@ type UnsupportedTypeError struct {
 func (e *UnsupportedTypeError) Error() string {
 	return "hprose: unsupported type: " + e.Type.String()
 }
-
-// ErrInvalidUTF8 means that the string is invalid UTF-8.
-var ErrInvalidUTF8 = errors.New("encoding: invalid UTF-8")
