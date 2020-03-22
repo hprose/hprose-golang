@@ -497,6 +497,18 @@ func TestEncoderBytes(t *testing.T) {
 	assert.Equal(t, []byte{'1'}, enc.Bytes())
 }
 
+func TestEncoderSimple(t *testing.T) {
+	enc := new(Encoder)
+	enc.Simple(false)
+	enc.Encode("hello")
+	enc.Encode("hello")
+	assert.Equal(t, `s5"hello"r0;`, enc.String())
+	enc.Simple(true)
+	enc.Encode("hello")
+	enc.Encode("hello")
+	assert.Equal(t, `s5"hello"r0;s5"hello"s5"hello"`, enc.String())
+}
+
 func BenchmarkEncodeSlice(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)

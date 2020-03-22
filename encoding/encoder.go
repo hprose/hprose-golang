@@ -296,3 +296,14 @@ func (enc *Encoder) Reset() {
 	enc.ref = nil
 	enc.last = 0
 }
+
+// Simple resets the encoder to simple mode or not
+func (enc *Encoder) Simple(simple bool) {
+	if simple {
+		enc.refer = nil
+	} else {
+		enc.refer = &encoderRefer{}
+	}
+	enc.ref = nil
+	enc.last = 0
+}
