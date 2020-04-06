@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encoder_test.go                                 |
 |                                                          |
-| LastModified: Mar 22, 2020                               |
+| LastModified: Apr 6, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -509,9 +509,24 @@ func TestEncoderSimple(t *testing.T) {
 	assert.Equal(t, `s5"hello"r0;s5"hello"s5"hello"`, enc.String())
 }
 
-func BenchmarkEncodeSlice(b *testing.B) {
+func BenchmarkHproseEncodeSlice(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
+	slice := []int16{
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Encode(slice)
+	}
+}
+
+func BenchmarkSampleHproseEncodeSlice(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, true)
 	slice := []int16{
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
@@ -539,9 +554,24 @@ func BenchmarkJsonEncodeSlice(b *testing.B) {
 	}
 }
 
-func BenchmarkEncodeArray(b *testing.B) {
+func BenchmarkHproseEncodeArray(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
+	array := [50]int16{
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Encode(array)
+	}
+}
+
+func BenchmarkSampleHproseEncodeArray(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, true)
 	array := [50]int16{
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
@@ -569,9 +599,29 @@ func BenchmarkJsonEncodeArray(b *testing.B) {
 	}
 }
 
-func BenchmarkEncodeMap(b *testing.B) {
+func BenchmarkHproseEncodeMap(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
+	m := map[int16]int16{
+		1: 1,
+		2: 2,
+		3: 3,
+		4: 4,
+		5: 5,
+		6: 6,
+		7: 7,
+		8: 8,
+		9: 9,
+		0: 0,
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Encode(m)
+	}
+}
+
+func BenchmarkSampleHproseEncodeMap(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, true)
 	m := map[int16]int16{
 		1: 1,
 		2: 2,
@@ -609,7 +659,7 @@ func BenchmarkJsonEncodeMap(b *testing.B) {
 	}
 }
 
-func BenchmarkEncodeStruct(b *testing.B) {
+func BenchmarkHproseEncodeStruct(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
 	type TestStruct struct {
@@ -618,7 +668,27 @@ func BenchmarkEncodeStruct(b *testing.B) {
 		Birthday time.Time
 		Male     bool
 	}
-	ts := TestStruct{
+	ts := &TestStruct{
+		Name:     "Tom",
+		Age:      18,
+		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male:     true,
+	}
+	for i := 0; i < b.N; i++ {
+		enc.Encode(ts)
+	}
+}
+
+func BenchmarkSampleHproseEncodeStruct(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb, true)
+	type TestStruct struct {
+		Name     string
+		Age      int
+		Birthday time.Time
+		Male     bool
+	}
+	ts := &TestStruct{
 		Name:     "Tom",
 		Age:      18,
 		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
@@ -638,7 +708,7 @@ func BenchmarkJsonEncodeStruct(b *testing.B) {
 		Birthday time.Time
 		Male     bool
 	}
-	ts := TestStruct{
+	ts := &TestStruct{
 		Name:     "Tom",
 		Age:      18,
 		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
