@@ -348,4 +348,18 @@ func TestEncodeOnePtrFieldStruct(t *testing.T) {
 	assert.NoError(t, enc.Encode(&s))
 	assert.NoError(t, enc.Encode(&s))
 	assert.Equal(t, `c10"TestStruct"1{s1"b"}o0{c15"TestEmbedStruct"1{s1"a"}o1{1}}o0{r3;}o0{r3;}r5;`, sb.String())
+
+	enc.Reset()
+	sb.Reset()
+
+	var s2 struct {
+		B *TestEmbedStruct
+	}
+	s2.B = &TestEmbedStruct{i}
+	assert.NoError(t, enc.Encode(s2))
+	assert.NoError(t, enc.Encode(s2))
+	assert.NoError(t, enc.Encode(&s2))
+	assert.NoError(t, enc.Encode(&s2))
+	assert.Equal(t, `m1{ubc15"TestEmbedStruct"1{s1"a"}o0{1}}m1{ubr2;}m1{ubr2;}r4;`, sb.String())
+
 }

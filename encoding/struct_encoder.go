@@ -38,15 +38,15 @@ func (valenc *structEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
+	fields := valenc.fields
+	n := len(fields)
 	t := reflect.TypeOf(v)
 	st := t
 	if t.Kind() == reflect.Ptr {
 		st = t.Elem()
-	} else {
+	} else if n == 1 {
 		v = toPtr(t, v)
 	}
-	fields := valenc.fields
-	n := len(fields)
 	var r = enc.WriteStruct(st, func() {
 		enc.AddReferenceCount(n)
 		enc.buf = append(enc.buf, valenc.metadata...)
@@ -196,12 +196,14 @@ func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) {
 	SetReference(enc, v)
 	names, fields := valenc.names, valenc.fields
 	n := len(names)
-	if n == 0 {
+	switch n {
+	case 0:
 		enc.buf = append(enc.buf, TagMap, TagOpenbrace, TagClosebrace)
 		return
-	}
-	if t := reflect.TypeOf(v); t.Kind() == reflect.Struct {
-		v = toPtr(t, v)
+	case 1:
+		if t := reflect.TypeOf(v); t.Kind() == reflect.Struct {
+			v = toPtr(t, v)
+		}
 	}
 	p := reflect2.PtrOf(v)
 	WriteHead(enc, n, TagMap)
