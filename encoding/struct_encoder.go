@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_encoder.go                               |
 |                                                          |
-| LastModified: Mar 22, 2020                               |
+| LastModified: Apr 6, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -42,6 +42,8 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
 	st := t
 	if t.Kind() == reflect.Ptr {
 		st = t.Elem()
+	} else {
+		v = toPtr(t, v)
 	}
 	fields := valenc.fields
 	n := len(fields)
@@ -60,6 +62,12 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
 		fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
 	}
 	WriteFoot(enc)
+}
+
+func toPtr(t reflect.Type, v interface{}) interface{} {
+	pv := reflect.New(t)
+	pv.Elem().Set(reflect.ValueOf(v))
+	return pv.Interface()
 }
 
 func appendName(buf []byte, s string, message string) []byte {
@@ -191,6 +199,9 @@ func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) {
 	if n == 0 {
 		enc.buf = append(enc.buf, TagMap, TagOpenbrace, TagClosebrace)
 		return
+	}
+	if t := reflect.TypeOf(v); t.Kind() == reflect.Struct {
+		v = toPtr(t, v)
 	}
 	p := reflect2.PtrOf(v)
 	WriteHead(enc, n, TagMap)
