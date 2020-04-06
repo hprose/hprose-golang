@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encoder.go                                      |
 |                                                          |
-| LastModified: Mar 22, 2020                               |
+| LastModified: Apr 6, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -43,19 +43,6 @@ func NewEncoder(w io.Writer, simple bool) (encoder *Encoder) {
 	return
 }
 
-// noescape hides a pointer from escape analysis.  noescape is
-// the identity function but escape analysis doesn't think the
-// output depends on the input. noescape is inlined and currently
-// compiles down to zero instructions.
-// USE CAREFULLY!
-// This was copied from the runtime; see issues 23382 and 7921.
-//go:nosplit
-//go:nocheckptr
-func noescape(p unsafe.Pointer) unsafe.Pointer {
-	x := uintptr(p)
-	return unsafe.Pointer(x ^ 0)
-}
-
 func (enc *Encoder) copyCheck() {
 	if enc.addr == nil {
 		// This hack works around a failing of Go's escape analysis
@@ -63,7 +50,7 @@ func (enc *Encoder) copyCheck() {
 		// See issue 23382.
 		// TODO: once issue 7921 is fixed, this should be reverted to
 		// just "enc.addr = enc".
-		enc.addr = (*Encoder)(noescape(unsafe.Pointer(enc)))
+		enc.addr = (*Encoder)(reflect2.NoEscape(unsafe.Pointer(enc)))
 	} else if enc.addr != enc {
 		panic("hprose/encoding: illegal use of non-zero Encoder copied by value")
 	}
