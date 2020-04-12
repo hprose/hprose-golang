@@ -245,8 +245,6 @@ func (enc *Encoder) SetReference(v interface{}) {
 		switch reflect.TypeOf(v).Kind() {
 		case reflect.Ptr:
 			enc.refer.Set(v)
-		case reflect.String:
-			enc.refer.SetString(v.(string))
 		default:
 			enc.refer.AddCount(1)
 		}
