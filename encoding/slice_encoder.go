@@ -232,9 +232,7 @@ func (enc *Encoder) write2dInt8SliceBody(slice [][]int8, n int) {
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
 		enc.WriteHead(m, TagList)
-		for j := 0; j < m; j++ {
-			enc.WriteInt8(slice[i][j])
-		}
+		enc.writeInt8SliceBody(slice[i], m)
 		enc.WriteFoot()
 	}
 }
