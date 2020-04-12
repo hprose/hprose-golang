@@ -28,7 +28,7 @@ func (valenc uuidEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (uuidEncoder) Write(enc *Encoder, v interface{}) {
-	SetReference(enc, v)
+	enc.SetReference(v)
 	writeUUID(enc, *(*[16]byte)(reflect2.PtrOf(v)))
 }
 

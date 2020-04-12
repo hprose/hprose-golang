@@ -52,7 +52,7 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
 		enc.buf = append(enc.buf, valenc.metadata...)
 	})
 	if t.Kind() == reflect.Ptr {
-		enc.SetReference(v)
+		enc.SetPtrReference(v)
 	} else {
 		enc.AddReferenceCount(1)
 	}
@@ -193,7 +193,7 @@ func (valenc *anonymousStructEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) {
-	SetReference(enc, v)
+	enc.SetReference(v)
 	names, fields := valenc.names, valenc.fields
 	n := len(names)
 	switch n {

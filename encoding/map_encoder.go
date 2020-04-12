@@ -32,7 +32,7 @@ func (valenc mapEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (mapEncoder) Write(enc *Encoder, v interface{}) {
-	enc.SetReference(v)
+	enc.SetPtrReference(v)
 	writeMap(enc, reflect.ValueOf(v).Elem().Interface())
 }
 

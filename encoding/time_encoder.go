@@ -27,7 +27,7 @@ func (valenc timeEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (timeEncoder) Write(enc *Encoder, v interface{}) {
-	SetReference(enc, v)
+	enc.SetReference(v)
 	writeTime(enc, *(*time.Time)(reflect2.PtrOf(v)))
 }
 

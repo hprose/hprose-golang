@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encoder.go                                      |
 |                                                          |
-| LastModified: Apr 6, 2020                                |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -241,6 +241,20 @@ func (enc *Encoder) WriteStringReference(s string) bool {
 
 // SetReference of v
 func (enc *Encoder) SetReference(v interface{}) {
+	if enc.refer != nil {
+		switch reflect.TypeOf(v).Kind() {
+		case reflect.Ptr:
+			enc.refer.Set(v)
+		case reflect.String:
+			enc.refer.SetString(v.(string))
+		default:
+			enc.refer.AddCount(1)
+		}
+	}
+}
+
+// SetPtrReference of v
+func (enc *Encoder) SetPtrReference(v interface{}) {
 	if enc.refer != nil {
 		enc.refer.Set(v)
 	}

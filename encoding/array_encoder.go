@@ -32,7 +32,7 @@ func (valenc arrayEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (arrayEncoder) Write(enc *Encoder, v interface{}) {
-	enc.SetReference(v)
+	enc.SetPtrReference(v)
 	writeArray(enc, reflect.ValueOf(v).Elem().Interface())
 }
 

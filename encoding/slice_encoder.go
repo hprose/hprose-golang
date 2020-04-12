@@ -31,7 +31,7 @@ func (valenc sliceEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (sliceEncoder) Write(enc *Encoder, v interface{}) {
-	enc.SetReference(v)
+	enc.SetPtrReference(v)
 	writeSlice(enc, reflect.ValueOf(v).Elem().Interface())
 }
 

@@ -27,7 +27,7 @@ func (valenc listEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (listEncoder) Write(enc *Encoder, v interface{}) {
-	SetReference(enc, v)
+	enc.SetReference(v)
 	writeList(enc, (*list.List)(reflect2.PtrOf(v)))
 }
 

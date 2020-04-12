@@ -16,7 +16,6 @@ package encoding
 import (
 	"math"
 	"math/big"
-	"reflect"
 	"strconv"
 
 	"github.com/modern-go/reflect2"
@@ -396,15 +395,5 @@ func EncodeReference(valenc ValueEncoder, enc *Encoder, v interface{}) {
 		WriteNil(enc)
 	} else if ok := enc.WriteReference(v); !ok {
 		valenc.Write(enc, v)
-	}
-}
-
-// SetReference to encoder
-func SetReference(enc *Encoder, v interface{}) {
-	t := reflect.TypeOf(v)
-	if t.Kind() == reflect.Ptr {
-		enc.SetReference(v)
-	} else {
-		enc.AddReferenceCount(1)
 	}
 }
