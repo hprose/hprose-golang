@@ -29,10 +29,10 @@ func (valenc uuidEncoder) Encode(enc *Encoder, v interface{}) {
 
 func (uuidEncoder) Write(enc *Encoder, v interface{}) {
 	enc.SetReference(v)
-	writeUUID(enc, *(*[16]byte)(reflect2.PtrOf(v)))
+	enc.writeUUID(*(*[16]byte)(reflect2.PtrOf(v)))
 }
 
-func writeUUID(enc *Encoder, id [16]byte) {
+func (enc *Encoder) writeUUID(id [16]byte) {
 	var buf [36]byte
 	encodeHex(buf[:], id)
 	enc.buf = append(enc.buf, TagGUID, TagOpenbrace)
