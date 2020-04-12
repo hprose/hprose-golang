@@ -140,7 +140,7 @@ func stringEncode(enc *Encoder, v interface{}) {
 }
 
 func arrayEncode(enc *Encoder, v interface{}) {
-	WriteArray(enc, v)
+	enc.WriteArray(v)
 }
 
 func mapEncode(enc *Encoder, v interface{}) {

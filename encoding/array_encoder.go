@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/array_encoder.go                                |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -33,13 +33,13 @@ func (valenc arrayEncoder) Encode(enc *Encoder, v interface{}) {
 
 func (arrayEncoder) Write(enc *Encoder, v interface{}) {
 	enc.SetPtrReference(v)
-	writeArray(enc, reflect.ValueOf(v).Elem().Interface())
+	enc.writeArray(reflect.ValueOf(v).Elem().Interface())
 }
 
 // WriteArray to encoder
-func WriteArray(enc *Encoder, v interface{}) {
+func (enc *Encoder) WriteArray(v interface{}) {
 	enc.AddReferenceCount(1)
-	writeArray(enc, v)
+	enc.writeArray(v)
 }
 
 func makeSlice(array interface{}, count int) unsafe.Pointer {
@@ -50,7 +50,7 @@ func makeSlice(array interface{}, count int) unsafe.Pointer {
 	})
 }
 
-func writeArray(enc *Encoder, array interface{}) {
+func (enc *Encoder) writeArray(array interface{}) {
 	t := reflect.TypeOf(array)
 	sliceType := reflect.SliceOf(t.Elem())
 	var slice interface{}
