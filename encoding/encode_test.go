@@ -117,14 +117,14 @@ func TestWriteBool(t *testing.T) {
 
 func TestWriteFloat(t *testing.T) {
 	enc := new(Encoder)
-	WriteFloat32(enc, math.E)
-	WriteFloat32(enc, math.Pi)
-	WriteFloat64(enc, math.E)
-	WriteFloat64(enc, math.Pi)
-	WriteFloat64(enc, math.Log(1))
-	WriteFloat64(enc, math.Log(0))
-	WriteFloat64(enc, -math.Log(0))
-	WriteFloat64(enc, math.Log(-1))
+	enc.WriteFloat32(math.E)
+	enc.WriteFloat32(math.Pi)
+	enc.WriteFloat64(math.E)
+	enc.WriteFloat64(math.Pi)
+	enc.WriteFloat64(math.Log(1))
+	enc.WriteFloat64(math.Log(0))
+	enc.WriteFloat64(-math.Log(0))
+	enc.WriteFloat64(math.Log(-1))
 	assert.Equal(t, "d2.7182817;d3.1415927;d2.718281828459045;d3.141592653589793;d0;I-I+N", enc.String())
 }
 

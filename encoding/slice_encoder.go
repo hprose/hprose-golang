@@ -204,14 +204,14 @@ func writeBoolSliceBody(enc *Encoder, slice []bool) {
 func writeFloat32SliceBody(enc *Encoder, slice []float32) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
-		WriteFloat32(enc, slice[i])
+		enc.WriteFloat32(slice[i])
 	}
 }
 
 func writeFloat64SliceBody(enc *Encoder, slice []float64) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
-		WriteFloat64(enc, slice[i])
+		enc.WriteFloat64(slice[i])
 	}
 }
 
@@ -380,7 +380,7 @@ func write2dFloat32SliceBody(enc *Encoder, slice [][]float32) {
 		m := len(slice[i])
 		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
-			WriteFloat32(enc, slice[i][j])
+			enc.WriteFloat32(slice[i][j])
 		}
 		enc.WriteFoot()
 	}
@@ -393,7 +393,7 @@ func write2dFloat64SliceBody(enc *Encoder, slice [][]float64) {
 		m := len(slice[i])
 		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
-			WriteFloat64(enc, slice[i][j])
+			enc.WriteFloat64(slice[i][j])
 		}
 		enc.WriteFoot()
 	}

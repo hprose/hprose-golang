@@ -120,11 +120,11 @@ func uint64Encode(enc *Encoder, v interface{}) {
 }
 
 func float32Encode(enc *Encoder, v interface{}) {
-	WriteFloat32(enc, *(*float32)(reflect2.PtrOf(v)))
+	enc.WriteFloat32(*(*float32)(reflect2.PtrOf(v)))
 }
 
 func float64Encode(enc *Encoder, v interface{}) {
-	WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
+	enc.WriteFloat64(*(*float64)(reflect2.PtrOf(v)))
 }
 
 func complex64Encode(enc *Encoder, v interface{}) {
@@ -267,7 +267,7 @@ func float32PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		WriteNil(enc)
 	} else {
-		WriteFloat32(enc, *p)
+		enc.WriteFloat32(*p)
 	}
 }
 
@@ -276,7 +276,7 @@ func float64PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		WriteNil(enc)
 	} else {
-		WriteFloat64(enc, *p)
+		enc.WriteFloat64(*p)
 	}
 }
 

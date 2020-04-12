@@ -15,8 +15,10 @@ package encoding
 
 import (
 	"io"
+	"math"
 	"math/big"
 	"reflect"
+	"strconv"
 	"unsafe"
 
 	"github.com/modern-go/reflect2"
@@ -86,9 +88,9 @@ func (enc *Encoder) fastWriteValue(v interface{}) (ok bool) {
 	case bool:
 		WriteBool(enc, v)
 	case float32:
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	case float64:
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	case complex64:
 		enc.WriteComplex64(v)
 	case complex128:
@@ -148,9 +150,9 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	case reflect.Bool:
 		WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
 	case reflect.Float32:
-		WriteFloat32(enc, *(*float32)(reflect2.PtrOf(v)))
+		enc.WriteFloat32(*(*float32)(reflect2.PtrOf(v)))
 	case reflect.Float64:
-		WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
+		enc.WriteFloat64(*(*float64)(reflect2.PtrOf(v)))
 	case reflect.Complex64:
 		enc.WriteComplex64(*(*complex64)(reflect2.PtrOf(v)))
 	case reflect.Complex128:
@@ -309,13 +311,29 @@ func (enc *Encoder) Simple(simple bool) {
 	enc.last = 0
 }
 
-// EncodeReference to encoder
-func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
-	if reflect2.IsNil(v) {
-		WriteNil(enc)
-	} else if ok := enc.WriteReference(v); !ok {
-		valenc.Write(enc, v)
+func (enc *Encoder) writeFloat(f float64, bitSize int) {
+	switch {
+	case f != f:
+		enc.buf = append(enc.buf, TagNaN)
+	case f > math.MaxFloat64:
+		enc.buf = append(enc.buf, TagInfinity, TagPos)
+	case f < -math.MaxFloat64:
+		enc.buf = append(enc.buf, TagInfinity, TagNeg)
+	default:
+		enc.buf = append(enc.buf, TagDouble)
+		enc.buf = strconv.AppendFloat(enc.buf, f, 'g', -1, bitSize)
+		enc.buf = append(enc.buf, TagSemicolon)
 	}
+}
+
+// WriteFloat32 to encoder
+func (enc *Encoder) WriteFloat32(f float32) {
+	enc.writeFloat(float64(f), 32)
+}
+
+// WriteFloat64 to encoder
+func (enc *Encoder) WriteFloat64(f float64) {
+	enc.writeFloat(f, 64)
 }
 
 // WriteHead to encoder, n is the count of elements in list or map
@@ -341,12 +359,12 @@ func (enc *Encoder) WriteFoot() {
 
 func (enc *Encoder) writeComplex(r float64, i float64, bitSize int) {
 	if i == 0 {
-		writeFloat(enc, r, bitSize)
+		enc.writeFloat(r, bitSize)
 	} else {
 		enc.AddReferenceCount(1)
 		enc.WriteHead(2, TagList)
-		writeFloat(enc, r, bitSize)
-		writeFloat(enc, i, bitSize)
+		enc.writeFloat(r, bitSize)
+		enc.writeFloat(i, bitSize)
 		enc.WriteFoot()
 	}
 }
@@ -392,4 +410,13 @@ func (enc *Encoder) WriteError(e error) {
 	s := e.Error()
 	enc.buf = append(enc.buf, TagError)
 	enc.buf = appendString(enc.buf, s, utf16Length(s))
+}
+
+// EncodeReference to encoder
+func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
+	if reflect2.IsNil(v) {
+		WriteNil(enc)
+	} else if ok := enc.WriteReference(v); !ok {
+		valenc.Write(enc, v)
+	}
 }

@@ -15,7 +15,6 @@ package encoding
 
 import (
 	"math"
-	"strconv"
 
 	"github.com/modern-go/reflect2"
 )
@@ -227,31 +226,6 @@ func WriteBool(enc *Encoder, b bool) {
 	} else {
 		enc.buf = append(enc.buf, TagFalse)
 	}
-}
-
-func writeFloat(enc *Encoder, f float64, bitSize int) {
-	switch {
-	case f != f:
-		enc.buf = append(enc.buf, TagNaN)
-	case f > math.MaxFloat64:
-		enc.buf = append(enc.buf, TagInfinity, TagPos)
-	case f < -math.MaxFloat64:
-		enc.buf = append(enc.buf, TagInfinity, TagNeg)
-	default:
-		enc.buf = append(enc.buf, TagDouble)
-		enc.buf = strconv.AppendFloat(enc.buf, f, 'g', -1, bitSize)
-		enc.buf = append(enc.buf, TagSemicolon)
-	}
-}
-
-// WriteFloat32 to encoder
-func WriteFloat32(enc *Encoder, f float32) {
-	writeFloat(enc, float64(f), 32)
-}
-
-// WriteFloat64 to encoder
-func WriteFloat64(enc *Encoder, f float64) {
-	writeFloat(enc, f, 64)
 }
 
 func utf16Length(str string) (n int) {

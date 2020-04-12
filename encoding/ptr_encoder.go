@@ -65,9 +65,9 @@ func fastWritePtr(enc *Encoder, v interface{}) (ok bool) {
 	case *bool:
 		WriteBool(enc, *v)
 	case *float32:
-		WriteFloat32(enc, *v)
+		enc.WriteFloat32(*v)
 	case *float64:
-		WriteFloat64(enc, *v)
+		enc.WriteFloat64(*v)
 	case *complex64:
 		enc.WriteComplex64(*v)
 	case *complex128:
@@ -127,9 +127,9 @@ func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Enco
 	case reflect.Bool:
 		WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
 	case reflect.Float32:
-		WriteFloat32(enc, *(*float32)(reflect2.PtrOf(v)))
+		enc.WriteFloat32(*(*float32)(reflect2.PtrOf(v)))
 	case reflect.Float64:
-		WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
+		enc.WriteFloat64(*(*float64)(reflect2.PtrOf(v)))
 	case reflect.Complex64:
 		enc.WriteComplex64(*(*complex64)(reflect2.PtrOf(v)))
 	case reflect.Complex128:

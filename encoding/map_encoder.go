@@ -573,7 +573,7 @@ func writeStringBoolMapBody(enc *Encoder, m map[string]bool) {
 func writeStringFloat32MapBody(enc *Encoder, m map[string]float32) {
 	for k, v := range m {
 		EncodeString(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -581,7 +581,7 @@ func writeStringFloat32MapBody(enc *Encoder, m map[string]float32) {
 func writeStringFloat64MapBody(enc *Encoder, m map[string]float64) {
 	for k, v := range m {
 		EncodeString(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -693,7 +693,7 @@ func writeIntBoolMapBody(enc *Encoder, m map[int]bool) {
 func writeIntFloat32MapBody(enc *Encoder, m map[int]float32) {
 	for k, v := range m {
 		WriteInt(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -701,7 +701,7 @@ func writeIntFloat32MapBody(enc *Encoder, m map[int]float32) {
 func writeIntFloat64MapBody(enc *Encoder, m map[int]float64) {
 	for k, v := range m {
 		WriteInt(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -813,7 +813,7 @@ func writeInt8BoolMapBody(enc *Encoder, m map[int8]bool) {
 func writeInt8Float32MapBody(enc *Encoder, m map[int8]float32) {
 	for k, v := range m {
 		WriteInt8(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -821,7 +821,7 @@ func writeInt8Float32MapBody(enc *Encoder, m map[int8]float32) {
 func writeInt8Float64MapBody(enc *Encoder, m map[int8]float64) {
 	for k, v := range m {
 		WriteInt8(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -933,7 +933,7 @@ func writeInt16BoolMapBody(enc *Encoder, m map[int16]bool) {
 func writeInt16Float32MapBody(enc *Encoder, m map[int16]float32) {
 	for k, v := range m {
 		WriteInt16(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -941,7 +941,7 @@ func writeInt16Float32MapBody(enc *Encoder, m map[int16]float32) {
 func writeInt16Float64MapBody(enc *Encoder, m map[int16]float64) {
 	for k, v := range m {
 		WriteInt16(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -1053,7 +1053,7 @@ func writeInt32BoolMapBody(enc *Encoder, m map[int32]bool) {
 func writeInt32Float32MapBody(enc *Encoder, m map[int32]float32) {
 	for k, v := range m {
 		WriteInt32(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -1061,7 +1061,7 @@ func writeInt32Float32MapBody(enc *Encoder, m map[int32]float32) {
 func writeInt32Float64MapBody(enc *Encoder, m map[int32]float64) {
 	for k, v := range m {
 		WriteInt32(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -1173,7 +1173,7 @@ func writeInt64BoolMapBody(enc *Encoder, m map[int64]bool) {
 func writeInt64Float32MapBody(enc *Encoder, m map[int64]float32) {
 	for k, v := range m {
 		WriteInt64(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -1181,7 +1181,7 @@ func writeInt64Float32MapBody(enc *Encoder, m map[int64]float32) {
 func writeInt64Float64MapBody(enc *Encoder, m map[int64]float64) {
 	for k, v := range m {
 		WriteInt64(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -1293,7 +1293,7 @@ func writeUintBoolMapBody(enc *Encoder, m map[uint]bool) {
 func writeUintFloat32MapBody(enc *Encoder, m map[uint]float32) {
 	for k, v := range m {
 		WriteUint(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -1301,7 +1301,7 @@ func writeUintFloat32MapBody(enc *Encoder, m map[uint]float32) {
 func writeUintFloat64MapBody(enc *Encoder, m map[uint]float64) {
 	for k, v := range m {
 		WriteUint(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -1412,7 +1412,7 @@ func writeUint8BoolMapBody(enc *Encoder, m map[uint8]bool) {
 func writeUint8Float32MapBody(enc *Encoder, m map[uint8]float32) {
 	for k, v := range m {
 		WriteUint8(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -1420,7 +1420,7 @@ func writeUint8Float32MapBody(enc *Encoder, m map[uint8]float32) {
 func writeUint8Float64MapBody(enc *Encoder, m map[uint8]float64) {
 	for k, v := range m {
 		WriteUint8(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -1532,7 +1532,7 @@ func writeUint16BoolMapBody(enc *Encoder, m map[uint16]bool) {
 func writeUint16Float32MapBody(enc *Encoder, m map[uint16]float32) {
 	for k, v := range m {
 		WriteUint16(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -1540,7 +1540,7 @@ func writeUint16Float32MapBody(enc *Encoder, m map[uint16]float32) {
 func writeUint16Float64MapBody(enc *Encoder, m map[uint16]float64) {
 	for k, v := range m {
 		WriteUint16(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -1652,7 +1652,7 @@ func writeUint32BoolMapBody(enc *Encoder, m map[uint32]bool) {
 func writeUint32Float32MapBody(enc *Encoder, m map[uint32]float32) {
 	for k, v := range m {
 		WriteUint32(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -1660,7 +1660,7 @@ func writeUint32Float32MapBody(enc *Encoder, m map[uint32]float32) {
 func writeUint32Float64MapBody(enc *Encoder, m map[uint32]float64) {
 	for k, v := range m {
 		WriteUint32(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -1772,7 +1772,7 @@ func writeUint64BoolMapBody(enc *Encoder, m map[uint64]bool) {
 func writeUint64Float32MapBody(enc *Encoder, m map[uint64]float32) {
 	for k, v := range m {
 		WriteUint64(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -1780,7 +1780,7 @@ func writeUint64Float32MapBody(enc *Encoder, m map[uint64]float32) {
 func writeUint64Float64MapBody(enc *Encoder, m map[uint64]float64) {
 	for k, v := range m {
 		WriteUint64(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
@@ -1795,7 +1795,7 @@ func writeUint64InterfaceMapBody(enc *Encoder, m map[uint64]interface{}) {
 
 func writeFloat32StringMapBody(enc *Encoder, m map[float32]string) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		EncodeString(enc, v)
 	}
 	return
@@ -1803,7 +1803,7 @@ func writeFloat32StringMapBody(enc *Encoder, m map[float32]string) {
 
 func writeFloat32IntMapBody(enc *Encoder, m map[float32]int) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteInt(enc, v)
 	}
 	return
@@ -1811,7 +1811,7 @@ func writeFloat32IntMapBody(enc *Encoder, m map[float32]int) {
 
 func writeFloat32Int8MapBody(enc *Encoder, m map[float32]int8) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteInt8(enc, v)
 	}
 	return
@@ -1819,7 +1819,7 @@ func writeFloat32Int8MapBody(enc *Encoder, m map[float32]int8) {
 
 func writeFloat32Int16MapBody(enc *Encoder, m map[float32]int16) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteInt16(enc, v)
 	}
 	return
@@ -1827,7 +1827,7 @@ func writeFloat32Int16MapBody(enc *Encoder, m map[float32]int16) {
 
 func writeFloat32Int32MapBody(enc *Encoder, m map[float32]int32) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteInt32(enc, v)
 	}
 	return
@@ -1835,7 +1835,7 @@ func writeFloat32Int32MapBody(enc *Encoder, m map[float32]int32) {
 
 func writeFloat32Int64MapBody(enc *Encoder, m map[float32]int64) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteInt64(enc, v)
 	}
 	return
@@ -1843,7 +1843,7 @@ func writeFloat32Int64MapBody(enc *Encoder, m map[float32]int64) {
 
 func writeFloat32UintMapBody(enc *Encoder, m map[float32]uint) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteUint(enc, v)
 	}
 	return
@@ -1851,7 +1851,7 @@ func writeFloat32UintMapBody(enc *Encoder, m map[float32]uint) {
 
 func writeFloat32Uint8MapBody(enc *Encoder, m map[float32]uint8) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteUint8(enc, v)
 	}
 	return
@@ -1859,7 +1859,7 @@ func writeFloat32Uint8MapBody(enc *Encoder, m map[float32]uint8) {
 
 func writeFloat32Uint16MapBody(enc *Encoder, m map[float32]uint16) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteUint16(enc, v)
 	}
 	return
@@ -1867,7 +1867,7 @@ func writeFloat32Uint16MapBody(enc *Encoder, m map[float32]uint16) {
 
 func writeFloat32Uint32MapBody(enc *Encoder, m map[float32]uint32) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteUint32(enc, v)
 	}
 	return
@@ -1875,7 +1875,7 @@ func writeFloat32Uint32MapBody(enc *Encoder, m map[float32]uint32) {
 
 func writeFloat32Uint64MapBody(enc *Encoder, m map[float32]uint64) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteUint64(enc, v)
 	}
 	return
@@ -1883,7 +1883,7 @@ func writeFloat32Uint64MapBody(enc *Encoder, m map[float32]uint64) {
 
 func writeFloat32BoolMapBody(enc *Encoder, m map[float32]bool) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		WriteBool(enc, v)
 	}
 	return
@@ -1891,23 +1891,23 @@ func writeFloat32BoolMapBody(enc *Encoder, m map[float32]bool) {
 
 func writeFloat32Float32MapBody(enc *Encoder, m map[float32]float32) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(k)
+		enc.WriteFloat32(v)
 	}
 	return
 }
 
 func writeFloat32Float64MapBody(enc *Encoder, m map[float32]float64) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat32(k)
+		enc.WriteFloat64(v)
 	}
 	return
 }
 
 func writeFloat32InterfaceMapBody(enc *Encoder, m map[float32]interface{}) {
 	for k, v := range m {
-		WriteFloat32(enc, k)
+		enc.WriteFloat32(k)
 		enc.encode(v)
 	}
 	return
@@ -1915,7 +1915,7 @@ func writeFloat32InterfaceMapBody(enc *Encoder, m map[float32]interface{}) {
 
 func writeFloat64StringMapBody(enc *Encoder, m map[float64]string) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		EncodeString(enc, v)
 	}
 	return
@@ -1923,7 +1923,7 @@ func writeFloat64StringMapBody(enc *Encoder, m map[float64]string) {
 
 func writeFloat64IntMapBody(enc *Encoder, m map[float64]int) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteInt(enc, v)
 	}
 	return
@@ -1931,7 +1931,7 @@ func writeFloat64IntMapBody(enc *Encoder, m map[float64]int) {
 
 func writeFloat64Int8MapBody(enc *Encoder, m map[float64]int8) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteInt8(enc, v)
 	}
 	return
@@ -1939,7 +1939,7 @@ func writeFloat64Int8MapBody(enc *Encoder, m map[float64]int8) {
 
 func writeFloat64Int16MapBody(enc *Encoder, m map[float64]int16) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteInt16(enc, v)
 	}
 	return
@@ -1947,7 +1947,7 @@ func writeFloat64Int16MapBody(enc *Encoder, m map[float64]int16) {
 
 func writeFloat64Int32MapBody(enc *Encoder, m map[float64]int32) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteInt32(enc, v)
 	}
 	return
@@ -1955,7 +1955,7 @@ func writeFloat64Int32MapBody(enc *Encoder, m map[float64]int32) {
 
 func writeFloat64Int64MapBody(enc *Encoder, m map[float64]int64) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteInt64(enc, v)
 	}
 	return
@@ -1963,7 +1963,7 @@ func writeFloat64Int64MapBody(enc *Encoder, m map[float64]int64) {
 
 func writeFloat64UintMapBody(enc *Encoder, m map[float64]uint) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteUint(enc, v)
 	}
 	return
@@ -1971,7 +1971,7 @@ func writeFloat64UintMapBody(enc *Encoder, m map[float64]uint) {
 
 func writeFloat64Uint8MapBody(enc *Encoder, m map[float64]uint8) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteUint8(enc, v)
 	}
 	return
@@ -1979,7 +1979,7 @@ func writeFloat64Uint8MapBody(enc *Encoder, m map[float64]uint8) {
 
 func writeFloat64Uint16MapBody(enc *Encoder, m map[float64]uint16) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteUint16(enc, v)
 	}
 	return
@@ -1987,7 +1987,7 @@ func writeFloat64Uint16MapBody(enc *Encoder, m map[float64]uint16) {
 
 func writeFloat64Uint32MapBody(enc *Encoder, m map[float64]uint32) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteUint32(enc, v)
 	}
 	return
@@ -1995,7 +1995,7 @@ func writeFloat64Uint32MapBody(enc *Encoder, m map[float64]uint32) {
 
 func writeFloat64Uint64MapBody(enc *Encoder, m map[float64]uint64) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteUint64(enc, v)
 	}
 	return
@@ -2003,7 +2003,7 @@ func writeFloat64Uint64MapBody(enc *Encoder, m map[float64]uint64) {
 
 func writeFloat64BoolMapBody(enc *Encoder, m map[float64]bool) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		WriteBool(enc, v)
 	}
 	return
@@ -2011,23 +2011,23 @@ func writeFloat64BoolMapBody(enc *Encoder, m map[float64]bool) {
 
 func writeFloat64Float32MapBody(enc *Encoder, m map[float64]float32) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat64(k)
+		enc.WriteFloat32(v)
 	}
 	return
 }
 
 func writeFloat64Float64MapBody(enc *Encoder, m map[float64]float64) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(k)
+		enc.WriteFloat64(v)
 	}
 	return
 }
 
 func writeFloat64InterfaceMapBody(enc *Encoder, m map[float64]interface{}) {
 	for k, v := range m {
-		WriteFloat64(enc, k)
+		enc.WriteFloat64(k)
 		enc.encode(v)
 	}
 	return
@@ -2132,7 +2132,7 @@ func writeInterfaceBoolMapBody(enc *Encoder, m map[interface{}]bool) {
 func writeInterfaceFloat32MapBody(enc *Encoder, m map[interface{}]float32) {
 	for k, v := range m {
 		enc.encode(k)
-		WriteFloat32(enc, v)
+		enc.WriteFloat32(v)
 	}
 	return
 }
@@ -2140,7 +2140,7 @@ func writeInterfaceFloat32MapBody(enc *Encoder, m map[interface{}]float32) {
 func writeInterfaceFloat64MapBody(enc *Encoder, m map[interface{}]float64) {
 	for k, v := range m {
 		enc.encode(k)
-		WriteFloat64(enc, v)
+		enc.WriteFloat64(v)
 	}
 	return
 }
