@@ -476,31 +476,6 @@ func (enc *Encoder) WriteComplex128(c complex128) {
 	enc.writeComplex(real(c), imag(c), 64)
 }
 
-// WriteBigFloat to encoder
-func (enc *Encoder) WriteBigFloat(f *big.Float) {
-	enc.buf = append(enc.buf, TagDouble)
-	enc.buf = f.Append(enc.buf, 'g', -1)
-	enc.buf = append(enc.buf, TagSemicolon)
-}
-
-// WriteBigInt to encoder
-func (enc *Encoder) WriteBigInt(i *big.Int) {
-	enc.buf = append(enc.buf, TagLong)
-	enc.buf = append(enc.buf, i.String()...)
-	enc.buf = append(enc.buf, TagSemicolon)
-}
-
-// WriteBigRat to encoder
-func (enc *Encoder) WriteBigRat(r *big.Rat) {
-	if r.IsInt() {
-		enc.WriteBigInt(r.Num())
-	} else {
-		enc.AddReferenceCount(1)
-		s := r.String()
-		enc.buf = appendString(enc.buf, s, len(s))
-	}
-}
-
 // WriteError to encoder
 func (enc *Encoder) WriteError(e error) {
 	enc.AddReferenceCount(1)
