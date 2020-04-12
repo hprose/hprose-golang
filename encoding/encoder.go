@@ -251,8 +251,7 @@ func (enc *Encoder) SetReference(v interface{}) {
 	}
 }
 
-// SetPtrReference of v
-func (enc *Encoder) SetPtrReference(v interface{}) {
+func (enc *Encoder) setReference(v interface{}) {
 	if enc.refer != nil {
 		enc.refer.Set(v)
 	}

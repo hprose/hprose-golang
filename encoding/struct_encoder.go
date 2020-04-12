@@ -53,11 +53,7 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
 		enc.AddReferenceCount(n)
 		enc.buf = append(enc.buf, valenc.metadata...)
 	})
-	if t.Kind() == reflect.Ptr {
-		enc.SetPtrReference(v)
-	} else {
-		enc.AddReferenceCount(1)
-	}
+	enc.SetReference(v)
 	p := reflect2.PtrOf(v)
 	enc.WriteObjectHead(r)
 	for i := 0; i < n; i++ {
