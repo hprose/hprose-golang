@@ -311,13 +311,22 @@ func (enc *Encoder) WriteNil() {
 	enc.buf = append(enc.buf, TagNull)
 }
 
-// WriteHead to encoder, n is the count of elements in list or map
-func (enc *Encoder) WriteHead(n int, tag byte) {
+func (enc *Encoder) writeHead(n int, tag byte) {
 	enc.buf = append(enc.buf, tag)
 	if n > 0 {
 		enc.buf = AppendUint64(enc.buf, uint64(n))
 	}
 	enc.buf = append(enc.buf, TagOpenbrace)
+}
+
+// WriteListHead to encoder, n is the count of elements in list
+func (enc *Encoder) WriteListHead(n int) {
+	enc.writeHead(n, TagList)
+}
+
+// WriteMapHead to encoder, n is the count of elements in map
+func (enc *Encoder) WriteMapHead(n int) {
+	enc.writeHead(n, TagMap)
 }
 
 // WriteObjectHead to encoder, r is the reference number of struct

@@ -140,7 +140,7 @@ func (enc *Encoder) writeComplex(r float64, i float64, bitSize int) {
 		enc.writeFloat(r, bitSize)
 	} else {
 		enc.AddReferenceCount(1)
-		enc.WriteHead(2, TagList)
+		enc.WriteListHead(2)
 		enc.writeFloat(r, bitSize)
 		enc.writeFloat(i, bitSize)
 		enc.WriteFoot()

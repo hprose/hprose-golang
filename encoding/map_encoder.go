@@ -48,7 +48,7 @@ func (enc *Encoder) writeMap(v interface{}) {
 		enc.buf = append(enc.buf, TagMap, TagOpenbrace, TagClosebrace)
 		return
 	}
-	enc.WriteHead(count, TagMap)
+	enc.WriteMapHead(count)
 	enc.writeMapBody(v)
 	enc.WriteFoot()
 }

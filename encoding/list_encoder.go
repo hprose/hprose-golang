@@ -37,7 +37,7 @@ func (enc *Encoder) writeList(lst *list.List) {
 		enc.buf = append(enc.buf, TagList, TagOpenbrace, TagClosebrace)
 		return
 	}
-	enc.WriteHead(count, TagList)
+	enc.WriteListHead(count)
 	for e := lst.Front(); e != nil; e = e.Next() {
 		enc.encode(e.Value)
 	}

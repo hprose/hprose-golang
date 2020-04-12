@@ -204,7 +204,7 @@ func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) {
 		}
 	}
 	p := reflect2.PtrOf(v)
-	enc.WriteHead(n, TagMap)
+	enc.WriteMapHead(n)
 	for i := 0; i < n; i++ {
 		enc.EncodeString(names[i])
 		fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
