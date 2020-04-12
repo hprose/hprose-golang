@@ -28,10 +28,10 @@ func (valenc listEncoder) Encode(enc *Encoder, v interface{}) {
 
 func (listEncoder) Write(enc *Encoder, v interface{}) {
 	enc.SetReference(v)
-	writeList(enc, (*list.List)(reflect2.PtrOf(v)))
+	enc.writeList((*list.List)(reflect2.PtrOf(v)))
 }
 
-func writeList(enc *Encoder, lst *list.List) {
+func (enc *Encoder) writeList(lst *list.List) {
 	count := lst.Len()
 	if count == 0 {
 		enc.buf = append(enc.buf, TagList, TagOpenbrace, TagClosebrace)
