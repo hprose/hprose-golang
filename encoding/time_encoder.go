@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/time_encoder.go                                 |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,7 +23,7 @@ import (
 type timeEncoder struct{}
 
 func (valenc timeEncoder) Encode(enc *Encoder, v interface{}) {
-	EncodeReference(valenc, enc, v)
+	enc.EncodeReference(valenc, v)
 }
 
 func (timeEncoder) Write(enc *Encoder, v interface{}) {

@@ -308,3 +308,12 @@ func (enc *Encoder) Simple(simple bool) {
 	enc.ref = nil
 	enc.last = 0
 }
+
+// EncodeReference to encoder
+func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
+	if reflect2.IsNil(v) {
+		WriteNil(enc)
+	} else if ok := enc.WriteReference(v); !ok {
+		valenc.Write(enc, v)
+	}
+}

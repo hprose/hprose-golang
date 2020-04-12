@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encode.go                                       |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -387,13 +387,4 @@ func WriteError(enc *Encoder, e error) {
 	enc.AddReferenceCount(1)
 	s := e.Error()
 	enc.buf = appendString(enc.buf, s, utf16Length(s))
-}
-
-// EncodeReference to encoder
-func EncodeReference(valenc ValueEncoder, enc *Encoder, v interface{}) {
-	if reflect2.IsNil(v) {
-		WriteNil(enc)
-	} else if ok := enc.WriteReference(v); !ok {
-		valenc.Write(enc, v)
-	}
 }

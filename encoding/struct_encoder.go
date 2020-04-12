@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_encoder.go                               |
 |                                                          |
-| LastModified: Apr 6, 2020                                |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -34,7 +34,7 @@ type structEncoder struct {
 }
 
 func (valenc *structEncoder) Encode(enc *Encoder, v interface{}) {
-	EncodeReference(valenc, enc, v)
+	enc.EncodeReference(valenc, v)
 }
 
 func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
@@ -189,7 +189,7 @@ func newAnonymousStructEncoder(t reflect.Type) ValueEncoder {
 }
 
 func (valenc *anonymousStructEncoder) Encode(enc *Encoder, v interface{}) {
-	EncodeReference(valenc, enc, v)
+	enc.EncodeReference(valenc, v)
 }
 
 func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) {

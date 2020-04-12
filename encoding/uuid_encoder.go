@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/uuid_encoder.go                                 |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,7 +24,7 @@ import (
 type uuidEncoder struct{}
 
 func (valenc uuidEncoder) Encode(enc *Encoder, v interface{}) {
-	EncodeReference(valenc, enc, v)
+	enc.EncodeReference(valenc, v)
 }
 
 func (uuidEncoder) Write(enc *Encoder, v interface{}) {
