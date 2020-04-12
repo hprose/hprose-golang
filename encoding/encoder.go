@@ -162,7 +162,7 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	case reflect.Struct:
 		getStructEncoder(t).Write(enc, v)
 	case reflect.Slice:
-		WriteSlice(enc, v)
+		enc.WriteSlice(v)
 	case reflect.Map:
 		enc.WriteMap(v)
 	case reflect.Ptr:

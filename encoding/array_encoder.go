@@ -57,5 +57,5 @@ func (enc *Encoder) writeArray(array interface{}) {
 	sliceStruct := unpackEFace(&slice)
 	sliceStruct.typ = (uintptr)(reflect2.PtrOf(sliceType))
 	sliceStruct.ptr = makeSlice(array, t.Len())
-	writeSlice(enc, slice)
+	enc.writeSlice(slice)
 }

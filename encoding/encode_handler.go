@@ -155,7 +155,7 @@ func sliceEncode(enc *Encoder, v interface{}) {
 	if reflect.ValueOf(v).IsNil() {
 		enc.WriteNil()
 	} else {
-		WriteSlice(enc, v)
+		enc.WriteSlice(v)
 	}
 }
 

@@ -32,18 +32,18 @@ func (valenc sliceEncoder) Encode(enc *Encoder, v interface{}) {
 
 func (sliceEncoder) Write(enc *Encoder, v interface{}) {
 	enc.SetPtrReference(v)
-	writeSlice(enc, reflect.ValueOf(v).Elem().Interface())
+	enc.writeSlice(reflect.ValueOf(v).Elem().Interface())
 }
 
 // WriteSlice to encoder
-func WriteSlice(enc *Encoder, v interface{}) {
+func (enc *Encoder) WriteSlice(v interface{}) {
 	enc.AddReferenceCount(1)
-	writeSlice(enc, v)
+	enc.writeSlice(v)
 }
 
 var emptySlice = []byte{TagList, TagOpenbrace, TagClosebrace}
 
-func writeSlice(enc *Encoder, v interface{}) {
+func (enc *Encoder) writeSlice(v interface{}) {
 	if bytes, ok := v.([]byte); ok {
 		enc.buf = appendBytes(enc.buf, bytes)
 		return
@@ -54,196 +54,196 @@ func writeSlice(enc *Encoder, v interface{}) {
 		return
 	}
 	enc.WriteHead(count, TagList)
-	writeSliceBody(enc, v)
+	enc.writeSliceBody(v)
 	enc.WriteFoot()
 }
 
-func writeSliceBody(enc *Encoder, v interface{}) {
+func (enc *Encoder) writeSliceBody(v interface{}) {
 	switch v := v.(type) {
 	case []uint16:
-		writeUint16SliceBody(enc, v)
+		enc.writeUint16SliceBody(v)
 	case []uint32:
-		writeUint32SliceBody(enc, v)
+		enc.writeUint32SliceBody(v)
 	case []uint64:
-		writeUint64SliceBody(enc, v)
+		enc.writeUint64SliceBody(v)
 	case []uint:
-		writeUintSliceBody(enc, v)
+		enc.writeUintSliceBody(v)
 	case []int8:
-		writeInt8SliceBody(enc, v)
+		enc.writeInt8SliceBody(v)
 	case []int16:
-		writeInt16SliceBody(enc, v)
+		enc.writeInt16SliceBody(v)
 	case []int32:
-		writeInt32SliceBody(enc, v)
+		enc.writeInt32SliceBody(v)
 	case []int64:
-		writeInt64SliceBody(enc, v)
+		enc.writeInt64SliceBody(v)
 	case []int:
-		writeIntSliceBody(enc, v)
+		enc.writeIntSliceBody(v)
 	case []bool:
-		writeBoolSliceBody(enc, v)
+		enc.writeBoolSliceBody(v)
 	case []float32:
-		writeFloat32SliceBody(enc, v)
+		enc.writeFloat32SliceBody(v)
 	case []float64:
-		writeFloat64SliceBody(enc, v)
+		enc.writeFloat64SliceBody(v)
 	case []complex64:
-		writeComplex64SliceBody(enc, v)
+		enc.writeComplex64SliceBody(v)
 	case []complex128:
-		writeComplex128SliceBody(enc, v)
+		enc.writeComplex128SliceBody(v)
 	case []string:
-		writeStringSliceBody(enc, v)
+		enc.writeStringSliceBody(v)
 	case []interface{}:
-		writeInterfaceSliceBody(enc, v)
+		enc.writeInterfaceSliceBody(v)
 	case [][]uint16:
-		write2dUint16SliceBody(enc, v)
+		enc.write2dUint16SliceBody(v)
 	case [][]uint32:
-		write2dUint32SliceBody(enc, v)
+		enc.write2dUint32SliceBody(v)
 	case [][]uint64:
-		write2dUint64SliceBody(enc, v)
+		enc.write2dUint64SliceBody(v)
 	case [][]uint:
-		write2dUintSliceBody(enc, v)
+		enc.write2dUintSliceBody(v)
 	case [][]int8:
-		write2dInt8SliceBody(enc, v)
+		enc.write2dInt8SliceBody(v)
 	case [][]int16:
-		write2dInt16SliceBody(enc, v)
+		enc.write2dInt16SliceBody(v)
 	case [][]int32:
-		write2dInt32SliceBody(enc, v)
+		enc.write2dInt32SliceBody(v)
 	case [][]int64:
-		write2dInt64SliceBody(enc, v)
+		enc.write2dInt64SliceBody(v)
 	case [][]int:
-		write2dIntSliceBody(enc, v)
+		enc.write2dIntSliceBody(v)
 	case [][]bool:
-		write2dBoolSliceBody(enc, v)
+		enc.write2dBoolSliceBody(v)
 	case [][]float32:
-		write2dFloat32SliceBody(enc, v)
+		enc.write2dFloat32SliceBody(v)
 	case [][]float64:
-		write2dFloat64SliceBody(enc, v)
+		enc.write2dFloat64SliceBody(v)
 	case [][]complex64:
-		write2dComplex64SliceBody(enc, v)
+		enc.write2dComplex64SliceBody(v)
 	case [][]complex128:
-		write2dComplex128SliceBody(enc, v)
+		enc.write2dComplex128SliceBody(v)
 	case [][]string:
-		write2dStringSliceBody(enc, v)
+		enc.write2dStringSliceBody(v)
 	case [][]interface{}:
-		write2dInterfaceSliceBody(enc, v)
+		enc.write2dInterfaceSliceBody(v)
 	case [][]byte:
-		writeBytesSliceBody(enc, v)
+		enc.writeBytesSliceBody(v)
 	default:
-		writeOtherSliceBody(enc, v)
+		enc.writeOtherSliceBody(v)
 	}
 }
 
-func writeInt8SliceBody(enc *Encoder, slice []int8) {
+func (enc *Encoder) writeInt8SliceBody(slice []int8) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteInt8(slice[i])
 	}
 }
 
-func writeInt16SliceBody(enc *Encoder, slice []int16) {
+func (enc *Encoder) writeInt16SliceBody(slice []int16) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteInt16(slice[i])
 	}
 }
 
-func writeInt32SliceBody(enc *Encoder, slice []int32) {
+func (enc *Encoder) writeInt32SliceBody(slice []int32) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteInt32(slice[i])
 	}
 }
 
-func writeInt64SliceBody(enc *Encoder, slice []int64) {
+func (enc *Encoder) writeInt64SliceBody(slice []int64) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteInt64(slice[i])
 	}
 }
 
-func writeIntSliceBody(enc *Encoder, slice []int) {
+func (enc *Encoder) writeIntSliceBody(slice []int) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteInt(slice[i])
 	}
 }
 
-func writeUint16SliceBody(enc *Encoder, slice []uint16) {
+func (enc *Encoder) writeUint16SliceBody(slice []uint16) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteUint16(slice[i])
 	}
 }
 
-func writeUint32SliceBody(enc *Encoder, slice []uint32) {
+func (enc *Encoder) writeUint32SliceBody(slice []uint32) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteUint32(slice[i])
 	}
 }
 
-func writeUint64SliceBody(enc *Encoder, slice []uint64) {
+func (enc *Encoder) writeUint64SliceBody(slice []uint64) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteUint64(slice[i])
 	}
 }
 
-func writeUintSliceBody(enc *Encoder, slice []uint) {
+func (enc *Encoder) writeUintSliceBody(slice []uint) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteUint(slice[i])
 	}
 }
 
-func writeBoolSliceBody(enc *Encoder, slice []bool) {
+func (enc *Encoder) writeBoolSliceBody(slice []bool) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteBool(slice[i])
 	}
 }
 
-func writeFloat32SliceBody(enc *Encoder, slice []float32) {
+func (enc *Encoder) writeFloat32SliceBody(slice []float32) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteFloat32(slice[i])
 	}
 }
 
-func writeFloat64SliceBody(enc *Encoder, slice []float64) {
+func (enc *Encoder) writeFloat64SliceBody(slice []float64) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteFloat64(slice[i])
 	}
 }
 
-func writeComplex64SliceBody(enc *Encoder, slice []complex64) {
+func (enc *Encoder) writeComplex64SliceBody(slice []complex64) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteComplex64(slice[i])
 	}
 }
 
-func writeComplex128SliceBody(enc *Encoder, slice []complex128) {
+func (enc *Encoder) writeComplex128SliceBody(slice []complex128) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.WriteComplex128(slice[i])
 	}
 }
 
-func writeStringSliceBody(enc *Encoder, slice []string) {
+func (enc *Encoder) writeStringSliceBody(slice []string) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		EncodeString(enc, slice[i])
 	}
 }
 
-func writeInterfaceSliceBody(enc *Encoder, slice []interface{}) {
+func (enc *Encoder) writeInterfaceSliceBody(slice []interface{}) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		enc.encode(slice[i])
 	}
 }
 
-func write2dInt8SliceBody(enc *Encoder, slice [][]int8) {
+func (enc *Encoder) write2dInt8SliceBody(slice [][]int8) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -256,7 +256,7 @@ func write2dInt8SliceBody(enc *Encoder, slice [][]int8) {
 	}
 }
 
-func write2dInt16SliceBody(enc *Encoder, slice [][]int16) {
+func (enc *Encoder) write2dInt16SliceBody(slice [][]int16) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -269,7 +269,7 @@ func write2dInt16SliceBody(enc *Encoder, slice [][]int16) {
 	}
 }
 
-func write2dInt32SliceBody(enc *Encoder, slice [][]int32) {
+func (enc *Encoder) write2dInt32SliceBody(slice [][]int32) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -282,7 +282,7 @@ func write2dInt32SliceBody(enc *Encoder, slice [][]int32) {
 	}
 }
 
-func write2dInt64SliceBody(enc *Encoder, slice [][]int64) {
+func (enc *Encoder) write2dInt64SliceBody(slice [][]int64) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -295,7 +295,7 @@ func write2dInt64SliceBody(enc *Encoder, slice [][]int64) {
 	}
 }
 
-func write2dIntSliceBody(enc *Encoder, slice [][]int) {
+func (enc *Encoder) write2dIntSliceBody(slice [][]int) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -308,7 +308,7 @@ func write2dIntSliceBody(enc *Encoder, slice [][]int) {
 	}
 }
 
-func write2dUint16SliceBody(enc *Encoder, slice [][]uint16) {
+func (enc *Encoder) write2dUint16SliceBody(slice [][]uint16) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -321,7 +321,7 @@ func write2dUint16SliceBody(enc *Encoder, slice [][]uint16) {
 	}
 }
 
-func write2dUint32SliceBody(enc *Encoder, slice [][]uint32) {
+func (enc *Encoder) write2dUint32SliceBody(slice [][]uint32) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -334,7 +334,7 @@ func write2dUint32SliceBody(enc *Encoder, slice [][]uint32) {
 	}
 }
 
-func write2dUint64SliceBody(enc *Encoder, slice [][]uint64) {
+func (enc *Encoder) write2dUint64SliceBody(slice [][]uint64) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -347,7 +347,7 @@ func write2dUint64SliceBody(enc *Encoder, slice [][]uint64) {
 	}
 }
 
-func write2dUintSliceBody(enc *Encoder, slice [][]uint) {
+func (enc *Encoder) write2dUintSliceBody(slice [][]uint) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -360,7 +360,7 @@ func write2dUintSliceBody(enc *Encoder, slice [][]uint) {
 	}
 }
 
-func write2dBoolSliceBody(enc *Encoder, slice [][]bool) {
+func (enc *Encoder) write2dBoolSliceBody(slice [][]bool) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -373,7 +373,7 @@ func write2dBoolSliceBody(enc *Encoder, slice [][]bool) {
 	}
 }
 
-func write2dFloat32SliceBody(enc *Encoder, slice [][]float32) {
+func (enc *Encoder) write2dFloat32SliceBody(slice [][]float32) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -386,7 +386,7 @@ func write2dFloat32SliceBody(enc *Encoder, slice [][]float32) {
 	}
 }
 
-func write2dFloat64SliceBody(enc *Encoder, slice [][]float64) {
+func (enc *Encoder) write2dFloat64SliceBody(slice [][]float64) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -399,7 +399,7 @@ func write2dFloat64SliceBody(enc *Encoder, slice [][]float64) {
 	}
 }
 
-func write2dComplex64SliceBody(enc *Encoder, slice [][]complex64) {
+func (enc *Encoder) write2dComplex64SliceBody(slice [][]complex64) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -412,7 +412,7 @@ func write2dComplex64SliceBody(enc *Encoder, slice [][]complex64) {
 	}
 }
 
-func write2dComplex128SliceBody(enc *Encoder, slice [][]complex128) {
+func (enc *Encoder) write2dComplex128SliceBody(slice [][]complex128) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -425,7 +425,7 @@ func write2dComplex128SliceBody(enc *Encoder, slice [][]complex128) {
 	}
 }
 
-func write2dStringSliceBody(enc *Encoder, slice [][]string) {
+func (enc *Encoder) write2dStringSliceBody(slice [][]string) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
@@ -438,7 +438,7 @@ func write2dStringSliceBody(enc *Encoder, slice [][]string) {
 	}
 }
 
-func write2dInterfaceSliceBody(enc *Encoder, slice [][]interface{}) {
+func (enc *Encoder) write2dInterfaceSliceBody(slice [][]interface{}) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
@@ -451,7 +451,7 @@ func write2dInterfaceSliceBody(enc *Encoder, slice [][]interface{}) {
 	}
 }
 
-func writeBytesSliceBody(enc *Encoder, slice [][]byte) {
+func (enc *Encoder) writeBytesSliceBody(slice [][]byte) {
 	n := len(slice)
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
@@ -459,7 +459,7 @@ func writeBytesSliceBody(enc *Encoder, slice [][]byte) {
 	}
 }
 
-func writeOtherSliceBody(enc *Encoder, slice interface{}) {
+func (enc *Encoder) writeOtherSliceBody(slice interface{}) {
 	t := reflect2.TypeOf(slice).(*reflect2.UnsafeSliceType)
 	et := t.Elem()
 	ptr := reflect2.PtrOf(slice)
