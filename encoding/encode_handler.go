@@ -4,9 +4,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| encoding/struct_encoder.go                               |
+| encoding/encode_handler.go                               |
 |                                                          |
-| LastModified: Mar 22, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -128,11 +128,11 @@ func float64Encode(enc *Encoder, v interface{}) {
 }
 
 func complex64Encode(enc *Encoder, v interface{}) {
-	WriteComplex64(enc, *(*complex64)(reflect2.PtrOf(v)))
+	enc.WriteComplex64(*(*complex64)(reflect2.PtrOf(v)))
 }
 
 func complex128Encode(enc *Encoder, v interface{}) {
-	WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
+	enc.WriteComplex128(*(*complex128)(reflect2.PtrOf(v)))
 }
 
 func stringEncode(enc *Encoder, v interface{}) {
@@ -285,7 +285,7 @@ func complex64PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		WriteNil(enc)
 	} else {
-		WriteComplex64(enc, *p)
+		enc.WriteComplex64(*p)
 	}
 }
 
@@ -294,7 +294,7 @@ func complex128PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		WriteNil(enc)
 	} else {
-		WriteComplex128(enc, *p)
+		enc.WriteComplex128(*p)
 	}
 }
 

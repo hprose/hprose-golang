@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/slice_encoder.go                                |
 |                                                          |
-| LastModified: Mar 17, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -218,14 +218,14 @@ func writeFloat64SliceBody(enc *Encoder, slice []float64) {
 func writeComplex64SliceBody(enc *Encoder, slice []complex64) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
-		WriteComplex64(enc, slice[i])
+		enc.WriteComplex64(slice[i])
 	}
 }
 
 func writeComplex128SliceBody(enc *Encoder, slice []complex128) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
-		WriteComplex128(enc, slice[i])
+		enc.WriteComplex128(slice[i])
 	}
 }
 
@@ -406,7 +406,7 @@ func write2dComplex64SliceBody(enc *Encoder, slice [][]complex64) {
 		m := len(slice[i])
 		WriteHead(enc, m, TagList)
 		for j := 0; j < m; j++ {
-			WriteComplex64(enc, slice[i][j])
+			enc.WriteComplex64(slice[i][j])
 		}
 		WriteFoot(enc)
 	}
@@ -419,7 +419,7 @@ func write2dComplex128SliceBody(enc *Encoder, slice [][]complex128) {
 		m := len(slice[i])
 		WriteHead(enc, m, TagList)
 		for j := 0; j < m; j++ {
-			WriteComplex128(enc, slice[i][j])
+			enc.WriteComplex128(slice[i][j])
 		}
 		WriteFoot(enc)
 	}

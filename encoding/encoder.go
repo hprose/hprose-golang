@@ -90,9 +90,9 @@ func (enc *Encoder) fastWriteValue(v interface{}) (ok bool) {
 	case float64:
 		WriteFloat64(enc, v)
 	case complex64:
-		WriteComplex64(enc, v)
+		enc.WriteComplex64(v)
 	case complex128:
-		WriteComplex128(enc, v)
+		enc.WriteComplex128(v)
 	case big.Int:
 		enc.WriteBigInt(&v)
 	case big.Float:
@@ -152,9 +152,9 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	case reflect.Float64:
 		WriteFloat64(enc, *(*float64)(reflect2.PtrOf(v)))
 	case reflect.Complex64:
-		WriteComplex64(enc, *(*complex64)(reflect2.PtrOf(v)))
+		enc.WriteComplex64(*(*complex64)(reflect2.PtrOf(v)))
 	case reflect.Complex128:
-		WriteComplex128(enc, *(*complex128)(reflect2.PtrOf(v)))
+		enc.WriteComplex128(*(*complex128)(reflect2.PtrOf(v)))
 	case reflect.String:
 		encode(strenc, v)
 	case reflect.Array:
@@ -316,6 +316,28 @@ func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
 	} else if ok := enc.WriteReference(v); !ok {
 		valenc.Write(enc, v)
 	}
+}
+
+func (enc *Encoder) writeComplex(r float64, i float64, bitSize int) {
+	if i == 0 {
+		writeFloat(enc, r, bitSize)
+	} else {
+		enc.AddReferenceCount(1)
+		WriteHead(enc, 2, TagList)
+		writeFloat(enc, r, bitSize)
+		writeFloat(enc, i, bitSize)
+		WriteFoot(enc)
+	}
+}
+
+// WriteComplex64 to encoder
+func (enc *Encoder) WriteComplex64(c complex64) {
+	enc.writeComplex(float64(real(c)), float64(imag(c)), 32)
+}
+
+// WriteComplex128 to encoder
+func (enc *Encoder) WriteComplex128(c complex128) {
+	enc.writeComplex(real(c), imag(c), 64)
 }
 
 // WriteBigFloat to encoder

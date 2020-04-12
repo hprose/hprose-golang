@@ -332,25 +332,3 @@ func WriteObjectHead(enc *Encoder, r int) {
 func WriteFoot(enc *Encoder) {
 	enc.buf = append(enc.buf, TagClosebrace)
 }
-
-func writeComplex(enc *Encoder, r float64, i float64, bitSize int) {
-	if i == 0 {
-		writeFloat(enc, r, bitSize)
-	} else {
-		enc.AddReferenceCount(1)
-		WriteHead(enc, 2, TagList)
-		writeFloat(enc, r, bitSize)
-		writeFloat(enc, i, bitSize)
-		WriteFoot(enc)
-	}
-}
-
-// WriteComplex64 to encoder
-func WriteComplex64(enc *Encoder, c complex64) {
-	writeComplex(enc, float64(real(c)), float64(imag(c)), 32)
-}
-
-// WriteComplex128 to encoder
-func WriteComplex128(enc *Encoder, c complex128) {
-	writeComplex(enc, real(c), imag(c), 64)
-}
