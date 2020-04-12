@@ -271,8 +271,8 @@ func (enc *Encoder) AddReferenceCount(n int) {
 	}
 }
 
-// WriteStruct of t to stream with action
-func (enc *Encoder) WriteStruct(t reflect.Type, action func()) (r int) {
+// WriteStructType of t to stream with action
+func (enc *Encoder) WriteStructType(t reflect.Type, action func()) (r int) {
 	if enc.ref == nil {
 		enc.ref = make(map[reflect.Type]int)
 	}

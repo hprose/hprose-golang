@@ -49,7 +49,7 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
 	} else if n == 1 {
 		v = toPtr(t, v)
 	}
-	var r = enc.WriteStruct(st, func() {
+	var r = enc.WriteStructType(st, func() {
 		enc.AddReferenceCount(n)
 		enc.buf = append(enc.buf, valenc.metadata...)
 	})
