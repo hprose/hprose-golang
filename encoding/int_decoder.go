@@ -1,0 +1,171 @@
+/*--------------------------------------------------------*\
+|                                                          |
+|                          hprose                          |
+|                                                          |
+| Official WebSite: https://hprose.com                     |
+|                                                          |
+| encoding/int_decoder.go                                  |
+|                                                          |
+| LastModified: Apr 12, 2020                               |
+| Author: Ma Bingyao <andot@hprose.com>                    |
+|                                                          |
+\*________________________________________________________*/
+
+package encoding
+
+const invalidCharForNumber = uint64(0xff)
+
+var intDigits []uint64
+
+func init() {
+	intDigits = make([]uint64, 256)
+	for i := 0; i < len(intDigits); i++ {
+		intDigits[i] = invalidCharForNumber
+	}
+	for i := uint64('0'); i <= uint64('9'); i++ {
+		intDigits[i] = i - uint64('0')
+	}
+}
+
+// ReadInt8 read int8
+func (dec *Decoder) ReadInt8() (value int8) {
+	return int8(dec.ReadInt64())
+}
+
+// ReadUint8 read uint8
+func (dec *Decoder) ReadUint8() (value uint8) {
+	return uint8(dec.ReadUint64())
+}
+
+// ReadInt16 read int16
+func (dec *Decoder) ReadInt16() (value int16) {
+	return int16(dec.ReadInt64())
+}
+
+// ReadUint16 read uint16
+func (dec *Decoder) ReadUint16() (value uint16) {
+	return uint16(dec.ReadUint64())
+}
+
+// ReadInt32 read int32
+func (dec *Decoder) ReadInt32() (value int32) {
+	return int32(dec.ReadInt64())
+}
+
+// ReadUint32 read uint32
+func (dec *Decoder) ReadUint32() (value uint32) {
+	return uint32(dec.ReadUint64())
+}
+
+// ReadInt64 read int64
+func (dec *Decoder) ReadInt64() (value int64) {
+	c := dec.NextByte()
+	if c == '-' {
+		return -int64(dec.readUint64(dec.NextByte()))
+	}
+	return int64(dec.readUint64(c))
+}
+
+// ReadUint64 read uint64
+func (dec *Decoder) ReadUint64() (value uint64) {
+	c := dec.NextByte()
+	if c == '-' {
+		return uint64(-int64(dec.readUint64(dec.NextByte())))
+	}
+	return dec.readUint64(c)
+}
+
+func (dec *Decoder) readUint64(c byte) (value uint64) {
+	i := intDigits[c]
+	if i == invalidCharForNumber {
+		return
+	}
+	value = i
+	if dec.tail-dec.head > 9 {
+		p := dec.head
+		i1 := intDigits[dec.buf[p]]
+		p++
+		if i1 == invalidCharForNumber {
+			dec.head = p
+			return value
+		}
+		i2 := intDigits[dec.buf[p]]
+		p++
+		if i2 == invalidCharForNumber {
+			dec.head = p
+			return value*10 + i1
+		}
+		i3 := intDigits[dec.buf[p]]
+		p++
+		if i3 == invalidCharForNumber {
+			dec.head = p
+			return value*100 + i1*10 + i2
+		}
+		i4 := intDigits[dec.buf[p]]
+		p++
+		if i4 == invalidCharForNumber {
+			dec.head = p
+			return value*1000 + i1*100 + i2*10 + i3
+		}
+		i5 := intDigits[dec.buf[p]]
+		p++
+		if i5 == invalidCharForNumber {
+			dec.head = p
+			return value*10000 + i1*1000 + i2*100 + i3*10 + i4
+		}
+		i6 := intDigits[dec.buf[p]]
+		p++
+		if i6 == invalidCharForNumber {
+			dec.head = p
+			return value*100000 + i1*10000 + i2*1000 + i3*100 + i4*10 + i5
+		}
+		i7 := intDigits[dec.buf[p]]
+		p++
+		if i7 == invalidCharForNumber {
+			dec.head = p
+			return value*1000000 + i1*100000 + i2*10000 + i3*1000 + i4*100 + i5*10 + i6
+		}
+		i8 := intDigits[dec.buf[p]]
+		p++
+		if i8 == invalidCharForNumber {
+			dec.head = p
+			return value*10000000 + i1*1000000 + i2*100000 + i3*10000 + i4*1000 + i5*100 + i6*10 + i7
+		}
+		i9 := intDigits[dec.buf[p]]
+		p++
+		if i9 == invalidCharForNumber {
+			dec.head = p
+			return value*100000000 + i1*10000000 + i2*1000000 + i3*100000 + i4*10000 + i5*1000 + i6*100 + i7*10 + i8
+		}
+		value = value*1000000000 + i1*100000000 + i2*10000000 + i3*1000000 + i4*100000 + i5*10000 + i6*1000 + i7*100 + i8*10 + i9
+		i10 := intDigits[dec.buf[p]]
+		if i10 == invalidCharForNumber {
+			dec.head = p + 1
+			return
+		}
+		dec.head = p
+	}
+	for {
+		for p := dec.head; p < dec.tail; p++ {
+			i = intDigits[dec.buf[p]]
+			if i == invalidCharForNumber {
+				dec.head = p + 1
+				return
+			}
+			value = value*10 + i
+		}
+		if !dec.loadMore() {
+			return
+		}
+	}
+}
+
+// ReadInt read int
+func (dec *Decoder) ReadInt() (value int) {
+	return int(dec.ReadInt64())
+}
+
+// ReadUint read uint
+func (dec *Decoder) ReadUint() (value uint) {
+	return uint(dec.ReadUint64())
+}
