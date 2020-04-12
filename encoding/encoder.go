@@ -349,3 +349,8 @@ func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
 		valenc.Write(enc, v)
 	}
 }
+
+// WriteTag to encoder
+func (enc *Encoder) WriteTag(tag byte) {
+	enc.buf = append(enc.buf, tag)
+}

@@ -627,6 +627,13 @@ func TestEncoderSimple(t *testing.T) {
 	assert.Equal(t, `s5"hello"r0;s5"hello"s5"hello"`, enc.String())
 }
 
+func TestWriteTag(t *testing.T) {
+	enc := new(Encoder)
+	enc.WriteTag(TagHeader)
+	enc.Encode(map[string]string{"id": "12345"})
+	assert.Equal(t, `Hm1{s2"id"s5"12345"}`, enc.String())
+}
+
 func BenchmarkHproseEncodeSlice(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb, false)
