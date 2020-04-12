@@ -38,7 +38,7 @@ func (valenc bigFloatEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (bigFloatEncoder) Write(enc *Encoder, v interface{}) {
-	WriteBigFloat(enc, (*big.Float)(reflect2.PtrOf(v)))
+	enc.WriteBigFloat((*big.Float)(reflect2.PtrOf(v)))
 }
 
 // bigRatEncoder is the implementation of ValueEncoder for big.Rat/*bit.Rat.

@@ -136,6 +136,6 @@ func TestWriteBigInt(t *testing.T) {
 
 func TestWriteBigFloat(t *testing.T) {
 	enc := new(Encoder)
-	WriteBigFloat(enc, big.NewFloat(math.MaxFloat64))
+	enc.WriteBigFloat(big.NewFloat(math.MaxFloat64))
 	assert.Equal(t, "d1.7976931348623157e+308;", enc.String())
 }

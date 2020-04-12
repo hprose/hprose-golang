@@ -96,7 +96,7 @@ func (enc *Encoder) fastWriteValue(v interface{}) (ok bool) {
 	case big.Int:
 		WriteBigInt(enc, &v)
 	case big.Float:
-		WriteBigFloat(enc, &v)
+		enc.WriteBigFloat(&v)
 	case big.Rat:
 		enc.WriteBigRat(&v)
 	case error:
@@ -316,6 +316,13 @@ func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
 	} else if ok := enc.WriteReference(v); !ok {
 		valenc.Write(enc, v)
 	}
+}
+
+// WriteBigFloat to encoder
+func (enc *Encoder) WriteBigFloat(f *big.Float) {
+	enc.buf = append(enc.buf, TagDouble)
+	enc.buf = f.Append(enc.buf, 'g', -1)
+	enc.buf = append(enc.buf, TagSemicolon)
 }
 
 // WriteBigRat to encoder

@@ -362,10 +362,3 @@ func WriteBigInt(enc *Encoder, i *big.Int) {
 	enc.buf = append(enc.buf, i.String()...)
 	enc.buf = append(enc.buf, TagSemicolon)
 }
-
-// WriteBigFloat to encoder
-func WriteBigFloat(enc *Encoder, f *big.Float) {
-	enc.buf = append(enc.buf, TagDouble)
-	enc.buf = f.Append(enc.buf, 'g', -1)
-	enc.buf = append(enc.buf, TagSemicolon)
-}

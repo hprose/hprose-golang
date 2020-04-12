@@ -75,7 +75,7 @@ func fastWritePtr(enc *Encoder, v interface{}) (ok bool) {
 	case *big.Int:
 		WriteBigInt(enc, v)
 	case *big.Float:
-		WriteBigFloat(enc, v)
+		enc.WriteBigFloat(v)
 	case *big.Rat:
 		enc.WriteBigRat(v)
 	case *error:
