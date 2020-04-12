@@ -33,454 +33,454 @@ func (valenc mapEncoder) Encode(enc *Encoder, v interface{}) {
 
 func (mapEncoder) Write(enc *Encoder, v interface{}) {
 	enc.SetPtrReference(v)
-	writeMap(enc, reflect.ValueOf(v).Elem().Interface())
+	enc.writeMap(reflect.ValueOf(v).Elem().Interface())
 }
 
 // WriteMap to encoder
-func WriteMap(enc *Encoder, v interface{}) {
+func (enc *Encoder) WriteMap(v interface{}) {
 	enc.AddReferenceCount(1)
-	writeMap(enc, v)
+	enc.writeMap(v)
 }
 
-func writeMap(enc *Encoder, v interface{}) {
+func (enc *Encoder) writeMap(v interface{}) {
 	count := reflect.ValueOf(v).Len()
 	if count == 0 {
 		enc.buf = append(enc.buf, TagMap, TagOpenbrace, TagClosebrace)
 		return
 	}
 	enc.WriteHead(count, TagMap)
-	writeMapBody(enc, v)
+	enc.writeMapBody(v)
 	enc.WriteFoot()
 }
 
-func writeMapBody(enc *Encoder, v interface{}) {
+func (enc *Encoder) writeMapBody(v interface{}) {
 	switch v := v.(type) {
 	case map[string]string:
-		writeStringStringMapBody(enc, v)
+		enc.writeStringStringMapBody(v)
 	case map[string]int:
-		writeStringIntMapBody(enc, v)
+		enc.writeStringIntMapBody(v)
 	case map[string]int8:
-		writeStringInt8MapBody(enc, v)
+		enc.writeStringInt8MapBody(v)
 	case map[string]int16:
-		writeStringInt16MapBody(enc, v)
+		enc.writeStringInt16MapBody(v)
 	case map[string]int32:
-		writeStringInt32MapBody(enc, v)
+		enc.writeStringInt32MapBody(v)
 	case map[string]int64:
-		writeStringInt64MapBody(enc, v)
+		enc.writeStringInt64MapBody(v)
 	case map[string]uint:
-		writeStringUintMapBody(enc, v)
+		enc.writeStringUintMapBody(v)
 	case map[string]uint8:
-		writeStringUint8MapBody(enc, v)
+		enc.writeStringUint8MapBody(v)
 	case map[string]uint16:
-		writeStringUint16MapBody(enc, v)
+		enc.writeStringUint16MapBody(v)
 	case map[string]uint32:
-		writeStringUint32MapBody(enc, v)
+		enc.writeStringUint32MapBody(v)
 	case map[string]uint64:
-		writeStringUint64MapBody(enc, v)
+		enc.writeStringUint64MapBody(v)
 	case map[string]bool:
-		writeStringBoolMapBody(enc, v)
+		enc.writeStringBoolMapBody(v)
 	case map[string]float32:
-		writeStringFloat32MapBody(enc, v)
+		enc.writeStringFloat32MapBody(v)
 	case map[string]float64:
-		writeStringFloat64MapBody(enc, v)
+		enc.writeStringFloat64MapBody(v)
 	case map[string]interface{}:
-		writeStringInterfaceMapBody(enc, v)
+		enc.writeStringInterfaceMapBody(v)
 	case map[int]string:
-		writeIntStringMapBody(enc, v)
+		enc.writeIntStringMapBody(v)
 	case map[int]int:
-		writeIntIntMapBody(enc, v)
+		enc.writeIntIntMapBody(v)
 	case map[int]int8:
-		writeIntInt8MapBody(enc, v)
+		enc.writeIntInt8MapBody(v)
 	case map[int]int16:
-		writeIntInt16MapBody(enc, v)
+		enc.writeIntInt16MapBody(v)
 	case map[int]int32:
-		writeIntInt32MapBody(enc, v)
+		enc.writeIntInt32MapBody(v)
 	case map[int]int64:
-		writeIntInt64MapBody(enc, v)
+		enc.writeIntInt64MapBody(v)
 	case map[int]uint:
-		writeIntUintMapBody(enc, v)
+		enc.writeIntUintMapBody(v)
 	case map[int]uint8:
-		writeIntUint8MapBody(enc, v)
+		enc.writeIntUint8MapBody(v)
 	case map[int]uint16:
-		writeIntUint16MapBody(enc, v)
+		enc.writeIntUint16MapBody(v)
 	case map[int]uint32:
-		writeIntUint32MapBody(enc, v)
+		enc.writeIntUint32MapBody(v)
 	case map[int]uint64:
-		writeIntUint64MapBody(enc, v)
+		enc.writeIntUint64MapBody(v)
 	case map[int]bool:
-		writeIntBoolMapBody(enc, v)
+		enc.writeIntBoolMapBody(v)
 	case map[int]float32:
-		writeIntFloat32MapBody(enc, v)
+		enc.writeIntFloat32MapBody(v)
 	case map[int]float64:
-		writeIntFloat64MapBody(enc, v)
+		enc.writeIntFloat64MapBody(v)
 	case map[int]interface{}:
-		writeIntInterfaceMapBody(enc, v)
+		enc.writeIntInterfaceMapBody(v)
 	case map[int8]string:
-		writeInt8StringMapBody(enc, v)
+		enc.writeInt8StringMapBody(v)
 	case map[int8]int:
-		writeInt8IntMapBody(enc, v)
+		enc.writeInt8IntMapBody(v)
 	case map[int8]int8:
-		writeInt8Int8MapBody(enc, v)
+		enc.writeInt8Int8MapBody(v)
 	case map[int8]int16:
-		writeInt8Int16MapBody(enc, v)
+		enc.writeInt8Int16MapBody(v)
 	case map[int8]int32:
-		writeInt8Int32MapBody(enc, v)
+		enc.writeInt8Int32MapBody(v)
 	case map[int8]int64:
-		writeInt8Int64MapBody(enc, v)
+		enc.writeInt8Int64MapBody(v)
 	case map[int8]uint:
-		writeInt8UintMapBody(enc, v)
+		enc.writeInt8UintMapBody(v)
 	case map[int8]uint8:
-		writeInt8Uint8MapBody(enc, v)
+		enc.writeInt8Uint8MapBody(v)
 	case map[int8]uint16:
-		writeInt8Uint16MapBody(enc, v)
+		enc.writeInt8Uint16MapBody(v)
 	case map[int8]uint32:
-		writeInt8Uint32MapBody(enc, v)
+		enc.writeInt8Uint32MapBody(v)
 	case map[int8]uint64:
-		writeInt8Uint64MapBody(enc, v)
+		enc.writeInt8Uint64MapBody(v)
 	case map[int8]bool:
-		writeInt8BoolMapBody(enc, v)
+		enc.writeInt8BoolMapBody(v)
 	case map[int8]float32:
-		writeInt8Float32MapBody(enc, v)
+		enc.writeInt8Float32MapBody(v)
 	case map[int8]float64:
-		writeInt8Float64MapBody(enc, v)
+		enc.writeInt8Float64MapBody(v)
 	case map[int8]interface{}:
-		writeInt8InterfaceMapBody(enc, v)
+		enc.writeInt8InterfaceMapBody(v)
 	case map[int16]string:
-		writeInt16StringMapBody(enc, v)
+		enc.writeInt16StringMapBody(v)
 	case map[int16]int:
-		writeInt16IntMapBody(enc, v)
+		enc.writeInt16IntMapBody(v)
 	case map[int16]int8:
-		writeInt16Int8MapBody(enc, v)
+		enc.writeInt16Int8MapBody(v)
 	case map[int16]int16:
-		writeInt16Int16MapBody(enc, v)
+		enc.writeInt16Int16MapBody(v)
 	case map[int16]int32:
-		writeInt16Int32MapBody(enc, v)
+		enc.writeInt16Int32MapBody(v)
 	case map[int16]int64:
-		writeInt16Int64MapBody(enc, v)
+		enc.writeInt16Int64MapBody(v)
 	case map[int16]uint:
-		writeInt16UintMapBody(enc, v)
+		enc.writeInt16UintMapBody(v)
 	case map[int16]uint8:
-		writeInt16Uint8MapBody(enc, v)
+		enc.writeInt16Uint8MapBody(v)
 	case map[int16]uint16:
-		writeInt16Uint16MapBody(enc, v)
+		enc.writeInt16Uint16MapBody(v)
 	case map[int16]uint32:
-		writeInt16Uint32MapBody(enc, v)
+		enc.writeInt16Uint32MapBody(v)
 	case map[int16]uint64:
-		writeInt16Uint64MapBody(enc, v)
+		enc.writeInt16Uint64MapBody(v)
 	case map[int16]bool:
-		writeInt16BoolMapBody(enc, v)
+		enc.writeInt16BoolMapBody(v)
 	case map[int16]float32:
-		writeInt16Float32MapBody(enc, v)
+		enc.writeInt16Float32MapBody(v)
 	case map[int16]float64:
-		writeInt16Float64MapBody(enc, v)
+		enc.writeInt16Float64MapBody(v)
 	case map[int16]interface{}:
-		writeInt16InterfaceMapBody(enc, v)
+		enc.writeInt16InterfaceMapBody(v)
 	case map[int32]string:
-		writeInt32StringMapBody(enc, v)
+		enc.writeInt32StringMapBody(v)
 	case map[int32]int:
-		writeInt32IntMapBody(enc, v)
+		enc.writeInt32IntMapBody(v)
 	case map[int32]int8:
-		writeInt32Int8MapBody(enc, v)
+		enc.writeInt32Int8MapBody(v)
 	case map[int32]int16:
-		writeInt32Int16MapBody(enc, v)
+		enc.writeInt32Int16MapBody(v)
 	case map[int32]int32:
-		writeInt32Int32MapBody(enc, v)
+		enc.writeInt32Int32MapBody(v)
 	case map[int32]int64:
-		writeInt32Int64MapBody(enc, v)
+		enc.writeInt32Int64MapBody(v)
 	case map[int32]uint:
-		writeInt32UintMapBody(enc, v)
+		enc.writeInt32UintMapBody(v)
 	case map[int32]uint8:
-		writeInt32Uint8MapBody(enc, v)
+		enc.writeInt32Uint8MapBody(v)
 	case map[int32]uint16:
-		writeInt32Uint16MapBody(enc, v)
+		enc.writeInt32Uint16MapBody(v)
 	case map[int32]uint32:
-		writeInt32Uint32MapBody(enc, v)
+		enc.writeInt32Uint32MapBody(v)
 	case map[int32]uint64:
-		writeInt32Uint64MapBody(enc, v)
+		enc.writeInt32Uint64MapBody(v)
 	case map[int32]bool:
-		writeInt32BoolMapBody(enc, v)
+		enc.writeInt32BoolMapBody(v)
 	case map[int32]float32:
-		writeInt32Float32MapBody(enc, v)
+		enc.writeInt32Float32MapBody(v)
 	case map[int32]float64:
-		writeInt32Float64MapBody(enc, v)
+		enc.writeInt32Float64MapBody(v)
 	case map[int32]interface{}:
-		writeInt32InterfaceMapBody(enc, v)
+		enc.writeInt32InterfaceMapBody(v)
 	case map[int64]string:
-		writeInt64StringMapBody(enc, v)
+		enc.writeInt64StringMapBody(v)
 	case map[int64]int:
-		writeInt64IntMapBody(enc, v)
+		enc.writeInt64IntMapBody(v)
 	case map[int64]int8:
-		writeInt64Int8MapBody(enc, v)
+		enc.writeInt64Int8MapBody(v)
 	case map[int64]int16:
-		writeInt64Int16MapBody(enc, v)
+		enc.writeInt64Int16MapBody(v)
 	case map[int64]int32:
-		writeInt64Int32MapBody(enc, v)
+		enc.writeInt64Int32MapBody(v)
 	case map[int64]int64:
-		writeInt64Int64MapBody(enc, v)
+		enc.writeInt64Int64MapBody(v)
 	case map[int64]uint:
-		writeInt64UintMapBody(enc, v)
+		enc.writeInt64UintMapBody(v)
 	case map[int64]uint8:
-		writeInt64Uint8MapBody(enc, v)
+		enc.writeInt64Uint8MapBody(v)
 	case map[int64]uint16:
-		writeInt64Uint16MapBody(enc, v)
+		enc.writeInt64Uint16MapBody(v)
 	case map[int64]uint32:
-		writeInt64Uint32MapBody(enc, v)
+		enc.writeInt64Uint32MapBody(v)
 	case map[int64]uint64:
-		writeInt64Uint64MapBody(enc, v)
+		enc.writeInt64Uint64MapBody(v)
 	case map[int64]bool:
-		writeInt64BoolMapBody(enc, v)
+		enc.writeInt64BoolMapBody(v)
 	case map[int64]float32:
-		writeInt64Float32MapBody(enc, v)
+		enc.writeInt64Float32MapBody(v)
 	case map[int64]float64:
-		writeInt64Float64MapBody(enc, v)
+		enc.writeInt64Float64MapBody(v)
 	case map[int64]interface{}:
-		writeInt64InterfaceMapBody(enc, v)
+		enc.writeInt64InterfaceMapBody(v)
 	case map[uint]string:
-		writeUintStringMapBody(enc, v)
+		enc.writeUintStringMapBody(v)
 	case map[uint]int:
-		writeUintIntMapBody(enc, v)
+		enc.writeUintIntMapBody(v)
 	case map[uint]int8:
-		writeUintInt8MapBody(enc, v)
+		enc.writeUintInt8MapBody(v)
 	case map[uint]int16:
-		writeUintInt16MapBody(enc, v)
+		enc.writeUintInt16MapBody(v)
 	case map[uint]int32:
-		writeUintInt32MapBody(enc, v)
+		enc.writeUintInt32MapBody(v)
 	case map[uint]int64:
-		writeUintInt64MapBody(enc, v)
+		enc.writeUintInt64MapBody(v)
 	case map[uint]uint:
-		writeUintUintMapBody(enc, v)
+		enc.writeUintUintMapBody(v)
 	case map[uint]uint8:
-		writeUintUint8MapBody(enc, v)
+		enc.writeUintUint8MapBody(v)
 	case map[uint]uint16:
-		writeUintUint16MapBody(enc, v)
+		enc.writeUintUint16MapBody(v)
 	case map[uint]uint32:
-		writeUintUint32MapBody(enc, v)
+		enc.writeUintUint32MapBody(v)
 	case map[uint]uint64:
-		writeUintUint64MapBody(enc, v)
+		enc.writeUintUint64MapBody(v)
 	case map[uint]bool:
-		writeUintBoolMapBody(enc, v)
+		enc.writeUintBoolMapBody(v)
 	case map[uint]float32:
-		writeUintFloat32MapBody(enc, v)
+		enc.writeUintFloat32MapBody(v)
 	case map[uint]float64:
-		writeUintFloat64MapBody(enc, v)
+		enc.writeUintFloat64MapBody(v)
 	case map[uint]interface{}:
-		writeUintInterfaceMapBody(enc, v)
+		enc.writeUintInterfaceMapBody(v)
 	case map[uint8]string:
-		writeUint8StringMapBody(enc, v)
+		enc.writeUint8StringMapBody(v)
 	case map[uint8]int:
-		writeUint8IntMapBody(enc, v)
+		enc.writeUint8IntMapBody(v)
 	case map[uint8]int8:
-		writeUint8Int8MapBody(enc, v)
+		enc.writeUint8Int8MapBody(v)
 	case map[uint8]int16:
-		writeUint8Int16MapBody(enc, v)
+		enc.writeUint8Int16MapBody(v)
 	case map[uint8]int32:
-		writeUint8Int32MapBody(enc, v)
+		enc.writeUint8Int32MapBody(v)
 	case map[uint8]int64:
-		writeUint8Int64MapBody(enc, v)
+		enc.writeUint8Int64MapBody(v)
 	case map[uint8]uint:
-		writeUint8UintMapBody(enc, v)
+		enc.writeUint8UintMapBody(v)
 	case map[uint8]uint8:
-		writeUint8Uint8MapBody(enc, v)
+		enc.writeUint8Uint8MapBody(v)
 	case map[uint8]uint16:
-		writeUint8Uint16MapBody(enc, v)
+		enc.writeUint8Uint16MapBody(v)
 	case map[uint8]uint32:
-		writeUint8Uint32MapBody(enc, v)
+		enc.writeUint8Uint32MapBody(v)
 	case map[uint8]uint64:
-		writeUint8Uint64MapBody(enc, v)
+		enc.writeUint8Uint64MapBody(v)
 	case map[uint8]bool:
-		writeUint8BoolMapBody(enc, v)
+		enc.writeUint8BoolMapBody(v)
 	case map[uint8]float32:
-		writeUint8Float32MapBody(enc, v)
+		enc.writeUint8Float32MapBody(v)
 	case map[uint8]float64:
-		writeUint8Float64MapBody(enc, v)
+		enc.writeUint8Float64MapBody(v)
 	case map[uint8]interface{}:
-		writeUint8InterfaceMapBody(enc, v)
+		enc.writeUint8InterfaceMapBody(v)
 	case map[uint16]string:
-		writeUint16StringMapBody(enc, v)
+		enc.writeUint16StringMapBody(v)
 	case map[uint16]int:
-		writeUint16IntMapBody(enc, v)
+		enc.writeUint16IntMapBody(v)
 	case map[uint16]int8:
-		writeUint16Int8MapBody(enc, v)
+		enc.writeUint16Int8MapBody(v)
 	case map[uint16]int16:
-		writeUint16Int16MapBody(enc, v)
+		enc.writeUint16Int16MapBody(v)
 	case map[uint16]int32:
-		writeUint16Int32MapBody(enc, v)
+		enc.writeUint16Int32MapBody(v)
 	case map[uint16]int64:
-		writeUint16Int64MapBody(enc, v)
+		enc.writeUint16Int64MapBody(v)
 	case map[uint16]uint:
-		writeUint16UintMapBody(enc, v)
+		enc.writeUint16UintMapBody(v)
 	case map[uint16]uint8:
-		writeUint16Uint8MapBody(enc, v)
+		enc.writeUint16Uint8MapBody(v)
 	case map[uint16]uint16:
-		writeUint16Uint16MapBody(enc, v)
+		enc.writeUint16Uint16MapBody(v)
 	case map[uint16]uint32:
-		writeUint16Uint32MapBody(enc, v)
+		enc.writeUint16Uint32MapBody(v)
 	case map[uint16]uint64:
-		writeUint16Uint64MapBody(enc, v)
+		enc.writeUint16Uint64MapBody(v)
 	case map[uint16]bool:
-		writeUint16BoolMapBody(enc, v)
+		enc.writeUint16BoolMapBody(v)
 	case map[uint16]float32:
-		writeUint16Float32MapBody(enc, v)
+		enc.writeUint16Float32MapBody(v)
 	case map[uint16]float64:
-		writeUint16Float64MapBody(enc, v)
+		enc.writeUint16Float64MapBody(v)
 	case map[uint16]interface{}:
-		writeUint16InterfaceMapBody(enc, v)
+		enc.writeUint16InterfaceMapBody(v)
 	case map[uint32]string:
-		writeUint32StringMapBody(enc, v)
+		enc.writeUint32StringMapBody(v)
 	case map[uint32]int:
-		writeUint32IntMapBody(enc, v)
+		enc.writeUint32IntMapBody(v)
 	case map[uint32]int8:
-		writeUint32Int8MapBody(enc, v)
+		enc.writeUint32Int8MapBody(v)
 	case map[uint32]int16:
-		writeUint32Int16MapBody(enc, v)
+		enc.writeUint32Int16MapBody(v)
 	case map[uint32]int32:
-		writeUint32Int32MapBody(enc, v)
+		enc.writeUint32Int32MapBody(v)
 	case map[uint32]int64:
-		writeUint32Int64MapBody(enc, v)
+		enc.writeUint32Int64MapBody(v)
 	case map[uint32]uint:
-		writeUint32UintMapBody(enc, v)
+		enc.writeUint32UintMapBody(v)
 	case map[uint32]uint8:
-		writeUint32Uint8MapBody(enc, v)
+		enc.writeUint32Uint8MapBody(v)
 	case map[uint32]uint16:
-		writeUint32Uint16MapBody(enc, v)
+		enc.writeUint32Uint16MapBody(v)
 	case map[uint32]uint32:
-		writeUint32Uint32MapBody(enc, v)
+		enc.writeUint32Uint32MapBody(v)
 	case map[uint32]uint64:
-		writeUint32Uint64MapBody(enc, v)
+		enc.writeUint32Uint64MapBody(v)
 	case map[uint32]bool:
-		writeUint32BoolMapBody(enc, v)
+		enc.writeUint32BoolMapBody(v)
 	case map[uint32]float32:
-		writeUint32Float32MapBody(enc, v)
+		enc.writeUint32Float32MapBody(v)
 	case map[uint32]float64:
-		writeUint32Float64MapBody(enc, v)
+		enc.writeUint32Float64MapBody(v)
 	case map[uint32]interface{}:
-		writeUint32InterfaceMapBody(enc, v)
+		enc.writeUint32InterfaceMapBody(v)
 	case map[uint64]string:
-		writeUint64StringMapBody(enc, v)
+		enc.writeUint64StringMapBody(v)
 	case map[uint64]int:
-		writeUint64IntMapBody(enc, v)
+		enc.writeUint64IntMapBody(v)
 	case map[uint64]int8:
-		writeUint64Int8MapBody(enc, v)
+		enc.writeUint64Int8MapBody(v)
 	case map[uint64]int16:
-		writeUint64Int16MapBody(enc, v)
+		enc.writeUint64Int16MapBody(v)
 	case map[uint64]int32:
-		writeUint64Int32MapBody(enc, v)
+		enc.writeUint64Int32MapBody(v)
 	case map[uint64]int64:
-		writeUint64Int64MapBody(enc, v)
+		enc.writeUint64Int64MapBody(v)
 	case map[uint64]uint:
-		writeUint64UintMapBody(enc, v)
+		enc.writeUint64UintMapBody(v)
 	case map[uint64]uint8:
-		writeUint64Uint8MapBody(enc, v)
+		enc.writeUint64Uint8MapBody(v)
 	case map[uint64]uint16:
-		writeUint64Uint16MapBody(enc, v)
+		enc.writeUint64Uint16MapBody(v)
 	case map[uint64]uint32:
-		writeUint64Uint32MapBody(enc, v)
+		enc.writeUint64Uint32MapBody(v)
 	case map[uint64]uint64:
-		writeUint64Uint64MapBody(enc, v)
+		enc.writeUint64Uint64MapBody(v)
 	case map[uint64]bool:
-		writeUint64BoolMapBody(enc, v)
+		enc.writeUint64BoolMapBody(v)
 	case map[uint64]float32:
-		writeUint64Float32MapBody(enc, v)
+		enc.writeUint64Float32MapBody(v)
 	case map[uint64]float64:
-		writeUint64Float64MapBody(enc, v)
+		enc.writeUint64Float64MapBody(v)
 	case map[uint64]interface{}:
-		writeUint64InterfaceMapBody(enc, v)
+		enc.writeUint64InterfaceMapBody(v)
 	case map[float32]string:
-		writeFloat32StringMapBody(enc, v)
+		enc.writeFloat32StringMapBody(v)
 	case map[float32]int:
-		writeFloat32IntMapBody(enc, v)
+		enc.writeFloat32IntMapBody(v)
 	case map[float32]int8:
-		writeFloat32Int8MapBody(enc, v)
+		enc.writeFloat32Int8MapBody(v)
 	case map[float32]int16:
-		writeFloat32Int16MapBody(enc, v)
+		enc.writeFloat32Int16MapBody(v)
 	case map[float32]int32:
-		writeFloat32Int32MapBody(enc, v)
+		enc.writeFloat32Int32MapBody(v)
 	case map[float32]int64:
-		writeFloat32Int64MapBody(enc, v)
+		enc.writeFloat32Int64MapBody(v)
 	case map[float32]uint:
-		writeFloat32UintMapBody(enc, v)
+		enc.writeFloat32UintMapBody(v)
 	case map[float32]uint8:
-		writeFloat32Uint8MapBody(enc, v)
+		enc.writeFloat32Uint8MapBody(v)
 	case map[float32]uint16:
-		writeFloat32Uint16MapBody(enc, v)
+		enc.writeFloat32Uint16MapBody(v)
 	case map[float32]uint32:
-		writeFloat32Uint32MapBody(enc, v)
+		enc.writeFloat32Uint32MapBody(v)
 	case map[float32]uint64:
-		writeFloat32Uint64MapBody(enc, v)
+		enc.writeFloat32Uint64MapBody(v)
 	case map[float32]bool:
-		writeFloat32BoolMapBody(enc, v)
+		enc.writeFloat32BoolMapBody(v)
 	case map[float32]float32:
-		writeFloat32Float32MapBody(enc, v)
+		enc.writeFloat32Float32MapBody(v)
 	case map[float32]float64:
-		writeFloat32Float64MapBody(enc, v)
+		enc.writeFloat32Float64MapBody(v)
 	case map[float32]interface{}:
-		writeFloat32InterfaceMapBody(enc, v)
+		enc.writeFloat32InterfaceMapBody(v)
 	case map[float64]string:
-		writeFloat64StringMapBody(enc, v)
+		enc.writeFloat64StringMapBody(v)
 	case map[float64]int:
-		writeFloat64IntMapBody(enc, v)
+		enc.writeFloat64IntMapBody(v)
 	case map[float64]int8:
-		writeFloat64Int8MapBody(enc, v)
+		enc.writeFloat64Int8MapBody(v)
 	case map[float64]int16:
-		writeFloat64Int16MapBody(enc, v)
+		enc.writeFloat64Int16MapBody(v)
 	case map[float64]int32:
-		writeFloat64Int32MapBody(enc, v)
+		enc.writeFloat64Int32MapBody(v)
 	case map[float64]int64:
-		writeFloat64Int64MapBody(enc, v)
+		enc.writeFloat64Int64MapBody(v)
 	case map[float64]uint:
-		writeFloat64UintMapBody(enc, v)
+		enc.writeFloat64UintMapBody(v)
 	case map[float64]uint8:
-		writeFloat64Uint8MapBody(enc, v)
+		enc.writeFloat64Uint8MapBody(v)
 	case map[float64]uint16:
-		writeFloat64Uint16MapBody(enc, v)
+		enc.writeFloat64Uint16MapBody(v)
 	case map[float64]uint32:
-		writeFloat64Uint32MapBody(enc, v)
+		enc.writeFloat64Uint32MapBody(v)
 	case map[float64]uint64:
-		writeFloat64Uint64MapBody(enc, v)
+		enc.writeFloat64Uint64MapBody(v)
 	case map[float64]bool:
-		writeFloat64BoolMapBody(enc, v)
+		enc.writeFloat64BoolMapBody(v)
 	case map[float64]float32:
-		writeFloat64Float32MapBody(enc, v)
+		enc.writeFloat64Float32MapBody(v)
 	case map[float64]float64:
-		writeFloat64Float64MapBody(enc, v)
+		enc.writeFloat64Float64MapBody(v)
 	case map[float64]interface{}:
-		writeFloat64InterfaceMapBody(enc, v)
+		enc.writeFloat64InterfaceMapBody(v)
 	case map[interface{}]string:
-		writeInterfaceStringMapBody(enc, v)
+		enc.writeInterfaceStringMapBody(v)
 	case map[interface{}]int:
-		writeInterfaceIntMapBody(enc, v)
+		enc.writeInterfaceIntMapBody(v)
 	case map[interface{}]int8:
-		writeInterfaceInt8MapBody(enc, v)
+		enc.writeInterfaceInt8MapBody(v)
 	case map[interface{}]int16:
-		writeInterfaceInt16MapBody(enc, v)
+		enc.writeInterfaceInt16MapBody(v)
 	case map[interface{}]int32:
-		writeInterfaceInt32MapBody(enc, v)
+		enc.writeInterfaceInt32MapBody(v)
 	case map[interface{}]int64:
-		writeInterfaceInt64MapBody(enc, v)
+		enc.writeInterfaceInt64MapBody(v)
 	case map[interface{}]uint:
-		writeInterfaceUintMapBody(enc, v)
+		enc.writeInterfaceUintMapBody(v)
 	case map[interface{}]uint8:
-		writeInterfaceUint8MapBody(enc, v)
+		enc.writeInterfaceUint8MapBody(v)
 	case map[interface{}]uint16:
-		writeInterfaceUint16MapBody(enc, v)
+		enc.writeInterfaceUint16MapBody(v)
 	case map[interface{}]uint32:
-		writeInterfaceUint32MapBody(enc, v)
+		enc.writeInterfaceUint32MapBody(v)
 	case map[interface{}]uint64:
-		writeInterfaceUint64MapBody(enc, v)
+		enc.writeInterfaceUint64MapBody(v)
 	case map[interface{}]bool:
-		writeInterfaceBoolMapBody(enc, v)
+		enc.writeInterfaceBoolMapBody(v)
 	case map[interface{}]float32:
-		writeInterfaceFloat32MapBody(enc, v)
+		enc.writeInterfaceFloat32MapBody(v)
 	case map[interface{}]float64:
-		writeInterfaceFloat64MapBody(enc, v)
+		enc.writeInterfaceFloat64MapBody(v)
 	case map[interface{}]interface{}:
-		writeInterfaceInterfaceMapBody(enc, v)
+		enc.writeInterfaceInterfaceMapBody(v)
 	default:
-		writeOtherMapBody(enc, v)
+		enc.writeOtherMapBody(v)
 	}
 }
 
-func writeStringStringMapBody(enc *Encoder, m map[string]string) {
+func (enc *Encoder) writeStringStringMapBody(m map[string]string) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		EncodeString(enc, v)
@@ -488,49 +488,49 @@ func writeStringStringMapBody(enc *Encoder, m map[string]string) {
 
 }
 
-func writeStringIntMapBody(enc *Encoder, m map[string]int) {
+func (enc *Encoder) writeStringIntMapBody(m map[string]int) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteInt(v)
 	}
 }
 
-func writeStringInt8MapBody(enc *Encoder, m map[string]int8) {
+func (enc *Encoder) writeStringInt8MapBody(m map[string]int8) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteInt8(v)
 	}
 }
 
-func writeStringInt16MapBody(enc *Encoder, m map[string]int16) {
+func (enc *Encoder) writeStringInt16MapBody(m map[string]int16) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteInt16(v)
 	}
 }
 
-func writeStringInt32MapBody(enc *Encoder, m map[string]int32) {
+func (enc *Encoder) writeStringInt32MapBody(m map[string]int32) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteInt32(v)
 	}
 }
 
-func writeStringInt64MapBody(enc *Encoder, m map[string]int64) {
+func (enc *Encoder) writeStringInt64MapBody(m map[string]int64) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteInt64(v)
 	}
 }
 
-func writeStringUintMapBody(enc *Encoder, m map[string]uint) {
+func (enc *Encoder) writeStringUintMapBody(m map[string]uint) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteUint(v)
 	}
 }
 
-func writeStringUint8MapBody(enc *Encoder, m map[string]uint8) {
+func (enc *Encoder) writeStringUint8MapBody(m map[string]uint8) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteUint8(v)
@@ -538,7 +538,7 @@ func writeStringUint8MapBody(enc *Encoder, m map[string]uint8) {
 	return
 }
 
-func writeStringUint16MapBody(enc *Encoder, m map[string]uint16) {
+func (enc *Encoder) writeStringUint16MapBody(m map[string]uint16) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteUint16(v)
@@ -546,7 +546,7 @@ func writeStringUint16MapBody(enc *Encoder, m map[string]uint16) {
 	return
 }
 
-func writeStringUint32MapBody(enc *Encoder, m map[string]uint32) {
+func (enc *Encoder) writeStringUint32MapBody(m map[string]uint32) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteUint32(v)
@@ -554,7 +554,7 @@ func writeStringUint32MapBody(enc *Encoder, m map[string]uint32) {
 	return
 }
 
-func writeStringUint64MapBody(enc *Encoder, m map[string]uint64) {
+func (enc *Encoder) writeStringUint64MapBody(m map[string]uint64) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteUint64(v)
@@ -562,7 +562,7 @@ func writeStringUint64MapBody(enc *Encoder, m map[string]uint64) {
 	return
 }
 
-func writeStringBoolMapBody(enc *Encoder, m map[string]bool) {
+func (enc *Encoder) writeStringBoolMapBody(m map[string]bool) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteBool(v)
@@ -570,7 +570,7 @@ func writeStringBoolMapBody(enc *Encoder, m map[string]bool) {
 	return
 }
 
-func writeStringFloat32MapBody(enc *Encoder, m map[string]float32) {
+func (enc *Encoder) writeStringFloat32MapBody(m map[string]float32) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteFloat32(v)
@@ -578,7 +578,7 @@ func writeStringFloat32MapBody(enc *Encoder, m map[string]float32) {
 	return
 }
 
-func writeStringFloat64MapBody(enc *Encoder, m map[string]float64) {
+func (enc *Encoder) writeStringFloat64MapBody(m map[string]float64) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.WriteFloat64(v)
@@ -586,7 +586,7 @@ func writeStringFloat64MapBody(enc *Encoder, m map[string]float64) {
 	return
 }
 
-func writeStringInterfaceMapBody(enc *Encoder, m map[string]interface{}) {
+func (enc *Encoder) writeStringInterfaceMapBody(m map[string]interface{}) {
 	for k, v := range m {
 		EncodeString(enc, k)
 		enc.encode(v)
@@ -594,7 +594,7 @@ func writeStringInterfaceMapBody(enc *Encoder, m map[string]interface{}) {
 	return
 }
 
-func writeIntStringMapBody(enc *Encoder, m map[int]string) {
+func (enc *Encoder) writeIntStringMapBody(m map[int]string) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		EncodeString(enc, v)
@@ -602,7 +602,7 @@ func writeIntStringMapBody(enc *Encoder, m map[int]string) {
 	return
 }
 
-func writeIntIntMapBody(enc *Encoder, m map[int]int) {
+func (enc *Encoder) writeIntIntMapBody(m map[int]int) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteInt(v)
@@ -610,7 +610,7 @@ func writeIntIntMapBody(enc *Encoder, m map[int]int) {
 	return
 }
 
-func writeIntInt8MapBody(enc *Encoder, m map[int]int8) {
+func (enc *Encoder) writeIntInt8MapBody(m map[int]int8) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteInt8(v)
@@ -618,7 +618,7 @@ func writeIntInt8MapBody(enc *Encoder, m map[int]int8) {
 	return
 }
 
-func writeIntInt16MapBody(enc *Encoder, m map[int]int16) {
+func (enc *Encoder) writeIntInt16MapBody(m map[int]int16) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteInt16(v)
@@ -626,7 +626,7 @@ func writeIntInt16MapBody(enc *Encoder, m map[int]int16) {
 	return
 }
 
-func writeIntInt32MapBody(enc *Encoder, m map[int]int32) {
+func (enc *Encoder) writeIntInt32MapBody(m map[int]int32) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteInt32(v)
@@ -634,7 +634,7 @@ func writeIntInt32MapBody(enc *Encoder, m map[int]int32) {
 	return
 }
 
-func writeIntInt64MapBody(enc *Encoder, m map[int]int64) {
+func (enc *Encoder) writeIntInt64MapBody(m map[int]int64) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteInt64(v)
@@ -642,7 +642,7 @@ func writeIntInt64MapBody(enc *Encoder, m map[int]int64) {
 	return
 }
 
-func writeIntUintMapBody(enc *Encoder, m map[int]uint) {
+func (enc *Encoder) writeIntUintMapBody(m map[int]uint) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteUint(v)
@@ -650,7 +650,7 @@ func writeIntUintMapBody(enc *Encoder, m map[int]uint) {
 	return
 }
 
-func writeIntUint8MapBody(enc *Encoder, m map[int]uint8) {
+func (enc *Encoder) writeIntUint8MapBody(m map[int]uint8) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteUint8(v)
@@ -658,7 +658,7 @@ func writeIntUint8MapBody(enc *Encoder, m map[int]uint8) {
 	return
 }
 
-func writeIntUint16MapBody(enc *Encoder, m map[int]uint16) {
+func (enc *Encoder) writeIntUint16MapBody(m map[int]uint16) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteUint16(v)
@@ -666,7 +666,7 @@ func writeIntUint16MapBody(enc *Encoder, m map[int]uint16) {
 	return
 }
 
-func writeIntUint32MapBody(enc *Encoder, m map[int]uint32) {
+func (enc *Encoder) writeIntUint32MapBody(m map[int]uint32) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteUint32(v)
@@ -674,7 +674,7 @@ func writeIntUint32MapBody(enc *Encoder, m map[int]uint32) {
 	return
 }
 
-func writeIntUint64MapBody(enc *Encoder, m map[int]uint64) {
+func (enc *Encoder) writeIntUint64MapBody(m map[int]uint64) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteUint64(v)
@@ -682,7 +682,7 @@ func writeIntUint64MapBody(enc *Encoder, m map[int]uint64) {
 	return
 }
 
-func writeIntBoolMapBody(enc *Encoder, m map[int]bool) {
+func (enc *Encoder) writeIntBoolMapBody(m map[int]bool) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteBool(v)
@@ -690,7 +690,7 @@ func writeIntBoolMapBody(enc *Encoder, m map[int]bool) {
 	return
 }
 
-func writeIntFloat32MapBody(enc *Encoder, m map[int]float32) {
+func (enc *Encoder) writeIntFloat32MapBody(m map[int]float32) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteFloat32(v)
@@ -698,7 +698,7 @@ func writeIntFloat32MapBody(enc *Encoder, m map[int]float32) {
 	return
 }
 
-func writeIntFloat64MapBody(enc *Encoder, m map[int]float64) {
+func (enc *Encoder) writeIntFloat64MapBody(m map[int]float64) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.WriteFloat64(v)
@@ -706,7 +706,7 @@ func writeIntFloat64MapBody(enc *Encoder, m map[int]float64) {
 	return
 }
 
-func writeIntInterfaceMapBody(enc *Encoder, m map[int]interface{}) {
+func (enc *Encoder) writeIntInterfaceMapBody(m map[int]interface{}) {
 	for k, v := range m {
 		enc.WriteInt(k)
 		enc.encode(v)
@@ -714,7 +714,7 @@ func writeIntInterfaceMapBody(enc *Encoder, m map[int]interface{}) {
 	return
 }
 
-func writeInt8StringMapBody(enc *Encoder, m map[int8]string) {
+func (enc *Encoder) writeInt8StringMapBody(m map[int8]string) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		EncodeString(enc, v)
@@ -722,7 +722,7 @@ func writeInt8StringMapBody(enc *Encoder, m map[int8]string) {
 	return
 }
 
-func writeInt8IntMapBody(enc *Encoder, m map[int8]int) {
+func (enc *Encoder) writeInt8IntMapBody(m map[int8]int) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteInt(v)
@@ -730,7 +730,7 @@ func writeInt8IntMapBody(enc *Encoder, m map[int8]int) {
 	return
 }
 
-func writeInt8Int8MapBody(enc *Encoder, m map[int8]int8) {
+func (enc *Encoder) writeInt8Int8MapBody(m map[int8]int8) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteInt8(v)
@@ -738,7 +738,7 @@ func writeInt8Int8MapBody(enc *Encoder, m map[int8]int8) {
 	return
 }
 
-func writeInt8Int16MapBody(enc *Encoder, m map[int8]int16) {
+func (enc *Encoder) writeInt8Int16MapBody(m map[int8]int16) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteInt16(v)
@@ -746,7 +746,7 @@ func writeInt8Int16MapBody(enc *Encoder, m map[int8]int16) {
 	return
 }
 
-func writeInt8Int32MapBody(enc *Encoder, m map[int8]int32) {
+func (enc *Encoder) writeInt8Int32MapBody(m map[int8]int32) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteInt32(v)
@@ -754,7 +754,7 @@ func writeInt8Int32MapBody(enc *Encoder, m map[int8]int32) {
 	return
 }
 
-func writeInt8Int64MapBody(enc *Encoder, m map[int8]int64) {
+func (enc *Encoder) writeInt8Int64MapBody(m map[int8]int64) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteInt64(v)
@@ -762,7 +762,7 @@ func writeInt8Int64MapBody(enc *Encoder, m map[int8]int64) {
 	return
 }
 
-func writeInt8UintMapBody(enc *Encoder, m map[int8]uint) {
+func (enc *Encoder) writeInt8UintMapBody(m map[int8]uint) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteUint(v)
@@ -770,7 +770,7 @@ func writeInt8UintMapBody(enc *Encoder, m map[int8]uint) {
 	return
 }
 
-func writeInt8Uint8MapBody(enc *Encoder, m map[int8]uint8) {
+func (enc *Encoder) writeInt8Uint8MapBody(m map[int8]uint8) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteUint8(v)
@@ -778,7 +778,7 @@ func writeInt8Uint8MapBody(enc *Encoder, m map[int8]uint8) {
 	return
 }
 
-func writeInt8Uint16MapBody(enc *Encoder, m map[int8]uint16) {
+func (enc *Encoder) writeInt8Uint16MapBody(m map[int8]uint16) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteUint16(v)
@@ -786,7 +786,7 @@ func writeInt8Uint16MapBody(enc *Encoder, m map[int8]uint16) {
 	return
 }
 
-func writeInt8Uint32MapBody(enc *Encoder, m map[int8]uint32) {
+func (enc *Encoder) writeInt8Uint32MapBody(m map[int8]uint32) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteUint32(v)
@@ -794,7 +794,7 @@ func writeInt8Uint32MapBody(enc *Encoder, m map[int8]uint32) {
 	return
 }
 
-func writeInt8Uint64MapBody(enc *Encoder, m map[int8]uint64) {
+func (enc *Encoder) writeInt8Uint64MapBody(m map[int8]uint64) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteUint64(v)
@@ -802,7 +802,7 @@ func writeInt8Uint64MapBody(enc *Encoder, m map[int8]uint64) {
 	return
 }
 
-func writeInt8BoolMapBody(enc *Encoder, m map[int8]bool) {
+func (enc *Encoder) writeInt8BoolMapBody(m map[int8]bool) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteBool(v)
@@ -810,7 +810,7 @@ func writeInt8BoolMapBody(enc *Encoder, m map[int8]bool) {
 	return
 }
 
-func writeInt8Float32MapBody(enc *Encoder, m map[int8]float32) {
+func (enc *Encoder) writeInt8Float32MapBody(m map[int8]float32) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteFloat32(v)
@@ -818,7 +818,7 @@ func writeInt8Float32MapBody(enc *Encoder, m map[int8]float32) {
 	return
 }
 
-func writeInt8Float64MapBody(enc *Encoder, m map[int8]float64) {
+func (enc *Encoder) writeInt8Float64MapBody(m map[int8]float64) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.WriteFloat64(v)
@@ -826,7 +826,7 @@ func writeInt8Float64MapBody(enc *Encoder, m map[int8]float64) {
 	return
 }
 
-func writeInt8InterfaceMapBody(enc *Encoder, m map[int8]interface{}) {
+func (enc *Encoder) writeInt8InterfaceMapBody(m map[int8]interface{}) {
 	for k, v := range m {
 		enc.WriteInt8(k)
 		enc.encode(v)
@@ -834,7 +834,7 @@ func writeInt8InterfaceMapBody(enc *Encoder, m map[int8]interface{}) {
 	return
 }
 
-func writeInt16StringMapBody(enc *Encoder, m map[int16]string) {
+func (enc *Encoder) writeInt16StringMapBody(m map[int16]string) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		EncodeString(enc, v)
@@ -842,7 +842,7 @@ func writeInt16StringMapBody(enc *Encoder, m map[int16]string) {
 	return
 }
 
-func writeInt16IntMapBody(enc *Encoder, m map[int16]int) {
+func (enc *Encoder) writeInt16IntMapBody(m map[int16]int) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteInt(v)
@@ -850,7 +850,7 @@ func writeInt16IntMapBody(enc *Encoder, m map[int16]int) {
 	return
 }
 
-func writeInt16Int8MapBody(enc *Encoder, m map[int16]int8) {
+func (enc *Encoder) writeInt16Int8MapBody(m map[int16]int8) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteInt8(v)
@@ -858,7 +858,7 @@ func writeInt16Int8MapBody(enc *Encoder, m map[int16]int8) {
 	return
 }
 
-func writeInt16Int16MapBody(enc *Encoder, m map[int16]int16) {
+func (enc *Encoder) writeInt16Int16MapBody(m map[int16]int16) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteInt16(v)
@@ -866,7 +866,7 @@ func writeInt16Int16MapBody(enc *Encoder, m map[int16]int16) {
 	return
 }
 
-func writeInt16Int32MapBody(enc *Encoder, m map[int16]int32) {
+func (enc *Encoder) writeInt16Int32MapBody(m map[int16]int32) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteInt32(v)
@@ -874,7 +874,7 @@ func writeInt16Int32MapBody(enc *Encoder, m map[int16]int32) {
 	return
 }
 
-func writeInt16Int64MapBody(enc *Encoder, m map[int16]int64) {
+func (enc *Encoder) writeInt16Int64MapBody(m map[int16]int64) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteInt64(v)
@@ -882,7 +882,7 @@ func writeInt16Int64MapBody(enc *Encoder, m map[int16]int64) {
 	return
 }
 
-func writeInt16UintMapBody(enc *Encoder, m map[int16]uint) {
+func (enc *Encoder) writeInt16UintMapBody(m map[int16]uint) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteUint(v)
@@ -890,7 +890,7 @@ func writeInt16UintMapBody(enc *Encoder, m map[int16]uint) {
 	return
 }
 
-func writeInt16Uint8MapBody(enc *Encoder, m map[int16]uint8) {
+func (enc *Encoder) writeInt16Uint8MapBody(m map[int16]uint8) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteUint8(v)
@@ -898,7 +898,7 @@ func writeInt16Uint8MapBody(enc *Encoder, m map[int16]uint8) {
 	return
 }
 
-func writeInt16Uint16MapBody(enc *Encoder, m map[int16]uint16) {
+func (enc *Encoder) writeInt16Uint16MapBody(m map[int16]uint16) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteUint16(v)
@@ -906,7 +906,7 @@ func writeInt16Uint16MapBody(enc *Encoder, m map[int16]uint16) {
 	return
 }
 
-func writeInt16Uint32MapBody(enc *Encoder, m map[int16]uint32) {
+func (enc *Encoder) writeInt16Uint32MapBody(m map[int16]uint32) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteUint32(v)
@@ -914,7 +914,7 @@ func writeInt16Uint32MapBody(enc *Encoder, m map[int16]uint32) {
 	return
 }
 
-func writeInt16Uint64MapBody(enc *Encoder, m map[int16]uint64) {
+func (enc *Encoder) writeInt16Uint64MapBody(m map[int16]uint64) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteUint64(v)
@@ -922,7 +922,7 @@ func writeInt16Uint64MapBody(enc *Encoder, m map[int16]uint64) {
 	return
 }
 
-func writeInt16BoolMapBody(enc *Encoder, m map[int16]bool) {
+func (enc *Encoder) writeInt16BoolMapBody(m map[int16]bool) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteBool(v)
@@ -930,7 +930,7 @@ func writeInt16BoolMapBody(enc *Encoder, m map[int16]bool) {
 	return
 }
 
-func writeInt16Float32MapBody(enc *Encoder, m map[int16]float32) {
+func (enc *Encoder) writeInt16Float32MapBody(m map[int16]float32) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteFloat32(v)
@@ -938,7 +938,7 @@ func writeInt16Float32MapBody(enc *Encoder, m map[int16]float32) {
 	return
 }
 
-func writeInt16Float64MapBody(enc *Encoder, m map[int16]float64) {
+func (enc *Encoder) writeInt16Float64MapBody(m map[int16]float64) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.WriteFloat64(v)
@@ -946,7 +946,7 @@ func writeInt16Float64MapBody(enc *Encoder, m map[int16]float64) {
 	return
 }
 
-func writeInt16InterfaceMapBody(enc *Encoder, m map[int16]interface{}) {
+func (enc *Encoder) writeInt16InterfaceMapBody(m map[int16]interface{}) {
 	for k, v := range m {
 		enc.WriteInt16(k)
 		enc.encode(v)
@@ -954,7 +954,7 @@ func writeInt16InterfaceMapBody(enc *Encoder, m map[int16]interface{}) {
 	return
 }
 
-func writeInt32StringMapBody(enc *Encoder, m map[int32]string) {
+func (enc *Encoder) writeInt32StringMapBody(m map[int32]string) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		EncodeString(enc, v)
@@ -962,7 +962,7 @@ func writeInt32StringMapBody(enc *Encoder, m map[int32]string) {
 	return
 }
 
-func writeInt32IntMapBody(enc *Encoder, m map[int32]int) {
+func (enc *Encoder) writeInt32IntMapBody(m map[int32]int) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteInt(v)
@@ -970,7 +970,7 @@ func writeInt32IntMapBody(enc *Encoder, m map[int32]int) {
 	return
 }
 
-func writeInt32Int8MapBody(enc *Encoder, m map[int32]int8) {
+func (enc *Encoder) writeInt32Int8MapBody(m map[int32]int8) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteInt8(v)
@@ -978,7 +978,7 @@ func writeInt32Int8MapBody(enc *Encoder, m map[int32]int8) {
 	return
 }
 
-func writeInt32Int16MapBody(enc *Encoder, m map[int32]int16) {
+func (enc *Encoder) writeInt32Int16MapBody(m map[int32]int16) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteInt16(v)
@@ -986,7 +986,7 @@ func writeInt32Int16MapBody(enc *Encoder, m map[int32]int16) {
 	return
 }
 
-func writeInt32Int32MapBody(enc *Encoder, m map[int32]int32) {
+func (enc *Encoder) writeInt32Int32MapBody(m map[int32]int32) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteInt32(v)
@@ -994,7 +994,7 @@ func writeInt32Int32MapBody(enc *Encoder, m map[int32]int32) {
 	return
 }
 
-func writeInt32Int64MapBody(enc *Encoder, m map[int32]int64) {
+func (enc *Encoder) writeInt32Int64MapBody(m map[int32]int64) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteInt64(v)
@@ -1002,7 +1002,7 @@ func writeInt32Int64MapBody(enc *Encoder, m map[int32]int64) {
 	return
 }
 
-func writeInt32UintMapBody(enc *Encoder, m map[int32]uint) {
+func (enc *Encoder) writeInt32UintMapBody(m map[int32]uint) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteUint(v)
@@ -1010,7 +1010,7 @@ func writeInt32UintMapBody(enc *Encoder, m map[int32]uint) {
 	return
 }
 
-func writeInt32Uint8MapBody(enc *Encoder, m map[int32]uint8) {
+func (enc *Encoder) writeInt32Uint8MapBody(m map[int32]uint8) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteUint8(v)
@@ -1018,7 +1018,7 @@ func writeInt32Uint8MapBody(enc *Encoder, m map[int32]uint8) {
 	return
 }
 
-func writeInt32Uint16MapBody(enc *Encoder, m map[int32]uint16) {
+func (enc *Encoder) writeInt32Uint16MapBody(m map[int32]uint16) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteUint16(v)
@@ -1026,7 +1026,7 @@ func writeInt32Uint16MapBody(enc *Encoder, m map[int32]uint16) {
 	return
 }
 
-func writeInt32Uint32MapBody(enc *Encoder, m map[int32]uint32) {
+func (enc *Encoder) writeInt32Uint32MapBody(m map[int32]uint32) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteUint32(v)
@@ -1034,7 +1034,7 @@ func writeInt32Uint32MapBody(enc *Encoder, m map[int32]uint32) {
 	return
 }
 
-func writeInt32Uint64MapBody(enc *Encoder, m map[int32]uint64) {
+func (enc *Encoder) writeInt32Uint64MapBody(m map[int32]uint64) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteUint64(v)
@@ -1042,7 +1042,7 @@ func writeInt32Uint64MapBody(enc *Encoder, m map[int32]uint64) {
 	return
 }
 
-func writeInt32BoolMapBody(enc *Encoder, m map[int32]bool) {
+func (enc *Encoder) writeInt32BoolMapBody(m map[int32]bool) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteBool(v)
@@ -1050,7 +1050,7 @@ func writeInt32BoolMapBody(enc *Encoder, m map[int32]bool) {
 	return
 }
 
-func writeInt32Float32MapBody(enc *Encoder, m map[int32]float32) {
+func (enc *Encoder) writeInt32Float32MapBody(m map[int32]float32) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteFloat32(v)
@@ -1058,7 +1058,7 @@ func writeInt32Float32MapBody(enc *Encoder, m map[int32]float32) {
 	return
 }
 
-func writeInt32Float64MapBody(enc *Encoder, m map[int32]float64) {
+func (enc *Encoder) writeInt32Float64MapBody(m map[int32]float64) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.WriteFloat64(v)
@@ -1066,7 +1066,7 @@ func writeInt32Float64MapBody(enc *Encoder, m map[int32]float64) {
 	return
 }
 
-func writeInt32InterfaceMapBody(enc *Encoder, m map[int32]interface{}) {
+func (enc *Encoder) writeInt32InterfaceMapBody(m map[int32]interface{}) {
 	for k, v := range m {
 		enc.WriteInt32(k)
 		enc.encode(v)
@@ -1074,7 +1074,7 @@ func writeInt32InterfaceMapBody(enc *Encoder, m map[int32]interface{}) {
 	return
 }
 
-func writeInt64StringMapBody(enc *Encoder, m map[int64]string) {
+func (enc *Encoder) writeInt64StringMapBody(m map[int64]string) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		EncodeString(enc, v)
@@ -1082,7 +1082,7 @@ func writeInt64StringMapBody(enc *Encoder, m map[int64]string) {
 	return
 }
 
-func writeInt64IntMapBody(enc *Encoder, m map[int64]int) {
+func (enc *Encoder) writeInt64IntMapBody(m map[int64]int) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteInt(v)
@@ -1090,7 +1090,7 @@ func writeInt64IntMapBody(enc *Encoder, m map[int64]int) {
 	return
 }
 
-func writeInt64Int8MapBody(enc *Encoder, m map[int64]int8) {
+func (enc *Encoder) writeInt64Int8MapBody(m map[int64]int8) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteInt8(v)
@@ -1098,7 +1098,7 @@ func writeInt64Int8MapBody(enc *Encoder, m map[int64]int8) {
 	return
 }
 
-func writeInt64Int16MapBody(enc *Encoder, m map[int64]int16) {
+func (enc *Encoder) writeInt64Int16MapBody(m map[int64]int16) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteInt16(v)
@@ -1106,7 +1106,7 @@ func writeInt64Int16MapBody(enc *Encoder, m map[int64]int16) {
 	return
 }
 
-func writeInt64Int32MapBody(enc *Encoder, m map[int64]int32) {
+func (enc *Encoder) writeInt64Int32MapBody(m map[int64]int32) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteInt32(v)
@@ -1114,7 +1114,7 @@ func writeInt64Int32MapBody(enc *Encoder, m map[int64]int32) {
 	return
 }
 
-func writeInt64Int64MapBody(enc *Encoder, m map[int64]int64) {
+func (enc *Encoder) writeInt64Int64MapBody(m map[int64]int64) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteInt64(v)
@@ -1122,7 +1122,7 @@ func writeInt64Int64MapBody(enc *Encoder, m map[int64]int64) {
 	return
 }
 
-func writeInt64UintMapBody(enc *Encoder, m map[int64]uint) {
+func (enc *Encoder) writeInt64UintMapBody(m map[int64]uint) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteUint(v)
@@ -1130,7 +1130,7 @@ func writeInt64UintMapBody(enc *Encoder, m map[int64]uint) {
 	return
 }
 
-func writeInt64Uint8MapBody(enc *Encoder, m map[int64]uint8) {
+func (enc *Encoder) writeInt64Uint8MapBody(m map[int64]uint8) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteUint8(v)
@@ -1138,7 +1138,7 @@ func writeInt64Uint8MapBody(enc *Encoder, m map[int64]uint8) {
 	return
 }
 
-func writeInt64Uint16MapBody(enc *Encoder, m map[int64]uint16) {
+func (enc *Encoder) writeInt64Uint16MapBody(m map[int64]uint16) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteUint16(v)
@@ -1146,7 +1146,7 @@ func writeInt64Uint16MapBody(enc *Encoder, m map[int64]uint16) {
 	return
 }
 
-func writeInt64Uint32MapBody(enc *Encoder, m map[int64]uint32) {
+func (enc *Encoder) writeInt64Uint32MapBody(m map[int64]uint32) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteUint32(v)
@@ -1154,7 +1154,7 @@ func writeInt64Uint32MapBody(enc *Encoder, m map[int64]uint32) {
 	return
 }
 
-func writeInt64Uint64MapBody(enc *Encoder, m map[int64]uint64) {
+func (enc *Encoder) writeInt64Uint64MapBody(m map[int64]uint64) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteUint64(v)
@@ -1162,7 +1162,7 @@ func writeInt64Uint64MapBody(enc *Encoder, m map[int64]uint64) {
 	return
 }
 
-func writeInt64BoolMapBody(enc *Encoder, m map[int64]bool) {
+func (enc *Encoder) writeInt64BoolMapBody(m map[int64]bool) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteBool(v)
@@ -1170,7 +1170,7 @@ func writeInt64BoolMapBody(enc *Encoder, m map[int64]bool) {
 	return
 }
 
-func writeInt64Float32MapBody(enc *Encoder, m map[int64]float32) {
+func (enc *Encoder) writeInt64Float32MapBody(m map[int64]float32) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteFloat32(v)
@@ -1178,7 +1178,7 @@ func writeInt64Float32MapBody(enc *Encoder, m map[int64]float32) {
 	return
 }
 
-func writeInt64Float64MapBody(enc *Encoder, m map[int64]float64) {
+func (enc *Encoder) writeInt64Float64MapBody(m map[int64]float64) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.WriteFloat64(v)
@@ -1186,7 +1186,7 @@ func writeInt64Float64MapBody(enc *Encoder, m map[int64]float64) {
 	return
 }
 
-func writeInt64InterfaceMapBody(enc *Encoder, m map[int64]interface{}) {
+func (enc *Encoder) writeInt64InterfaceMapBody(m map[int64]interface{}) {
 	for k, v := range m {
 		enc.WriteInt64(k)
 		enc.encode(v)
@@ -1194,7 +1194,7 @@ func writeInt64InterfaceMapBody(enc *Encoder, m map[int64]interface{}) {
 	return
 }
 
-func writeUintStringMapBody(enc *Encoder, m map[uint]string) {
+func (enc *Encoder) writeUintStringMapBody(m map[uint]string) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		EncodeString(enc, v)
@@ -1202,7 +1202,7 @@ func writeUintStringMapBody(enc *Encoder, m map[uint]string) {
 	return
 }
 
-func writeUintIntMapBody(enc *Encoder, m map[uint]int) {
+func (enc *Encoder) writeUintIntMapBody(m map[uint]int) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteInt(v)
@@ -1210,7 +1210,7 @@ func writeUintIntMapBody(enc *Encoder, m map[uint]int) {
 	return
 }
 
-func writeUintInt8MapBody(enc *Encoder, m map[uint]int8) {
+func (enc *Encoder) writeUintInt8MapBody(m map[uint]int8) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteInt8(v)
@@ -1218,7 +1218,7 @@ func writeUintInt8MapBody(enc *Encoder, m map[uint]int8) {
 	return
 }
 
-func writeUintInt16MapBody(enc *Encoder, m map[uint]int16) {
+func (enc *Encoder) writeUintInt16MapBody(m map[uint]int16) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteInt16(v)
@@ -1226,7 +1226,7 @@ func writeUintInt16MapBody(enc *Encoder, m map[uint]int16) {
 	return
 }
 
-func writeUintInt32MapBody(enc *Encoder, m map[uint]int32) {
+func (enc *Encoder) writeUintInt32MapBody(m map[uint]int32) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteInt32(v)
@@ -1234,7 +1234,7 @@ func writeUintInt32MapBody(enc *Encoder, m map[uint]int32) {
 	return
 }
 
-func writeUintInt64MapBody(enc *Encoder, m map[uint]int64) {
+func (enc *Encoder) writeUintInt64MapBody(m map[uint]int64) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteInt64(v)
@@ -1242,7 +1242,7 @@ func writeUintInt64MapBody(enc *Encoder, m map[uint]int64) {
 	return
 }
 
-func writeUintUintMapBody(enc *Encoder, m map[uint]uint) {
+func (enc *Encoder) writeUintUintMapBody(m map[uint]uint) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteUint(v)
@@ -1250,7 +1250,7 @@ func writeUintUintMapBody(enc *Encoder, m map[uint]uint) {
 	return
 }
 
-func writeUintUint8MapBody(enc *Encoder, m map[uint]uint8) {
+func (enc *Encoder) writeUintUint8MapBody(m map[uint]uint8) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteUint8(v)
@@ -1258,7 +1258,7 @@ func writeUintUint8MapBody(enc *Encoder, m map[uint]uint8) {
 	return
 }
 
-func writeUintUint16MapBody(enc *Encoder, m map[uint]uint16) {
+func (enc *Encoder) writeUintUint16MapBody(m map[uint]uint16) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteUint16(v)
@@ -1266,7 +1266,7 @@ func writeUintUint16MapBody(enc *Encoder, m map[uint]uint16) {
 	return
 }
 
-func writeUintUint32MapBody(enc *Encoder, m map[uint]uint32) {
+func (enc *Encoder) writeUintUint32MapBody(m map[uint]uint32) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteUint32(v)
@@ -1274,7 +1274,7 @@ func writeUintUint32MapBody(enc *Encoder, m map[uint]uint32) {
 	return
 }
 
-func writeUintUint64MapBody(enc *Encoder, m map[uint]uint64) {
+func (enc *Encoder) writeUintUint64MapBody(m map[uint]uint64) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteUint64(v)
@@ -1282,7 +1282,7 @@ func writeUintUint64MapBody(enc *Encoder, m map[uint]uint64) {
 	return
 }
 
-func writeUintBoolMapBody(enc *Encoder, m map[uint]bool) {
+func (enc *Encoder) writeUintBoolMapBody(m map[uint]bool) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteBool(v)
@@ -1290,7 +1290,7 @@ func writeUintBoolMapBody(enc *Encoder, m map[uint]bool) {
 	return
 }
 
-func writeUintFloat32MapBody(enc *Encoder, m map[uint]float32) {
+func (enc *Encoder) writeUintFloat32MapBody(m map[uint]float32) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteFloat32(v)
@@ -1298,7 +1298,7 @@ func writeUintFloat32MapBody(enc *Encoder, m map[uint]float32) {
 	return
 }
 
-func writeUintFloat64MapBody(enc *Encoder, m map[uint]float64) {
+func (enc *Encoder) writeUintFloat64MapBody(m map[uint]float64) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.WriteFloat64(v)
@@ -1306,14 +1306,15 @@ func writeUintFloat64MapBody(enc *Encoder, m map[uint]float64) {
 	return
 }
 
-func writeUintInterfaceMapBody(enc *Encoder, m map[uint]interface{}) {
+func (enc *Encoder) writeUintInterfaceMapBody(m map[uint]interface{}) {
 	for k, v := range m {
 		enc.WriteUint(k)
 		enc.encode(v)
 	}
 	return
 }
-func writeUint8StringMapBody(enc *Encoder, m map[uint8]string) {
+
+func (enc *Encoder) writeUint8StringMapBody(m map[uint8]string) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		EncodeString(enc, v)
@@ -1321,7 +1322,7 @@ func writeUint8StringMapBody(enc *Encoder, m map[uint8]string) {
 	return
 }
 
-func writeUint8IntMapBody(enc *Encoder, m map[uint8]int) {
+func (enc *Encoder) writeUint8IntMapBody(m map[uint8]int) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteInt(v)
@@ -1329,7 +1330,7 @@ func writeUint8IntMapBody(enc *Encoder, m map[uint8]int) {
 	return
 }
 
-func writeUint8Int8MapBody(enc *Encoder, m map[uint8]int8) {
+func (enc *Encoder) writeUint8Int8MapBody(m map[uint8]int8) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteInt8(v)
@@ -1337,7 +1338,7 @@ func writeUint8Int8MapBody(enc *Encoder, m map[uint8]int8) {
 	return
 }
 
-func writeUint8Int16MapBody(enc *Encoder, m map[uint8]int16) {
+func (enc *Encoder) writeUint8Int16MapBody(m map[uint8]int16) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteInt16(v)
@@ -1345,7 +1346,7 @@ func writeUint8Int16MapBody(enc *Encoder, m map[uint8]int16) {
 	return
 }
 
-func writeUint8Int32MapBody(enc *Encoder, m map[uint8]int32) {
+func (enc *Encoder) writeUint8Int32MapBody(m map[uint8]int32) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteInt32(v)
@@ -1353,7 +1354,7 @@ func writeUint8Int32MapBody(enc *Encoder, m map[uint8]int32) {
 	return
 }
 
-func writeUint8Int64MapBody(enc *Encoder, m map[uint8]int64) {
+func (enc *Encoder) writeUint8Int64MapBody(m map[uint8]int64) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteInt64(v)
@@ -1361,7 +1362,7 @@ func writeUint8Int64MapBody(enc *Encoder, m map[uint8]int64) {
 	return
 }
 
-func writeUint8UintMapBody(enc *Encoder, m map[uint8]uint) {
+func (enc *Encoder) writeUint8UintMapBody(m map[uint8]uint) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteUint(v)
@@ -1369,7 +1370,7 @@ func writeUint8UintMapBody(enc *Encoder, m map[uint8]uint) {
 	return
 }
 
-func writeUint8Uint8MapBody(enc *Encoder, m map[uint8]uint8) {
+func (enc *Encoder) writeUint8Uint8MapBody(m map[uint8]uint8) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteUint8(v)
@@ -1377,7 +1378,7 @@ func writeUint8Uint8MapBody(enc *Encoder, m map[uint8]uint8) {
 	return
 }
 
-func writeUint8Uint16MapBody(enc *Encoder, m map[uint8]uint16) {
+func (enc *Encoder) writeUint8Uint16MapBody(m map[uint8]uint16) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteUint16(v)
@@ -1385,7 +1386,7 @@ func writeUint8Uint16MapBody(enc *Encoder, m map[uint8]uint16) {
 	return
 }
 
-func writeUint8Uint32MapBody(enc *Encoder, m map[uint8]uint32) {
+func (enc *Encoder) writeUint8Uint32MapBody(m map[uint8]uint32) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteUint32(v)
@@ -1393,7 +1394,7 @@ func writeUint8Uint32MapBody(enc *Encoder, m map[uint8]uint32) {
 	return
 }
 
-func writeUint8Uint64MapBody(enc *Encoder, m map[uint8]uint64) {
+func (enc *Encoder) writeUint8Uint64MapBody(m map[uint8]uint64) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteUint64(v)
@@ -1401,7 +1402,7 @@ func writeUint8Uint64MapBody(enc *Encoder, m map[uint8]uint64) {
 	return
 }
 
-func writeUint8BoolMapBody(enc *Encoder, m map[uint8]bool) {
+func (enc *Encoder) writeUint8BoolMapBody(m map[uint8]bool) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteBool(v)
@@ -1409,7 +1410,7 @@ func writeUint8BoolMapBody(enc *Encoder, m map[uint8]bool) {
 	return
 }
 
-func writeUint8Float32MapBody(enc *Encoder, m map[uint8]float32) {
+func (enc *Encoder) writeUint8Float32MapBody(m map[uint8]float32) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteFloat32(v)
@@ -1417,7 +1418,7 @@ func writeUint8Float32MapBody(enc *Encoder, m map[uint8]float32) {
 	return
 }
 
-func writeUint8Float64MapBody(enc *Encoder, m map[uint8]float64) {
+func (enc *Encoder) writeUint8Float64MapBody(m map[uint8]float64) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.WriteFloat64(v)
@@ -1425,7 +1426,7 @@ func writeUint8Float64MapBody(enc *Encoder, m map[uint8]float64) {
 	return
 }
 
-func writeUint8InterfaceMapBody(enc *Encoder, m map[uint8]interface{}) {
+func (enc *Encoder) writeUint8InterfaceMapBody(m map[uint8]interface{}) {
 	for k, v := range m {
 		enc.WriteUint8(k)
 		enc.encode(v)
@@ -1433,7 +1434,7 @@ func writeUint8InterfaceMapBody(enc *Encoder, m map[uint8]interface{}) {
 	return
 }
 
-func writeUint16StringMapBody(enc *Encoder, m map[uint16]string) {
+func (enc *Encoder) writeUint16StringMapBody(m map[uint16]string) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		EncodeString(enc, v)
@@ -1441,7 +1442,7 @@ func writeUint16StringMapBody(enc *Encoder, m map[uint16]string) {
 	return
 }
 
-func writeUint16IntMapBody(enc *Encoder, m map[uint16]int) {
+func (enc *Encoder) writeUint16IntMapBody(m map[uint16]int) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteInt(v)
@@ -1449,7 +1450,7 @@ func writeUint16IntMapBody(enc *Encoder, m map[uint16]int) {
 	return
 }
 
-func writeUint16Int8MapBody(enc *Encoder, m map[uint16]int8) {
+func (enc *Encoder) writeUint16Int8MapBody(m map[uint16]int8) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteInt8(v)
@@ -1457,7 +1458,7 @@ func writeUint16Int8MapBody(enc *Encoder, m map[uint16]int8) {
 	return
 }
 
-func writeUint16Int16MapBody(enc *Encoder, m map[uint16]int16) {
+func (enc *Encoder) writeUint16Int16MapBody(m map[uint16]int16) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteInt16(v)
@@ -1465,7 +1466,7 @@ func writeUint16Int16MapBody(enc *Encoder, m map[uint16]int16) {
 	return
 }
 
-func writeUint16Int32MapBody(enc *Encoder, m map[uint16]int32) {
+func (enc *Encoder) writeUint16Int32MapBody(m map[uint16]int32) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteInt32(v)
@@ -1473,7 +1474,7 @@ func writeUint16Int32MapBody(enc *Encoder, m map[uint16]int32) {
 	return
 }
 
-func writeUint16Int64MapBody(enc *Encoder, m map[uint16]int64) {
+func (enc *Encoder) writeUint16Int64MapBody(m map[uint16]int64) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteInt64(v)
@@ -1481,7 +1482,7 @@ func writeUint16Int64MapBody(enc *Encoder, m map[uint16]int64) {
 	return
 }
 
-func writeUint16UintMapBody(enc *Encoder, m map[uint16]uint) {
+func (enc *Encoder) writeUint16UintMapBody(m map[uint16]uint) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteUint(v)
@@ -1489,7 +1490,7 @@ func writeUint16UintMapBody(enc *Encoder, m map[uint16]uint) {
 	return
 }
 
-func writeUint16Uint8MapBody(enc *Encoder, m map[uint16]uint8) {
+func (enc *Encoder) writeUint16Uint8MapBody(m map[uint16]uint8) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteUint8(v)
@@ -1497,7 +1498,7 @@ func writeUint16Uint8MapBody(enc *Encoder, m map[uint16]uint8) {
 	return
 }
 
-func writeUint16Uint16MapBody(enc *Encoder, m map[uint16]uint16) {
+func (enc *Encoder) writeUint16Uint16MapBody(m map[uint16]uint16) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteUint16(v)
@@ -1505,7 +1506,7 @@ func writeUint16Uint16MapBody(enc *Encoder, m map[uint16]uint16) {
 	return
 }
 
-func writeUint16Uint32MapBody(enc *Encoder, m map[uint16]uint32) {
+func (enc *Encoder) writeUint16Uint32MapBody(m map[uint16]uint32) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteUint32(v)
@@ -1513,7 +1514,7 @@ func writeUint16Uint32MapBody(enc *Encoder, m map[uint16]uint32) {
 	return
 }
 
-func writeUint16Uint64MapBody(enc *Encoder, m map[uint16]uint64) {
+func (enc *Encoder) writeUint16Uint64MapBody(m map[uint16]uint64) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteUint64(v)
@@ -1521,7 +1522,7 @@ func writeUint16Uint64MapBody(enc *Encoder, m map[uint16]uint64) {
 	return
 }
 
-func writeUint16BoolMapBody(enc *Encoder, m map[uint16]bool) {
+func (enc *Encoder) writeUint16BoolMapBody(m map[uint16]bool) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteBool(v)
@@ -1529,7 +1530,7 @@ func writeUint16BoolMapBody(enc *Encoder, m map[uint16]bool) {
 	return
 }
 
-func writeUint16Float32MapBody(enc *Encoder, m map[uint16]float32) {
+func (enc *Encoder) writeUint16Float32MapBody(m map[uint16]float32) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteFloat32(v)
@@ -1537,7 +1538,7 @@ func writeUint16Float32MapBody(enc *Encoder, m map[uint16]float32) {
 	return
 }
 
-func writeUint16Float64MapBody(enc *Encoder, m map[uint16]float64) {
+func (enc *Encoder) writeUint16Float64MapBody(m map[uint16]float64) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.WriteFloat64(v)
@@ -1545,7 +1546,7 @@ func writeUint16Float64MapBody(enc *Encoder, m map[uint16]float64) {
 	return
 }
 
-func writeUint16InterfaceMapBody(enc *Encoder, m map[uint16]interface{}) {
+func (enc *Encoder) writeUint16InterfaceMapBody(m map[uint16]interface{}) {
 	for k, v := range m {
 		enc.WriteUint16(k)
 		enc.encode(v)
@@ -1553,7 +1554,7 @@ func writeUint16InterfaceMapBody(enc *Encoder, m map[uint16]interface{}) {
 	return
 }
 
-func writeUint32StringMapBody(enc *Encoder, m map[uint32]string) {
+func (enc *Encoder) writeUint32StringMapBody(m map[uint32]string) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		EncodeString(enc, v)
@@ -1561,7 +1562,7 @@ func writeUint32StringMapBody(enc *Encoder, m map[uint32]string) {
 	return
 }
 
-func writeUint32IntMapBody(enc *Encoder, m map[uint32]int) {
+func (enc *Encoder) writeUint32IntMapBody(m map[uint32]int) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteInt(v)
@@ -1569,7 +1570,7 @@ func writeUint32IntMapBody(enc *Encoder, m map[uint32]int) {
 	return
 }
 
-func writeUint32Int8MapBody(enc *Encoder, m map[uint32]int8) {
+func (enc *Encoder) writeUint32Int8MapBody(m map[uint32]int8) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteInt8(v)
@@ -1577,7 +1578,7 @@ func writeUint32Int8MapBody(enc *Encoder, m map[uint32]int8) {
 	return
 }
 
-func writeUint32Int16MapBody(enc *Encoder, m map[uint32]int16) {
+func (enc *Encoder) writeUint32Int16MapBody(m map[uint32]int16) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteInt16(v)
@@ -1585,7 +1586,7 @@ func writeUint32Int16MapBody(enc *Encoder, m map[uint32]int16) {
 	return
 }
 
-func writeUint32Int32MapBody(enc *Encoder, m map[uint32]int32) {
+func (enc *Encoder) writeUint32Int32MapBody(m map[uint32]int32) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteInt32(v)
@@ -1593,7 +1594,7 @@ func writeUint32Int32MapBody(enc *Encoder, m map[uint32]int32) {
 	return
 }
 
-func writeUint32Int64MapBody(enc *Encoder, m map[uint32]int64) {
+func (enc *Encoder) writeUint32Int64MapBody(m map[uint32]int64) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteInt64(v)
@@ -1601,7 +1602,7 @@ func writeUint32Int64MapBody(enc *Encoder, m map[uint32]int64) {
 	return
 }
 
-func writeUint32UintMapBody(enc *Encoder, m map[uint32]uint) {
+func (enc *Encoder) writeUint32UintMapBody(m map[uint32]uint) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteUint(v)
@@ -1609,7 +1610,7 @@ func writeUint32UintMapBody(enc *Encoder, m map[uint32]uint) {
 	return
 }
 
-func writeUint32Uint8MapBody(enc *Encoder, m map[uint32]uint8) {
+func (enc *Encoder) writeUint32Uint8MapBody(m map[uint32]uint8) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteUint8(v)
@@ -1617,7 +1618,7 @@ func writeUint32Uint8MapBody(enc *Encoder, m map[uint32]uint8) {
 	return
 }
 
-func writeUint32Uint16MapBody(enc *Encoder, m map[uint32]uint16) {
+func (enc *Encoder) writeUint32Uint16MapBody(m map[uint32]uint16) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteUint16(v)
@@ -1625,7 +1626,7 @@ func writeUint32Uint16MapBody(enc *Encoder, m map[uint32]uint16) {
 	return
 }
 
-func writeUint32Uint32MapBody(enc *Encoder, m map[uint32]uint32) {
+func (enc *Encoder) writeUint32Uint32MapBody(m map[uint32]uint32) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteUint32(v)
@@ -1633,7 +1634,7 @@ func writeUint32Uint32MapBody(enc *Encoder, m map[uint32]uint32) {
 	return
 }
 
-func writeUint32Uint64MapBody(enc *Encoder, m map[uint32]uint64) {
+func (enc *Encoder) writeUint32Uint64MapBody(m map[uint32]uint64) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteUint64(v)
@@ -1641,7 +1642,7 @@ func writeUint32Uint64MapBody(enc *Encoder, m map[uint32]uint64) {
 	return
 }
 
-func writeUint32BoolMapBody(enc *Encoder, m map[uint32]bool) {
+func (enc *Encoder) writeUint32BoolMapBody(m map[uint32]bool) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteBool(v)
@@ -1649,7 +1650,7 @@ func writeUint32BoolMapBody(enc *Encoder, m map[uint32]bool) {
 	return
 }
 
-func writeUint32Float32MapBody(enc *Encoder, m map[uint32]float32) {
+func (enc *Encoder) writeUint32Float32MapBody(m map[uint32]float32) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteFloat32(v)
@@ -1657,7 +1658,7 @@ func writeUint32Float32MapBody(enc *Encoder, m map[uint32]float32) {
 	return
 }
 
-func writeUint32Float64MapBody(enc *Encoder, m map[uint32]float64) {
+func (enc *Encoder) writeUint32Float64MapBody(m map[uint32]float64) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.WriteFloat64(v)
@@ -1665,7 +1666,7 @@ func writeUint32Float64MapBody(enc *Encoder, m map[uint32]float64) {
 	return
 }
 
-func writeUint32InterfaceMapBody(enc *Encoder, m map[uint32]interface{}) {
+func (enc *Encoder) writeUint32InterfaceMapBody(m map[uint32]interface{}) {
 	for k, v := range m {
 		enc.WriteUint32(k)
 		enc.encode(v)
@@ -1673,7 +1674,7 @@ func writeUint32InterfaceMapBody(enc *Encoder, m map[uint32]interface{}) {
 	return
 }
 
-func writeUint64StringMapBody(enc *Encoder, m map[uint64]string) {
+func (enc *Encoder) writeUint64StringMapBody(m map[uint64]string) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		EncodeString(enc, v)
@@ -1681,7 +1682,7 @@ func writeUint64StringMapBody(enc *Encoder, m map[uint64]string) {
 	return
 }
 
-func writeUint64IntMapBody(enc *Encoder, m map[uint64]int) {
+func (enc *Encoder) writeUint64IntMapBody(m map[uint64]int) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteInt(v)
@@ -1689,7 +1690,7 @@ func writeUint64IntMapBody(enc *Encoder, m map[uint64]int) {
 	return
 }
 
-func writeUint64Int8MapBody(enc *Encoder, m map[uint64]int8) {
+func (enc *Encoder) writeUint64Int8MapBody(m map[uint64]int8) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteInt8(v)
@@ -1697,7 +1698,7 @@ func writeUint64Int8MapBody(enc *Encoder, m map[uint64]int8) {
 	return
 }
 
-func writeUint64Int16MapBody(enc *Encoder, m map[uint64]int16) {
+func (enc *Encoder) writeUint64Int16MapBody(m map[uint64]int16) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteInt16(v)
@@ -1705,7 +1706,7 @@ func writeUint64Int16MapBody(enc *Encoder, m map[uint64]int16) {
 	return
 }
 
-func writeUint64Int32MapBody(enc *Encoder, m map[uint64]int32) {
+func (enc *Encoder) writeUint64Int32MapBody(m map[uint64]int32) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteInt32(v)
@@ -1713,7 +1714,7 @@ func writeUint64Int32MapBody(enc *Encoder, m map[uint64]int32) {
 	return
 }
 
-func writeUint64Int64MapBody(enc *Encoder, m map[uint64]int64) {
+func (enc *Encoder) writeUint64Int64MapBody(m map[uint64]int64) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteInt64(v)
@@ -1721,7 +1722,7 @@ func writeUint64Int64MapBody(enc *Encoder, m map[uint64]int64) {
 	return
 }
 
-func writeUint64UintMapBody(enc *Encoder, m map[uint64]uint) {
+func (enc *Encoder) writeUint64UintMapBody(m map[uint64]uint) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteUint(v)
@@ -1729,7 +1730,7 @@ func writeUint64UintMapBody(enc *Encoder, m map[uint64]uint) {
 	return
 }
 
-func writeUint64Uint8MapBody(enc *Encoder, m map[uint64]uint8) {
+func (enc *Encoder) writeUint64Uint8MapBody(m map[uint64]uint8) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteUint8(v)
@@ -1737,7 +1738,7 @@ func writeUint64Uint8MapBody(enc *Encoder, m map[uint64]uint8) {
 	return
 }
 
-func writeUint64Uint16MapBody(enc *Encoder, m map[uint64]uint16) {
+func (enc *Encoder) writeUint64Uint16MapBody(m map[uint64]uint16) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteUint16(v)
@@ -1745,7 +1746,7 @@ func writeUint64Uint16MapBody(enc *Encoder, m map[uint64]uint16) {
 	return
 }
 
-func writeUint64Uint32MapBody(enc *Encoder, m map[uint64]uint32) {
+func (enc *Encoder) writeUint64Uint32MapBody(m map[uint64]uint32) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteUint32(v)
@@ -1753,7 +1754,7 @@ func writeUint64Uint32MapBody(enc *Encoder, m map[uint64]uint32) {
 	return
 }
 
-func writeUint64Uint64MapBody(enc *Encoder, m map[uint64]uint64) {
+func (enc *Encoder) writeUint64Uint64MapBody(m map[uint64]uint64) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteUint64(v)
@@ -1761,7 +1762,7 @@ func writeUint64Uint64MapBody(enc *Encoder, m map[uint64]uint64) {
 	return
 }
 
-func writeUint64BoolMapBody(enc *Encoder, m map[uint64]bool) {
+func (enc *Encoder) writeUint64BoolMapBody(m map[uint64]bool) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteBool(v)
@@ -1769,7 +1770,7 @@ func writeUint64BoolMapBody(enc *Encoder, m map[uint64]bool) {
 	return
 }
 
-func writeUint64Float32MapBody(enc *Encoder, m map[uint64]float32) {
+func (enc *Encoder) writeUint64Float32MapBody(m map[uint64]float32) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteFloat32(v)
@@ -1777,7 +1778,7 @@ func writeUint64Float32MapBody(enc *Encoder, m map[uint64]float32) {
 	return
 }
 
-func writeUint64Float64MapBody(enc *Encoder, m map[uint64]float64) {
+func (enc *Encoder) writeUint64Float64MapBody(m map[uint64]float64) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.WriteFloat64(v)
@@ -1785,7 +1786,7 @@ func writeUint64Float64MapBody(enc *Encoder, m map[uint64]float64) {
 	return
 }
 
-func writeUint64InterfaceMapBody(enc *Encoder, m map[uint64]interface{}) {
+func (enc *Encoder) writeUint64InterfaceMapBody(m map[uint64]interface{}) {
 	for k, v := range m {
 		enc.WriteUint64(k)
 		enc.encode(v)
@@ -1793,7 +1794,7 @@ func writeUint64InterfaceMapBody(enc *Encoder, m map[uint64]interface{}) {
 	return
 }
 
-func writeFloat32StringMapBody(enc *Encoder, m map[float32]string) {
+func (enc *Encoder) writeFloat32StringMapBody(m map[float32]string) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		EncodeString(enc, v)
@@ -1801,7 +1802,7 @@ func writeFloat32StringMapBody(enc *Encoder, m map[float32]string) {
 	return
 }
 
-func writeFloat32IntMapBody(enc *Encoder, m map[float32]int) {
+func (enc *Encoder) writeFloat32IntMapBody(m map[float32]int) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteInt(v)
@@ -1809,7 +1810,7 @@ func writeFloat32IntMapBody(enc *Encoder, m map[float32]int) {
 	return
 }
 
-func writeFloat32Int8MapBody(enc *Encoder, m map[float32]int8) {
+func (enc *Encoder) writeFloat32Int8MapBody(m map[float32]int8) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteInt8(v)
@@ -1817,7 +1818,7 @@ func writeFloat32Int8MapBody(enc *Encoder, m map[float32]int8) {
 	return
 }
 
-func writeFloat32Int16MapBody(enc *Encoder, m map[float32]int16) {
+func (enc *Encoder) writeFloat32Int16MapBody(m map[float32]int16) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteInt16(v)
@@ -1825,7 +1826,7 @@ func writeFloat32Int16MapBody(enc *Encoder, m map[float32]int16) {
 	return
 }
 
-func writeFloat32Int32MapBody(enc *Encoder, m map[float32]int32) {
+func (enc *Encoder) writeFloat32Int32MapBody(m map[float32]int32) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteInt32(v)
@@ -1833,7 +1834,7 @@ func writeFloat32Int32MapBody(enc *Encoder, m map[float32]int32) {
 	return
 }
 
-func writeFloat32Int64MapBody(enc *Encoder, m map[float32]int64) {
+func (enc *Encoder) writeFloat32Int64MapBody(m map[float32]int64) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteInt64(v)
@@ -1841,7 +1842,7 @@ func writeFloat32Int64MapBody(enc *Encoder, m map[float32]int64) {
 	return
 }
 
-func writeFloat32UintMapBody(enc *Encoder, m map[float32]uint) {
+func (enc *Encoder) writeFloat32UintMapBody(m map[float32]uint) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteUint(v)
@@ -1849,7 +1850,7 @@ func writeFloat32UintMapBody(enc *Encoder, m map[float32]uint) {
 	return
 }
 
-func writeFloat32Uint8MapBody(enc *Encoder, m map[float32]uint8) {
+func (enc *Encoder) writeFloat32Uint8MapBody(m map[float32]uint8) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteUint8(v)
@@ -1857,7 +1858,7 @@ func writeFloat32Uint8MapBody(enc *Encoder, m map[float32]uint8) {
 	return
 }
 
-func writeFloat32Uint16MapBody(enc *Encoder, m map[float32]uint16) {
+func (enc *Encoder) writeFloat32Uint16MapBody(m map[float32]uint16) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteUint16(v)
@@ -1865,7 +1866,7 @@ func writeFloat32Uint16MapBody(enc *Encoder, m map[float32]uint16) {
 	return
 }
 
-func writeFloat32Uint32MapBody(enc *Encoder, m map[float32]uint32) {
+func (enc *Encoder) writeFloat32Uint32MapBody(m map[float32]uint32) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteUint32(v)
@@ -1873,7 +1874,7 @@ func writeFloat32Uint32MapBody(enc *Encoder, m map[float32]uint32) {
 	return
 }
 
-func writeFloat32Uint64MapBody(enc *Encoder, m map[float32]uint64) {
+func (enc *Encoder) writeFloat32Uint64MapBody(m map[float32]uint64) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteUint64(v)
@@ -1881,7 +1882,7 @@ func writeFloat32Uint64MapBody(enc *Encoder, m map[float32]uint64) {
 	return
 }
 
-func writeFloat32BoolMapBody(enc *Encoder, m map[float32]bool) {
+func (enc *Encoder) writeFloat32BoolMapBody(m map[float32]bool) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteBool(v)
@@ -1889,7 +1890,7 @@ func writeFloat32BoolMapBody(enc *Encoder, m map[float32]bool) {
 	return
 }
 
-func writeFloat32Float32MapBody(enc *Encoder, m map[float32]float32) {
+func (enc *Encoder) writeFloat32Float32MapBody(m map[float32]float32) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteFloat32(v)
@@ -1897,7 +1898,7 @@ func writeFloat32Float32MapBody(enc *Encoder, m map[float32]float32) {
 	return
 }
 
-func writeFloat32Float64MapBody(enc *Encoder, m map[float32]float64) {
+func (enc *Encoder) writeFloat32Float64MapBody(m map[float32]float64) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.WriteFloat64(v)
@@ -1905,7 +1906,7 @@ func writeFloat32Float64MapBody(enc *Encoder, m map[float32]float64) {
 	return
 }
 
-func writeFloat32InterfaceMapBody(enc *Encoder, m map[float32]interface{}) {
+func (enc *Encoder) writeFloat32InterfaceMapBody(m map[float32]interface{}) {
 	for k, v := range m {
 		enc.WriteFloat32(k)
 		enc.encode(v)
@@ -1913,7 +1914,7 @@ func writeFloat32InterfaceMapBody(enc *Encoder, m map[float32]interface{}) {
 	return
 }
 
-func writeFloat64StringMapBody(enc *Encoder, m map[float64]string) {
+func (enc *Encoder) writeFloat64StringMapBody(m map[float64]string) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		EncodeString(enc, v)
@@ -1921,7 +1922,7 @@ func writeFloat64StringMapBody(enc *Encoder, m map[float64]string) {
 	return
 }
 
-func writeFloat64IntMapBody(enc *Encoder, m map[float64]int) {
+func (enc *Encoder) writeFloat64IntMapBody(m map[float64]int) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteInt(v)
@@ -1929,7 +1930,7 @@ func writeFloat64IntMapBody(enc *Encoder, m map[float64]int) {
 	return
 }
 
-func writeFloat64Int8MapBody(enc *Encoder, m map[float64]int8) {
+func (enc *Encoder) writeFloat64Int8MapBody(m map[float64]int8) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteInt8(v)
@@ -1937,7 +1938,7 @@ func writeFloat64Int8MapBody(enc *Encoder, m map[float64]int8) {
 	return
 }
 
-func writeFloat64Int16MapBody(enc *Encoder, m map[float64]int16) {
+func (enc *Encoder) writeFloat64Int16MapBody(m map[float64]int16) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteInt16(v)
@@ -1945,7 +1946,7 @@ func writeFloat64Int16MapBody(enc *Encoder, m map[float64]int16) {
 	return
 }
 
-func writeFloat64Int32MapBody(enc *Encoder, m map[float64]int32) {
+func (enc *Encoder) writeFloat64Int32MapBody(m map[float64]int32) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteInt32(v)
@@ -1953,7 +1954,7 @@ func writeFloat64Int32MapBody(enc *Encoder, m map[float64]int32) {
 	return
 }
 
-func writeFloat64Int64MapBody(enc *Encoder, m map[float64]int64) {
+func (enc *Encoder) writeFloat64Int64MapBody(m map[float64]int64) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteInt64(v)
@@ -1961,7 +1962,7 @@ func writeFloat64Int64MapBody(enc *Encoder, m map[float64]int64) {
 	return
 }
 
-func writeFloat64UintMapBody(enc *Encoder, m map[float64]uint) {
+func (enc *Encoder) writeFloat64UintMapBody(m map[float64]uint) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteUint(v)
@@ -1969,7 +1970,7 @@ func writeFloat64UintMapBody(enc *Encoder, m map[float64]uint) {
 	return
 }
 
-func writeFloat64Uint8MapBody(enc *Encoder, m map[float64]uint8) {
+func (enc *Encoder) writeFloat64Uint8MapBody(m map[float64]uint8) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteUint8(v)
@@ -1977,7 +1978,7 @@ func writeFloat64Uint8MapBody(enc *Encoder, m map[float64]uint8) {
 	return
 }
 
-func writeFloat64Uint16MapBody(enc *Encoder, m map[float64]uint16) {
+func (enc *Encoder) writeFloat64Uint16MapBody(m map[float64]uint16) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteUint16(v)
@@ -1985,7 +1986,7 @@ func writeFloat64Uint16MapBody(enc *Encoder, m map[float64]uint16) {
 	return
 }
 
-func writeFloat64Uint32MapBody(enc *Encoder, m map[float64]uint32) {
+func (enc *Encoder) writeFloat64Uint32MapBody(m map[float64]uint32) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteUint32(v)
@@ -1993,7 +1994,7 @@ func writeFloat64Uint32MapBody(enc *Encoder, m map[float64]uint32) {
 	return
 }
 
-func writeFloat64Uint64MapBody(enc *Encoder, m map[float64]uint64) {
+func (enc *Encoder) writeFloat64Uint64MapBody(m map[float64]uint64) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteUint64(v)
@@ -2001,7 +2002,7 @@ func writeFloat64Uint64MapBody(enc *Encoder, m map[float64]uint64) {
 	return
 }
 
-func writeFloat64BoolMapBody(enc *Encoder, m map[float64]bool) {
+func (enc *Encoder) writeFloat64BoolMapBody(m map[float64]bool) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteBool(v)
@@ -2009,7 +2010,7 @@ func writeFloat64BoolMapBody(enc *Encoder, m map[float64]bool) {
 	return
 }
 
-func writeFloat64Float32MapBody(enc *Encoder, m map[float64]float32) {
+func (enc *Encoder) writeFloat64Float32MapBody(m map[float64]float32) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteFloat32(v)
@@ -2017,7 +2018,7 @@ func writeFloat64Float32MapBody(enc *Encoder, m map[float64]float32) {
 	return
 }
 
-func writeFloat64Float64MapBody(enc *Encoder, m map[float64]float64) {
+func (enc *Encoder) writeFloat64Float64MapBody(m map[float64]float64) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.WriteFloat64(v)
@@ -2025,7 +2026,7 @@ func writeFloat64Float64MapBody(enc *Encoder, m map[float64]float64) {
 	return
 }
 
-func writeFloat64InterfaceMapBody(enc *Encoder, m map[float64]interface{}) {
+func (enc *Encoder) writeFloat64InterfaceMapBody(m map[float64]interface{}) {
 	for k, v := range m {
 		enc.WriteFloat64(k)
 		enc.encode(v)
@@ -2033,7 +2034,7 @@ func writeFloat64InterfaceMapBody(enc *Encoder, m map[float64]interface{}) {
 	return
 }
 
-func writeInterfaceStringMapBody(enc *Encoder, m map[interface{}]string) {
+func (enc *Encoder) writeInterfaceStringMapBody(m map[interface{}]string) {
 	for k, v := range m {
 		enc.encode(k)
 		EncodeString(enc, v)
@@ -2041,7 +2042,7 @@ func writeInterfaceStringMapBody(enc *Encoder, m map[interface{}]string) {
 	return
 }
 
-func writeInterfaceIntMapBody(enc *Encoder, m map[interface{}]int) {
+func (enc *Encoder) writeInterfaceIntMapBody(m map[interface{}]int) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteInt(v)
@@ -2049,7 +2050,7 @@ func writeInterfaceIntMapBody(enc *Encoder, m map[interface{}]int) {
 	return
 }
 
-func writeInterfaceInt8MapBody(enc *Encoder, m map[interface{}]int8) {
+func (enc *Encoder) writeInterfaceInt8MapBody(m map[interface{}]int8) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteInt8(v)
@@ -2057,7 +2058,7 @@ func writeInterfaceInt8MapBody(enc *Encoder, m map[interface{}]int8) {
 	return
 }
 
-func writeInterfaceInt16MapBody(enc *Encoder, m map[interface{}]int16) {
+func (enc *Encoder) writeInterfaceInt16MapBody(m map[interface{}]int16) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteInt16(v)
@@ -2065,7 +2066,7 @@ func writeInterfaceInt16MapBody(enc *Encoder, m map[interface{}]int16) {
 	return
 }
 
-func writeInterfaceInt32MapBody(enc *Encoder, m map[interface{}]int32) {
+func (enc *Encoder) writeInterfaceInt32MapBody(m map[interface{}]int32) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteInt32(v)
@@ -2073,7 +2074,7 @@ func writeInterfaceInt32MapBody(enc *Encoder, m map[interface{}]int32) {
 	return
 }
 
-func writeInterfaceInt64MapBody(enc *Encoder, m map[interface{}]int64) {
+func (enc *Encoder) writeInterfaceInt64MapBody(m map[interface{}]int64) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteInt64(v)
@@ -2081,7 +2082,7 @@ func writeInterfaceInt64MapBody(enc *Encoder, m map[interface{}]int64) {
 	return
 }
 
-func writeInterfaceUintMapBody(enc *Encoder, m map[interface{}]uint) {
+func (enc *Encoder) writeInterfaceUintMapBody(m map[interface{}]uint) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteUint(v)
@@ -2089,7 +2090,7 @@ func writeInterfaceUintMapBody(enc *Encoder, m map[interface{}]uint) {
 	return
 }
 
-func writeInterfaceUint8MapBody(enc *Encoder, m map[interface{}]uint8) {
+func (enc *Encoder) writeInterfaceUint8MapBody(m map[interface{}]uint8) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteUint8(v)
@@ -2097,7 +2098,7 @@ func writeInterfaceUint8MapBody(enc *Encoder, m map[interface{}]uint8) {
 	return
 }
 
-func writeInterfaceUint16MapBody(enc *Encoder, m map[interface{}]uint16) {
+func (enc *Encoder) writeInterfaceUint16MapBody(m map[interface{}]uint16) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteUint16(v)
@@ -2105,7 +2106,7 @@ func writeInterfaceUint16MapBody(enc *Encoder, m map[interface{}]uint16) {
 	return
 }
 
-func writeInterfaceUint32MapBody(enc *Encoder, m map[interface{}]uint32) {
+func (enc *Encoder) writeInterfaceUint32MapBody(m map[interface{}]uint32) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteUint32(v)
@@ -2113,7 +2114,7 @@ func writeInterfaceUint32MapBody(enc *Encoder, m map[interface{}]uint32) {
 	return
 }
 
-func writeInterfaceUint64MapBody(enc *Encoder, m map[interface{}]uint64) {
+func (enc *Encoder) writeInterfaceUint64MapBody(m map[interface{}]uint64) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteUint64(v)
@@ -2121,7 +2122,7 @@ func writeInterfaceUint64MapBody(enc *Encoder, m map[interface{}]uint64) {
 	return
 }
 
-func writeInterfaceBoolMapBody(enc *Encoder, m map[interface{}]bool) {
+func (enc *Encoder) writeInterfaceBoolMapBody(m map[interface{}]bool) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteBool(v)
@@ -2129,7 +2130,7 @@ func writeInterfaceBoolMapBody(enc *Encoder, m map[interface{}]bool) {
 	return
 }
 
-func writeInterfaceFloat32MapBody(enc *Encoder, m map[interface{}]float32) {
+func (enc *Encoder) writeInterfaceFloat32MapBody(m map[interface{}]float32) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteFloat32(v)
@@ -2137,7 +2138,7 @@ func writeInterfaceFloat32MapBody(enc *Encoder, m map[interface{}]float32) {
 	return
 }
 
-func writeInterfaceFloat64MapBody(enc *Encoder, m map[interface{}]float64) {
+func (enc *Encoder) writeInterfaceFloat64MapBody(m map[interface{}]float64) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.WriteFloat64(v)
@@ -2145,7 +2146,7 @@ func writeInterfaceFloat64MapBody(enc *Encoder, m map[interface{}]float64) {
 	return
 }
 
-func writeInterfaceInterfaceMapBody(enc *Encoder, m map[interface{}]interface{}) {
+func (enc *Encoder) writeInterfaceInterfaceMapBody(m map[interface{}]interface{}) {
 	for k, v := range m {
 		enc.encode(k)
 		enc.encode(v)
@@ -2153,7 +2154,7 @@ func writeInterfaceInterfaceMapBody(enc *Encoder, m map[interface{}]interface{})
 	return
 }
 
-func writeOtherMapBody(enc *Encoder, v interface{}) {
+func (enc *Encoder) writeOtherMapBody(v interface{}) {
 	mapType := reflect2.TypeOf(v).(*reflect2.UnsafeMapType)
 	p := reflect2.PtrOf(v)
 	iter := mapType.UnsafeIterate(unsafe.Pointer(&p))

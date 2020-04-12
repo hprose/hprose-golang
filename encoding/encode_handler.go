@@ -147,7 +147,7 @@ func mapEncode(enc *Encoder, v interface{}) {
 	if reflect.ValueOf(v).IsNil() {
 		enc.WriteNil()
 	} else {
-		WriteMap(enc, v)
+		enc.WriteMap(v)
 	}
 }
 

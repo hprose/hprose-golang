@@ -164,7 +164,7 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	case reflect.Slice:
 		WriteSlice(enc, v)
 	case reflect.Map:
-		WriteMap(enc, v)
+		enc.WriteMap(v)
 	case reflect.Ptr:
 		encode(ptrenc, v)
 	default:
