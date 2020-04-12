@@ -27,7 +27,7 @@ func (valenc bigIntEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (bigIntEncoder) Write(enc *Encoder, v interface{}) {
-	WriteBigInt(enc, (*big.Int)(reflect2.PtrOf(v)))
+	enc.WriteBigInt((*big.Int)(reflect2.PtrOf(v)))
 }
 
 // bigFloatEncoder is the implementation of ValueEncoder for big.Float/*bit.Float.

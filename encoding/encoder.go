@@ -94,7 +94,7 @@ func (enc *Encoder) fastWriteValue(v interface{}) (ok bool) {
 	case complex128:
 		WriteComplex128(enc, v)
 	case big.Int:
-		WriteBigInt(enc, &v)
+		enc.WriteBigInt(&v)
 	case big.Float:
 		enc.WriteBigFloat(&v)
 	case big.Rat:
@@ -325,10 +325,17 @@ func (enc *Encoder) WriteBigFloat(f *big.Float) {
 	enc.buf = append(enc.buf, TagSemicolon)
 }
 
+// WriteBigInt to encoder
+func (enc *Encoder) WriteBigInt(i *big.Int) {
+	enc.buf = append(enc.buf, TagLong)
+	enc.buf = append(enc.buf, i.String()...)
+	enc.buf = append(enc.buf, TagSemicolon)
+}
+
 // WriteBigRat to encoder
 func (enc *Encoder) WriteBigRat(r *big.Rat) {
 	if r.IsInt() {
-		WriteBigInt(enc, r.Num())
+		enc.WriteBigInt(r.Num())
 	} else {
 		enc.AddReferenceCount(1)
 		s := r.String()

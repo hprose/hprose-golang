@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/value_encode_test.go                            |
 |                                                          |
-| LastModified: Mar 22, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -130,7 +130,7 @@ func TestWriteFloat(t *testing.T) {
 
 func TestWriteBigInt(t *testing.T) {
 	enc := new(Encoder)
-	WriteBigInt(enc, big.NewInt(math.MaxInt64))
+	enc.WriteBigInt(big.NewInt(math.MaxInt64))
 	assert.Equal(t, "l9223372036854775807;", enc.String())
 }
 

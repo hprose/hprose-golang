@@ -15,7 +15,6 @@ package encoding
 
 import (
 	"math"
-	"math/big"
 	"strconv"
 
 	"github.com/modern-go/reflect2"
@@ -354,11 +353,4 @@ func WriteComplex64(enc *Encoder, c complex64) {
 // WriteComplex128 to encoder
 func WriteComplex128(enc *Encoder, c complex128) {
 	writeComplex(enc, real(c), imag(c), 64)
-}
-
-// WriteBigInt to encoder
-func WriteBigInt(enc *Encoder, i *big.Int) {
-	enc.buf = append(enc.buf, TagLong)
-	enc.buf = append(enc.buf, i.String()...)
-	enc.buf = append(enc.buf, TagSemicolon)
 }
