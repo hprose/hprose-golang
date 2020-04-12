@@ -21,6 +21,8 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
+const defaultTagName = "hprose"
+
 type field struct {
 	typ    reflect2.Type
 	field  reflect2.StructField
