@@ -476,14 +476,6 @@ func (enc *Encoder) WriteComplex128(c complex128) {
 	enc.writeComplex(real(c), imag(c), 64)
 }
 
-// WriteError to encoder
-func (enc *Encoder) WriteError(e error) {
-	enc.AddReferenceCount(1)
-	s := e.Error()
-	enc.buf = append(enc.buf, TagError)
-	enc.buf = appendString(enc.buf, s, utf16Length(s))
-}
-
 // EncodeReference to encoder
 func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
 	if reflect2.IsNil(v) {
