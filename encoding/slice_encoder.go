@@ -197,7 +197,7 @@ func writeUintSliceBody(enc *Encoder, slice []uint) {
 func writeBoolSliceBody(enc *Encoder, slice []bool) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
-		WriteBool(enc, slice[i])
+		enc.WriteBool(slice[i])
 	}
 }
 
@@ -367,7 +367,7 @@ func write2dBoolSliceBody(enc *Encoder, slice [][]bool) {
 		m := len(slice[i])
 		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
-			WriteBool(enc, slice[i][j])
+			enc.WriteBool(slice[i][j])
 		}
 		enc.WriteFoot()
 	}

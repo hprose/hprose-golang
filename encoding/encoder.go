@@ -62,7 +62,7 @@ func (enc *Encoder) fastWriteValue(v interface{}) (ok bool) {
 	ok = true
 	switch v := v.(type) {
 	case nil:
-		WriteNil(enc)
+		enc.WriteNil()
 	case int:
 		WriteInt(enc, v)
 	case int8:
@@ -86,7 +86,7 @@ func (enc *Encoder) fastWriteValue(v interface{}) (ok bool) {
 	case uintptr:
 		WriteUint64(enc, uint64(v))
 	case bool:
-		WriteBool(enc, v)
+		enc.WriteBool(v)
 	case float32:
 		enc.WriteFloat32(v)
 	case float64:
@@ -118,7 +118,7 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	switch kind {
 	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface:
 		if reflect.ValueOf(v).IsNil() {
-			WriteNil(enc)
+			enc.WriteNil()
 			return
 		}
 	}
@@ -148,7 +148,7 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	case reflect.Uint64, reflect.Uintptr:
 		WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
 	case reflect.Bool:
-		WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
+		enc.WriteBool(*(*bool)(reflect2.PtrOf(v)))
 	case reflect.Float32:
 		enc.WriteFloat32(*(*float32)(reflect2.PtrOf(v)))
 	case reflect.Float64:
@@ -171,7 +171,7 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 		encode(ptrenc, v)
 	default:
 		enc.Error = &UnsupportedTypeError{Type: reflect.TypeOf(v)}
-		WriteNil(enc)
+		enc.WriteNil()
 	}
 }
 
@@ -311,6 +311,20 @@ func (enc *Encoder) Simple(simple bool) {
 	enc.last = 0
 }
 
+// WriteNil to encoder
+func (enc *Encoder) WriteNil() {
+	enc.buf = append(enc.buf, TagNull)
+}
+
+// WriteBool to encoder
+func (enc *Encoder) WriteBool(b bool) {
+	if b {
+		enc.buf = append(enc.buf, TagTrue)
+	} else {
+		enc.buf = append(enc.buf, TagFalse)
+	}
+}
+
 func (enc *Encoder) writeFloat(f float64, bitSize int) {
 	switch {
 	case f != f:
@@ -415,7 +429,7 @@ func (enc *Encoder) WriteError(e error) {
 // EncodeReference to encoder
 func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
 	if reflect2.IsNil(v) {
-		WriteNil(enc)
+		enc.WriteNil()
 	} else if ok := enc.WriteReference(v); !ok {
 		valenc.Write(enc, v)
 	}

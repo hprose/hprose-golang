@@ -63,7 +63,7 @@ func fastWritePtr(enc *Encoder, v interface{}) (ok bool) {
 	case *uintptr:
 		WriteUint64(enc, uint64(*v))
 	case *bool:
-		WriteBool(enc, *v)
+		enc.WriteBool(*v)
 	case *float32:
 		enc.WriteFloat32(*v)
 	case *float64:
@@ -94,7 +94,7 @@ func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Enco
 	switch kind {
 	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface:
 		if e.IsNil() {
-			WriteNil(enc)
+			enc.WriteNil()
 			return
 		}
 	}
@@ -125,7 +125,7 @@ func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Enco
 	case reflect.Uint64, reflect.Uintptr:
 		WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
 	case reflect.Bool:
-		WriteBool(enc, *(*bool)(reflect2.PtrOf(v)))
+		enc.WriteBool(*(*bool)(reflect2.PtrOf(v)))
 	case reflect.Float32:
 		enc.WriteFloat32(*(*float32)(reflect2.PtrOf(v)))
 	case reflect.Float64:
@@ -149,7 +149,7 @@ func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Enco
 	case reflect.Interface:
 		encode(intfenc, enc, e.Interface())
 	default:
-		WriteNil(enc)
+		enc.WriteNil()
 		enc.Error = &UnsupportedTypeError{Type: reflect.TypeOf(v)}
 	}
 }

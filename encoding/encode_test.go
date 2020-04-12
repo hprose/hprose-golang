@@ -110,8 +110,8 @@ func TestWriteInt8(t *testing.T) {
 
 func TestWriteBool(t *testing.T) {
 	enc := new(Encoder)
-	WriteBool(enc, true)
-	WriteBool(enc, false)
+	enc.WriteBool(true)
+	enc.WriteBool(false)
 	assert.Equal(t, "tf", enc.String())
 }
 

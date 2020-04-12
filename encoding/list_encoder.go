@@ -50,7 +50,7 @@ type elementEncoder struct{}
 func (valenc elementEncoder) Encode(enc *Encoder, v interface{}) {
 	e := (*list.Element)(reflect2.PtrOf(v))
 	if e == nil {
-		WriteNil(enc)
+		enc.WriteNil()
 	} else {
 		enc.encode(e.Value)
 	}

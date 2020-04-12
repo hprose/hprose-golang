@@ -214,20 +214,6 @@ func WriteUint(enc *Encoder, i uint) {
 	WriteUint64(enc, uint64(i))
 }
 
-// WriteNil to encoder
-func WriteNil(enc *Encoder) {
-	enc.buf = append(enc.buf, TagNull)
-}
-
-// WriteBool to encoder
-func WriteBool(enc *Encoder, b bool) {
-	if b {
-		enc.buf = append(enc.buf, TagTrue)
-	} else {
-		enc.buf = append(enc.buf, TagFalse)
-	}
-}
-
 func utf16Length(str string) (n int) {
 	length := len(str)
 	n = length
