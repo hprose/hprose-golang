@@ -26,18 +26,18 @@ type ptrEncoder struct{}
 var ptrenc ptrEncoder
 
 func (ptrEncoder) Encode(enc *Encoder, v interface{}) {
-	writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) {
+	enc.writePtr(v, func(valenc ValueEncoder, v interface{}) {
 		valenc.Encode(enc, v)
 	})
 }
 
 func (ptrEncoder) Write(enc *Encoder, v interface{}) {
-	writePtr(enc, v, func(valenc ValueEncoder, enc *Encoder, v interface{}) {
+	enc.writePtr(v, func(valenc ValueEncoder, v interface{}) {
 		valenc.Write(enc, v)
 	})
 }
 
-func fastWritePtr(enc *Encoder, v interface{}) (ok bool) {
+func (enc *Encoder) fastWritePtr(v interface{}) (ok bool) {
 	ok = true
 	switch v := v.(type) {
 	case *int:
@@ -85,8 +85,8 @@ func fastWritePtr(enc *Encoder, v interface{}) (ok bool) {
 	}
 	return
 }
-func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Encoder, v interface{})) {
-	if fastWritePtr(enc, v) {
+func (enc *Encoder) writePtr(v interface{}, encode func(m ValueEncoder, v interface{})) {
+	if enc.fastWritePtr(v) {
 		return
 	}
 	e := reflect.ValueOf(v).Elem()
@@ -100,7 +100,7 @@ func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Enco
 	}
 	et := e.Type()
 	if valenc := getOtherEncoder(et); valenc != nil {
-		encode(valenc, enc, v)
+		encode(valenc, v)
 		return
 	}
 	switch kind {
@@ -135,19 +135,19 @@ func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Enco
 	case reflect.Complex128:
 		enc.WriteComplex128(*(*complex128)(reflect2.PtrOf(v)))
 	case reflect.String:
-		encode(strenc, enc, e.String())
+		encode(strenc, e.String())
 	case reflect.Array:
-		encode(arrayenc, enc, v)
+		encode(arrayenc, v)
 	case reflect.Struct:
-		encode(getStructEncoder(et), enc, v)
+		encode(getStructEncoder(et), v)
 	case reflect.Slice:
-		encode(slcenc, enc, v)
+		encode(slcenc, v)
 	case reflect.Map:
-		encode(mapenc, enc, v)
+		encode(mapenc, v)
 	case reflect.Ptr:
-		encode(ptrenc, enc, e.Interface())
+		encode(ptrenc, e.Interface())
 	case reflect.Interface:
-		encode(intfenc, enc, e.Interface())
+		encode(intfenc, e.Interface())
 	default:
 		enc.WriteNil()
 		enc.Error = &UnsupportedTypeError{Type: reflect.TypeOf(v)}
