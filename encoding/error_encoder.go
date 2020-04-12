@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/error_encoder.go                                |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,9 +23,9 @@ func (valenc errorEncoder) Encode(enc *Encoder, v interface{}) {
 func (errorEncoder) Write(enc *Encoder, v interface{}) {
 	switch v := v.(type) {
 	case error:
-		WriteError(enc, v)
+		enc.WriteError(v)
 	case *error:
-		WriteError(enc, *v)
+		enc.WriteError(*v)
 	}
 }
 

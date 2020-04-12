@@ -100,7 +100,7 @@ func (enc *Encoder) fastWriteValue(v interface{}) (ok bool) {
 	case big.Rat:
 		WriteBigRat(enc, &v)
 	case error:
-		WriteError(enc, v)
+		enc.WriteError(v)
 	default:
 		ok = false
 	}
@@ -316,4 +316,12 @@ func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
 	} else if ok := enc.WriteReference(v); !ok {
 		valenc.Write(enc, v)
 	}
+}
+
+// WriteError to encoder
+func (enc *Encoder) WriteError(e error) {
+	enc.AddReferenceCount(1)
+	s := e.Error()
+	enc.buf = append(enc.buf, TagError)
+	enc.buf = appendString(enc.buf, s, utf16Length(s))
 }

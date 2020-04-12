@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/ptr_encoder.go                                  |
 |                                                          |
-| LastModified: Mar 22, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -79,7 +79,7 @@ func fastWritePtr(enc *Encoder, v interface{}) (ok bool) {
 	case *big.Rat:
 		WriteBigRat(enc, v)
 	case *error:
-		WriteError(enc, *v)
+		enc.WriteError(*v)
 	default:
 		ok = false
 	}
