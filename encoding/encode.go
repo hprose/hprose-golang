@@ -369,22 +369,3 @@ func WriteBigFloat(enc *Encoder, f *big.Float) {
 	enc.buf = f.Append(enc.buf, 'g', -1)
 	enc.buf = append(enc.buf, TagSemicolon)
 }
-
-// WriteBigRat to encoder
-func WriteBigRat(enc *Encoder, r *big.Rat) {
-	if r.IsInt() {
-		WriteBigInt(enc, r.Num())
-	} else {
-		enc.AddReferenceCount(1)
-		s := r.String()
-		enc.buf = appendString(enc.buf, s, len(s))
-	}
-}
-
-// WriteError to encoder
-func WriteError(enc *Encoder, e error) {
-	enc.buf = append(enc.buf, TagError)
-	enc.AddReferenceCount(1)
-	s := e.Error()
-	enc.buf = appendString(enc.buf, s, utf16Length(s))
-}

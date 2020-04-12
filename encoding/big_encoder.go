@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_encoder.go                                  |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -49,7 +49,7 @@ func (valenc bigRatEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (bigRatEncoder) Write(enc *Encoder, v interface{}) {
-	WriteBigRat(enc, (*big.Rat)(reflect2.PtrOf(v)))
+	enc.WriteBigRat((*big.Rat)(reflect2.PtrOf(v)))
 }
 
 func init() {
