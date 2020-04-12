@@ -29,6 +29,14 @@ func (errorEncoder) Write(enc *Encoder, v interface{}) {
 	}
 }
 
+// WriteError to encoder
+func (enc *Encoder) WriteError(e error) {
+	enc.AddReferenceCount(1)
+	s := e.Error()
+	enc.buf = append(enc.buf, TagError)
+	enc.buf = appendString(enc.buf, s, utf16Length(s))
+}
+
 func init() {
 	RegisterValueEncoder((*error)(nil), errorEncoder{})
 }
