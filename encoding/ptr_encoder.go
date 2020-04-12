@@ -41,27 +41,27 @@ func fastWritePtr(enc *Encoder, v interface{}) (ok bool) {
 	ok = true
 	switch v := v.(type) {
 	case *int:
-		WriteInt(enc, *v)
+		enc.WriteInt(*v)
 	case *int8:
-		WriteInt8(enc, *v)
+		enc.WriteInt8(*v)
 	case *int16:
-		WriteInt16(enc, *v)
+		enc.WriteInt16(*v)
 	case *int32:
-		WriteInt32(enc, *v)
+		enc.WriteInt32(*v)
 	case *int64:
-		WriteInt64(enc, *v)
+		enc.WriteInt64(*v)
 	case *uint:
-		WriteUint(enc, *v)
+		enc.WriteUint(*v)
 	case *uint8:
-		WriteUint8(enc, *v)
+		enc.WriteUint8(*v)
 	case *uint16:
-		WriteUint16(enc, *v)
+		enc.WriteUint16(*v)
 	case *uint32:
-		WriteUint32(enc, *v)
+		enc.WriteUint32(*v)
 	case *uint64:
-		WriteUint64(enc, *v)
+		enc.WriteUint64(*v)
 	case *uintptr:
-		WriteUint64(enc, uint64(*v))
+		enc.WriteUint64(uint64(*v))
 	case *bool:
 		enc.WriteBool(*v)
 	case *float32:
@@ -105,25 +105,25 @@ func writePtr(enc *Encoder, v interface{}, encode func(m ValueEncoder, enc *Enco
 	}
 	switch kind {
 	case reflect.Int:
-		WriteInt(enc, *(*int)(reflect2.PtrOf(v)))
+		enc.WriteInt(*(*int)(reflect2.PtrOf(v)))
 	case reflect.Int8:
-		WriteInt8(enc, *(*int8)(reflect2.PtrOf(v)))
+		enc.WriteInt8(*(*int8)(reflect2.PtrOf(v)))
 	case reflect.Int16:
-		WriteInt16(enc, *(*int16)(reflect2.PtrOf(v)))
+		enc.WriteInt16(*(*int16)(reflect2.PtrOf(v)))
 	case reflect.Int32:
-		WriteInt32(enc, *(*int32)(reflect2.PtrOf(v)))
+		enc.WriteInt32(*(*int32)(reflect2.PtrOf(v)))
 	case reflect.Int64:
-		WriteInt64(enc, *(*int64)(reflect2.PtrOf(v)))
+		enc.WriteInt64(*(*int64)(reflect2.PtrOf(v)))
 	case reflect.Uint:
-		WriteUint(enc, *(*uint)(reflect2.PtrOf(v)))
+		enc.WriteUint(*(*uint)(reflect2.PtrOf(v)))
 	case reflect.Uint8:
-		WriteUint8(enc, *(*uint8)(reflect2.PtrOf(v)))
+		enc.WriteUint8(*(*uint8)(reflect2.PtrOf(v)))
 	case reflect.Uint16:
-		WriteUint16(enc, *(*uint16)(reflect2.PtrOf(v)))
+		enc.WriteUint16(*(*uint16)(reflect2.PtrOf(v)))
 	case reflect.Uint32:
-		WriteUint32(enc, *(*uint32)(reflect2.PtrOf(v)))
+		enc.WriteUint32(*(*uint32)(reflect2.PtrOf(v)))
 	case reflect.Uint64, reflect.Uintptr:
-		WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
+		enc.WriteUint64(*(*uint64)(reflect2.PtrOf(v)))
 	case reflect.Bool:
 		enc.WriteBool(*(*bool)(reflect2.PtrOf(v)))
 	case reflect.Float32:

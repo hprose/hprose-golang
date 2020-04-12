@@ -80,43 +80,43 @@ func boolEncode(enc *Encoder, v interface{}) {
 }
 
 func intEncode(enc *Encoder, v interface{}) {
-	WriteInt(enc, *(*int)(reflect2.PtrOf(v)))
+	enc.WriteInt(*(*int)(reflect2.PtrOf(v)))
 }
 
 func int8Encode(enc *Encoder, v interface{}) {
-	WriteInt8(enc, *(*int8)(reflect2.PtrOf(v)))
+	enc.WriteInt8(*(*int8)(reflect2.PtrOf(v)))
 }
 
 func int16Encode(enc *Encoder, v interface{}) {
-	WriteInt16(enc, *(*int16)(reflect2.PtrOf(v)))
+	enc.WriteInt16(*(*int16)(reflect2.PtrOf(v)))
 }
 
 func int32Encode(enc *Encoder, v interface{}) {
-	WriteInt32(enc, *(*int32)(reflect2.PtrOf(v)))
+	enc.WriteInt32(*(*int32)(reflect2.PtrOf(v)))
 }
 
 func int64Encode(enc *Encoder, v interface{}) {
-	WriteInt64(enc, *(*int64)(reflect2.PtrOf(v)))
+	enc.WriteInt64(*(*int64)(reflect2.PtrOf(v)))
 }
 
 func uintEncode(enc *Encoder, v interface{}) {
-	WriteUint(enc, *(*uint)(reflect2.PtrOf(v)))
+	enc.WriteUint(*(*uint)(reflect2.PtrOf(v)))
 }
 
 func uint8Encode(enc *Encoder, v interface{}) {
-	WriteUint8(enc, *(*uint8)(reflect2.PtrOf(v)))
+	enc.WriteUint8(*(*uint8)(reflect2.PtrOf(v)))
 }
 
 func uint16Encode(enc *Encoder, v interface{}) {
-	WriteUint16(enc, *(*uint16)(reflect2.PtrOf(v)))
+	enc.WriteUint16(*(*uint16)(reflect2.PtrOf(v)))
 }
 
 func uint32Encode(enc *Encoder, v interface{}) {
-	WriteUint32(enc, *(*uint32)(reflect2.PtrOf(v)))
+	enc.WriteUint32(*(*uint32)(reflect2.PtrOf(v)))
 }
 
 func uint64Encode(enc *Encoder, v interface{}) {
-	WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
+	enc.WriteUint64(*(*uint64)(reflect2.PtrOf(v)))
 }
 
 func float32Encode(enc *Encoder, v interface{}) {
@@ -177,7 +177,7 @@ func intPtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteInt(enc, *p)
+		enc.WriteInt(*p)
 	}
 }
 
@@ -186,7 +186,7 @@ func int8PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteInt8(enc, *p)
+		enc.WriteInt8(*p)
 	}
 }
 
@@ -195,7 +195,7 @@ func int16PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteInt16(enc, *p)
+		enc.WriteInt16(*p)
 	}
 }
 
@@ -204,7 +204,7 @@ func int32PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteInt32(enc, *p)
+		enc.WriteInt32(*p)
 	}
 }
 
@@ -213,7 +213,7 @@ func int64PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteInt64(enc, *p)
+		enc.WriteInt64(*p)
 	}
 }
 
@@ -222,7 +222,7 @@ func uintPtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteUint(enc, *p)
+		enc.WriteUint(*p)
 	}
 }
 
@@ -231,7 +231,7 @@ func uint8PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteUint8(enc, *p)
+		enc.WriteUint8(*p)
 	}
 }
 
@@ -240,7 +240,7 @@ func uint16PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteUint16(enc, *p)
+		enc.WriteUint16(*p)
 	}
 }
 
@@ -249,7 +249,7 @@ func uint32PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteUint32(enc, *p)
+		enc.WriteUint32(*p)
 	}
 }
 
@@ -258,7 +258,7 @@ func uint64PtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		WriteUint64(enc, *p)
+		enc.WriteUint64(*p)
 	}
 }
 

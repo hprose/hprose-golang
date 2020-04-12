@@ -64,27 +64,27 @@ func (enc *Encoder) fastWriteValue(v interface{}) (ok bool) {
 	case nil:
 		enc.WriteNil()
 	case int:
-		WriteInt(enc, v)
+		enc.WriteInt(v)
 	case int8:
-		WriteInt8(enc, v)
+		enc.WriteInt8(v)
 	case int16:
-		WriteInt16(enc, v)
+		enc.WriteInt16(v)
 	case int32:
-		WriteInt32(enc, v)
+		enc.WriteInt32(v)
 	case int64:
-		WriteInt64(enc, v)
+		enc.WriteInt64(v)
 	case uint:
-		WriteUint(enc, v)
+		enc.WriteUint(v)
 	case uint8:
-		WriteUint8(enc, v)
+		enc.WriteUint8(v)
 	case uint16:
-		WriteUint16(enc, v)
+		enc.WriteUint16(v)
 	case uint32:
-		WriteUint32(enc, v)
+		enc.WriteUint32(v)
 	case uint64:
-		WriteUint64(enc, v)
+		enc.WriteUint64(v)
 	case uintptr:
-		WriteUint64(enc, uint64(v))
+		enc.WriteUint64(uint64(v))
 	case bool:
 		enc.WriteBool(v)
 	case float32:
@@ -128,25 +128,25 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	}
 	switch kind {
 	case reflect.Int:
-		WriteInt(enc, *(*int)(reflect2.PtrOf(v)))
+		enc.WriteInt(*(*int)(reflect2.PtrOf(v)))
 	case reflect.Int8:
-		WriteInt8(enc, *(*int8)(reflect2.PtrOf(v)))
+		enc.WriteInt8(*(*int8)(reflect2.PtrOf(v)))
 	case reflect.Int16:
-		WriteInt16(enc, *(*int16)(reflect2.PtrOf(v)))
+		enc.WriteInt16(*(*int16)(reflect2.PtrOf(v)))
 	case reflect.Int32:
-		WriteInt32(enc, *(*int32)(reflect2.PtrOf(v)))
+		enc.WriteInt32(*(*int32)(reflect2.PtrOf(v)))
 	case reflect.Int64:
-		WriteInt64(enc, *(*int64)(reflect2.PtrOf(v)))
+		enc.WriteInt64(*(*int64)(reflect2.PtrOf(v)))
 	case reflect.Uint:
-		WriteUint(enc, *(*uint)(reflect2.PtrOf(v)))
+		enc.WriteUint(*(*uint)(reflect2.PtrOf(v)))
 	case reflect.Uint8:
-		WriteUint8(enc, *(*uint8)(reflect2.PtrOf(v)))
+		enc.WriteUint8(*(*uint8)(reflect2.PtrOf(v)))
 	case reflect.Uint16:
-		WriteUint16(enc, *(*uint16)(reflect2.PtrOf(v)))
+		enc.WriteUint16(*(*uint16)(reflect2.PtrOf(v)))
 	case reflect.Uint32:
-		WriteUint32(enc, *(*uint32)(reflect2.PtrOf(v)))
+		enc.WriteUint32(*(*uint32)(reflect2.PtrOf(v)))
 	case reflect.Uint64, reflect.Uintptr:
-		WriteUint64(enc, *(*uint64)(reflect2.PtrOf(v)))
+		enc.WriteUint64(*(*uint64)(reflect2.PtrOf(v)))
 	case reflect.Bool:
 		enc.WriteBool(*(*bool)(reflect2.PtrOf(v)))
 	case reflect.Float32:
@@ -323,6 +323,89 @@ func (enc *Encoder) WriteBool(b bool) {
 	} else {
 		enc.buf = append(enc.buf, TagFalse)
 	}
+}
+
+// WriteInt64 to encoder
+func (enc *Encoder) WriteInt64(i int64) {
+	if (i >= 0) && (i <= 9) {
+		enc.buf = append(enc.buf, digits[i])
+	} else {
+		var tag = TagInteger
+		if (i < math.MinInt32) || (i > math.MaxInt32) {
+			tag = TagLong
+		}
+		enc.buf = append(enc.buf, tag)
+		enc.buf = AppendInt64(enc.buf, i)
+		enc.buf = append(enc.buf, TagSemicolon)
+	}
+}
+
+// WriteUint64 to encoder
+func (enc *Encoder) WriteUint64(i uint64) {
+	if (i >= 0) && (i <= 9) {
+		enc.buf = append(enc.buf, digits[i])
+	} else {
+		var tag = TagInteger
+		if i > math.MaxInt32 {
+			tag = TagLong
+		}
+		enc.buf = append(enc.buf, tag)
+		enc.buf = AppendUint64(enc.buf, i)
+		enc.buf = append(enc.buf, TagSemicolon)
+	}
+}
+
+// WriteInt32 to encoder
+func (enc *Encoder) WriteInt32(i int32) {
+	if (i >= 0) && (i <= 9) {
+		enc.buf = append(enc.buf, digits[i])
+	} else {
+		enc.buf = append(enc.buf, TagInteger)
+		enc.buf = AppendInt64(enc.buf, int64(i))
+		enc.buf = append(enc.buf, TagSemicolon)
+	}
+}
+
+// WriteUint32 to encoder
+func (enc *Encoder) WriteUint32(i uint32) {
+	enc.WriteUint64(uint64(i))
+}
+
+// WriteInt16 to encoder
+func (enc *Encoder) WriteInt16(i int16) {
+	enc.WriteInt32(int32(i))
+}
+
+// WriteUint16 to encoder
+func (enc *Encoder) WriteUint16(i uint16) {
+	if (i >= 0) && (i <= 9) {
+		enc.buf = append(enc.buf, digits[i])
+		return
+	}
+	enc.buf = append(enc.buf, TagInteger)
+	enc.buf = AppendUint64(enc.buf, uint64(i))
+	enc.buf = append(enc.buf, TagSemicolon)
+	return
+}
+
+// WriteInt8 to encoder
+func (enc *Encoder) WriteInt8(i int8) {
+	enc.WriteInt32(int32(i))
+}
+
+// WriteUint8 to encoder
+func (enc *Encoder) WriteUint8(i uint8) {
+	enc.WriteUint16(uint16(i))
+}
+
+// WriteInt to encoder
+func (enc *Encoder) WriteInt(i int) {
+	enc.WriteInt64(int64(i))
+}
+
+// WriteUint to encoder
+func (enc *Encoder) WriteUint(i uint) {
+	enc.WriteUint64(uint64(i))
 }
 
 func (enc *Encoder) writeFloat(f float64, bitSize int) {
