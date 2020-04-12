@@ -136,7 +136,7 @@ func complex128Encode(enc *Encoder, v interface{}) {
 }
 
 func stringEncode(enc *Encoder, v interface{}) {
-	EncodeString(enc, *(*string)(reflect2.PtrOf(v)))
+	enc.EncodeString(*(*string)(reflect2.PtrOf(v)))
 }
 
 func arrayEncode(enc *Encoder, v interface{}) {
@@ -303,7 +303,7 @@ func stringPtrEncode(enc *Encoder, v interface{}) {
 	if p == nil {
 		enc.WriteNil()
 	} else {
-		EncodeString(enc, *p)
+		enc.EncodeString(*p)
 	}
 }
 

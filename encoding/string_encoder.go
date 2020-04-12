@@ -23,15 +23,15 @@ type stringEncoder struct{}
 var strenc stringEncoder
 
 func (stringEncoder) Encode(enc *Encoder, v interface{}) {
-	EncodeString(enc, *(*string)(reflect2.PtrOf(v)))
+	enc.EncodeString(*(*string)(reflect2.PtrOf(v)))
 }
 
 func (stringEncoder) Write(enc *Encoder, v interface{}) {
-	WriteString(enc, *(*string)(reflect2.PtrOf(v)))
+	enc.WriteString(*(*string)(reflect2.PtrOf(v)))
 }
 
 // EncodeString to encoder
-func EncodeString(enc *Encoder, s string) {
+func (enc *Encoder) EncodeString(s string) {
 	length := utf16Length(s)
 	switch length {
 	case 0:
@@ -48,7 +48,7 @@ func EncodeString(enc *Encoder, s string) {
 }
 
 // WriteString to encoder
-func WriteString(enc *Encoder, s string) {
+func (enc *Encoder) WriteString(s string) {
 	enc.SetStringReference(s)
 	enc.buf = appendString(enc.buf, s, utf16Length(s))
 }

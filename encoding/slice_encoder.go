@@ -232,7 +232,7 @@ func (enc *Encoder) writeComplex128SliceBody(slice []complex128) {
 func (enc *Encoder) writeStringSliceBody(slice []string) {
 	n := len(slice)
 	for i := 0; i < n; i++ {
-		EncodeString(enc, slice[i])
+		enc.EncodeString(slice[i])
 	}
 }
 
@@ -432,7 +432,7 @@ func (enc *Encoder) write2dStringSliceBody(slice [][]string) {
 		enc.AddReferenceCount(1)
 		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
-			EncodeString(enc, slice[i][j])
+			enc.EncodeString(slice[i][j])
 		}
 		enc.WriteFoot()
 	}
