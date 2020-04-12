@@ -311,24 +311,3 @@ func appendString(buf []byte, s string, length int) []byte {
 	buf = appendBinary(buf, reflect2.UnsafeCastString(s), length)
 	return buf
 }
-
-// WriteHead to encoder, n is the count of elements in list or map
-func WriteHead(enc *Encoder, n int, tag byte) {
-	enc.buf = append(enc.buf, tag)
-	if n > 0 {
-		enc.buf = AppendUint64(enc.buf, uint64(n))
-	}
-	enc.buf = append(enc.buf, TagOpenbrace)
-}
-
-// WriteObjectHead to encoder, r is the reference number of struct
-func WriteObjectHead(enc *Encoder, r int) {
-	enc.buf = append(enc.buf, TagObject)
-	enc.buf = AppendUint64(enc.buf, uint64(r))
-	enc.buf = append(enc.buf, TagOpenbrace)
-}
-
-// WriteFoot of list or map to encoder
-func WriteFoot(enc *Encoder) {
-	enc.buf = append(enc.buf, TagClosebrace)
-}

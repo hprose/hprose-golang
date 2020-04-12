@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/map_encoder.go                                  |
 |                                                          |
-| LastModified: Mar 17, 2020                               |
+| LastModified: Apr 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -48,9 +48,9 @@ func writeMap(enc *Encoder, v interface{}) {
 		enc.buf = append(enc.buf, TagMap, TagOpenbrace, TagClosebrace)
 		return
 	}
-	WriteHead(enc, count, TagMap)
+	enc.WriteHead(count, TagMap)
 	writeMapBody(enc, v)
-	WriteFoot(enc)
+	enc.WriteFoot()
 }
 
 func writeMapBody(enc *Encoder, v interface{}) {

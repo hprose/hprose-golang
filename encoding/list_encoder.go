@@ -37,11 +37,11 @@ func writeList(enc *Encoder, lst *list.List) {
 		enc.buf = append(enc.buf, TagList, TagOpenbrace, TagClosebrace)
 		return
 	}
-	WriteHead(enc, count, TagList)
+	enc.WriteHead(count, TagList)
 	for e := lst.Front(); e != nil; e = e.Next() {
 		enc.encode(e.Value)
 	}
-	WriteFoot(enc)
+	enc.WriteFoot()
 }
 
 // elementEncoder is the implementation of ValueEncoder for list.Element/*list.Element.

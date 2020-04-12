@@ -318,15 +318,36 @@ func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
 	}
 }
 
+// WriteHead to encoder, n is the count of elements in list or map
+func (enc *Encoder) WriteHead(n int, tag byte) {
+	enc.buf = append(enc.buf, tag)
+	if n > 0 {
+		enc.buf = AppendUint64(enc.buf, uint64(n))
+	}
+	enc.buf = append(enc.buf, TagOpenbrace)
+}
+
+// WriteObjectHead to encoder, r is the reference number of struct
+func (enc *Encoder) WriteObjectHead(r int) {
+	enc.buf = append(enc.buf, TagObject)
+	enc.buf = AppendUint64(enc.buf, uint64(r))
+	enc.buf = append(enc.buf, TagOpenbrace)
+}
+
+// WriteFoot of list or map to encoder
+func (enc *Encoder) WriteFoot() {
+	enc.buf = append(enc.buf, TagClosebrace)
+}
+
 func (enc *Encoder) writeComplex(r float64, i float64, bitSize int) {
 	if i == 0 {
 		writeFloat(enc, r, bitSize)
 	} else {
 		enc.AddReferenceCount(1)
-		WriteHead(enc, 2, TagList)
+		enc.WriteHead(2, TagList)
 		writeFloat(enc, r, bitSize)
 		writeFloat(enc, i, bitSize)
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 

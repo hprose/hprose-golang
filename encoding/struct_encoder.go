@@ -57,11 +57,11 @@ func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
 		enc.AddReferenceCount(1)
 	}
 	p := reflect2.PtrOf(v)
-	WriteObjectHead(enc, r)
+	enc.WriteObjectHead(r)
 	for i := 0; i < n; i++ {
 		fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
 	}
-	WriteFoot(enc)
+	enc.WriteFoot()
 }
 
 func toPtr(t reflect.Type, v interface{}) interface{} {
@@ -206,10 +206,10 @@ func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) {
 		}
 	}
 	p := reflect2.PtrOf(v)
-	WriteHead(enc, n, TagMap)
+	enc.WriteHead(n, TagMap)
 	for i := 0; i < n; i++ {
 		EncodeString(enc, names[i])
 		fields[i].encode(enc, fields[i].typ.UnsafeIndirect(fields[i].field.UnsafeGet(p)))
 	}
-	WriteFoot(enc)
+	enc.WriteFoot()
 }

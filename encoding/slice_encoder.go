@@ -53,9 +53,9 @@ func writeSlice(enc *Encoder, v interface{}) {
 		enc.buf = append(enc.buf, TagList, TagOpenbrace, TagClosebrace)
 		return
 	}
-	WriteHead(enc, count, TagList)
+	enc.WriteHead(count, TagList)
 	writeSliceBody(enc, v)
-	WriteFoot(enc)
+	enc.WriteFoot()
 }
 
 func writeSliceBody(enc *Encoder, v interface{}) {
@@ -248,11 +248,11 @@ func write2dInt8SliceBody(enc *Encoder, slice [][]int8) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteInt8(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -261,11 +261,11 @@ func write2dInt16SliceBody(enc *Encoder, slice [][]int16) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteInt16(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -274,11 +274,11 @@ func write2dInt32SliceBody(enc *Encoder, slice [][]int32) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteInt32(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -287,11 +287,11 @@ func write2dInt64SliceBody(enc *Encoder, slice [][]int64) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteInt64(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -300,11 +300,11 @@ func write2dIntSliceBody(enc *Encoder, slice [][]int) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteInt(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -313,11 +313,11 @@ func write2dUint16SliceBody(enc *Encoder, slice [][]uint16) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteUint16(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -326,11 +326,11 @@ func write2dUint32SliceBody(enc *Encoder, slice [][]uint32) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteUint32(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -339,11 +339,11 @@ func write2dUint64SliceBody(enc *Encoder, slice [][]uint64) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteUint64(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -352,11 +352,11 @@ func write2dUintSliceBody(enc *Encoder, slice [][]uint) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteUint(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -365,11 +365,11 @@ func write2dBoolSliceBody(enc *Encoder, slice [][]bool) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteBool(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -378,11 +378,11 @@ func write2dFloat32SliceBody(enc *Encoder, slice [][]float32) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteFloat32(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -391,11 +391,11 @@ func write2dFloat64SliceBody(enc *Encoder, slice [][]float64) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			WriteFloat64(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -404,11 +404,11 @@ func write2dComplex64SliceBody(enc *Encoder, slice [][]complex64) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			enc.WriteComplex64(slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -417,11 +417,11 @@ func write2dComplex128SliceBody(enc *Encoder, slice [][]complex128) {
 	enc.AddReferenceCount(n)
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			enc.WriteComplex128(slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -430,11 +430,11 @@ func write2dStringSliceBody(enc *Encoder, slice [][]string) {
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
 		enc.AddReferenceCount(1)
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			EncodeString(enc, slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
@@ -443,11 +443,11 @@ func write2dInterfaceSliceBody(enc *Encoder, slice [][]interface{}) {
 	for i := 0; i < n; i++ {
 		m := len(slice[i])
 		enc.AddReferenceCount(1)
-		WriteHead(enc, m, TagList)
+		enc.WriteHead(m, TagList)
 		for j := 0; j < m; j++ {
 			enc.encode(slice[i][j])
 		}
-		WriteFoot(enc)
+		enc.WriteFoot()
 	}
 }
 
