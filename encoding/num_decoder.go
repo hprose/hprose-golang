@@ -13,6 +13,10 @@
 
 package encoding
 
+import (
+	"strconv"
+)
+
 const invalidCharForNumber = uint64(0xff)
 
 var intDigits []uint64
@@ -168,4 +172,22 @@ func (dec *Decoder) ReadInt() (value int) {
 // ReadUint read uint
 func (dec *Decoder) ReadUint() (value uint) {
 	return uint(dec.ReadUint64())
+}
+
+// ReadFloat32 read float32
+func (dec *Decoder) ReadFloat32() (value float32) {
+	f, err := strconv.ParseFloat(unsafeString(dec.Until(TagSemicolon)), 32)
+	if err != nil {
+		dec.Error = err
+	}
+	return float32(f)
+}
+
+// ReadFloat64 read float64
+func (dec *Decoder) ReadFloat64() (value float64) {
+	f, err := strconv.ParseFloat(unsafeString(dec.Until(TagSemicolon)), 64)
+	if err != nil {
+		dec.Error = err
+	}
+	return f
 }

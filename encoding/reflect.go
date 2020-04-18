@@ -23,3 +23,7 @@ type eface struct {
 func unpackEFace(ptr *interface{}) *eface {
 	return (*eface)(unsafe.Pointer(ptr))
 }
+
+func unsafeString(bytes []byte) string {
+	return *(*string)(unsafe.Pointer(&bytes))
+}

@@ -196,7 +196,7 @@ func TestRemains(t *testing.T) {
 	assert.Equal(t, "5678;123456789;1234567890", string(dec.Remains()))
 	assert.Equal(t, "", string(dec.Remains()))
 	assert.Equal(t, byte(0), dec.NextByte())
-	assert.EqualError(t, io.EOF, dec.Error.Error())
+	assert.EqualError(t, dec.Error, io.EOF.Error())
 }
 
 func TestUntil(t *testing.T) {
@@ -213,8 +213,20 @@ func TestUntil(t *testing.T) {
 	assert.Equal(t, "12345678", string(dec.Until(';')))
 	assert.Equal(t, "123456789", string(dec.Until(';')))
 	assert.Equal(t, "1234567890", string(dec.Until(';')))
-	assert.EqualError(t, io.EOF, dec.Error.Error())
+	assert.EqualError(t, dec.Error, io.EOF.Error())
 	assert.Equal(t, "", string(dec.Until(';')))
+}
+
+func TestReadFloat(t *testing.T) {
+	dec := NewDecoder(([]byte)("3.1415926;2.71828;"))
+	f64 := float64(3.1415926)
+	f32 := float32(2.71828)
+	assert.Equal(t, f64, dec.ReadFloat64())
+	assert.Equal(t, f32, dec.ReadFloat32())
+	assert.Equal(t, float64(0), dec.ReadFloat64())
+	assert.EqualError(t, dec.Error, `strconv.ParseFloat: parsing "": invalid syntax`)
+	assert.Equal(t, float32(0), dec.ReadFloat32())
+	assert.EqualError(t, dec.Error, `strconv.ParseFloat: parsing "": invalid syntax`)
 }
 
 func BenchmarkReadIntFromReader(b *testing.B) {
