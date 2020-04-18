@@ -199,6 +199,24 @@ func TestRemains(t *testing.T) {
 	assert.EqualError(t, io.EOF, dec.Error.Error())
 }
 
+func TestUntil(t *testing.T) {
+	data := ([]byte)(";1;12;123;1234;12345;123456;1234567;12345678;123456789;1234567890")
+	dec := NewDecoderFromReader(bytes.NewBuffer(data), 32)
+	assert.Equal(t, "", string(dec.Until(';')))
+	assert.Equal(t, "1", string(dec.Until(';')))
+	assert.Equal(t, "12", string(dec.Until(';')))
+	assert.Equal(t, "123", string(dec.Until(';')))
+	assert.Equal(t, "1234", string(dec.Until(';')))
+	assert.Equal(t, "12345", string(dec.Until(';')))
+	assert.Equal(t, "123456", string(dec.Until(';')))
+	assert.Equal(t, "1234567", string(dec.Until(';')))
+	assert.Equal(t, "12345678", string(dec.Until(';')))
+	assert.Equal(t, "123456789", string(dec.Until(';')))
+	assert.Equal(t, "1234567890", string(dec.Until(';')))
+	assert.EqualError(t, io.EOF, dec.Error.Error())
+	assert.Equal(t, "", string(dec.Until(';')))
+}
+
 func BenchmarkReadIntFromReader(b *testing.B) {
 	data := ([]byte)(";1;12;123;1234;12345;123456;1234567;12345678;123456789;1234567890;-2147483648;2147483647;-9223372036854775808;18446744073709551615;-2147483648;2147483647;-9223372036854775808;18446744073709551615;-2147483648;2147483647;-9223372036854775808;18446744073709551615;-2147483648;2147483647;-9223372036854775808;18446744073709551615;;1;12;123;1234;12345;123456;1234567;12345678;123456789;1234567890")
 	dec := &Decoder{}

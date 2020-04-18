@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Apr 18, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,6 +14,7 @@
 package encoding
 
 import (
+	"bytes"
 	"io"
 )
 
@@ -91,14 +92,14 @@ func (dec *Decoder) Next(n int) (data []byte) {
 	if remain >= n {
 		data = dec.buf[dec.head : dec.head+n]
 		dec.head += n
-		return data
+		return
 	}
 	data = make([]byte, 0, n)
 	data = append(data, dec.buf[dec.head:dec.tail]...)
 	n -= remain
 	for {
 		if !dec.loadMore() {
-			return data
+			return
 		}
 		if dec.tail >= n {
 			dec.head = n
@@ -118,6 +119,30 @@ func (dec *Decoder) Remains() (data []byte) {
 		data = append(data, dec.buf[dec.head:dec.tail]...)
 		if !dec.loadMore() {
 			return data
+		}
+	}
+}
+
+// Until reads until the first occurrence of delim in the input,
+// returning a slice containing the data up to and not including the delimiter.
+func (dec *Decoder) Until(delim byte) (data []byte) {
+	if (dec.head == dec.tail) && !dec.loadMore() {
+		return
+	}
+	if i := bytes.IndexByte(dec.buf[dec.head:dec.tail], delim); i >= 0 {
+		data = dec.buf[dec.head : dec.head+i]
+		dec.head += i + 1
+		return
+	}
+	for {
+		data = append(data, dec.buf[dec.head:dec.tail]...)
+		if !dec.loadMore() {
+			return
+		}
+		if i := bytes.IndexByte(dec.buf[dec.head:dec.tail], delim); i >= 0 {
+			data = append(data, dec.buf[dec.head:dec.head+i]...)
+			dec.head += i + 1
+			return
 		}
 	}
 }
