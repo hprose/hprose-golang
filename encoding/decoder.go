@@ -80,6 +80,10 @@ func (dec *Decoder) Decode(p interface{}) {
 		uint32dec.Decode(dec, p, tag)
 	case *uint64:
 		uint64dec.Decode(dec, p, tag)
+	case *float32:
+		f32dec.Decode(dec, p, tag)
+	case *float64:
+		f64dec.Decode(dec, p, tag)
 	case *string:
 		strdec.Decode(dec, p, tag)
 	}
