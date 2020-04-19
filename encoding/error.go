@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/error.go                                        |
 |                                                          |
-| LastModified: Mar 22, 2020                               |
+| LastModified: Apr 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,10 +14,11 @@
 package encoding
 
 import (
+	"errors"
 	"reflect"
 )
 
-// An UnsupportedTypeError is returned by Encode/Marshal when attempting
+// An UnsupportedTypeError is returned by Encoder when attempting
 // to encode an unsupported value type.
 type UnsupportedTypeError struct {
 	Type reflect.Type
@@ -25,4 +26,24 @@ type UnsupportedTypeError struct {
 
 func (e *UnsupportedTypeError) Error() string {
 	return "hprose/encoding: unsupported type: " + e.Type.String()
+}
+
+// ErrInvalidUTF8 means that a decoder encountered invalid UTF-8.
+var ErrInvalidUTF8 = errors.New("encoding: invalid UTF-8")
+
+// A CastError  is returned by Decoder when attempting
+// to decode an
+type CastError struct {
+	Source      reflect.Type
+	Destination reflect.Type
+}
+
+func (e *CastError) Error() string {
+	if e.Source == nil {
+		return "hprose/encoding: can not cast nil to " + e.Destination.String()
+	}
+	if e.Destination == nil {
+		return "hprose/encoding: can not cast " + e.Source.String() + " to nil"
+	}
+	return "hprose/encoding: can not cast " + e.Source.String() + " to " + e.Destination.String()
 }

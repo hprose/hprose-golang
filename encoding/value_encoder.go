@@ -27,14 +27,6 @@ type ValueEncoder interface {
 var structEncoderMap = sync.Map{}
 var otherEncoderMap = sync.Map{}
 
-func checkType(v interface{}) reflect.Type {
-	t := reflect.TypeOf(v)
-	for t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	return t
-}
-
 func registerValueEncoder(t reflect.Type, valenc ValueEncoder) {
 	if t.Kind() == reflect.Struct {
 		structEncoderMap.Store(t, valenc)

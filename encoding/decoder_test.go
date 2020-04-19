@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder_test.go                                 |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Apr 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/

@@ -4,37 +4,35 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| encoding/relect.go                                       |
+| encoding/decoder_refer.go                                |
 |                                                          |
-| LastModified: Apr 18, 2020                               |
+| LastModified: Apr 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package encoding
 
-import (
-	"reflect"
-	"unsafe"
-)
-
-type eface struct {
-	typ uintptr
-	ptr unsafe.Pointer
+type decoderRefer struct {
+	ref []interface{}
 }
 
-func unpackEFace(ptr *interface{}) *eface {
-	return (*eface)(unsafe.Pointer(ptr))
+func (r *decoderRefer) Add(o interface{}) {
+	r.ref = append(r.ref, o)
 }
 
-func unsafeString(bytes []byte) string {
-	return *(*string)(unsafe.Pointer(&bytes))
+func (r *decoderRefer) Last() int {
+	return len(r.ref) - 1
 }
 
-func checkType(v interface{}) reflect.Type {
-	t := reflect.TypeOf(v)
-	for t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	return t
+func (r *decoderRefer) Set(i int, o interface{}) {
+	r.ref[i] = o
+}
+
+func (r *decoderRefer) Read(i int) interface{} {
+	return r.ref[i]
+}
+
+func (r *decoderRefer) Reset() {
+	r.ref = r.ref[:0]
 }
