@@ -6,14 +6,14 @@
 |                                                          |
 | encoding/string_decoder.go                               |
 |                                                          |
-| LastModified: Apr 18, 2020                               |
+| LastModified: Apr 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package encoding
 
-// stringDecoder is the implementation of ValueDecoder for *string.
+// stringDecoder is the implementation of ValueDecoder for string.
 type stringDecoder struct{}
 
 var strdec stringDecoder
@@ -44,7 +44,7 @@ func (stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = dec.ReadString()
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
@@ -63,13 +63,17 @@ func (dec *Decoder) fastReadStringAsBytes(utf16Length int) (data []byte) {
 			off += 3
 		case 15:
 			if b&8 == 8 {
-				dec.Error = ErrInvalidUTF8
+				if dec.Error == nil {
+					dec.Error = ErrInvalidUTF8
+				}
 				return
 			}
 			off += 4
 			utf16Length--
 		default:
-			dec.Error = ErrInvalidUTF8
+			if dec.Error == nil {
+				dec.Error = ErrInvalidUTF8
+			}
 			return
 		}
 	}
@@ -99,13 +103,17 @@ func (dec *Decoder) readStringAsBytes(utf16Length int) (data []byte) {
 				off += 3
 			case 15:
 				if b&8 == 8 {
-					dec.Error = ErrInvalidUTF8
+					if dec.Error == nil {
+						dec.Error = ErrInvalidUTF8
+					}
 					return
 				}
 				off += 4
 				utf16Length--
 			default:
-				dec.Error = ErrInvalidUTF8
+				if dec.Error == nil {
+					dec.Error = ErrInvalidUTF8
+				}
 				return
 			}
 		}
@@ -121,7 +129,9 @@ func (dec *Decoder) readStringAsBytes(utf16Length int) (data []byte) {
 		data = append(data, buf...)
 		if !dec.loadMore() {
 			if remains < 0 {
-				dec.Error = ErrInvalidUTF8
+				if dec.Error == nil {
+					dec.Error = ErrInvalidUTF8
+				}
 			}
 			return
 		}

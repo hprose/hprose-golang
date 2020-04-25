@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/float_decoder.go                                |
 |                                                          |
-| LastModified: Apr 19, 2020                               |
+| LastModified: Apr 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -18,7 +18,7 @@ import (
 	"strconv"
 )
 
-// float32Decoder is the implementation of ValueDecoder for *float32.
+// float32Decoder is the implementation of ValueDecoder for float32.
 type float32Decoder struct{}
 
 var f32dec float32Decoder
@@ -51,7 +51,7 @@ func (float32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = dec.stringToFloat32(dec.ReadUnsafeString())
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
@@ -89,7 +89,7 @@ func (float64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = dec.stringToFloat64(dec.ReadUnsafeString())
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Apr 19, 2020                               |
+| LastModified: Apr 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,7 +16,32 @@ package encoding
 import (
 	"bytes"
 	"io"
+	"math"
 	"reflect"
+)
+
+// LongType represents the default type for decode long integer
+type LongType int8
+
+const (
+	// LongTypeBigInt represents the default type is *big.Int
+	LongTypeBigInt LongType = iota
+	// LongTypeInt64 represents the default type is int64
+	LongTypeInt64
+	// LongTypeUint64 represents the default type is uint64
+	LongTypeUint64
+)
+
+// RealType represents the default type for decode real number
+type RealType int8
+
+const (
+	// RealTypeFloat64 represents the default type is float64
+	RealTypeFloat64 RealType = iota
+	// RealTypeFloat32 represents the default type is float32
+	RealTypeFloat32
+	// RealTypeBigFloat represents the default type is *big.Float
+	RealTypeBigFloat
 )
 
 const defaultBufferSize = 8192
@@ -31,6 +56,8 @@ type Decoder struct {
 	refer  *decoderRefer
 	ref    []reflect.Type
 	Error  error
+	LongType
+	RealType
 }
 
 // NewDecoder creates an Decoder instance from byte array
@@ -56,9 +83,7 @@ func NewDecoderFromReader(reader io.Reader, bufSize int) *Decoder {
 	}
 }
 
-// Decode a data from the Decoder
-func (dec *Decoder) Decode(p interface{}) {
-	tag := dec.NextByte()
+func (dec *Decoder) decode(p interface{}, tag byte) {
 	switch p.(type) {
 	case *int:
 		intdec.Decode(dec, p, tag)
@@ -86,7 +111,17 @@ func (dec *Decoder) Decode(p interface{}) {
 		f64dec.Decode(dec, p, tag)
 	case *string:
 		strdec.Decode(dec, p, tag)
+	case *interface{}, **interface{}:
+		ifacedec.Decode(dec, p, tag)
 	}
+	if valdec := GetValueDecoder(p); valdec != nil {
+		valdec.Decode(dec, p, tag)
+	}
+}
+
+// Decode a data from the Decoder
+func (dec *Decoder) Decode(p interface{}) {
+	dec.decode(p, dec.NextByte())
 }
 
 // Reset the value reference and struct type reference
@@ -257,11 +292,36 @@ func (dec *Decoder) loadMore() bool {
 	}
 }
 
-func (dec *Decoder) castError(p interface{}) {
-	var iface interface{}
-	dec.Decode(&iface)
-	dec.Error = &CastError{
-		Source:      reflect.TypeOf(iface),
-		Destination: reflect.TypeOf(p).Elem(),
+func (dec *Decoder) decodeStringError(s string, typename string) {
+	if dec.Error == nil {
+		dec.Error = DecodeError("hprose/encoding: can not parse '" + s + "' to " + typename)
+	}
+}
+
+func (dec *Decoder) decodeError(p interface{}, tag byte) {
+	if dec.Error == nil {
+		var iface interface{}
+		dec.decode(&iface, tag)
+		if dec.Error != nil {
+			return
+		}
+		dest := reflect.TypeOf(p).Elem()
+		if v, ok := iface.(float64); ok {
+			switch {
+			case math.IsNaN(v):
+				dec.Error = DecodeError("hprose/encoding: can not parse NaN to " + dest.String())
+				return
+			case math.IsInf(v, 1):
+				dec.Error = DecodeError("hprose/encoding: can not parse +Inf to " + dest.String())
+				return
+			case math.IsInf(v, -1):
+				dec.Error = DecodeError("hprose/encoding: can not parse -Inf to " + dest.String())
+				return
+			}
+		}
+		dec.Error = &CastError{
+			Source:      reflect.TypeOf(iface),
+			Destination: dest,
+		}
 	}
 }

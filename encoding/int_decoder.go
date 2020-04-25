@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder.go                                  |
 |                                                          |
-| LastModified: Apr 19, 2020                               |
+| LastModified: Apr 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,7 +17,7 @@ import (
 	"strconv"
 )
 
-// intDecoder is the implementation of ValueDecoder for *int.
+// intDecoder is the implementation of ValueDecoder for int.
 type intDecoder struct{}
 
 var intdec intDecoder
@@ -42,12 +42,12 @@ func (intDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = int(dec.stringToInt64(dec.ReadUnsafeString()))
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
 
-// int8Decoder is the implementation of ValueDecoder for *int8.
+// int8Decoder is the implementation of ValueDecoder for int8.
 type int8Decoder struct{}
 
 var int8dec int8Decoder
@@ -72,12 +72,12 @@ func (int8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = int8(dec.stringToInt64(dec.ReadUnsafeString()))
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
 
-// int16Decoder is the implementation of ValueDecoder for *int16.
+// int16Decoder is the implementation of ValueDecoder for int16.
 type int16Decoder struct{}
 
 var int16dec int16Decoder
@@ -102,12 +102,12 @@ func (int16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = int16(dec.stringToInt64(dec.ReadUnsafeString()))
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
 
-// int32Decoder is the implementation of ValueDecoder for *int32.
+// int32Decoder is the implementation of ValueDecoder for int32.
 type int32Decoder struct{}
 
 var int32dec int32Decoder
@@ -132,12 +132,12 @@ func (int32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = int32(dec.stringToInt64(dec.ReadUnsafeString()))
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
 
-// int64Decoder is the implementation of ValueDecoder for *int64.
+// int64Decoder is the implementation of ValueDecoder for int64.
 type int64Decoder struct{}
 
 var int64dec int64Decoder
@@ -162,12 +162,12 @@ func (int64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = dec.stringToInt64(dec.ReadUnsafeString())
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
 
-// uintDecoder is the implementation of ValueDecoder for *uint.
+// uintDecoder is the implementation of ValueDecoder for uint.
 type uintDecoder struct{}
 
 var uintdec uintDecoder
@@ -192,12 +192,12 @@ func (uintDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = uint(dec.stringToUint64(dec.ReadUnsafeString()))
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
 
-// uint8Decoder is the implementation of ValueDecoder for *uint8.
+// uint8Decoder is the implementation of ValueDecoder for uint8.
 type uint8Decoder struct{}
 
 var uint8dec uint8Decoder
@@ -222,12 +222,12 @@ func (uint8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = uint8(dec.stringToUint64(dec.ReadUnsafeString()))
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
 
-// uint16Decoder is the implementation of ValueDecoder for *uint16.
+// uint16Decoder is the implementation of ValueDecoder for uint16.
 type uint16Decoder struct{}
 
 var uint16dec uint16Decoder
@@ -252,12 +252,12 @@ func (uint16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = uint16(dec.stringToUint64(dec.ReadUnsafeString()))
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
 
-// uint32Decoder is the implementation of ValueDecoder for *uint32.
+// uint32Decoder is the implementation of ValueDecoder for uint32.
 type uint32Decoder struct{}
 
 var uint32dec uint32Decoder
@@ -282,12 +282,12 @@ func (uint32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = uint32(dec.stringToUint64(dec.ReadUnsafeString()))
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
 
-// uint64Decoder is the implementation of ValueDecoder for *uint64.
+// uint64Decoder is the implementation of ValueDecoder for uint64.
 type uint64Decoder struct{}
 
 var uint64dec uint64Decoder
@@ -312,7 +312,7 @@ func (uint64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case TagString:
 			*pv = dec.stringToUint64(dec.ReadUnsafeString())
 		default:
-			dec.castError(p)
+			dec.decodeError(p, tag)
 		}
 	}
 }
