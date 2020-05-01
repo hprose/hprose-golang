@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Apr 25, 2020                               |
+| LastModified: May 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -85,31 +85,31 @@ func NewDecoderFromReader(reader io.Reader, bufSize int) *Decoder {
 
 func (dec *Decoder) decode(p interface{}, tag byte) {
 	switch p.(type) {
-	case *int:
+	case *int, **int:
 		intdec.Decode(dec, p, tag)
-	case *int8:
+	case *int8, **int8:
 		int8dec.Decode(dec, p, tag)
-	case *int16:
+	case *int16, **int16:
 		int16dec.Decode(dec, p, tag)
-	case *int32:
+	case *int32, **int32:
 		int32dec.Decode(dec, p, tag)
-	case *int64:
+	case *int64, **int64:
 		int64dec.Decode(dec, p, tag)
-	case *uint:
+	case *uint, **uint:
 		uintdec.Decode(dec, p, tag)
-	case *uint8:
+	case *uint8, **uint8:
 		uint8dec.Decode(dec, p, tag)
-	case *uint16:
+	case *uint16, **uint16:
 		uint16dec.Decode(dec, p, tag)
-	case *uint32:
+	case *uint32, **uint32:
 		uint32dec.Decode(dec, p, tag)
-	case *uint64:
+	case *uint64, **uint64:
 		uint64dec.Decode(dec, p, tag)
-	case *float32:
+	case *float32, **float32:
 		f32dec.Decode(dec, p, tag)
-	case *float64:
+	case *float64, **float64:
 		f64dec.Decode(dec, p, tag)
-	case *string:
+	case *string, **string:
 		strdec.Decode(dec, p, tag)
 	case *interface{}, **interface{}:
 		ifacedec.Decode(dec, p, tag)
@@ -294,7 +294,7 @@ func (dec *Decoder) loadMore() bool {
 
 func (dec *Decoder) decodeStringError(s string, typename string) {
 	if dec.Error == nil {
-		dec.Error = DecodeError("hprose/encoding: can not parse '" + s + "' to " + typename)
+		dec.Error = DecodeError(`hprose/encoding: can not parse "` + s + `" to ` + typename)
 	}
 }
 
