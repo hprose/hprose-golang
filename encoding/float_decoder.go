@@ -23,36 +23,55 @@ type float32Decoder struct{}
 
 var f32dec float32Decoder
 
-func (float32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if pv, ok := p.(*float32); ok {
-		if i := intDigits[tag]; i != invalidDigit {
-			*pv = float32(i)
-			return
+func (valdec float32Decoder) decode(dec *Decoder, p interface{}, tag byte) float32 {
+	if i := intDigits[tag]; i != invalidDigit {
+		return float32(i)
+	}
+	switch tag {
+	case TagEmpty, TagFalse:
+		return 0
+	case TagTrue:
+		return 1
+	case TagInteger:
+		return float32(dec.ReadInt())
+	case TagLong, TagDouble:
+		return dec.ReadFloat32()
+	case TagNaN:
+		return float32(math.NaN())
+	case TagInfinity:
+		if dec.NextByte() == TagNeg {
+			return float32(math.Inf(-1))
 		}
-		switch tag {
-		case TagNull, TagEmpty, TagFalse:
+		return float32(math.Inf(1))
+	case TagUTF8Char:
+		return dec.stringToFloat32(dec.readUnsafeString(1))
+	case TagString:
+		return dec.stringToFloat32(dec.ReadUnsafeString())
+	default:
+		dec.decodeError(p, tag)
+	}
+	return 0
+}
+
+func (valdec float32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	if tag == TagNull {
+		switch pv := p.(type) {
+		case **float32:
+			*pv = nil
+		case *float32:
 			*pv = 0
-		case TagTrue:
-			*pv = 1
-		case TagInteger:
-			*pv = float32(dec.ReadInt())
-		case TagLong, TagDouble:
-			*pv = dec.ReadFloat32()
-		case TagNaN:
-			*pv = float32(math.NaN())
-		case TagInfinity:
-			if dec.NextByte() == TagNeg {
-				*pv = float32(math.Inf(-1))
-			} else {
-				*pv = float32(math.Inf(1))
-			}
-		case TagUTF8Char:
-			*pv = dec.stringToFloat32(dec.readUnsafeString(1))
-		case TagString:
-			*pv = dec.stringToFloat32(dec.ReadUnsafeString())
-		default:
-			dec.decodeError(p, tag)
 		}
+		return
+	}
+	f := valdec.decode(dec, p, tag)
+	if dec.Error != nil {
+		return
+	}
+	switch pv := p.(type) {
+	case **float32:
+		*pv = &f
+	case *float32:
+		*pv = f
 	}
 }
 
@@ -61,36 +80,55 @@ type float64Decoder struct{}
 
 var f64dec float64Decoder
 
-func (float64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if pv, ok := p.(*float64); ok {
-		if i := intDigits[tag]; i != invalidDigit {
-			*pv = float64(i)
-			return
+func (valdec float64Decoder) decode(dec *Decoder, p interface{}, tag byte) float64 {
+	if i := intDigits[tag]; i != invalidDigit {
+		return float64(i)
+	}
+	switch tag {
+	case TagEmpty, TagFalse:
+		return 0
+	case TagTrue:
+		return 1
+	case TagInteger:
+		return float64(dec.ReadInt())
+	case TagLong, TagDouble:
+		return dec.ReadFloat64()
+	case TagNaN:
+		return math.NaN()
+	case TagInfinity:
+		if dec.NextByte() == TagNeg {
+			return math.Inf(-1)
 		}
-		switch tag {
-		case TagNull, TagEmpty, TagFalse:
+		return math.Inf(1)
+	case TagUTF8Char:
+		return dec.stringToFloat64(dec.readUnsafeString(1))
+	case TagString:
+		return dec.stringToFloat64(dec.ReadUnsafeString())
+	default:
+		dec.decodeError(p, tag)
+	}
+	return 0
+}
+
+func (valdec float64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	if tag == TagNull {
+		switch pv := p.(type) {
+		case **float64:
+			*pv = nil
+		case *float64:
 			*pv = 0
-		case TagTrue:
-			*pv = 1
-		case TagInteger:
-			*pv = float64(dec.ReadInt())
-		case TagLong, TagDouble:
-			*pv = dec.ReadFloat64()
-		case TagNaN:
-			*pv = math.NaN()
-		case TagInfinity:
-			if dec.NextByte() == TagNeg {
-				*pv = math.Inf(-1)
-			} else {
-				*pv = math.Inf(1)
-			}
-		case TagUTF8Char:
-			*pv = dec.stringToFloat64(dec.readUnsafeString(1))
-		case TagString:
-			*pv = dec.stringToFloat64(dec.ReadUnsafeString())
-		default:
-			dec.decodeError(p, tag)
 		}
+		return
+	}
+	f := valdec.decode(dec, p, tag)
+	if dec.Error != nil {
+		return
+	}
+	switch pv := p.(type) {
+	case **float64:
+		*pv = &f
+	case *float64:
+		*pv = f
 	}
 }
 
