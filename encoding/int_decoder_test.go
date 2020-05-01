@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder_test.go                             |
 |                                                          |
-| LastModified: Apr 19, 2020                               |
+| LastModified: May 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -40,7 +40,6 @@ func TestDecodeInt(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int
 	dec.Decode(&i)
@@ -73,11 +72,10 @@ func TestDecodeInt(t *testing.T) {
 	assert.Equal(t, 123, i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, 0, i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, 0, i)
-	dec.Decode(&i)
-	assert.Equal(t, 0, i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "NaN": invalid syntax`)
 }
 
 func TestDecodeInt8(t *testing.T) {
@@ -99,7 +97,6 @@ func TestDecodeInt8(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int8
 	minInt64, maxInt64 := math.MinInt64, math.MaxInt64
@@ -133,11 +130,10 @@ func TestDecodeInt8(t *testing.T) {
 	assert.Equal(t, int8(123), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, int8(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, int8(0), i)
-	dec.Decode(&i)
-	assert.Equal(t, int8(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "NaN": invalid syntax`)
 }
 
 func TestDecodeInt16(t *testing.T) {
@@ -159,7 +155,6 @@ func TestDecodeInt16(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int16
 	minInt64, maxInt64 := math.MinInt64, math.MaxInt64
@@ -193,11 +188,10 @@ func TestDecodeInt16(t *testing.T) {
 	assert.Equal(t, int16(123), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, int16(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, int16(0), i)
-	dec.Decode(&i)
-	assert.Equal(t, int16(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "NaN": invalid syntax`)
 }
 
 func TestDecodeInt32(t *testing.T) {
@@ -219,7 +213,6 @@ func TestDecodeInt32(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int32
 	minInt64, maxInt64 := math.MinInt64, math.MaxInt64
@@ -253,11 +246,10 @@ func TestDecodeInt32(t *testing.T) {
 	assert.Equal(t, int32(123), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, int32(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, int32(0), i)
-	dec.Decode(&i)
-	assert.Equal(t, int32(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "NaN": invalid syntax`)
 }
 
 func TestDecodeInt64(t *testing.T) {
@@ -279,7 +271,6 @@ func TestDecodeInt64(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int64
 	minInt64, maxInt64 := math.MinInt64, math.MaxInt64
@@ -313,11 +304,10 @@ func TestDecodeInt64(t *testing.T) {
 	assert.Equal(t, int64(123), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, int64(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, int64(0), i)
-	dec.Decode(&i)
-	assert.Equal(t, int64(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "NaN": invalid syntax`)
 }
 
 func TestDecodeUint(t *testing.T) {
@@ -339,7 +329,6 @@ func TestDecodeUint(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
@@ -373,11 +362,10 @@ func TestDecodeUint(t *testing.T) {
 	assert.Equal(t, uint(123), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, uint(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, uint(0), i)
-	dec.Decode(&i)
-	assert.Equal(t, uint(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "NaN": invalid syntax`)
 }
 
 func TestDecodeUint8(t *testing.T) {
@@ -399,7 +387,6 @@ func TestDecodeUint8(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint8
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
@@ -433,11 +420,10 @@ func TestDecodeUint8(t *testing.T) {
 	assert.Equal(t, uint8(123), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, uint8(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, uint8(0), i)
-	dec.Decode(&i)
-	assert.Equal(t, uint8(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "NaN": invalid syntax`)
 }
 
 func TestDecodeUint16(t *testing.T) {
@@ -459,7 +445,6 @@ func TestDecodeUint16(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint16
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
@@ -493,11 +478,10 @@ func TestDecodeUint16(t *testing.T) {
 	assert.Equal(t, uint16(123), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, uint16(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, uint16(0), i)
-	dec.Decode(&i)
-	assert.Equal(t, uint16(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "NaN": invalid syntax`)
 }
 
 func TestDecodeUint32(t *testing.T) {
@@ -519,7 +503,6 @@ func TestDecodeUint32(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint32
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
@@ -553,11 +536,10 @@ func TestDecodeUint32(t *testing.T) {
 	assert.Equal(t, uint32(123), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, uint32(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, uint32(0), i)
-	dec.Decode(&i)
-	assert.Equal(t, uint32(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "NaN": invalid syntax`)
 }
 
 func TestDecodeUint64(t *testing.T) {
@@ -579,7 +561,6 @@ func TestDecodeUint64(t *testing.T) {
 	enc.Encode("123")
 	enc.Encode("N")
 	enc.Encode("NaN")
-	enc.Encode([]byte{1})
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint64
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
@@ -613,9 +594,8 @@ func TestDecodeUint64(t *testing.T) {
 	assert.Equal(t, uint64(123), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, uint64(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&i)
-	assert.Equal(t, uint64(0), i)
-	dec.Decode(&i)
-	assert.Equal(t, uint64(0), i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "NaN": invalid syntax`)
 }
