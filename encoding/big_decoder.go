@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_decoder.go                                  |
 |                                                          |
-| LastModified: Apr 25, 2020                               |
+| LastModified: May 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -54,7 +54,7 @@ func (dec *Decoder) ReadBigFloat() *big.Float {
 // bigIntDecoder is the implementation of ValueDecoder for big.Int/*big.Int.
 type bigIntDecoder struct{}
 
-func (valdec bigIntDecoder) decode(dec *Decoder, tag byte) *big.Int {
+func (valdec bigIntDecoder) decode(dec *Decoder, p interface{}, tag byte) *big.Int {
 	if i := intDigits[tag]; i != invalidDigit {
 		return big.NewInt(int64(i))
 	}
@@ -76,6 +76,8 @@ func (valdec bigIntDecoder) decode(dec *Decoder, tag byte) *big.Int {
 		return dec.strToBigInt(dec.readUnsafeString(1))
 	case TagString:
 		return dec.strToBigInt(dec.ReadString())
+	default:
+		dec.decodeError(p, tag)
 	}
 	return nil
 }
@@ -90,9 +92,8 @@ func (valdec bigIntDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	bi := valdec.decode(dec, tag)
-	if bi == nil {
-		dec.decodeError(p, tag)
+	bi := valdec.decode(dec, p, tag)
+	if dec.Error != nil {
 		return
 	}
 	switch pv := p.(type) {
@@ -106,7 +107,7 @@ func (valdec bigIntDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 // bigFloatDecoder is the implementation of ValueDecoder for big.Float/*big.Float.
 type bigFloatDecoder struct{}
 
-func (valdec bigFloatDecoder) decode(dec *Decoder, tag byte) *big.Float {
+func (valdec bigFloatDecoder) decode(dec *Decoder, p interface{}, tag byte) *big.Float {
 	if i := intDigits[tag]; i != invalidDigit {
 		return big.NewFloat(float64(i))
 	}
@@ -128,6 +129,8 @@ func (valdec bigFloatDecoder) decode(dec *Decoder, tag byte) *big.Float {
 		return dec.strToBigFloat(dec.readUnsafeString(1))
 	case TagString:
 		return dec.strToBigFloat(dec.ReadString())
+	default:
+		dec.decodeError(p, tag)
 	}
 	return nil
 }
@@ -142,9 +145,8 @@ func (valdec bigFloatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	bf := valdec.decode(dec, tag)
-	if bf == nil {
-		dec.decodeError(p, tag)
+	bf := valdec.decode(dec, p, tag)
+	if dec.Error != nil {
 		return
 	}
 	switch pv := p.(type) {
