@@ -18,34 +18,54 @@ type stringDecoder struct{}
 
 var strdec stringDecoder
 
-func (stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if pv, ok := p.(*string); ok {
-		switch tag {
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			*pv = string(tag)
-		case TagNull, TagEmpty:
-			*pv = ""
-		case TagTrue:
-			*pv = "true"
-		case TagFalse:
-			*pv = "false"
-		case TagNaN:
-			*pv = "NaN"
-		case TagInfinity:
-			if dec.NextByte() == TagNeg {
-				*pv = "-Inf"
-			} else {
-				*pv = "+Inf"
-			}
-		case TagInteger, TagLong, TagDouble:
-			*pv = string(dec.Until(TagSemicolon))
-		case TagUTF8Char:
-			*pv = dec.readSafeString(1)
-		case TagString:
-			*pv = dec.ReadString()
-		default:
-			dec.decodeError(p, tag)
+func (valdec stringDecoder) decode(dec *Decoder, p interface{}, tag byte) string {
+	switch tag {
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return string(tag)
+	case TagNull, TagEmpty:
+		return ""
+	case TagTrue:
+		return "true"
+	case TagFalse:
+		return "false"
+	case TagNaN:
+		return "NaN"
+	case TagInfinity:
+		if dec.NextByte() == TagNeg {
+			return "-Inf"
 		}
+		return "+Inf"
+	case TagInteger, TagLong, TagDouble:
+		return string(dec.Until(TagSemicolon))
+	case TagUTF8Char:
+		return dec.readSafeString(1)
+	case TagString:
+		return dec.ReadString()
+	default:
+		dec.decodeError(p, tag)
+	}
+	return ""
+}
+
+func (valdec stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	if tag == TagNull {
+		switch pv := p.(type) {
+		case **string:
+			*pv = nil
+		case *string:
+			*pv = ""
+		}
+		return
+	}
+	s := valdec.decode(dec, p, tag)
+	if dec.Error != nil {
+		return
+	}
+	switch pv := p.(type) {
+	case **string:
+		*pv = &s
+	case *string:
+		*pv = s
 	}
 }
 
