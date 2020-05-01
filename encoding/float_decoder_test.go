@@ -82,7 +82,8 @@ func TestDecodeFloat32(t *testing.T) {
 	assert.Equal(t, float32(123), f)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&f)
-	assert.Equal(t, float32(0), f)
+	assert.EqualError(t, dec.Error, `strconv.ParseFloat: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&f)
 	assert.True(t, math.IsNaN(float64(f)))
 	dec.Decode(&f)
@@ -150,7 +151,8 @@ func TestDecodeFloat64(t *testing.T) {
 	assert.Equal(t, float64(123), f)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&f)
-	assert.Equal(t, float64(0), f)
+	assert.EqualError(t, dec.Error, `strconv.ParseFloat: parsing "N": invalid syntax`)
+	dec.Error = nil
 	dec.Decode(&f)
 	assert.True(t, math.IsNaN(f))
 	dec.Decode(&f)
