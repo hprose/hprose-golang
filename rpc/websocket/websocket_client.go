@@ -26,8 +26,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/hprose/hprose-golang/rpc"
-	"github.com/hprose/hprose-golang/util"
+	"github.com/lanfengye2008/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/util"
 )
 
 var websocketSchemes = []string{"ws", "wss"}

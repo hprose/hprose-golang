@@ -27,8 +27,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hprose/hprose-golang/io"
-	"github.com/hprose/hprose-golang/util"
+	"github.com/lanfengye2008/hprose-golang/io"
+	"github.com/lanfengye2008/hprose-golang/util"
 )
 
 // BaseService is the hprose base service

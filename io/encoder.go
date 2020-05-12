@@ -26,7 +26,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/hprose/hprose-golang/util"
+	"github.com/lanfengye2008/hprose-golang/util"
 )
 
 type valueEncoder func(w *Writer, v reflect.Value)

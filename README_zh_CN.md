@@ -40,4 +40,4 @@
  
 本项目是 Hprose 的 Golang 语言版本实现。
  
-Hprose 2.0 for Golang 文档: https://github.com/hprose/hprose-golang/wiki
+Hprose 2.0 for Golang 文档: https://github.com/lanfengye2008/hprose-golang/wiki

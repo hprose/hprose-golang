@@ -22,8 +22,8 @@ package jsonrpc
 import (
 	"encoding/json"
 
-	"github.com/hprose/hprose-golang/io"
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/io"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 // ServiceFilter is a JSONRPC Service Filter

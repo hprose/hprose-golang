@@ -26,7 +26,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/hprose/hprose-golang/util"
+	"github.com/lanfengye2008/hprose-golang/util"
 )
 
 // Reader is a fine-grained operation struct for Hprose unserialization

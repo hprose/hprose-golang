@@ -24,7 +24,7 @@ import (
 	"reflect"
 	"unsafe"
 
-	"github.com/hprose/hprose-golang/util"
+	"github.com/lanfengye2008/hprose-golang/util"
 )
 
 func readBytesAsArray(r *Reader, v reflect.Value) {

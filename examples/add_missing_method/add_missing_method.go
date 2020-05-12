@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 // HproseProxy ...
