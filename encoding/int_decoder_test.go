@@ -30,7 +30,7 @@ func TestDecodeInt(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -44,6 +44,7 @@ func TestDecodeInt(t *testing.T) {
 	enc.Encode(1)
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, -1, i)
 	dec.Decode(&i)
@@ -57,7 +58,7 @@ func TestDecodeInt(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, -math.MaxInt64, i)
 	dec.Decode(&i)
-	assert.Equal(t, math.MaxInt64, i)
+	assert.Equal(t, int(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, 1, i)
 	dec.Decode(&i)
@@ -95,7 +96,7 @@ func TestDecodeInt8(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -110,6 +111,7 @@ func TestDecodeInt8(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int8
 	minInt64, maxInt64 := math.MinInt64, math.MaxInt64
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, int8(-1), i)
 	dec.Decode(&i)
@@ -123,7 +125,7 @@ func TestDecodeInt8(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, int8(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, int8(maxInt64), i)
+	assert.Equal(t, int8(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, int8(1), i)
 	dec.Decode(&i)
@@ -161,7 +163,7 @@ func TestDecodeInt16(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -176,6 +178,7 @@ func TestDecodeInt16(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int16
 	minInt64, maxInt64 := math.MinInt64, math.MaxInt64
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, int16(-1), i)
 	dec.Decode(&i)
@@ -189,7 +192,7 @@ func TestDecodeInt16(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, int16(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, int16(maxInt64), i)
+	assert.Equal(t, int16(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, int16(1), i)
 	dec.Decode(&i)
@@ -227,7 +230,7 @@ func TestDecodeInt32(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -242,6 +245,7 @@ func TestDecodeInt32(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int32
 	minInt64, maxInt64 := math.MinInt64, math.MaxInt64
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, int32(-1), i)
 	dec.Decode(&i)
@@ -255,7 +259,7 @@ func TestDecodeInt32(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, int32(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, int32(maxInt64), i)
+	assert.Equal(t, int32(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, int32(1), i)
 	dec.Decode(&i)
@@ -293,7 +297,7 @@ func TestDecodeInt64(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -308,6 +312,7 @@ func TestDecodeInt64(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i int64
 	minInt64, maxInt64 := math.MinInt64, math.MaxInt64
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, int64(-1), i)
 	dec.Decode(&i)
@@ -321,7 +326,7 @@ func TestDecodeInt64(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, int64(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, int64(maxInt64), i)
+	assert.Equal(t, int64(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, int64(1), i)
 	dec.Decode(&i)
@@ -359,7 +364,7 @@ func TestDecodeUint(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -374,6 +379,7 @@ func TestDecodeUint(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, uint(-one), i)
 	dec.Decode(&i)
@@ -387,7 +393,7 @@ func TestDecodeUint(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, uint(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, uint(maxInt64), i)
+	assert.Equal(t, uint(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, uint(1), i)
 	dec.Decode(&i)
@@ -425,7 +431,7 @@ func TestDecodeUint8(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -440,6 +446,7 @@ func TestDecodeUint8(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint8
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, uint8(-one), i)
 	dec.Decode(&i)
@@ -453,7 +460,7 @@ func TestDecodeUint8(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, uint8(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, uint8(maxInt64), i)
+	assert.Equal(t, uint8(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, uint8(1), i)
 	dec.Decode(&i)
@@ -491,7 +498,7 @@ func TestDecodeUint16(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -506,6 +513,7 @@ func TestDecodeUint16(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint16
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, uint16(-one), i)
 	dec.Decode(&i)
@@ -519,7 +527,7 @@ func TestDecodeUint16(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, uint16(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, uint16(maxInt64), i)
+	assert.Equal(t, uint16(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, uint16(1), i)
 	dec.Decode(&i)
@@ -557,7 +565,7 @@ func TestDecodeUint32(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -572,6 +580,7 @@ func TestDecodeUint32(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint32
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, uint32(-one), i)
 	dec.Decode(&i)
@@ -585,7 +594,7 @@ func TestDecodeUint32(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, uint32(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, uint32(maxInt64), i)
+	assert.Equal(t, uint32(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, uint32(1), i)
 	dec.Decode(&i)
@@ -623,7 +632,7 @@ func TestDecodeUint64(t *testing.T) {
 	enc.Encode(123)
 	enc.Encode(math.MinInt64)
 	enc.Encode(-math.MaxInt64)
-	enc.Encode(math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
 	enc.Encode(true)
 	enc.Encode(false)
 	enc.Encode(nil)
@@ -638,6 +647,7 @@ func TestDecodeUint64(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i uint64
 	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
+	var maxUint64 uint64 = math.MaxUint64
 	dec.Decode(&i)
 	assert.Equal(t, uint64(-one), i)
 	dec.Decode(&i)
@@ -651,7 +661,7 @@ func TestDecodeUint64(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, uint64(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, uint64(maxInt64), i)
+	assert.Equal(t, uint64(maxUint64), i)
 	dec.Decode(&i)
 	assert.Equal(t, uint64(1), i)
 	dec.Decode(&i)
@@ -678,4 +688,70 @@ func TestDecodeUint64(t *testing.T) {
 	assert.Equal(t, (*uint64)(nil), ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, uint64(1), *ip) // 1
+}
+
+func TestDecodeUintptr(t *testing.T) {
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb, true)
+	enc.Encode(-1)
+	enc.Encode(0)
+	enc.Encode(1)
+	enc.Encode(123)
+	enc.Encode(math.MinInt64)
+	enc.Encode(-math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
+	enc.Encode(true)
+	enc.Encode(false)
+	enc.Encode(nil)
+	enc.Encode(3.14)
+	enc.Encode("")
+	enc.Encode("1")
+	enc.Encode("123")
+	enc.Encode("N")
+	enc.Encode("NaN")
+	enc.Encode(nil)
+	enc.Encode(1)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var i uintptr
+	one, minInt64, maxInt64 := 1, math.MinInt64, math.MaxInt64
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(-one), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(0), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(1), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(123), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(minInt64), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(-maxInt64), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(math.MaxUint64), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(1), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(0), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(0), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(3), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(0), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(1), i)
+	dec.Decode(&i)
+	assert.Equal(t, uintptr(123), i)
+	assert.NoError(t, dec.Error)
+	dec.Decode(&i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "N": invalid syntax`)
+	dec.Error = nil
+	dec.Decode(&i)
+	assert.EqualError(t, dec.Error, `strconv.ParseUint: parsing "NaN": invalid syntax`)
+	dec.Error = nil
+	var ip *uintptr
+	dec.Decode(&ip)
+	assert.Equal(t, (*uintptr)(nil), ip) // nil
+	dec.Decode(&ip)
+	assert.Equal(t, uintptr(1), *ip) // 1
 }

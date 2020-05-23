@@ -517,6 +517,56 @@ func (valdec uint64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	}
 }
 
+// uintptrDecoder is the implementation of ValueDecoder for uintptr.
+type uintptrDecoder struct{}
+
+var uptrdec uintptrDecoder
+
+func (valdec uintptrDecoder) decode(dec *Decoder, p interface{}, tag byte) uintptr {
+	if i := intDigits[tag]; i != invalidDigit {
+		return uintptr(i)
+	}
+	switch tag {
+	case TagEmpty, TagFalse:
+		return 0
+	case TagTrue:
+		return 1
+	case TagInteger, TagLong:
+		return uintptr(dec.ReadUint64())
+	case TagDouble:
+		return uintptr(dec.ReadFloat64())
+	case TagUTF8Char:
+		return uintptr(dec.stringToUint64(dec.readUnsafeString(1)))
+	case TagString:
+		return uintptr(dec.stringToUint64(dec.ReadUnsafeString()))
+	default:
+		dec.decodeError(p, tag)
+	}
+	return 0
+}
+
+func (valdec uintptrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	if tag == TagNull {
+		switch pv := p.(type) {
+		case **uintptr:
+			*pv = nil
+		case *uintptr:
+			*pv = 0
+		}
+		return
+	}
+	i := valdec.decode(dec, p, tag)
+	if dec.Error != nil {
+		return
+	}
+	switch pv := p.(type) {
+	case **uintptr:
+		*pv = &i
+	case *uintptr:
+		*pv = i
+	}
+}
+
 func (dec *Decoder) stringToInt64(s string) int64 {
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {

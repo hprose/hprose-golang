@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: May 1, 2020                                |
+| LastModified: May 23, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -105,6 +105,8 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 		uint32dec.Decode(dec, p, tag)
 	case *uint64, **uint64:
 		uint64dec.Decode(dec, p, tag)
+	case *uintptr, **uintptr:
+		uptrdec.Decode(dec, p, tag)
 	case *float32, **float32:
 		f32dec.Decode(dec, p, tag)
 	case *float64, **float64:
