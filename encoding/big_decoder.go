@@ -23,6 +23,8 @@ var (
 	bigIntOne    = big.NewInt(1)
 	bigFloatZero = big.NewFloat(0)
 	bigFloatOne  = big.NewFloat(1)
+	bigRatZero   = big.NewRat(0, 1)
+	bigRatOne    = big.NewRat(1, 1)
 )
 
 func (dec *Decoder) strToBigInt(s string) *big.Int {
@@ -49,6 +51,14 @@ func (dec *Decoder) strToBigFloat(s string) *big.Float {
 // ReadBigFloat read *big.Float
 func (dec *Decoder) ReadBigFloat() *big.Float {
 	return dec.strToBigFloat(unsafeString(dec.Until(TagSemicolon)))
+}
+
+func (dec *Decoder) strToBigRat(s string) *big.Rat {
+	if bf, ok := new(big.Rat).SetString(s); ok {
+		return bf
+	}
+	dec.decodeStringError(s, "big.Rat")
+	return nil
 }
 
 // bigIntDecoder is the implementation of ValueDecoder for big.Int/*big.Int.
@@ -157,8 +167,58 @@ func (valdec bigFloatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	}
 }
 
+// bigRatDecoder is the implementation of ValueDecoder for big.Rat/*big.Rat.
+type bigRatDecoder struct{}
+
+func (valdec bigRatDecoder) decode(dec *Decoder, p interface{}, tag byte) *big.Rat {
+	if i := intDigits[tag]; i != invalidDigit {
+		return big.NewRat(int64(i), 1)
+	}
+	switch tag {
+	case TagEmpty, TagFalse:
+		return bigRatZero
+	case TagTrue:
+		return bigRatOne
+	case TagInteger:
+		return big.NewRat(dec.ReadInt64(), 1)
+	case TagLong:
+		return new(big.Rat).SetInt(dec.ReadBigInt())
+	case TagDouble:
+		return new(big.Rat).SetFloat64(dec.ReadFloat64())
+	case TagUTF8Char:
+		return dec.strToBigRat(dec.readUnsafeString(1))
+	case TagString:
+		return dec.strToBigRat(dec.ReadString())
+	default:
+		dec.decodeError(p, tag)
+	}
+	return nil
+}
+
+func (valdec bigRatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	if tag == TagNull {
+		switch pv := p.(type) {
+		case **big.Rat:
+			*pv = nil
+		case *big.Rat:
+			*pv = *bigRatZero
+		}
+		return
+	}
+	br := valdec.decode(dec, p, tag)
+	if dec.Error != nil {
+		return
+	}
+	switch pv := p.(type) {
+	case **big.Rat:
+		*pv = br
+	case *big.Rat:
+		*pv = *br
+	}
+}
+
 func init() {
 	RegisterValueDecoder((*big.Int)(nil), bigIntDecoder{})
 	RegisterValueDecoder((*big.Float)(nil), bigFloatDecoder{})
-	// RegisterValueDecoder((*big.Rat)(nil), bigRatDecoder{})
+	RegisterValueDecoder((*big.Rat)(nil), bigRatDecoder{})
 }
