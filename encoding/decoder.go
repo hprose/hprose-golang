@@ -109,6 +109,8 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 		f32dec.Decode(dec, p, tag)
 	case *float64, **float64:
 		f64dec.Decode(dec, p, tag)
+	case *bool, **bool:
+		booldec.Decode(dec, p, tag)
 	case *string, **string:
 		strdec.Decode(dec, p, tag)
 	case *interface{}, **interface{}:
