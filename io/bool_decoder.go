@@ -38,7 +38,7 @@ func readBoolTrue(r *Reader) bool {
 func readNumberAsBool(r *Reader) bool {
 	bytes := r.readUntil(TagSemicolon)
 	if len(bytes) == 0 {
-		return true
+		return false
 	}
 	if len(bytes) == 1 {
 		return bytes[0] != '0'
