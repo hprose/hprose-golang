@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/hprose/hprose-golang/io"
+	"github.com/lanfengye2008/hprose-golang/io"
 )
 
 func stringFloat64MapEncoder(w *io.Writer, v interface{}) {

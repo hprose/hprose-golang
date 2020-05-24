@@ -6,7 +6,7 @@ import (
 	"net/rpc/jsonrpc"
 	"testing"
 
-	hproserpc "github.com/hprose/hprose-golang/rpc"
+	hproserpc "github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 // BenchmarkHprose2 is ...

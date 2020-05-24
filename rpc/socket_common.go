@@ -24,8 +24,8 @@ import (
 	"net"
 	"time"
 
-	hio "github.com/hprose/hprose-golang/io"
-	"github.com/hprose/hprose-golang/util"
+	hio "github.com/lanfengye2008/hprose-golang/io"
+	"github.com/lanfengye2008/hprose-golang/util"
 )
 
 type packet struct {
@@ -94,6 +94,12 @@ func recvData(reader io.Reader, data *packet) (err error) {
 			return
 		}
 	}
+
+	//TODO(zibin)2019-06-27 增加对超大报文的判断，防止slice内存泄露
+	if size > 500000 {
+		size = 500000
+	}
+
 	if cap(data.body) >= int(size) {
 		data.body = data.body[:size]
 	} else {

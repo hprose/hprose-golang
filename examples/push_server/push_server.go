@@ -1,6 +1,6 @@
 package main
 
-import "github.com/hprose/hprose-golang/rpc"
+import "github.com/lanfengye2008/hprose-golang/rpc"
 
 func hello(name string, context *rpc.SocketContext) string {
 	context.Clients().Push("ip", context.Conn.RemoteAddr().String())

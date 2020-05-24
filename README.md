@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/github/license/hprose/hprose-golang.svg)](http://opensource.org/licenses/MIT)
 
 
-[Hprose 2.0 for Golang 中文文档](https://github.com/hprose/hprose-golang/wiki) 
+[Hprose 2.0 for Golang 中文文档](https://github.com/lanfengye2008/hprose-golang/wiki) 
 
 >---
 - **[Introduction](#introduction)**
@@ -90,7 +90,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 func hello(name string) string {
@@ -110,7 +110,7 @@ func main() {
 package main
 
 import (
-	rpc "github.com/hprose/hprose-golang/rpc/fasthttp"
+	rpc "github.com/lanfengye2008/hprose-golang/rpc/fasthttp"
 	"github.com/valyala/fasthttp"
 )
 
@@ -131,7 +131,7 @@ func main() {
 package main
 
 import (
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 	"gopkg.in/gin-gonic/gin.v1"
 )
 
@@ -156,7 +156,7 @@ func main() {
 package main
 
 import (
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 	"github.com/labstack/echo"
 )
 
@@ -180,7 +180,7 @@ package main
 
 import (
 	"github.com/astaxie/beego"
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 func hello(name string) string {
@@ -201,7 +201,7 @@ func main() {
 package main
 
 import (
-	rpc "github.com/hprose/hprose-golang/rpc/fasthttp"
+	rpc "github.com/lanfengye2008/hprose-golang/rpc/fasthttp"
 	"github.com/kataras/iris"
 )
 
@@ -229,7 +229,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 type HelloService struct {
@@ -261,7 +261,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 type HelloService struct {
@@ -297,7 +297,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 func swap(a, b *int) {
@@ -337,8 +337,8 @@ package main
 
 import (
     "fmt"
-    "github.com/hprose/hprose-golang/io"
-    "github.com/hprose/hprose-golang/rpc"
+    "github.com/lanfengye2008/hprose-golang/io"
+    "github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 type TestUser struct {
@@ -399,7 +399,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 type HproseProxy struct {
@@ -458,7 +458,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 func hello(name string) string {
@@ -493,7 +493,7 @@ import (
 	"net/http"
 	"runtime"
 
-	rpc "github.com/hprose/hprose-golang/rpc/websocket"
+	rpc "github.com/lanfengye2008/hprose-golang/rpc/websocket"
 )
 
 func hello(name string) string {
@@ -515,7 +515,7 @@ package main
 import (
 	"fmt"
 
-	rpc "github.com/hprose/hprose-golang/rpc/websocket"
+	rpc "github.com/lanfengye2008/hprose-golang/rpc/websocket"
 )
 
 type HelloService struct {
@@ -541,7 +541,7 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 func hello(name string) string {
@@ -563,7 +563,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 type HelloService struct {
@@ -583,7 +583,7 @@ func main() {
 Hprose is faster than golang RPC, you can run benchmark like this:
 
 ```
-go test --bench=".*" github.com/hprose/hprose-golang/examples/bench
+go test --bench=".*" github.com/lanfengye2008/hprose-golang/examples/bench
 ```
 
 * go1.7.1 darwin/amd64

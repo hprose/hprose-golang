@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/hprose/hprose-golang/rpc"
+	"github.com/lanfengye2008/hprose-golang/rpc"
 )
 
 // Foo ...
