@@ -115,6 +115,10 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 		booldec.Decode(dec, p, tag)
 	case *string, **string:
 		strdec.Decode(dec, p, tag)
+	case *complex64, **complex64:
+		c64dec.Decode(dec, p, tag)
+	case *complex128, **complex128:
+		c128dec.Decode(dec, p, tag)
 	case *interface{}, **interface{}:
 		ifacedec.Decode(dec, p, tag)
 	}

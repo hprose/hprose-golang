@@ -39,10 +39,7 @@ func (valdec float32Decoder) decode(dec *Decoder, p interface{}, tag byte) float
 	case TagNaN:
 		return float32(math.NaN())
 	case TagInfinity:
-		if dec.NextByte() == TagNeg {
-			return float32(math.Inf(-1))
-		}
-		return float32(math.Inf(1))
+		return float32(dec.readInf())
 	case TagUTF8Char:
 		return dec.stringToFloat32(dec.readUnsafeString(1))
 	case TagString:
@@ -96,10 +93,7 @@ func (valdec float64Decoder) decode(dec *Decoder, p interface{}, tag byte) float
 	case TagNaN:
 		return math.NaN()
 	case TagInfinity:
-		if dec.NextByte() == TagNeg {
-			return math.Inf(-1)
-		}
-		return math.Inf(1)
+		return dec.readInf()
 	case TagUTF8Char:
 		return dec.stringToFloat64(dec.readUnsafeString(1))
 	case TagString:
@@ -146,4 +140,11 @@ func (dec *Decoder) stringToFloat64(s string) float64 {
 		dec.Error = err
 	}
 	return f
+}
+
+func (dec *Decoder) readInf() float64 {
+	if dec.NextByte() == TagNeg {
+		return math.Inf(-1)
+	}
+	return math.Inf(1)
 }

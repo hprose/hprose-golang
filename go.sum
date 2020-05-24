@@ -1,3 +1,5 @@
+github.com/andot/complexconv v1.0.0 h1:qf8jmr+vaqM2ll7LzzOXqzNn1oVa4+DuyBVKs4DWS5c=
+github.com/andot/complexconv v1.0.0/go.mod h1:JGf7t92n2pKxZNdOe/1n+vJqyi4WPSop/fRIp1de6LE=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
