@@ -13,12 +13,16 @@
 
 package encoding
 
+import "reflect"
+
 // stringDecoder is the implementation of ValueDecoder for string.
-type stringDecoder struct{}
+type stringDecoder struct {
+	destType reflect.Type
+}
 
-var strdec stringDecoder
+var strdec = stringDecoder{reflect.TypeOf((*string)(nil)).Elem()}
 
-func (valdec stringDecoder) decode(dec *Decoder, p interface{}, tag byte) string {
+func (valdec stringDecoder) decode(dec *Decoder, tag byte) string {
 	switch tag {
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		return string(tag)
@@ -42,7 +46,7 @@ func (valdec stringDecoder) decode(dec *Decoder, p interface{}, tag byte) string
 	case TagString:
 		return dec.ReadString()
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.destType, tag)
 	}
 	return ""
 }
@@ -57,7 +61,7 @@ func (valdec stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	s := valdec.decode(dec, p, tag)
+	s := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -177,21 +181,21 @@ func (dec *Decoder) readSafeString(utf16Length int) (s string) {
 	return string(data)
 }
 
-// ReadUnsafeString read unsafe string
+// ReadUnsafeString reads unsafe string
 func (dec *Decoder) ReadUnsafeString() (s string) {
 	s = dec.readUnsafeString(dec.ReadInt())
 	dec.Skip()
 	return
 }
 
-// ReadSafeString read safe string
+// ReadSafeString reads safe string
 func (dec *Decoder) ReadSafeString() (s string) {
 	s = dec.readSafeString(dec.ReadInt())
 	dec.Skip()
 	return
 }
 
-// ReadString read safe string and add reference
+// ReadString reads safe string and add reference
 func (dec *Decoder) ReadString() (s string) {
 	s = dec.ReadSafeString()
 	dec.AddReference(s)

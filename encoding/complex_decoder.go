@@ -4,9 +4,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| encoding/bool_decoder.go                                 |
+| encoding/complex_decoder.go                              |
 |                                                          |
-| LastModified: May 24, 2020                               |
+| LastModified: Jun 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,21 +15,24 @@ package encoding
 
 import (
 	"math"
+	"reflect"
 
 	"github.com/andot/complexconv"
 )
 
 // complex64Decoder is the implementation of ValueDecoder for complex64.
-type complex64Decoder struct{}
+type complex64Decoder struct {
+	descType reflect.Type
+}
 
-var c64dec complex64Decoder
+var c64dec = complex64Decoder{reflect.TypeOf((*complex64)(nil)).Elem()}
 
-func (valdec complex64Decoder) decode(dec *Decoder, p interface{}, tag byte) complex64 {
+func (valdec complex64Decoder) decode(dec *Decoder, tag byte) complex64 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return complex(float32(i), 0)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -44,9 +47,9 @@ func (valdec complex64Decoder) decode(dec *Decoder, p interface{}, tag byte) com
 	case TagUTF8Char:
 		return dec.stringToComplex64(dec.readUnsafeString(1))
 	case TagString:
-		return dec.stringToComplex64(dec.ReadUnsafeString())
+		return dec.stringToComplex64(dec.ReadString())
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -61,7 +64,7 @@ func (valdec complex64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	b := valdec.decode(dec, p, tag)
+	b := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -74,11 +77,13 @@ func (valdec complex64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // complex128Decoder is the implementation of ValueDecoder for complex128.
-type complex128Decoder struct{}
+type complex128Decoder struct {
+	descType reflect.Type
+}
 
-var c128dec complex128Decoder
+var c128dec = complex128Decoder{reflect.TypeOf((*complex128)(nil)).Elem()}
 
-func (valdec complex128Decoder) decode(dec *Decoder, p interface{}, tag byte) complex128 {
+func (valdec complex128Decoder) decode(dec *Decoder, tag byte) complex128 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return complex(float64(i), 0)
 	}
@@ -98,9 +103,9 @@ func (valdec complex128Decoder) decode(dec *Decoder, p interface{}, tag byte) co
 	case TagUTF8Char:
 		return dec.stringToComplex128(dec.readUnsafeString(1))
 	case TagString:
-		return dec.stringToComplex128(dec.ReadUnsafeString())
+		return dec.stringToComplex128(dec.ReadString())
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -115,7 +120,7 @@ func (valdec complex128Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	b := valdec.decode(dec, p, tag)
+	b := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}

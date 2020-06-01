@@ -6,26 +6,31 @@
 |                                                          |
 | encoding/bool_decoder.go                                 |
 |                                                          |
-| LastModified: May 23, 2020                               |
+| LastModified: Jun 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package encoding
 
-import "strconv"
+import (
+	"reflect"
+	"strconv"
+)
 
 // boolDecoder is the implementation of ValueDecoder for bool.
-type boolDecoder struct{}
+type boolDecoder struct {
+	descType reflect.Type
+}
 
-var booldec boolDecoder
+var booldec = boolDecoder{reflect.TypeOf((*bool)(nil)).Elem()}
 
-func (valdec boolDecoder) decode(dec *Decoder, p interface{}, tag byte) bool {
+func (valdec boolDecoder) decode(dec *Decoder, tag byte) bool {
 	if i := intDigits[tag]; i != invalidDigit {
 		return i > 0
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return false
 	case TagTrue, TagNaN:
 		return true
@@ -44,9 +49,9 @@ func (valdec boolDecoder) decode(dec *Decoder, p interface{}, tag byte) bool {
 	case TagUTF8Char:
 		return dec.stringToBool(dec.readUnsafeString(1))
 	case TagString:
-		return dec.stringToBool(dec.ReadUnsafeString())
+		return dec.stringToBool(dec.ReadString())
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return false
 }
@@ -61,7 +66,7 @@ func (valdec boolDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	b := valdec.decode(dec, p, tag)
+	b := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}

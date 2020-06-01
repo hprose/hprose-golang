@@ -306,30 +306,29 @@ func (dec *Decoder) decodeStringError(s string, typename string) {
 	}
 }
 
-func (dec *Decoder) decodeError(p interface{}, tag byte) {
+func (dec *Decoder) decodeError(destType reflect.Type, tag byte) {
 	if dec.Error == nil {
 		var iface interface{}
 		dec.decode(&iface, tag)
 		if dec.Error != nil {
 			return
 		}
-		dest := reflect.TypeOf(p).Elem()
 		if v, ok := iface.(float64); ok {
 			switch {
 			case math.IsNaN(v):
-				dec.Error = DecodeError("hprose/encoding: can not parse NaN to " + dest.String())
+				dec.Error = DecodeError("hprose/encoding: can not parse NaN to " + destType.String())
 				return
 			case math.IsInf(v, 1):
-				dec.Error = DecodeError("hprose/encoding: can not parse +Inf to " + dest.String())
+				dec.Error = DecodeError("hprose/encoding: can not parse +Inf to " + destType.String())
 				return
 			case math.IsInf(v, -1):
-				dec.Error = DecodeError("hprose/encoding: can not parse -Inf to " + dest.String())
+				dec.Error = DecodeError("hprose/encoding: can not parse -Inf to " + destType.String())
 				return
 			}
 		}
 		dec.Error = &CastError{
 			Source:      reflect.TypeOf(iface),
-			Destination: dest,
+			Destination: destType,
 		}
 	}
 }

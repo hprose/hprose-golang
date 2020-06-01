@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/float_decoder.go                                |
 |                                                          |
-| LastModified: Apr 25, 2020                               |
+| LastModified: Jun 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,20 +15,23 @@ package encoding
 
 import (
 	"math"
+	"reflect"
 	"strconv"
 )
 
 // float32Decoder is the implementation of ValueDecoder for float32.
-type float32Decoder struct{}
+type float32Decoder struct {
+	descType reflect.Type
+}
 
-var f32dec float32Decoder
+var f32dec = float32Decoder{reflect.TypeOf((*float32)(nil)).Elem()}
 
-func (valdec float32Decoder) decode(dec *Decoder, p interface{}, tag byte) float32 {
+func (valdec float32Decoder) decode(dec *Decoder, tag byte) float32 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return float32(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -43,9 +46,9 @@ func (valdec float32Decoder) decode(dec *Decoder, p interface{}, tag byte) float
 	case TagUTF8Char:
 		return dec.stringToFloat32(dec.readUnsafeString(1))
 	case TagString:
-		return dec.stringToFloat32(dec.ReadUnsafeString())
+		return dec.stringToFloat32(dec.ReadString())
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -60,7 +63,7 @@ func (valdec float32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	f := valdec.decode(dec, p, tag)
+	f := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -73,16 +76,18 @@ func (valdec float32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // float64Decoder is the implementation of ValueDecoder for *float64.
-type float64Decoder struct{}
+type float64Decoder struct {
+	descType reflect.Type
+}
 
-var f64dec float64Decoder
+var f64dec = float64Decoder{reflect.TypeOf((*float64)(nil)).Elem()}
 
-func (valdec float64Decoder) decode(dec *Decoder, p interface{}, tag byte) float64 {
+func (valdec float64Decoder) decode(dec *Decoder, tag byte) float64 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return float64(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -97,9 +102,9 @@ func (valdec float64Decoder) decode(dec *Decoder, p interface{}, tag byte) float
 	case TagUTF8Char:
 		return dec.stringToFloat64(dec.readUnsafeString(1))
 	case TagString:
-		return dec.stringToFloat64(dec.ReadUnsafeString())
+		return dec.stringToFloat64(dec.ReadString())
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -114,7 +119,7 @@ func (valdec float64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	f := valdec.decode(dec, p, tag)
+	f := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}

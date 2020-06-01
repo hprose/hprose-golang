@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder.go                                  |
 |                                                          |
-| LastModified: May 1, 2020                                |
+| LastModified: Jun 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,20 +14,23 @@
 package encoding
 
 import (
+	"reflect"
 	"strconv"
 )
 
 // intDecoder is the implementation of ValueDecoder for int.
-type intDecoder struct{}
+type intDecoder struct {
+	descType reflect.Type
+}
 
-var intdec intDecoder
+var intdec = intDecoder{reflect.TypeOf((*int)(nil)).Elem()}
 
-func (valdec intDecoder) decode(dec *Decoder, p interface{}, tag byte) int {
+func (valdec intDecoder) decode(dec *Decoder, tag byte) int {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -38,9 +41,9 @@ func (valdec intDecoder) decode(dec *Decoder, p interface{}, tag byte) int {
 	case TagUTF8Char:
 		return int(dec.stringToInt64(dec.readUnsafeString(1)))
 	case TagString:
-		return int(dec.stringToInt64(dec.ReadUnsafeString()))
+		return int(dec.stringToInt64(dec.ReadString()))
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -55,7 +58,7 @@ func (valdec intDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -68,16 +71,18 @@ func (valdec intDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // int8Decoder is the implementation of ValueDecoder for int8.
-type int8Decoder struct{}
+type int8Decoder struct {
+	descType reflect.Type
+}
 
-var int8dec int8Decoder
+var int8dec = int8Decoder{reflect.TypeOf((*int8)(nil)).Elem()}
 
-func (valdec int8Decoder) decode(dec *Decoder, p interface{}, tag byte) int8 {
+func (valdec int8Decoder) decode(dec *Decoder, tag byte) int8 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int8(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -88,9 +93,9 @@ func (valdec int8Decoder) decode(dec *Decoder, p interface{}, tag byte) int8 {
 	case TagUTF8Char:
 		return int8(dec.stringToInt64(dec.readUnsafeString(1)))
 	case TagString:
-		return int8(dec.stringToInt64(dec.ReadUnsafeString()))
+		return int8(dec.stringToInt64(dec.ReadString()))
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -105,7 +110,7 @@ func (valdec int8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -118,16 +123,18 @@ func (valdec int8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // int16Decoder is the implementation of ValueDecoder for int16.
-type int16Decoder struct{}
+type int16Decoder struct {
+	descType reflect.Type
+}
 
-var int16dec int16Decoder
+var int16dec = int16Decoder{reflect.TypeOf((*int16)(nil)).Elem()}
 
-func (valdec int16Decoder) decode(dec *Decoder, p interface{}, tag byte) int16 {
+func (valdec int16Decoder) decode(dec *Decoder, tag byte) int16 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int16(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -138,9 +145,9 @@ func (valdec int16Decoder) decode(dec *Decoder, p interface{}, tag byte) int16 {
 	case TagUTF8Char:
 		return int16(dec.stringToInt64(dec.readUnsafeString(1)))
 	case TagString:
-		return int16(dec.stringToInt64(dec.ReadUnsafeString()))
+		return int16(dec.stringToInt64(dec.ReadString()))
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -155,7 +162,7 @@ func (valdec int16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -168,16 +175,18 @@ func (valdec int16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // int32Decoder is the implementation of ValueDecoder for int32.
-type int32Decoder struct{}
+type int32Decoder struct {
+	descType reflect.Type
+}
 
-var int32dec int32Decoder
+var int32dec = int32Decoder{reflect.TypeOf((*int32)(nil)).Elem()}
 
-func (valdec int32Decoder) decode(dec *Decoder, p interface{}, tag byte) int32 {
+func (valdec int32Decoder) decode(dec *Decoder, tag byte) int32 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int32(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -188,9 +197,9 @@ func (valdec int32Decoder) decode(dec *Decoder, p interface{}, tag byte) int32 {
 	case TagUTF8Char:
 		return int32(dec.stringToInt64(dec.readUnsafeString(1)))
 	case TagString:
-		return int32(dec.stringToInt64(dec.ReadUnsafeString()))
+		return int32(dec.stringToInt64(dec.ReadString()))
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -205,7 +214,7 @@ func (valdec int32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -218,16 +227,18 @@ func (valdec int32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // int64Decoder is the implementation of ValueDecoder for int64.
-type int64Decoder struct{}
+type int64Decoder struct {
+	descType reflect.Type
+}
 
-var int64dec int64Decoder
+var int64dec = int64Decoder{reflect.TypeOf((*int64)(nil)).Elem()}
 
-func (valdec int64Decoder) decode(dec *Decoder, p interface{}, tag byte) int64 {
+func (valdec int64Decoder) decode(dec *Decoder, tag byte) int64 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int64(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -238,9 +249,9 @@ func (valdec int64Decoder) decode(dec *Decoder, p interface{}, tag byte) int64 {
 	case TagUTF8Char:
 		return dec.stringToInt64(dec.readUnsafeString(1))
 	case TagString:
-		return dec.stringToInt64(dec.ReadUnsafeString())
+		return dec.stringToInt64(dec.ReadString())
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -255,7 +266,7 @@ func (valdec int64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -268,16 +279,18 @@ func (valdec int64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // uintDecoder is the implementation of ValueDecoder for uint.
-type uintDecoder struct{}
+type uintDecoder struct {
+	descType reflect.Type
+}
 
-var uintdec uintDecoder
+var uintdec = uintDecoder{reflect.TypeOf((*uint)(nil)).Elem()}
 
-func (valdec uintDecoder) decode(dec *Decoder, p interface{}, tag byte) uint {
+func (valdec uintDecoder) decode(dec *Decoder, tag byte) uint {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -288,9 +301,9 @@ func (valdec uintDecoder) decode(dec *Decoder, p interface{}, tag byte) uint {
 	case TagUTF8Char:
 		return uint(dec.stringToUint64(dec.readUnsafeString(1)))
 	case TagString:
-		return uint(dec.stringToUint64(dec.ReadUnsafeString()))
+		return uint(dec.stringToUint64(dec.ReadString()))
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -305,7 +318,7 @@ func (valdec uintDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -318,16 +331,18 @@ func (valdec uintDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // uint8Decoder is the implementation of ValueDecoder for uint8.
-type uint8Decoder struct{}
+type uint8Decoder struct {
+	descType reflect.Type
+}
 
-var uint8dec uint8Decoder
+var uint8dec = uint8Decoder{reflect.TypeOf((*uint8)(nil)).Elem()}
 
-func (valdec uint8Decoder) decode(dec *Decoder, p interface{}, tag byte) uint8 {
+func (valdec uint8Decoder) decode(dec *Decoder, tag byte) uint8 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint8(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -338,9 +353,9 @@ func (valdec uint8Decoder) decode(dec *Decoder, p interface{}, tag byte) uint8 {
 	case TagUTF8Char:
 		return uint8(dec.stringToUint64(dec.readUnsafeString(1)))
 	case TagString:
-		return uint8(dec.stringToUint64(dec.ReadUnsafeString()))
+		return uint8(dec.stringToUint64(dec.ReadString()))
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -355,7 +370,7 @@ func (valdec uint8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -368,16 +383,18 @@ func (valdec uint8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // uint16Decoder is the implementation of ValueDecoder for uint16.
-type uint16Decoder struct{}
+type uint16Decoder struct {
+	descType reflect.Type
+}
 
-var uint16dec uint16Decoder
+var uint16dec = uint16Decoder{reflect.TypeOf((*uint16)(nil)).Elem()}
 
-func (valdec uint16Decoder) decode(dec *Decoder, p interface{}, tag byte) uint16 {
+func (valdec uint16Decoder) decode(dec *Decoder, tag byte) uint16 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint16(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -388,9 +405,9 @@ func (valdec uint16Decoder) decode(dec *Decoder, p interface{}, tag byte) uint16
 	case TagUTF8Char:
 		return uint16(dec.stringToUint64(dec.readUnsafeString(1)))
 	case TagString:
-		return uint16(dec.stringToUint64(dec.ReadUnsafeString()))
+		return uint16(dec.stringToUint64(dec.ReadString()))
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -405,7 +422,7 @@ func (valdec uint16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -418,16 +435,18 @@ func (valdec uint16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // uint32Decoder is the implementation of ValueDecoder for uint32.
-type uint32Decoder struct{}
+type uint32Decoder struct {
+	descType reflect.Type
+}
 
-var uint32dec uint32Decoder
+var uint32dec = uint32Decoder{reflect.TypeOf((*uint32)(nil)).Elem()}
 
-func (valdec uint32Decoder) decode(dec *Decoder, p interface{}, tag byte) uint32 {
+func (valdec uint32Decoder) decode(dec *Decoder, tag byte) uint32 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint32(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -438,9 +457,9 @@ func (valdec uint32Decoder) decode(dec *Decoder, p interface{}, tag byte) uint32
 	case TagUTF8Char:
 		return uint32(dec.stringToUint64(dec.readUnsafeString(1)))
 	case TagString:
-		return uint32(dec.stringToUint64(dec.ReadUnsafeString()))
+		return uint32(dec.stringToUint64(dec.ReadString()))
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -455,7 +474,7 @@ func (valdec uint32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -468,16 +487,18 @@ func (valdec uint32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // uint64Decoder is the implementation of ValueDecoder for uint64.
-type uint64Decoder struct{}
+type uint64Decoder struct {
+	descType reflect.Type
+}
 
-var uint64dec uint64Decoder
+var uint64dec = uint64Decoder{reflect.TypeOf((*uint64)(nil)).Elem()}
 
-func (valdec uint64Decoder) decode(dec *Decoder, p interface{}, tag byte) uint64 {
+func (valdec uint64Decoder) decode(dec *Decoder, tag byte) uint64 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return i
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -488,9 +509,9 @@ func (valdec uint64Decoder) decode(dec *Decoder, p interface{}, tag byte) uint64
 	case TagUTF8Char:
 		return dec.stringToUint64(dec.readUnsafeString(1))
 	case TagString:
-		return dec.stringToUint64(dec.ReadUnsafeString())
+		return dec.stringToUint64(dec.ReadString())
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -505,7 +526,7 @@ func (valdec uint64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
@@ -518,16 +539,18 @@ func (valdec uint64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 }
 
 // uintptrDecoder is the implementation of ValueDecoder for uintptr.
-type uintptrDecoder struct{}
+type uintptrDecoder struct {
+	descType reflect.Type
+}
 
-var uptrdec uintptrDecoder
+var uptrdec = uintptrDecoder{reflect.TypeOf((*uintptr)(nil)).Elem()}
 
-func (valdec uintptrDecoder) decode(dec *Decoder, p interface{}, tag byte) uintptr {
+func (valdec uintptrDecoder) decode(dec *Decoder, tag byte) uintptr {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uintptr(i)
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		return 0
 	case TagTrue:
 		return 1
@@ -538,9 +561,9 @@ func (valdec uintptrDecoder) decode(dec *Decoder, p interface{}, tag byte) uintp
 	case TagUTF8Char:
 		return uintptr(dec.stringToUint64(dec.readUnsafeString(1)))
 	case TagString:
-		return uintptr(dec.stringToUint64(dec.ReadUnsafeString()))
+		return uintptr(dec.stringToUint64(dec.ReadString()))
 	default:
-		dec.decodeError(p, tag)
+		dec.decodeError(valdec.descType, tag)
 	}
 	return 0
 }
@@ -555,7 +578,7 @@ func (valdec uintptrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		return
 	}
-	i := valdec.decode(dec, p, tag)
+	i := valdec.decode(dec, tag)
 	if dec.Error != nil {
 		return
 	}
