@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/complex_decoder.go                              |
 |                                                          |
-| LastModified: Jun 1, 2020                                |
+| LastModified: Jun 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -54,25 +54,26 @@ func (valdec complex64Decoder) decode(dec *Decoder, tag byte) complex64 {
 	return 0
 }
 
-func (valdec complex64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+func (valdec complex64Decoder) decodeValue(dec *Decoder, pv *complex64, tag byte) {
+	if c := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = c
+	}
+}
+
+func (valdec complex64Decoder) decodePtr(dec *Decoder, pv **complex64, tag byte) {
 	if tag == TagNull {
-		switch pv := p.(type) {
-		case **complex64:
-			*pv = nil
-		case *complex64:
-			*pv = 0
-		}
-		return
+		*pv = nil
+	} else if c := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &c
 	}
-	b := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
+}
+
+func (valdec complex64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	switch pv := p.(type) {
-	case **complex64:
-		*pv = &b
 	case *complex64:
-		*pv = b
+		valdec.decodeValue(dec, pv, tag)
+	case **complex64:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -110,25 +111,26 @@ func (valdec complex128Decoder) decode(dec *Decoder, tag byte) complex128 {
 	return 0
 }
 
-func (valdec complex128Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+func (valdec complex128Decoder) decodeValue(dec *Decoder, pv *complex128, tag byte) {
+	if c := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = c
+	}
+}
+
+func (valdec complex128Decoder) decodePtr(dec *Decoder, pv **complex128, tag byte) {
 	if tag == TagNull {
-		switch pv := p.(type) {
-		case **complex128:
-			*pv = nil
-		case *complex128:
-			*pv = 0
-		}
-		return
+		*pv = nil
+	} else if c := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &c
 	}
-	b := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
+}
+
+func (valdec complex128Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	switch pv := p.(type) {
-	case **complex128:
-		*pv = &b
 	case *complex128:
-		*pv = b
+		valdec.decodeValue(dec, pv, tag)
+	case **complex128:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 

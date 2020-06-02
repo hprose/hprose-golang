@@ -82,7 +82,7 @@ func TestDecodeInt(t *testing.T) {
 	dec.Error = nil
 	var ip *int
 	dec.Decode(&ip)
-	assert.Equal(t, (*int)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, 1, *ip) // 1
 }
@@ -149,7 +149,7 @@ func TestDecodeInt8(t *testing.T) {
 	dec.Error = nil
 	var ip *int8
 	dec.Decode(&ip)
-	assert.Equal(t, (*int8)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, int8(1), *ip) // 1
 }
@@ -216,7 +216,7 @@ func TestDecodeInt16(t *testing.T) {
 	dec.Error = nil
 	var ip *int16
 	dec.Decode(&ip)
-	assert.Equal(t, (*int16)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, int16(1), *ip) // 1
 }
@@ -283,7 +283,7 @@ func TestDecodeInt32(t *testing.T) {
 	dec.Error = nil
 	var ip *int32
 	dec.Decode(&ip)
-	assert.Equal(t, (*int32)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, int32(1), *ip) // 1
 }
@@ -350,7 +350,7 @@ func TestDecodeInt64(t *testing.T) {
 	dec.Error = nil
 	var ip *int64
 	dec.Decode(&ip)
-	assert.Equal(t, (*int64)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, int64(1), *ip) // 1
 }
@@ -417,7 +417,7 @@ func TestDecodeUint(t *testing.T) {
 	dec.Error = nil
 	var ip *uint
 	dec.Decode(&ip)
-	assert.Equal(t, (*uint)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, uint(1), *ip) // 1
 }
@@ -484,7 +484,7 @@ func TestDecodeUint8(t *testing.T) {
 	dec.Error = nil
 	var ip *uint8
 	dec.Decode(&ip)
-	assert.Equal(t, (*uint8)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, uint8(1), *ip) // 1
 }
@@ -551,7 +551,7 @@ func TestDecodeUint16(t *testing.T) {
 	dec.Error = nil
 	var ip *uint16
 	dec.Decode(&ip)
-	assert.Equal(t, (*uint16)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, uint16(1), *ip) // 1
 }
@@ -618,7 +618,7 @@ func TestDecodeUint32(t *testing.T) {
 	dec.Error = nil
 	var ip *uint32
 	dec.Decode(&ip)
-	assert.Equal(t, (*uint32)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, uint32(1), *ip) // 1
 }
@@ -685,7 +685,7 @@ func TestDecodeUint64(t *testing.T) {
 	dec.Error = nil
 	var ip *uint64
 	dec.Decode(&ip)
-	assert.Equal(t, (*uint64)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, uint64(1), *ip) // 1
 }
@@ -751,7 +751,7 @@ func TestDecodeUintptr(t *testing.T) {
 	dec.Error = nil
 	var ip *uintptr
 	dec.Decode(&ip)
-	assert.Equal(t, (*uintptr)(nil), ip) // nil
+	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, uintptr(1), *ip) // 1
 }

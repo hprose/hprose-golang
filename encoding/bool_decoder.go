@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bool_decoder.go                                 |
 |                                                          |
-| LastModified: Jun 1, 2020                                |
+| LastModified: Jun 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -56,25 +56,26 @@ func (valdec boolDecoder) decode(dec *Decoder, tag byte) bool {
 	return false
 }
 
-func (valdec boolDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **bool:
-			*pv = nil
-		case *bool:
-			*pv = false
-		}
-		return
-	}
-	b := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **bool:
-		*pv = &b
-	case *bool:
+func (valdec boolDecoder) decodeValue(dec *Decoder, pv *bool, tag byte) {
+	if b := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = b
+	}
+}
+
+func (valdec boolDecoder) decodePtr(dec *Decoder, pv **bool, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if b := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &b
+	}
+}
+
+func (valdec boolDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *bool:
+		valdec.decodeValue(dec, pv, tag)
+	case **bool:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 

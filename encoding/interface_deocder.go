@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/interface_decoder.go                            |
 |                                                          |
-| LastModified: Apr 25, 2020                               |
+| LastModified: Jun 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -90,12 +90,23 @@ func (valdec interfaceDecoder) decode(dec *Decoder, tag byte) interface{} {
 	return nil
 }
 
+func (valdec interfaceDecoder) decodeValue(dec *Decoder, pv *interface{}, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = i
+	}
+}
+
+func (valdec interfaceDecoder) decodePtr(dec *Decoder, pv **interface{}, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
 func (valdec interfaceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	iface := valdec.decode(dec, tag)
 	switch pv := p.(type) {
 	case *interface{}:
-		*pv = iface
+		valdec.decodeValue(dec, pv, tag)
 	case **interface{}:
-		*pv = &iface
+		valdec.decodePtr(dec, pv, tag)
 	}
 }

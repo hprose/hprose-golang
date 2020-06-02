@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 1, 2020                                |
+| LastModified: Jun 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -97,25 +97,26 @@ func (valdec bigIntDecoder) decode(dec *Decoder, tag byte) *big.Int {
 	return nil
 }
 
-func (valdec bigIntDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+func (valdec bigIntDecoder) decodeValue(dec *Decoder, pv *big.Int, tag byte) {
 	if tag == TagNull {
-		switch pv := p.(type) {
-		case **big.Int:
-			*pv = nil
-		case *big.Int:
-			*pv = *bigIntZero
-		}
-		return
+		*pv = *bigIntZero
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = *i
 	}
-	bi := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
+}
+
+func (valdec bigIntDecoder) decodePtr(dec *Decoder, pv **big.Int, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = i
 	}
+}
+
+func (valdec bigIntDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	switch pv := p.(type) {
-	case **big.Int:
-		*pv = bi
 	case *big.Int:
-		*pv = *bi
+		valdec.decodeValue(dec, pv, tag)
+	case **big.Int:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -154,25 +155,26 @@ func (valdec bigFloatDecoder) decode(dec *Decoder, tag byte) *big.Float {
 	return nil
 }
 
-func (valdec bigFloatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+func (valdec bigFloatDecoder) decodeValue(dec *Decoder, pv *big.Float, tag byte) {
 	if tag == TagNull {
-		switch pv := p.(type) {
-		case **big.Float:
-			*pv = nil
-		case *big.Float:
-			*pv = *bigFloatZero
-		}
-		return
+		*pv = *bigFloatZero
+	} else if f := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = *f
 	}
-	bf := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
+}
+
+func (valdec bigFloatDecoder) decodePtr(dec *Decoder, pv **big.Float, tag byte) {
+	if f := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = f
 	}
+}
+
+func (valdec bigFloatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	switch pv := p.(type) {
-	case **big.Float:
-		*pv = bf
 	case *big.Float:
-		*pv = *bf
+		valdec.decodeValue(dec, pv, tag)
+	case **big.Float:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -208,25 +210,26 @@ func (valdec bigRatDecoder) decode(dec *Decoder, tag byte) *big.Rat {
 	return nil
 }
 
-func (valdec bigRatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+func (valdec bigRatDecoder) decodeValue(dec *Decoder, pv *big.Rat, tag byte) {
 	if tag == TagNull {
-		switch pv := p.(type) {
-		case **big.Rat:
-			*pv = nil
-		case *big.Rat:
-			*pv = *bigRatZero
-		}
-		return
+		*pv = *bigRatZero
+	} else if r := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = *r
 	}
-	br := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
+}
+
+func (valdec bigRatDecoder) decodePtr(dec *Decoder, pv **big.Rat, tag byte) {
+	if r := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = r
 	}
+}
+
+func (valdec bigRatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	switch pv := p.(type) {
-	case **big.Rat:
-		*pv = br
 	case *big.Rat:
-		*pv = *br
+		valdec.decodeValue(dec, pv, tag)
+	case **big.Rat:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 

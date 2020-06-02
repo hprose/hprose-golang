@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/string_decoder.go                               |
 |                                                          |
-| LastModified: Apr 25, 2020                               |
+| LastModified: Jun 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -51,25 +51,26 @@ func (valdec stringDecoder) decode(dec *Decoder, tag byte) string {
 	return ""
 }
 
-func (valdec stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **string:
-			*pv = nil
-		case *string:
-			*pv = ""
-		}
-		return
-	}
-	s := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **string:
-		*pv = &s
-	case *string:
+func (valdec stringDecoder) decodeValue(dec *Decoder, pv *string, tag byte) {
+	if s := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = s
+	}
+}
+
+func (valdec stringDecoder) decodePtr(dec *Decoder, pv **string, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if s := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &s
+	}
+}
+
+func (valdec stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *string:
+		valdec.decodeValue(dec, pv, tag)
+	case **string:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 

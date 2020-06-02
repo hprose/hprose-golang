@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/float_decoder.go                                |
 |                                                          |
-| LastModified: Jun 1, 2020                                |
+| LastModified: Jun 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -53,25 +53,26 @@ func (valdec float32Decoder) decode(dec *Decoder, tag byte) float32 {
 	return 0
 }
 
-func (valdec float32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **float32:
-			*pv = nil
-		case *float32:
-			*pv = 0
-		}
-		return
-	}
-	f := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **float32:
-		*pv = &f
-	case *float32:
+func (valdec float32Decoder) decodeValue(dec *Decoder, pv *float32, tag byte) {
+	if f := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = f
+	}
+}
+
+func (valdec float32Decoder) decodePtr(dec *Decoder, pv **float32, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if f := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &f
+	}
+}
+
+func (valdec float32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *float32:
+		valdec.decodeValue(dec, pv, tag)
+	case **float32:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -109,25 +110,26 @@ func (valdec float64Decoder) decode(dec *Decoder, tag byte) float64 {
 	return 0
 }
 
-func (valdec float64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **float64:
-			*pv = nil
-		case *float64:
-			*pv = 0
-		}
-		return
-	}
-	f := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **float64:
-		*pv = &f
-	case *float64:
+func (valdec float64Decoder) decodeValue(dec *Decoder, pv *float64, tag byte) {
+	if f := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = f
+	}
+}
+
+func (valdec float64Decoder) decodePtr(dec *Decoder, pv **float64, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if f := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &f
+	}
+}
+
+func (valdec float64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *float64:
+		valdec.decodeValue(dec, pv, tag)
+	case **float64:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 

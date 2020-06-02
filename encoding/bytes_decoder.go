@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bytes_decoder.go                                |
 |                                                          |
-| LastModified: Jun 1, 2020                                |
+| LastModified: Jun 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -46,25 +46,24 @@ func (valdec bytesDecoder) decode(dec *Decoder, tag byte) []byte {
 	return nil
 }
 
+func (valdec bytesDecoder) decodeValue(dec *Decoder, pv *[]byte, tag byte) {
+	if bytes := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = bytes
+	}
+}
+
+func (valdec bytesDecoder) decodePtr(dec *Decoder, pv **[]byte, tag byte) {
+	if bytes := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &bytes
+	}
+}
+
 func (valdec bytesDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **[]byte:
-			*pv = nil
-		case *[]byte:
-			*pv = nil
-		}
-		return
-	}
-	b := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
 	switch pv := p.(type) {
-	case **[]byte:
-		*pv = &b
 	case *[]byte:
-		*pv = b
+		valdec.decodeValue(dec, pv, tag)
+	case **[]byte:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 

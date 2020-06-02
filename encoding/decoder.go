@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: May 23, 2020                               |
+| LastModified: Jun 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -84,43 +84,83 @@ func NewDecoderFromReader(reader io.Reader, bufSize int) *Decoder {
 }
 
 func (dec *Decoder) decode(p interface{}, tag byte) {
-	switch p.(type) {
-	case *int, **int:
-		intdec.Decode(dec, p, tag)
-	case *int8, **int8:
-		int8dec.Decode(dec, p, tag)
-	case *int16, **int16:
-		int16dec.Decode(dec, p, tag)
-	case *int32, **int32:
-		int32dec.Decode(dec, p, tag)
-	case *int64, **int64:
-		int64dec.Decode(dec, p, tag)
-	case *uint, **uint:
-		uintdec.Decode(dec, p, tag)
-	case *uint8, **uint8:
-		uint8dec.Decode(dec, p, tag)
-	case *uint16, **uint16:
-		uint16dec.Decode(dec, p, tag)
-	case *uint32, **uint32:
-		uint32dec.Decode(dec, p, tag)
-	case *uint64, **uint64:
-		uint64dec.Decode(dec, p, tag)
-	case *uintptr, **uintptr:
-		uptrdec.Decode(dec, p, tag)
-	case *float32, **float32:
-		f32dec.Decode(dec, p, tag)
-	case *float64, **float64:
-		f64dec.Decode(dec, p, tag)
-	case *bool, **bool:
-		booldec.Decode(dec, p, tag)
-	case *string, **string:
-		strdec.Decode(dec, p, tag)
-	case *complex64, **complex64:
-		c64dec.Decode(dec, p, tag)
-	case *complex128, **complex128:
-		c128dec.Decode(dec, p, tag)
-	case *interface{}, **interface{}:
-		ifacedec.Decode(dec, p, tag)
+	switch pv := p.(type) {
+	case *int:
+		intdec.decodeValue(dec, pv, tag)
+	case *int8:
+		int8dec.decodeValue(dec, pv, tag)
+	case *int16:
+		int16dec.decodeValue(dec, pv, tag)
+	case *int32:
+		int32dec.decodeValue(dec, pv, tag)
+	case *int64:
+		int64dec.decodeValue(dec, pv, tag)
+	case *uint:
+		uintdec.decodeValue(dec, pv, tag)
+	case *uint8:
+		uint8dec.decodeValue(dec, pv, tag)
+	case *uint16:
+		uint16dec.decodeValue(dec, pv, tag)
+	case *uint32:
+		uint32dec.decodeValue(dec, pv, tag)
+	case *uint64:
+		uint64dec.decodeValue(dec, pv, tag)
+	case *uintptr:
+		uptrdec.decodeValue(dec, pv, tag)
+	case *float32:
+		f32dec.decodeValue(dec, pv, tag)
+	case *float64:
+		f64dec.decodeValue(dec, pv, tag)
+	case *bool:
+		booldec.decodeValue(dec, pv, tag)
+	case *string:
+		strdec.decodeValue(dec, pv, tag)
+	case *complex64:
+		c64dec.decodeValue(dec, pv, tag)
+	case *complex128:
+		c128dec.decodeValue(dec, pv, tag)
+	case *[]byte:
+		bytesdec.decodeValue(dec, pv, tag)
+	case *interface{}:
+		ifacedec.decodeValue(dec, pv, tag)
+	case **int:
+		intdec.decodePtr(dec, pv, tag)
+	case **int8:
+		int8dec.decodePtr(dec, pv, tag)
+	case **int16:
+		int16dec.decodePtr(dec, pv, tag)
+	case **int32:
+		int32dec.decodePtr(dec, pv, tag)
+	case **int64:
+		int64dec.decodePtr(dec, pv, tag)
+	case **uint:
+		uintdec.decodePtr(dec, pv, tag)
+	case **uint8:
+		uint8dec.decodePtr(dec, pv, tag)
+	case **uint16:
+		uint16dec.decodePtr(dec, pv, tag)
+	case **uint32:
+		uint32dec.decodePtr(dec, pv, tag)
+	case **uint64:
+		uint64dec.decodePtr(dec, pv, tag)
+	case **uintptr:
+		uptrdec.decodePtr(dec, pv, tag)
+	case **float32:
+		f32dec.decodePtr(dec, pv, tag)
+	case **float64:
+		f64dec.decodePtr(dec, pv, tag)
+	case **bool:
+		booldec.decodePtr(dec, pv, tag)
+	case **string:
+		strdec.decodePtr(dec, pv, tag)
+	case **complex64:
+		c64dec.decodePtr(dec, pv, tag)
+	case **complex128:
+		c128dec.decodePtr(dec, pv, tag)
+	case **[]byte:
+		bytesdec.decodePtr(dec, pv, tag)
+	case **interface{}:
+		ifacedec.decodePtr(dec, pv, tag)
 	}
 	if valdec := GetValueDecoder(p); valdec != nil {
 		valdec.Decode(dec, p, tag)

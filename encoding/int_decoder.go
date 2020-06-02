@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 1, 2020                                |
+| LastModified: Jun 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -48,25 +48,26 @@ func (valdec intDecoder) decode(dec *Decoder, tag byte) int {
 	return 0
 }
 
-func (valdec intDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **int:
-			*pv = nil
-		case *int:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **int:
-		*pv = &i
-	case *int:
+func (valdec intDecoder) decodeValue(dec *Decoder, pv *int, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec intDecoder) decodePtr(dec *Decoder, pv **int, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec intDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *int:
+		valdec.decodeValue(dec, pv, tag)
+	case **int:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -100,25 +101,26 @@ func (valdec int8Decoder) decode(dec *Decoder, tag byte) int8 {
 	return 0
 }
 
-func (valdec int8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **int8:
-			*pv = nil
-		case *int8:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **int8:
-		*pv = &i
-	case *int8:
+func (valdec int8Decoder) decodeValue(dec *Decoder, pv *int8, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec int8Decoder) decodePtr(dec *Decoder, pv **int8, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec int8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *int8:
+		valdec.decodeValue(dec, pv, tag)
+	case **int8:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -152,25 +154,26 @@ func (valdec int16Decoder) decode(dec *Decoder, tag byte) int16 {
 	return 0
 }
 
-func (valdec int16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **int16:
-			*pv = nil
-		case *int16:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **int16:
-		*pv = &i
-	case *int16:
+func (valdec int16Decoder) decodeValue(dec *Decoder, pv *int16, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec int16Decoder) decodePtr(dec *Decoder, pv **int16, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec int16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *int16:
+		valdec.decodeValue(dec, pv, tag)
+	case **int16:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -204,25 +207,26 @@ func (valdec int32Decoder) decode(dec *Decoder, tag byte) int32 {
 	return 0
 }
 
-func (valdec int32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **int32:
-			*pv = nil
-		case *int32:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **int32:
-		*pv = &i
-	case *int32:
+func (valdec int32Decoder) decodeValue(dec *Decoder, pv *int32, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec int32Decoder) decodePtr(dec *Decoder, pv **int32, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec int32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *int32:
+		valdec.decodeValue(dec, pv, tag)
+	case **int32:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -256,25 +260,26 @@ func (valdec int64Decoder) decode(dec *Decoder, tag byte) int64 {
 	return 0
 }
 
-func (valdec int64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **int64:
-			*pv = nil
-		case *int64:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **int64:
-		*pv = &i
-	case *int64:
+func (valdec int64Decoder) decodeValue(dec *Decoder, pv *int64, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec int64Decoder) decodePtr(dec *Decoder, pv **int64, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec int64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *int64:
+		valdec.decodeValue(dec, pv, tag)
+	case **int64:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -308,25 +313,26 @@ func (valdec uintDecoder) decode(dec *Decoder, tag byte) uint {
 	return 0
 }
 
-func (valdec uintDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **uint:
-			*pv = nil
-		case *uint:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **uint:
-		*pv = &i
-	case *uint:
+func (valdec uintDecoder) decodeValue(dec *Decoder, pv *uint, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec uintDecoder) decodePtr(dec *Decoder, pv **uint, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec uintDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *uint:
+		valdec.decodeValue(dec, pv, tag)
+	case **uint:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -360,25 +366,26 @@ func (valdec uint8Decoder) decode(dec *Decoder, tag byte) uint8 {
 	return 0
 }
 
-func (valdec uint8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **uint8:
-			*pv = nil
-		case *uint8:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **uint8:
-		*pv = &i
-	case *uint8:
+func (valdec uint8Decoder) decodeValue(dec *Decoder, pv *uint8, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec uint8Decoder) decodePtr(dec *Decoder, pv **uint8, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec uint8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *uint8:
+		valdec.decodeValue(dec, pv, tag)
+	case **uint8:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -412,25 +419,26 @@ func (valdec uint16Decoder) decode(dec *Decoder, tag byte) uint16 {
 	return 0
 }
 
-func (valdec uint16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **uint16:
-			*pv = nil
-		case *uint16:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **uint16:
-		*pv = &i
-	case *uint16:
+func (valdec uint16Decoder) decodeValue(dec *Decoder, pv *uint16, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec uint16Decoder) decodePtr(dec *Decoder, pv **uint16, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec uint16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *uint16:
+		valdec.decodeValue(dec, pv, tag)
+	case **uint16:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -464,25 +472,26 @@ func (valdec uint32Decoder) decode(dec *Decoder, tag byte) uint32 {
 	return 0
 }
 
-func (valdec uint32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **uint32:
-			*pv = nil
-		case *uint32:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **uint32:
-		*pv = &i
-	case *uint32:
+func (valdec uint32Decoder) decodeValue(dec *Decoder, pv *uint32, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec uint32Decoder) decodePtr(dec *Decoder, pv **uint32, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec uint32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *uint32:
+		valdec.decodeValue(dec, pv, tag)
+	case **uint32:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -516,25 +525,26 @@ func (valdec uint64Decoder) decode(dec *Decoder, tag byte) uint64 {
 	return 0
 }
 
-func (valdec uint64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **uint64:
-			*pv = nil
-		case *uint64:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **uint64:
-		*pv = &i
-	case *uint64:
+func (valdec uint64Decoder) decodeValue(dec *Decoder, pv *uint64, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec uint64Decoder) decodePtr(dec *Decoder, pv **uint64, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec uint64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *uint64:
+		valdec.decodeValue(dec, pv, tag)
+	case **uint64:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
@@ -568,25 +578,26 @@ func (valdec uintptrDecoder) decode(dec *Decoder, tag byte) uintptr {
 	return 0
 }
 
-func (valdec uintptrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	if tag == TagNull {
-		switch pv := p.(type) {
-		case **uintptr:
-			*pv = nil
-		case *uintptr:
-			*pv = 0
-		}
-		return
-	}
-	i := valdec.decode(dec, tag)
-	if dec.Error != nil {
-		return
-	}
-	switch pv := p.(type) {
-	case **uintptr:
-		*pv = &i
-	case *uintptr:
+func (valdec uintptrDecoder) decodeValue(dec *Decoder, pv *uintptr, tag byte) {
+	if i := valdec.decode(dec, tag); dec.Error == nil {
 		*pv = i
+	}
+}
+
+func (valdec uintptrDecoder) decodePtr(dec *Decoder, pv **uintptr, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if i := valdec.decode(dec, tag); dec.Error == nil {
+		*pv = &i
+	}
+}
+
+func (valdec uintptrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch pv := p.(type) {
+	case *uintptr:
+		valdec.decodeValue(dec, pv, tag)
+	case **uintptr:
+		valdec.decodePtr(dec, pv, tag)
 	}
 }
 
