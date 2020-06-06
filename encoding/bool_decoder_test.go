@@ -4,9 +4,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| encoding/int_decoder_test.go                             |
+| encoding/bool_decoder_test.go                            |
 |                                                          |
-| LastModified: May 23, 2020                               |
+| LastModified: Jun 6, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
