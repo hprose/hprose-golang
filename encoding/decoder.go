@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"io"
 	"math"
+	"math/big"
 	"reflect"
 )
 
@@ -83,7 +84,7 @@ func NewDecoderFromReader(reader io.Reader, bufSize int) *Decoder {
 	}
 }
 
-func (dec *Decoder) decode(p interface{}, tag byte) {
+func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	switch pv := p.(type) {
 	case *int:
 		intdec.decodeValue(dec, pv, tag)
@@ -123,6 +124,12 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 		bytesdec.decodeValue(dec, pv, tag)
 	case *interface{}:
 		ifacedec.decodeValue(dec, pv, tag)
+	case *big.Int:
+		bigintdec.decodeValue(dec, pv, tag)
+	case *big.Float:
+		bigfloatdec.decodeValue(dec, pv, tag)
+	case *big.Rat:
+		bigratdec.decodeValue(dec, pv, tag)
 	case **int:
 		intdec.decodePtr(dec, pv, tag)
 	case **int8:
@@ -161,7 +168,98 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 		bytesdec.decodePtr(dec, pv, tag)
 	case **interface{}:
 		ifacedec.decodePtr(dec, pv, tag)
+	case **big.Int:
+		bigintdec.decodePtr(dec, pv, tag)
+	case **big.Float:
+		bigfloatdec.decodePtr(dec, pv, tag)
+	case **big.Rat:
+		bigratdec.decodePtr(dec, pv, tag)
+	default:
+		return false
 	}
+	return true
+}
+
+func (dec *Decoder) fastDecodeSlice(p interface{}, tag byte) bool {
+	switch p.(type) {
+	case *[]int:
+		intsdec.Decode(dec, p, tag)
+	case *[]int8:
+		int8sdec.Decode(dec, p, tag)
+	case *[]int16:
+		int16sdec.Decode(dec, p, tag)
+	case *[]int32:
+		int32sdec.Decode(dec, p, tag)
+	case *[]int64:
+		int64sdec.Decode(dec, p, tag)
+	case *[]uint:
+		uintsdec.Decode(dec, p, tag)
+	case *[]uint16:
+		uint16sdec.Decode(dec, p, tag)
+	case *[]uint32:
+		uint32sdec.Decode(dec, p, tag)
+	case *[]uint64:
+		uint64sdec.Decode(dec, p, tag)
+	case *[]uintptr:
+		uptrsdec.Decode(dec, p, tag)
+	case *[]bool:
+		boolsdec.Decode(dec, p, tag)
+	case *[]float32:
+		f32sdec.Decode(dec, p, tag)
+	case *[]float64:
+		f64sdec.Decode(dec, p, tag)
+	case *[]complex64:
+		c64sdec.Decode(dec, p, tag)
+	case *[]complex128:
+		c128sdec.Decode(dec, p, tag)
+	case *[]string:
+		strsdec.Decode(dec, p, tag)
+	case *[]interface{}:
+		ifacesdec.Decode(dec, p, tag)
+	case *[]*big.Int:
+		bigintsdec.Decode(dec, p, tag)
+	case *[]*big.Float:
+		bigfloatsdec.Decode(dec, p, tag)
+	case *[]*big.Rat:
+		bigratsdec.Decode(dec, p, tag)
+	default:
+		return false
+	}
+	return true
+}
+
+func (dec *Decoder) decode(p interface{}, tag byte) {
+	if dec.fastDecode(p, tag) {
+		return
+	}
+	if dec.fastDecodeSlice(p, tag) {
+		return
+	}
+
+	typ := reflect.TypeOf(p).Elem()
+
+	switch typ.Kind() {
+	case reflect.Slice:
+		valdec := getOtherDecoder(typ)
+		if valdec == nil {
+			valdec = sliceDecoder{
+				typ,
+				func(p interface{}) {
+					reflect.ValueOf(p).Elem().Set(reflect.Zero(typ))
+				},
+				func(p interface{}) {
+					reflect.ValueOf(p).Elem().Set(reflect.MakeSlice(typ, 0, 0))
+				},
+				func(dec *Decoder, p interface{}) {
+					reflect.ValueOf(p).Elem().Set(dec.readListAsSlice(typ))
+				},
+			}
+			registerValueDecoder(typ, valdec)
+		}
+		valdec.Decode(dec, p, tag)
+		return
+	}
+
 	if valdec := GetValueDecoder(p); valdec != nil {
 		valdec.Decode(dec, p, tag)
 	}
