@@ -242,7 +242,7 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 	case reflect.Slice:
 		valdec := getOtherDecoder(typ)
 		if valdec == nil {
-			valdec = sliceDecoder{
+			valdec = SliceDecoder{
 				typ,
 				func(p interface{}) {
 					reflect.ValueOf(p).Elem().Set(reflect.Zero(typ))
