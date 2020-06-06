@@ -24,7 +24,7 @@ type bytesDecoder struct {
 	destType reflect.Type
 }
 
-var bytesdec = bytesDecoder{reflect.TypeOf((*[]byte)(nil)).Elem()}
+var bytesdec = bytesDecoder{reflect.TypeOf(([]byte)(nil))}
 
 func (valdec bytesDecoder) decode(dec *Decoder, tag byte) []byte {
 	switch tag {
