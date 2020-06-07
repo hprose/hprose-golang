@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/value_decoder.go                                |
 |                                                          |
-| LastModified: Apr 18, 2020                               |
+| LastModified: Jun 7, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,6 +16,8 @@ package encoding
 import (
 	"reflect"
 	"sync"
+
+	"github.com/modern-go/reflect2"
 )
 
 // ValueDecoder is the interface that groups the basic Decode methods.
@@ -49,6 +51,24 @@ func getStructDecoder(t reflect.Type) ValueDecoder {
 func getOtherDecoder(t reflect.Type) ValueDecoder {
 	if valdec, ok := otherDecoderMap.Load(t); ok {
 		return valdec.(ValueDecoder)
+	}
+	switch t.Kind() {
+	case reflect.Slice:
+		t2 := reflect2.Type2(t).(*reflect2.UnsafeSliceType)
+		valdec := SliceDecoder{
+			t,
+			func(p interface{}) {
+				t2.UnsafeSetNil(reflect2.PtrOf(p))
+			},
+			func(p interface{}) {
+				t2.UnsafeSet(reflect2.PtrOf(p), t2.UnsafeMakeSlice(0, 0))
+			},
+			func(dec *Decoder, p interface{}) {
+				t2.Set(p, dec.readListAsSlice(t2))
+			},
+		}
+		registerValueDecoder(t, valdec)
+		return valdec
 	}
 	return nil
 }

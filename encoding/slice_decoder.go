@@ -16,6 +16,8 @@ package encoding
 import (
 	"math/big"
 	"reflect"
+
+	"github.com/modern-go/reflect2"
 )
 
 // SliceDecoder is the implementation of ValueDecoder for []T.
@@ -260,13 +262,12 @@ func (dec *Decoder) readListAsBigRatSlice() []*big.Rat {
 	return slice
 }
 
-func (dec *Decoder) readListAsSlice(typ reflect.Type) reflect.Value {
+func (dec *Decoder) readListAsSlice(t *reflect2.UnsafeSliceType) interface{} {
 	count := dec.ReadInt()
-	slice := reflect.MakeSlice(typ, count, count)
-	v := slice.Interface()
-	dec.AddReference(v)
+	slice := t.MakeSlice(count, count)
+	dec.AddReference(slice)
 	for i := 0; i < count; i++ {
-		dec.Decode(slice.Index(i).Addr().Interface())
+		dec.Decode(t.GetIndex(slice, i))
 	}
 	dec.Skip()
 	return slice

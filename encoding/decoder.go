@@ -241,21 +241,7 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 	switch typ.Kind() {
 	case reflect.Slice:
 		valdec := getOtherDecoder(typ)
-		if valdec == nil {
-			valdec = SliceDecoder{
-				typ,
-				func(p interface{}) {
-					reflect.ValueOf(p).Elem().Set(reflect.Zero(typ))
-				},
-				func(p interface{}) {
-					reflect.ValueOf(p).Elem().Set(reflect.MakeSlice(typ, 0, 0))
-				},
-				func(dec *Decoder, p interface{}) {
-					reflect.ValueOf(p).Elem().Set(dec.readListAsSlice(typ))
-				},
-			}
-			registerValueDecoder(typ, valdec)
-		}
+
 		valdec.Decode(dec, p, tag)
 		return
 	}
