@@ -13,66 +13,11 @@
 
 package encoding
 
-import "reflect"
+import (
+	"reflect"
 
-// stringDecoder is the implementation of ValueDecoder for string.
-type stringDecoder struct {
-	destType reflect.Type
-}
-
-var strdec = stringDecoder{reflect.TypeOf((*string)(nil)).Elem()}
-
-func (valdec stringDecoder) decode(dec *Decoder, tag byte) string {
-	switch tag {
-	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		return string(tag)
-	case TagNull, TagEmpty:
-		return ""
-	case TagTrue:
-		return "true"
-	case TagFalse:
-		return "false"
-	case TagNaN:
-		return "NaN"
-	case TagInfinity:
-		if dec.NextByte() == TagNeg {
-			return "-Inf"
-		}
-		return "+Inf"
-	case TagInteger, TagLong, TagDouble:
-		return string(dec.Until(TagSemicolon))
-	case TagUTF8Char:
-		return dec.readSafeString(1)
-	case TagString:
-		return dec.ReadString()
-	default:
-		dec.decodeError(valdec.destType, tag)
-	}
-	return ""
-}
-
-func (valdec stringDecoder) decodeValue(dec *Decoder, pv *string, tag byte) {
-	if s := valdec.decode(dec, tag); dec.Error == nil {
-		*pv = s
-	}
-}
-
-func (valdec stringDecoder) decodePtr(dec *Decoder, pv **string, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if s := valdec.decode(dec, tag); dec.Error == nil {
-		*pv = &s
-	}
-}
-
-func (valdec stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	switch pv := p.(type) {
-	case *string:
-		valdec.decodeValue(dec, pv, tag)
-	case **string:
-		valdec.decodePtr(dec, pv, tag)
-	}
-}
+	"github.com/modern-go/reflect2"
+)
 
 func (dec *Decoder) fastReadStringAsBytes(utf16Length int) (data []byte) {
 	buf := dec.buf[dec.head:dec.tail]
@@ -201,4 +146,83 @@ func (dec *Decoder) ReadString() (s string) {
 	s = dec.ReadSafeString()
 	dec.AddReference(s)
 	return
+}
+
+func (dec *Decoder) decodeString(t reflect.Type, tag byte) string {
+	switch tag {
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return string(tag)
+	case TagNull, TagEmpty:
+		return ""
+	case TagTrue:
+		return "true"
+	case TagFalse:
+		return "false"
+	case TagNaN:
+		return "NaN"
+	case TagInfinity:
+		if dec.NextByte() == TagNeg {
+			return "-Inf"
+		}
+		return "+Inf"
+	case TagInteger, TagLong, TagDouble:
+		return string(dec.Until(TagSemicolon))
+	case TagUTF8Char:
+		return dec.readSafeString(1)
+	case TagString:
+		return dec.ReadString()
+	default:
+		dec.decodeError(t, tag)
+	}
+	return ""
+}
+
+// stringDecoder is the implementation of ValueDecoder for string.
+type stringDecoder struct {
+	t reflect.Type
+}
+
+func (valdec stringDecoder) decode(dec *Decoder, pv *string, tag byte) {
+	if s := dec.decodeString(valdec.t, tag); dec.Error == nil {
+		*pv = s
+	}
+}
+
+func (valdec stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	valdec.decode(dec, (*string)(reflect2.PtrOf(p)), tag)
+}
+
+func (valdec stringDecoder) Type() reflect.Type {
+	return valdec.t
+}
+
+// stringPtrDecoder is the implementation of ValueDecoder for *string.
+type stringPtrDecoder struct {
+	t reflect.Type
+}
+
+func (valdec stringPtrDecoder) decode(dec *Decoder, pv **string, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if s := dec.decodeString(valdec.t, tag); dec.Error == nil {
+		*pv = &s
+	}
+}
+
+func (valdec stringPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	valdec.decode(dec, (**string)(reflect2.PtrOf(p)), tag)
+}
+
+func (valdec stringPtrDecoder) Type() reflect.Type {
+	return valdec.t
+}
+
+var (
+	sdec  = stringDecoder{reflect.TypeOf("")}
+	psdec = stringPtrDecoder{reflect.TypeOf((*string)(nil))}
+)
+
+func init() {
+	RegisterValueDecoder(sdec)
+	RegisterValueDecoder(psdec)
 }

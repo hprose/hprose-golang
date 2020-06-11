@@ -150,6 +150,6 @@ func (enc *Encoder) writePtr(v interface{}, encode func(m ValueEncoder, v interf
 		encode(intfenc, e.Interface())
 	default:
 		enc.WriteNil()
-		enc.Error = &UnsupportedTypeError{Type: reflect.TypeOf(v)}
+		enc.Error = UnsupportedTypeError{Type: reflect.TypeOf(v)}
 	}
 }

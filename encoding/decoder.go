@@ -86,94 +86,102 @@ func NewDecoderFromReader(reader io.Reader, bufSize int) *Decoder {
 
 func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	switch pv := p.(type) {
-	case *int:
-		intdec.decodeValue(dec, pv, tag)
-	case *int8:
-		int8dec.decodeValue(dec, pv, tag)
-	case *int16:
-		int16dec.decodeValue(dec, pv, tag)
-	case *int32:
-		int32dec.decodeValue(dec, pv, tag)
-	case *int64:
-		int64dec.decodeValue(dec, pv, tag)
-	case *uint:
-		uintdec.decodeValue(dec, pv, tag)
-	case *uint8:
-		uint8dec.decodeValue(dec, pv, tag)
-	case *uint16:
-		uint16dec.decodeValue(dec, pv, tag)
-	case *uint32:
-		uint32dec.decodeValue(dec, pv, tag)
-	case *uint64:
-		uint64dec.decodeValue(dec, pv, tag)
-	case *uintptr:
-		uptrdec.decodeValue(dec, pv, tag)
-	case *float32:
-		f32dec.decodeValue(dec, pv, tag)
-	case *float64:
-		f64dec.decodeValue(dec, pv, tag)
 	case *bool:
-		booldec.decodeValue(dec, pv, tag)
-	case *string:
-		strdec.decodeValue(dec, pv, tag)
+		bdec.decode(dec, pv, tag)
+	case *int:
+		idec.decode(dec, pv, tag)
+	case *int8:
+		i8dec.decode(dec, pv, tag)
+	case *int16:
+		i16dec.decode(dec, pv, tag)
+	case *int32:
+		i32dec.decode(dec, pv, tag)
+	case *int64:
+		i64dec.decode(dec, pv, tag)
+	case *uint:
+		udec.decode(dec, pv, tag)
+	case *uint8:
+		u8dec.decode(dec, pv, tag)
+	case *uint16:
+		u16dec.decode(dec, pv, tag)
+	case *uint32:
+		u32dec.decode(dec, pv, tag)
+	case *uint64:
+		u64dec.decode(dec, pv, tag)
+	case *uintptr:
+		updec.decode(dec, pv, tag)
+	case *float32:
+		f32dec.decode(dec, pv, tag)
+	case *float64:
+		f64dec.decode(dec, pv, tag)
 	case *complex64:
-		c64dec.decodeValue(dec, pv, tag)
+		c64dec.decode(dec, pv, tag)
 	case *complex128:
-		c128dec.decodeValue(dec, pv, tag)
-	case *[]byte:
-		bytesdec.decodeValue(dec, pv, tag)
+		c128dec.decode(dec, pv, tag)
 	case *interface{}:
-		ifacedec.decodeValue(dec, pv, tag)
+		ifdec.decode(dec, pv, tag)
+	case *[]byte:
+		u8sdec.decode(dec, pv, tag)
+	case *string:
+		sdec.decode(dec, pv, tag)
 	case *big.Int:
-		bigintdec.decodeValue(dec, pv, tag)
+		bivdec.decode(dec, pv, tag)
 	case *big.Float:
-		bigfloatdec.decodeValue(dec, pv, tag)
+		bfvdec.decode(dec, pv, tag)
 	case *big.Rat:
-		bigratdec.decodeValue(dec, pv, tag)
-	case **int:
-		intdec.decodePtr(dec, pv, tag)
-	case **int8:
-		int8dec.decodePtr(dec, pv, tag)
-	case **int16:
-		int16dec.decodePtr(dec, pv, tag)
-	case **int32:
-		int32dec.decodePtr(dec, pv, tag)
-	case **int64:
-		int64dec.decodePtr(dec, pv, tag)
-	case **uint:
-		uintdec.decodePtr(dec, pv, tag)
-	case **uint8:
-		uint8dec.decodePtr(dec, pv, tag)
-	case **uint16:
-		uint16dec.decodePtr(dec, pv, tag)
-	case **uint32:
-		uint32dec.decodePtr(dec, pv, tag)
-	case **uint64:
-		uint64dec.decodePtr(dec, pv, tag)
-	case **uintptr:
-		uptrdec.decodePtr(dec, pv, tag)
-	case **float32:
-		f32dec.decodePtr(dec, pv, tag)
-	case **float64:
-		f64dec.decodePtr(dec, pv, tag)
+		brvdec.decode(dec, pv, tag)
+	default:
+		return false
+	}
+	return true
+}
+
+func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
+	switch pv := p.(type) {
 	case **bool:
-		booldec.decodePtr(dec, pv, tag)
-	case **string:
-		strdec.decodePtr(dec, pv, tag)
+		pbdec.decode(dec, pv, tag)
+	case **int:
+		pidec.decode(dec, pv, tag)
+	case **int8:
+		pi8dec.decode(dec, pv, tag)
+	case **int16:
+		pi16dec.decode(dec, pv, tag)
+	case **int32:
+		pi32dec.decode(dec, pv, tag)
+	case **int64:
+		pi64dec.decode(dec, pv, tag)
+	case **uint:
+		pudec.decode(dec, pv, tag)
+	case **uint8:
+		pu8dec.decode(dec, pv, tag)
+	case **uint16:
+		pu16dec.decode(dec, pv, tag)
+	case **uint32:
+		pu32dec.decode(dec, pv, tag)
+	case **uint64:
+		pu64dec.decode(dec, pv, tag)
+	case **uintptr:
+		pupdec.decode(dec, pv, tag)
+	case **float32:
+		pf32dec.decode(dec, pv, tag)
+	case **float64:
+		pf64dec.decode(dec, pv, tag)
 	case **complex64:
-		c64dec.decodePtr(dec, pv, tag)
+		pc64dec.decode(dec, pv, tag)
 	case **complex128:
-		c128dec.decodePtr(dec, pv, tag)
-	case **[]byte:
-		bytesdec.decodePtr(dec, pv, tag)
+		pc128dec.decode(dec, pv, tag)
 	case **interface{}:
-		ifacedec.decodePtr(dec, pv, tag)
+		pifdec.decode(dec, pv, tag)
+	case **[]byte:
+		pu8sdec.decode(dec, pv, tag)
+	case **string:
+		psdec.decode(dec, pv, tag)
 	case **big.Int:
-		bigintdec.decodePtr(dec, pv, tag)
+		bidec.decode(dec, pv, tag)
 	case **big.Float:
-		bigfloatdec.decodePtr(dec, pv, tag)
+		bfdec.decode(dec, pv, tag)
 	case **big.Rat:
-		bigratdec.decodePtr(dec, pv, tag)
+		brdec.decode(dec, pv, tag)
 	default:
 		return false
 	}
@@ -182,28 +190,28 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 
 func (dec *Decoder) fastDecodeSlice(p interface{}, tag byte) bool {
 	switch p.(type) {
-	case *[]int:
-		intsdec.Decode(dec, p, tag)
-	case *[]int8:
-		int8sdec.Decode(dec, p, tag)
-	case *[]int16:
-		int16sdec.Decode(dec, p, tag)
-	case *[]int32:
-		int32sdec.Decode(dec, p, tag)
-	case *[]int64:
-		int64sdec.Decode(dec, p, tag)
-	case *[]uint:
-		uintsdec.Decode(dec, p, tag)
-	case *[]uint16:
-		uint16sdec.Decode(dec, p, tag)
-	case *[]uint32:
-		uint32sdec.Decode(dec, p, tag)
-	case *[]uint64:
-		uint64sdec.Decode(dec, p, tag)
-	case *[]uintptr:
-		uptrsdec.Decode(dec, p, tag)
 	case *[]bool:
-		boolsdec.Decode(dec, p, tag)
+		bsdec.Decode(dec, p, tag)
+	case *[]int:
+		isdec.Decode(dec, p, tag)
+	case *[]int8:
+		i8sdec.Decode(dec, p, tag)
+	case *[]int16:
+		i16sdec.Decode(dec, p, tag)
+	case *[]int32:
+		i32sdec.Decode(dec, p, tag)
+	case *[]int64:
+		i64sdec.Decode(dec, p, tag)
+	case *[]uint:
+		usdec.Decode(dec, p, tag)
+	case *[]uint16:
+		u16sdec.Decode(dec, p, tag)
+	case *[]uint32:
+		u32sdec.Decode(dec, p, tag)
+	case *[]uint64:
+		u64sdec.Decode(dec, p, tag)
+	case *[]uintptr:
+		upsdec.Decode(dec, p, tag)
 	case *[]float32:
 		f32sdec.Decode(dec, p, tag)
 	case *[]float64:
@@ -212,16 +220,16 @@ func (dec *Decoder) fastDecodeSlice(p interface{}, tag byte) bool {
 		c64sdec.Decode(dec, p, tag)
 	case *[]complex128:
 		c128sdec.Decode(dec, p, tag)
-	case *[]string:
-		strsdec.Decode(dec, p, tag)
 	case *[]interface{}:
-		ifacesdec.Decode(dec, p, tag)
+		ifsdec.Decode(dec, p, tag)
+	case *[]string:
+		ssdec.Decode(dec, p, tag)
 	case *[]*big.Int:
-		bigintsdec.Decode(dec, p, tag)
+		bisdec.Decode(dec, p, tag)
 	case *[]*big.Float:
-		bigfloatsdec.Decode(dec, p, tag)
+		bfsdec.Decode(dec, p, tag)
 	case *[]*big.Rat:
-		bigratsdec.Decode(dec, p, tag)
+		brsdec.Decode(dec, p, tag)
 	default:
 		return false
 	}
@@ -232,20 +240,12 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 	if dec.fastDecode(p, tag) {
 		return
 	}
+	if dec.fastDecodePtr(p, tag) {
+		return
+	}
 	if dec.fastDecodeSlice(p, tag) {
 		return
 	}
-
-	typ := reflect.TypeOf(p).Elem()
-
-	switch typ.Kind() {
-	case reflect.Slice:
-		valdec := getOtherDecoder(typ)
-
-		valdec.Decode(dec, p, tag)
-		return
-	}
-
 	if valdec := GetValueDecoder(p); valdec != nil {
 		valdec.Decode(dec, p, tag)
 	}
@@ -424,13 +424,13 @@ func (dec *Decoder) loadMore() bool {
 	}
 }
 
-func (dec *Decoder) decodeStringError(s string, typename string) {
+func (dec *Decoder) decodeStringError(s string, typeName string) {
 	if dec.Error == nil {
-		dec.Error = DecodeError(`hprose/encoding: can not parse "` + s + `" to ` + typename)
+		dec.Error = DecodeError(`hprose/encoding: can not parse "` + s + `" to ` + typeName)
 	}
 }
 
-func (dec *Decoder) decodeError(destType reflect.Type, tag byte) {
+func (dec *Decoder) decodeError(t reflect.Type, tag byte) {
 	if dec.Error == nil {
 		var iface interface{}
 		dec.decode(&iface, tag)
@@ -440,19 +440,19 @@ func (dec *Decoder) decodeError(destType reflect.Type, tag byte) {
 		if v, ok := iface.(float64); ok {
 			switch {
 			case math.IsNaN(v):
-				dec.Error = DecodeError("hprose/encoding: can not parse NaN to " + destType.String())
+				dec.Error = DecodeError("hprose/encoding: can not parse NaN to " + t.String())
 				return
 			case math.IsInf(v, 1):
-				dec.Error = DecodeError("hprose/encoding: can not parse +Inf to " + destType.String())
+				dec.Error = DecodeError("hprose/encoding: can not parse +Inf to " + t.String())
 				return
 			case math.IsInf(v, -1):
-				dec.Error = DecodeError("hprose/encoding: can not parse -Inf to " + destType.String())
+				dec.Error = DecodeError("hprose/encoding: can not parse -Inf to " + t.String())
 				return
 			}
 		}
-		dec.Error = &CastError{
+		dec.Error = CastError{
 			Source:      reflect.TypeOf(iface),
-			Destination: destType,
+			Destination: t,
 		}
 	}
 }

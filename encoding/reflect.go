@@ -14,7 +14,6 @@
 package encoding
 
 import (
-	"reflect"
 	"unsafe"
 )
 
@@ -31,10 +30,16 @@ func unsafeString(bytes []byte) string {
 	return *(*string)(unsafe.Pointer(&bytes))
 }
 
-func checkType(v interface{}) reflect.Type {
-	t := reflect.TypeOf(v)
-	for t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	return t
+// sliceHeader is a safe version of SliceHeader used within this package.
+type sliceHeader struct {
+	Data unsafe.Pointer
+	Len  int
+	Cap  int
+}
+
+func setSliceHeader(slicePtr unsafe.Pointer, arrayPtr unsafe.Pointer, length int) {
+	sliceHeader := (*sliceHeader)(slicePtr)
+	sliceHeader.Data = arrayPtr
+	sliceHeader.Len = length
+	sliceHeader.Cap = length
 }

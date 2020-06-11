@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder_test.go                             |
 |                                                          |
-| LastModified: May 23, 2020                               |
+| LastModified: Jun 11, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -85,6 +85,73 @@ func TestDecodeInt(t *testing.T) {
 	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, 1, *ip) // 1
+}
+
+func TestDecodeCustomInt(t *testing.T) {
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb, true)
+	enc.Encode(-1)
+	enc.Encode(0)
+	enc.Encode(1)
+	enc.Encode(123)
+	enc.Encode(math.MinInt64)
+	enc.Encode(-math.MaxInt64)
+	enc.Encode(uint64(math.MaxUint64))
+	enc.Encode(true)
+	enc.Encode(false)
+	enc.Encode(nil)
+	enc.Encode(3.14)
+	enc.Encode("")
+	enc.Encode("1")
+	enc.Encode("123")
+	enc.Encode("N")
+	enc.Encode("NaN")
+	enc.Encode(nil)
+	enc.Encode(1)
+	dec := NewDecoder(([]byte)(sb.String()))
+	type Int int
+	var i Int
+	var maxUint64 uint64 = math.MaxUint64
+	dec.Decode(&i)
+	assert.Equal(t, Int(-1), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(0), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(1), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(123), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(math.MinInt64), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(-math.MaxInt64), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(maxUint64), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(1), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(0), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(0), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(3), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(0), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(1), i)
+	dec.Decode(&i)
+	assert.Equal(t, Int(123), i)
+	assert.NoError(t, dec.Error)
+	dec.Decode(&i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "N": invalid syntax`)
+	dec.Error = nil
+	dec.Decode(&i)
+	assert.EqualError(t, dec.Error, `strconv.ParseInt: parsing "NaN": invalid syntax`)
+	dec.Error = nil
+	var ip *Int
+	dec.Decode(&ip)
+	assert.Nil(t, ip) // nil
+	dec.Decode(&ip)
+	assert.Equal(t, Int(1), *ip) // 1
 }
 
 func TestDecodeInt8(t *testing.T) {

@@ -31,37 +31,37 @@ func init() {
 	}
 }
 
-// ReadInt8 read int8
+// ReadInt8 reads int8
 func (dec *Decoder) ReadInt8() (value int8) {
 	return int8(dec.ReadInt64())
 }
 
-// ReadUint8 read uint8
+// ReadUint8 reads uint8
 func (dec *Decoder) ReadUint8() (value uint8) {
 	return uint8(dec.ReadUint64())
 }
 
-// ReadInt16 read int16
+// ReadInt16 reads int16
 func (dec *Decoder) ReadInt16() (value int16) {
 	return int16(dec.ReadInt64())
 }
 
-// ReadUint16 read uint16
+// ReadUint16 reads uint16
 func (dec *Decoder) ReadUint16() (value uint16) {
 	return uint16(dec.ReadUint64())
 }
 
-// ReadInt32 read int32
+// ReadInt32 reads int32
 func (dec *Decoder) ReadInt32() (value int32) {
 	return int32(dec.ReadInt64())
 }
 
-// ReadUint32 read uint32
+// ReadUint32 reads uint32
 func (dec *Decoder) ReadUint32() (value uint32) {
 	return uint32(dec.ReadUint64())
 }
 
-// ReadInt64 read int64
+// ReadInt64 reads int64
 func (dec *Decoder) ReadInt64() (value int64) {
 	c := dec.NextByte()
 	if c == '-' {
@@ -70,7 +70,7 @@ func (dec *Decoder) ReadInt64() (value int64) {
 	return int64(dec.readUint64(c))
 }
 
-// ReadUint64 read uint64
+// ReadUint64 reads uint64
 func (dec *Decoder) ReadUint64() (value uint64) {
 	c := dec.NextByte()
 	if c == '-' {
@@ -164,17 +164,17 @@ func (dec *Decoder) readUint64(c byte) (value uint64) {
 	}
 }
 
-// ReadInt read int
+// ReadInt reads int
 func (dec *Decoder) ReadInt() (value int) {
 	return int(dec.ReadInt64())
 }
 
-// ReadUint read uint
+// ReadUint reads uint
 func (dec *Decoder) ReadUint() (value uint) {
 	return uint(dec.ReadUint64())
 }
 
-// ReadFloat32 read float32
+// ReadFloat32 reads float32
 func (dec *Decoder) ReadFloat32() (value float32) {
 	f, err := strconv.ParseFloat(unsafeString(dec.Until(TagSemicolon)), 32)
 	if dec.Error == nil && err != nil {
@@ -183,7 +183,7 @@ func (dec *Decoder) ReadFloat32() (value float32) {
 	return float32(f)
 }
 
-// ReadFloat64 read float64
+// ReadFloat64 reads float64
 func (dec *Decoder) ReadFloat64() (value float64) {
 	f, err := strconv.ParseFloat(unsafeString(dec.Until(TagSemicolon)), 64)
 	if dec.Error == nil && err != nil {

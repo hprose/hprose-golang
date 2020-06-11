@@ -16,16 +16,19 @@ package encoding
 import (
 	"reflect"
 	"strconv"
+
+	"github.com/modern-go/reflect2"
 )
 
-// boolDecoder is the implementation of ValueDecoder for bool.
-type boolDecoder struct {
-	descType reflect.Type
+func (dec *Decoder) stringToBool(s string) bool {
+	b, err := strconv.ParseBool(s)
+	if err != nil {
+		dec.Error = err
+	}
+	return b
 }
 
-var booldec = boolDecoder{reflect.TypeOf((*bool)(nil)).Elem()}
-
-func (valdec boolDecoder) decode(dec *Decoder, tag byte) bool {
+func (dec *Decoder) decodeBool(t reflect.Type, tag byte) bool {
 	if i := intDigits[tag]; i != invalidDigit {
 		return i > 0
 	}
@@ -51,38 +54,57 @@ func (valdec boolDecoder) decode(dec *Decoder, tag byte) bool {
 	case TagString:
 		return dec.stringToBool(dec.ReadString())
 	default:
-		dec.decodeError(valdec.descType, tag)
+		dec.decodeError(t, tag)
 	}
 	return false
 }
 
-func (valdec boolDecoder) decodeValue(dec *Decoder, pv *bool, tag byte) {
-	if b := valdec.decode(dec, tag); dec.Error == nil {
+// boolDecoder is the implementation of ValueDecoder for bool.
+type boolDecoder struct {
+	t reflect.Type
+}
+
+func (valdec boolDecoder) decode(dec *Decoder, pv *bool, tag byte) {
+	if b := dec.decodeBool(valdec.t, tag); dec.Error == nil {
 		*pv = b
 	}
 }
 
-func (valdec boolDecoder) decodePtr(dec *Decoder, pv **bool, tag byte) {
+func (valdec boolDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	valdec.decode(dec, (*bool)(reflect2.PtrOf(p)), tag)
+}
+
+func (valdec boolDecoder) Type() reflect.Type {
+	return valdec.t
+}
+
+// boolPtrDecoder is the implementation of ValueDecoder for *bool.
+type boolPtrDecoder struct {
+	t reflect.Type
+}
+
+func (valdec boolPtrDecoder) decode(dec *Decoder, pv **bool, tag byte) {
 	if tag == TagNull {
 		*pv = nil
-	} else if b := valdec.decode(dec, tag); dec.Error == nil {
+	} else if b := dec.decodeBool(valdec.t, tag); dec.Error == nil {
 		*pv = &b
 	}
 }
 
-func (valdec boolDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	switch pv := p.(type) {
-	case *bool:
-		valdec.decodeValue(dec, pv, tag)
-	case **bool:
-		valdec.decodePtr(dec, pv, tag)
-	}
+func (valdec boolPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	valdec.decode(dec, (**bool)(reflect2.PtrOf(p)), tag)
 }
 
-func (dec *Decoder) stringToBool(s string) bool {
-	b, err := strconv.ParseBool(s)
-	if err != nil {
-		dec.Error = err
-	}
-	return b
+func (valdec boolPtrDecoder) Type() reflect.Type {
+	return valdec.t
+}
+
+var (
+	bdec  = boolDecoder{reflect.TypeOf(false)}
+	pbdec = boolPtrDecoder{reflect.TypeOf((*bool)(nil))}
+)
+
+func init() {
+	RegisterValueDecoder(bdec)
+	RegisterValueDecoder(pbdec)
 }

@@ -17,14 +17,10 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"reflect"
 )
 
-// interfaceDecoder is the implementation of ValueDecoder for interface{}.
-type interfaceDecoder struct{}
-
-var ifacedec interfaceDecoder
-
-func (valdec interfaceDecoder) decode(dec *Decoder, tag byte) interface{} {
+func (dec *Decoder) decodeInterface(tag byte) interface{} {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int(i)
 	}
@@ -90,23 +86,50 @@ func (valdec interfaceDecoder) decode(dec *Decoder, tag byte) interface{} {
 	return nil
 }
 
-func (valdec interfaceDecoder) decodeValue(dec *Decoder, pv *interface{}, tag byte) {
-	if i := valdec.decode(dec, tag); dec.Error == nil {
+// interfaceDecoder is the implementation of ValueDecoder for interface{}.
+type interfaceDecoder struct {
+	t reflect.Type
+}
+
+func (valdec interfaceDecoder) decode(dec *Decoder, pv *interface{}, tag byte) {
+	if i := dec.decodeInterface(tag); dec.Error == nil {
 		*pv = i
 	}
 }
 
-func (valdec interfaceDecoder) decodePtr(dec *Decoder, pv **interface{}, tag byte) {
-	if i := valdec.decode(dec, tag); dec.Error == nil {
+func (valdec interfaceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	valdec.decode(dec, p.(*interface{}), tag)
+}
+
+func (valdec interfaceDecoder) Type() reflect.Type {
+	return valdec.t
+}
+
+// interfacePtrDecoder is the implementation of ValueDecoder for *interface{}.
+type interfacePtrDecoder struct {
+	t reflect.Type
+}
+
+func (valdec interfacePtrDecoder) decode(dec *Decoder, pv **interface{}, tag byte) {
+	if i := dec.decodeInterface(tag); dec.Error == nil {
 		*pv = &i
 	}
 }
 
-func (valdec interfaceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	switch pv := p.(type) {
-	case *interface{}:
-		valdec.decodeValue(dec, pv, tag)
-	case **interface{}:
-		valdec.decodePtr(dec, pv, tag)
-	}
+func (valdec interfacePtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	valdec.decode(dec, p.(**interface{}), tag)
+}
+
+func (valdec interfacePtrDecoder) Type() reflect.Type {
+	return valdec.t
+}
+
+var (
+	ifdec  = interfaceDecoder{reflect.TypeOf(interface{}(nil))}
+	pifdec = interfacePtrDecoder{reflect.TypeOf((*interface{})(nil))}
+)
+
+func init() {
+	RegisterValueDecoder(ifdec)
+	RegisterValueDecoder(pifdec)
 }

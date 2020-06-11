@@ -168,7 +168,7 @@ func (enc *Encoder) writeValue(v interface{}, encode func(m ValueEncoder, v inte
 	case reflect.Ptr:
 		encode(ptrenc, v)
 	default:
-		enc.Error = &UnsupportedTypeError{Type: reflect.TypeOf(v)}
+		enc.Error = UnsupportedTypeError{reflect.TypeOf(v)}
 		enc.WriteNil()
 	}
 }

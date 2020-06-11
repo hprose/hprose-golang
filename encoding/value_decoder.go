@@ -16,73 +16,202 @@ package encoding
 import (
 	"reflect"
 	"sync"
-
-	"github.com/modern-go/reflect2"
 )
+
+var decoderMap sync.Map
 
 // ValueDecoder is the interface that groups the basic Decode methods.
 type ValueDecoder interface {
 	Decode(dec *Decoder, p interface{}, tag byte)
+	Type() reflect.Type
 }
 
-var structDecoderMap = sync.Map{}
-var otherDecoderMap = sync.Map{}
-
-func registerValueDecoder(t reflect.Type, valdec ValueDecoder) {
-	if t.Kind() == reflect.Struct {
-		structDecoderMap.Store(t, valdec)
-	} else {
-		otherDecoderMap.Store(t, valdec)
-	}
-}
-
-func getStructDecoder(t reflect.Type) ValueDecoder {
-	if valdec, ok := structDecoderMap.Load(t); ok {
+func getValueDecoder(t reflect.Type) (valdec ValueDecoder) {
+	if valdec, ok := decoderMap.Load(t); ok {
 		return valdec.(ValueDecoder)
 	}
-	return nil
-	// name := t.Name()
-	// if name == "" {
-	// 	return newAnonymousStructDecoder(t)
-	// }
-	// return newStructDecoder(t, name, []string{"json"})
+	valdec = valueDecoderFactories[t.Kind()](t)
+	RegisterValueDecoder(valdec)
+	return
 }
 
-func getOtherDecoder(t reflect.Type) ValueDecoder {
-	if valdec, ok := otherDecoderMap.Load(t); ok {
-		return valdec.(ValueDecoder)
-	}
-	switch t.Kind() {
-	case reflect.Slice:
-		t2 := reflect2.Type2(t).(*reflect2.UnsafeSliceType)
-		valdec := SliceDecoder{
-			t,
-			func(p interface{}) {
-				t2.UnsafeSetNil(reflect2.PtrOf(p))
-			},
-			func(p interface{}) {
-				t2.UnsafeSet(reflect2.PtrOf(p), t2.UnsafeMakeSlice(0, 0))
-			},
-			func(dec *Decoder, p interface{}) {
-				t2.Set(p, dec.readListAsSlice(t2))
-			},
-		}
-		registerValueDecoder(t, valdec)
-		return valdec
-	}
-	return nil
+// RegisterValueDecoder valdec
+func RegisterValueDecoder(valdec ValueDecoder) {
+	decoderMap.Store(valdec.Type(), valdec)
 }
 
-// RegisterValueDecoder of type(v)
-func RegisterValueDecoder(v interface{}, valdec ValueDecoder) {
-	registerValueDecoder(checkType(v), valdec)
+// GetValueDecoder of type(p)
+func GetValueDecoder(p interface{}) ValueDecoder {
+	return getValueDecoder(reflect.TypeOf(p).Elem())
 }
 
-// GetValueDecoder of type(v)
-func GetValueDecoder(v interface{}) ValueDecoder {
-	t := checkType(v)
-	if t.Kind() == reflect.Struct {
-		return getStructDecoder(t)
+var valueDecoderFactories []func(t reflect.Type) ValueDecoder
+var arrayDecoderFactories []func(t reflect.Type) ValueDecoder
+var sliceDecoderFactories []func(t reflect.Type) ValueDecoder
+var ptrDecoderFactories []func(t reflect.Type) ValueDecoder
+
+func invalidDecoder(t reflect.Type) ValueDecoder {
+	panic(UnsupportedTypeError{t})
+}
+
+func arrayDecoderFactory(t reflect.Type) ValueDecoder {
+	return arrayDecoderFactories[t.Elem().Kind()](t)
+}
+
+func mapDecoderFactory(t reflect.Type) ValueDecoder {
+	panic(UnsupportedTypeError{t})
+}
+
+func ptrDecoderFactory(t reflect.Type) ValueDecoder {
+	return ptrDecoderFactories[t.Elem().Kind()](t)
+}
+
+func sliceDecoderFactory(t reflect.Type) ValueDecoder {
+	return sliceDecoderFactories[t.Elem().Kind()](t)
+}
+
+func structDecoderFactory(t reflect.Type) ValueDecoder {
+	panic(UnsupportedTypeError{t})
+}
+
+func arrayPtrDecoderFactory(t reflect.Type) ValueDecoder {
+	panic(UnsupportedTypeError{t})
+}
+
+func mapPtrDecoderFactory(t reflect.Type) ValueDecoder {
+	panic(UnsupportedTypeError{t})
+}
+
+func ptrPtrDecoderFactory(t reflect.Type) ValueDecoder {
+	panic(UnsupportedTypeError{t})
+}
+
+func slicePtrDecoderFactory(t reflect.Type) ValueDecoder {
+	panic(UnsupportedTypeError{t})
+}
+
+func structPtrDecoderFactory(t reflect.Type) ValueDecoder {
+	panic(UnsupportedTypeError{t})
+}
+
+func init() {
+	valueDecoderFactories = []func(t reflect.Type) ValueDecoder{
+		reflect.Invalid:       invalidDecoder,
+		reflect.Bool:          func(t reflect.Type) ValueDecoder { return boolDecoder{t} },
+		reflect.Int:           func(t reflect.Type) ValueDecoder { return intDecoder{t} },
+		reflect.Int8:          func(t reflect.Type) ValueDecoder { return int8Decoder{t} },
+		reflect.Int16:         func(t reflect.Type) ValueDecoder { return int16Decoder{t} },
+		reflect.Int32:         func(t reflect.Type) ValueDecoder { return int32Decoder{t} },
+		reflect.Int64:         func(t reflect.Type) ValueDecoder { return int64Decoder{t} },
+		reflect.Uint:          func(t reflect.Type) ValueDecoder { return uintDecoder{t} },
+		reflect.Uint8:         func(t reflect.Type) ValueDecoder { return uint8Decoder{t} },
+		reflect.Uint16:        func(t reflect.Type) ValueDecoder { return uint16Decoder{t} },
+		reflect.Uint32:        func(t reflect.Type) ValueDecoder { return uint32Decoder{t} },
+		reflect.Uint64:        func(t reflect.Type) ValueDecoder { return uint64Decoder{t} },
+		reflect.Uintptr:       func(t reflect.Type) ValueDecoder { return uintptrDecoder{t} },
+		reflect.Float32:       func(t reflect.Type) ValueDecoder { return float32Decoder{t} },
+		reflect.Float64:       func(t reflect.Type) ValueDecoder { return float64Decoder{t} },
+		reflect.Complex64:     func(t reflect.Type) ValueDecoder { return complex64Decoder{t} },
+		reflect.Complex128:    func(t reflect.Type) ValueDecoder { return complex128Decoder{t} },
+		reflect.Array:         arrayDecoderFactory,
+		reflect.Chan:          invalidDecoder,
+		reflect.Func:          invalidDecoder,
+		reflect.Interface:     invalidDecoder,
+		reflect.Map:           mapDecoderFactory,
+		reflect.Ptr:           ptrDecoderFactory,
+		reflect.Slice:         sliceDecoderFactory,
+		reflect.String:        func(t reflect.Type) ValueDecoder { return stringDecoder{t} },
+		reflect.Struct:        structDecoderFactory,
+		reflect.UnsafePointer: invalidDecoder,
 	}
-	return getOtherDecoder(t)
+
+	arrayDecoderFactories = []func(t reflect.Type) ValueDecoder{
+		reflect.Invalid:       invalidDecoder,
+		reflect.Bool:          func(t reflect.Type) ValueDecoder { return boolDecoder{t} },
+		reflect.Int:           func(t reflect.Type) ValueDecoder { return intArrayDecoder(t) },
+		reflect.Int8:          func(t reflect.Type) ValueDecoder { return int8Decoder{t} },
+		reflect.Int16:         func(t reflect.Type) ValueDecoder { return int16Decoder{t} },
+		reflect.Int32:         func(t reflect.Type) ValueDecoder { return int32Decoder{t} },
+		reflect.Int64:         func(t reflect.Type) ValueDecoder { return int64Decoder{t} },
+		reflect.Uint:          func(t reflect.Type) ValueDecoder { return uintDecoder{t} },
+		reflect.Uint8:         func(t reflect.Type) ValueDecoder { return uint8Decoder{t} },
+		reflect.Uint16:        func(t reflect.Type) ValueDecoder { return uint16Decoder{t} },
+		reflect.Uint32:        func(t reflect.Type) ValueDecoder { return uint32Decoder{t} },
+		reflect.Uint64:        func(t reflect.Type) ValueDecoder { return uint64Decoder{t} },
+		reflect.Uintptr:       func(t reflect.Type) ValueDecoder { return uintptrDecoder{t} },
+		reflect.Float32:       func(t reflect.Type) ValueDecoder { return float32Decoder{t} },
+		reflect.Float64:       func(t reflect.Type) ValueDecoder { return float64Decoder{t} },
+		reflect.Complex64:     func(t reflect.Type) ValueDecoder { return complex64Decoder{t} },
+		reflect.Complex128:    func(t reflect.Type) ValueDecoder { return complex128Decoder{t} },
+		reflect.Array:         arrayDecoderFactory,
+		reflect.Chan:          invalidDecoder,
+		reflect.Func:          invalidDecoder,
+		reflect.Interface:     invalidDecoder,
+		reflect.Map:           mapDecoderFactory,
+		reflect.Ptr:           ptrDecoderFactory,
+		reflect.Slice:         sliceDecoderFactory,
+		reflect.String:        func(t reflect.Type) ValueDecoder { return stringDecoder{t} },
+		reflect.Struct:        structDecoderFactory,
+		reflect.UnsafePointer: invalidDecoder,
+	}
+
+	sliceDecoderFactories = []func(t reflect.Type) ValueDecoder{
+		reflect.Invalid:       invalidDecoder,
+		reflect.Bool:          boolSliceDecoder,
+		reflect.Int:           intSliceDecoder,
+		reflect.Int8:          int8SliceDecoder,
+		reflect.Int16:         int16SliceDecoder,
+		reflect.Int32:         int32SliceDecoder,
+		reflect.Int64:         int64SliceDecoder,
+		reflect.Uint:          uintSliceDecoder,
+		reflect.Uint8:         func(t reflect.Type) ValueDecoder { return bytesDecoder{t} },
+		reflect.Uint16:        uint16SliceDecoder,
+		reflect.Uint32:        uint32SliceDecoder,
+		reflect.Uint64:        uint64SliceDecoder,
+		reflect.Uintptr:       uintptrSliceDecoder,
+		reflect.Float32:       float32SliceDecoder,
+		reflect.Float64:       float64SliceDecoder,
+		reflect.Complex64:     complex64SliceDecoder,
+		reflect.Complex128:    complex128SliceDecoder,
+		reflect.Array:         otherSliceDecoder,
+		reflect.Chan:          invalidDecoder,
+		reflect.Func:          invalidDecoder,
+		reflect.Interface:     invalidDecoder,
+		reflect.Map:           otherSliceDecoder,
+		reflect.Ptr:           otherSliceDecoder,
+		reflect.Slice:         otherSliceDecoder,
+		reflect.String:        stringSliceDecoder,
+		reflect.Struct:        otherSliceDecoder,
+		reflect.UnsafePointer: invalidDecoder,
+	}
+
+	ptrDecoderFactories = []func(t reflect.Type) ValueDecoder{
+		reflect.Invalid:       invalidDecoder,
+		reflect.Bool:          func(t reflect.Type) ValueDecoder { return boolPtrDecoder{t} },
+		reflect.Int:           func(t reflect.Type) ValueDecoder { return intPtrDecoder{t} },
+		reflect.Int8:          func(t reflect.Type) ValueDecoder { return int8PtrDecoder{t} },
+		reflect.Int16:         func(t reflect.Type) ValueDecoder { return int16PtrDecoder{t} },
+		reflect.Int32:         func(t reflect.Type) ValueDecoder { return int32PtrDecoder{t} },
+		reflect.Int64:         func(t reflect.Type) ValueDecoder { return int64PtrDecoder{t} },
+		reflect.Uint:          func(t reflect.Type) ValueDecoder { return uintPtrDecoder{t} },
+		reflect.Uint8:         func(t reflect.Type) ValueDecoder { return uint8PtrDecoder{t} },
+		reflect.Uint16:        func(t reflect.Type) ValueDecoder { return uint16PtrDecoder{t} },
+		reflect.Uint32:        func(t reflect.Type) ValueDecoder { return uint32PtrDecoder{t} },
+		reflect.Uint64:        func(t reflect.Type) ValueDecoder { return uint64PtrDecoder{t} },
+		reflect.Uintptr:       func(t reflect.Type) ValueDecoder { return uintptrPtrDecoder{t} },
+		reflect.Float32:       func(t reflect.Type) ValueDecoder { return float32PtrDecoder{t} },
+		reflect.Float64:       func(t reflect.Type) ValueDecoder { return float64PtrDecoder{t} },
+		reflect.Complex64:     func(t reflect.Type) ValueDecoder { return complex64PtrDecoder{t} },
+		reflect.Complex128:    func(t reflect.Type) ValueDecoder { return complex128PtrDecoder{t} },
+		reflect.Array:         arrayPtrDecoderFactory,
+		reflect.Chan:          invalidDecoder,
+		reflect.Func:          invalidDecoder,
+		reflect.Interface:     invalidDecoder,
+		reflect.Map:           mapPtrDecoderFactory,
+		reflect.Ptr:           ptrPtrDecoderFactory,
+		reflect.Slice:         slicePtrDecoderFactory,
+		reflect.String:        func(t reflect.Type) ValueDecoder { return stringPtrDecoder{t} },
+		reflect.Struct:        structPtrDecoderFactory,
+		reflect.UnsafePointer: invalidDecoder,
+	}
 }

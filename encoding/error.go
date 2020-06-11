@@ -24,7 +24,7 @@ type UnsupportedTypeError struct {
 	Type reflect.Type
 }
 
-func (e *UnsupportedTypeError) Error() string {
+func (e UnsupportedTypeError) Error() string {
 	return "hprose/encoding: unsupported type: " + e.Type.String()
 }
 
@@ -37,7 +37,7 @@ type CastError struct {
 	Destination reflect.Type
 }
 
-func (e *CastError) Error() string {
+func (e CastError) Error() string {
 	if e.Source == nil {
 		return "hprose/encoding: can not cast nil to " + e.Destination.String()
 	}

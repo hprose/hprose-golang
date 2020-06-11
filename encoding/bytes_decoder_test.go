@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bytes_decoder_test.go                           |
 |                                                          |
-| LastModified: Jun 6, 2020                                |
+| LastModified: Jun 11, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -91,5 +91,5 @@ func TestDecodeBytesPtr(t *testing.T) {
 	dec.Decode(&b)
 	assert.Equal(t, []byte{1, 2, 3, 4, 5}, *b) // []int{1, 2, 3, 4, 5}
 	dec.Decode(&b)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to []uint8`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to *[]uint8`) // 1
 }

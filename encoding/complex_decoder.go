@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/complex_decoder.go                              |
 |                                                          |
-| LastModified: Jun 2, 2020                                |
+| LastModified: Jun 11, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -18,16 +18,26 @@ import (
 	"reflect"
 
 	"github.com/andot/complexconv"
+	"github.com/modern-go/reflect2"
 )
 
-// complex64Decoder is the implementation of ValueDecoder for complex64.
-type complex64Decoder struct {
-	descType reflect.Type
+func (dec *Decoder) stringToComplex64(s string) complex64 {
+	c, err := complexconv.ParseComplex(s, 64)
+	if err != nil {
+		dec.Error = err
+	}
+	return complex64(c)
 }
 
-var c64dec = complex64Decoder{reflect.TypeOf((*complex64)(nil)).Elem()}
+func (dec *Decoder) stringToComplex128(s string) complex128 {
+	c, err := complexconv.ParseComplex(s, 128)
+	if err != nil {
+		dec.Error = err
+	}
+	return c
+}
 
-func (valdec complex64Decoder) decode(dec *Decoder, tag byte) complex64 {
+func (dec *Decoder) decodeComplex64(t reflect.Type, tag byte) complex64 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return complex(float32(i), 0)
 	}
@@ -49,42 +59,12 @@ func (valdec complex64Decoder) decode(dec *Decoder, tag byte) complex64 {
 	case TagString:
 		return dec.stringToComplex64(dec.ReadString())
 	default:
-		dec.decodeError(valdec.descType, tag)
+		dec.decodeError(t, tag)
 	}
 	return 0
 }
 
-func (valdec complex64Decoder) decodeValue(dec *Decoder, pv *complex64, tag byte) {
-	if c := valdec.decode(dec, tag); dec.Error == nil {
-		*pv = c
-	}
-}
-
-func (valdec complex64Decoder) decodePtr(dec *Decoder, pv **complex64, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if c := valdec.decode(dec, tag); dec.Error == nil {
-		*pv = &c
-	}
-}
-
-func (valdec complex64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	switch pv := p.(type) {
-	case *complex64:
-		valdec.decodeValue(dec, pv, tag)
-	case **complex64:
-		valdec.decodePtr(dec, pv, tag)
-	}
-}
-
-// complex128Decoder is the implementation of ValueDecoder for complex128.
-type complex128Decoder struct {
-	descType reflect.Type
-}
-
-var c128dec = complex128Decoder{reflect.TypeOf((*complex128)(nil)).Elem()}
-
-func (valdec complex128Decoder) decode(dec *Decoder, tag byte) complex128 {
+func (dec *Decoder) decodeComplex128(t reflect.Type, tag byte) complex128 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return complex(float64(i), 0)
 	}
@@ -106,46 +86,101 @@ func (valdec complex128Decoder) decode(dec *Decoder, tag byte) complex128 {
 	case TagString:
 		return dec.stringToComplex128(dec.ReadString())
 	default:
-		dec.decodeError(valdec.descType, tag)
+		dec.decodeError(t, tag)
 	}
 	return 0
 }
 
-func (valdec complex128Decoder) decodeValue(dec *Decoder, pv *complex128, tag byte) {
-	if c := valdec.decode(dec, tag); dec.Error == nil {
+// complex64Decoder is the implementation of ValueDecoder for complex64.
+type complex64Decoder struct {
+	t reflect.Type
+}
+
+func (valdec complex64Decoder) decode(dec *Decoder, pv *complex64, tag byte) {
+	if c := dec.decodeComplex64(valdec.t, tag); dec.Error == nil {
 		*pv = c
 	}
 }
 
-func (valdec complex128Decoder) decodePtr(dec *Decoder, pv **complex128, tag byte) {
+func (valdec complex64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	valdec.decode(dec, (*complex64)(reflect2.PtrOf(p)), tag)
+}
+
+func (valdec complex64Decoder) Type() reflect.Type {
+	return valdec.t
+}
+
+// complex64PtrDecoder is the implementation of ValueDecoder for *complex64.
+type complex64PtrDecoder struct {
+	t reflect.Type
+}
+
+func (valdec complex64PtrDecoder) decode(dec *Decoder, pv **complex64, tag byte) {
 	if tag == TagNull {
 		*pv = nil
-	} else if c := valdec.decode(dec, tag); dec.Error == nil {
+	} else if c := dec.decodeComplex64(valdec.t, tag); dec.Error == nil {
 		*pv = &c
 	}
 }
 
+func (valdec complex64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	valdec.decode(dec, (**complex64)(reflect2.PtrOf(p)), tag)
+}
+
+func (valdec complex64PtrDecoder) Type() reflect.Type {
+	return valdec.t
+}
+
+// complex128Decoder is the implementation of ValueDecoder for complex128.
+type complex128Decoder struct {
+	t reflect.Type
+}
+
+func (valdec complex128Decoder) decode(dec *Decoder, pv *complex128, tag byte) {
+	if c := dec.decodeComplex128(valdec.t, tag); dec.Error == nil {
+		*pv = c
+	}
+}
+
 func (valdec complex128Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	switch pv := p.(type) {
-	case *complex128:
-		valdec.decodeValue(dec, pv, tag)
-	case **complex128:
-		valdec.decodePtr(dec, pv, tag)
+	valdec.decode(dec, (*complex128)(reflect2.PtrOf(p)), tag)
+}
+
+func (valdec complex128Decoder) Type() reflect.Type {
+	return valdec.t
+}
+
+// complex128PtrDecoder is the implementation of ValueDecoder for *complex128.
+type complex128PtrDecoder struct {
+	t reflect.Type
+}
+
+func (valdec complex128PtrDecoder) decode(dec *Decoder, pv **complex128, tag byte) {
+	if tag == TagNull {
+		*pv = nil
+	} else if c := dec.decodeComplex128(valdec.t, tag); dec.Error == nil {
+		*pv = &c
 	}
 }
 
-func (dec *Decoder) stringToComplex64(s string) complex64 {
-	c, err := complexconv.ParseComplex(s, 64)
-	if err != nil {
-		dec.Error = err
-	}
-	return complex64(c)
+func (valdec complex128PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	valdec.decode(dec, (**complex128)(reflect2.PtrOf(p)), tag)
 }
 
-func (dec *Decoder) stringToComplex128(s string) complex128 {
-	c, err := complexconv.ParseComplex(s, 128)
-	if err != nil {
-		dec.Error = err
-	}
-	return c
+func (valdec complex128PtrDecoder) Type() reflect.Type {
+	return valdec.t
+}
+
+var (
+	c64dec   = complex64Decoder{reflect.TypeOf((complex64)(0))}
+	c128dec  = complex128Decoder{reflect.TypeOf((complex128)(0))}
+	pc64dec  = complex64PtrDecoder{reflect.TypeOf((*complex64)(nil))}
+	pc128dec = complex128PtrDecoder{reflect.TypeOf((*complex128)(nil))}
+)
+
+func init() {
+	RegisterValueDecoder(c64dec)
+	RegisterValueDecoder(c128dec)
+	RegisterValueDecoder(pc64dec)
+	RegisterValueDecoder(pc128dec)
 }

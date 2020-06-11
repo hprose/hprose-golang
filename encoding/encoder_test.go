@@ -592,10 +592,10 @@ func TestUnsupportedTypeError(t *testing.T) {
 	enc := NewEncoder(sb, false)
 	f := func() {}
 	var ch chan int
-	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(f)}).Error(), enc.Encode(f).Error())
-	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(ch)}).Error(), enc.Encode(ch).Error())
-	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(&f)}).Error(), enc.Encode(&f).Error())
-	assert.Equal(t, (&UnsupportedTypeError{Type: reflect.TypeOf(&ch)}).Error(), enc.Encode(&ch).Error())
+	assert.EqualError(t, enc.Encode(f), (UnsupportedTypeError{reflect.TypeOf(f)}).Error())
+	assert.EqualError(t, enc.Encode(ch), (UnsupportedTypeError{reflect.TypeOf(ch)}).Error())
+	assert.EqualError(t, enc.Encode(&f), (UnsupportedTypeError{reflect.TypeOf(&f)}).Error())
+	assert.EqualError(t, enc.Encode(&ch), (UnsupportedTypeError{reflect.TypeOf(&ch)}).Error())
 }
 
 func TestEncoderCopiedByValuePanic(t *testing.T) {
