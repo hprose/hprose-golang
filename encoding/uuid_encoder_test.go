@@ -23,7 +23,7 @@ import (
 
 func TestEncodeUUID(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	id := uuid.UUID{
 		0x7d, 0x44, 0x48, 0x40,
 		0x9d, 0xc0,

@@ -14,16 +14,18 @@
 package encoding
 
 import (
+	"bytes"
 	"math"
 	"strings"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDecodeInt(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -89,7 +91,7 @@ func TestDecodeInt(t *testing.T) {
 
 func TestDecodeCustomInt(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -156,7 +158,7 @@ func TestDecodeCustomInt(t *testing.T) {
 
 func TestDecodeInt8(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -223,7 +225,7 @@ func TestDecodeInt8(t *testing.T) {
 
 func TestDecodeInt16(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -290,7 +292,7 @@ func TestDecodeInt16(t *testing.T) {
 
 func TestDecodeInt32(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -357,7 +359,7 @@ func TestDecodeInt32(t *testing.T) {
 
 func TestDecodeInt64(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -424,7 +426,7 @@ func TestDecodeInt64(t *testing.T) {
 
 func TestDecodeUint(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -491,7 +493,7 @@ func TestDecodeUint(t *testing.T) {
 
 func TestDecodeUint8(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -558,7 +560,7 @@ func TestDecodeUint8(t *testing.T) {
 
 func TestDecodeUint16(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -625,7 +627,7 @@ func TestDecodeUint16(t *testing.T) {
 
 func TestDecodeUint32(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -692,7 +694,7 @@ func TestDecodeUint32(t *testing.T) {
 
 func TestDecodeUint64(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -759,7 +761,7 @@ func TestDecodeUint64(t *testing.T) {
 
 func TestDecodeUintptr(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -821,4 +823,65 @@ func TestDecodeUintptr(t *testing.T) {
 	assert.Nil(t, ip) // nil
 	dec.Decode(&ip)
 	assert.Equal(t, uintptr(1), *ip) // 1
+}
+
+func BenchmarkDecodeInt(b *testing.B) {
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb)
+	enc.Encode(1)
+	enc.Encode(122)
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode(nil)
+	enc.Encode("")
+	data := ([]byte)(sb.String())
+	dec := &Decoder{}
+	var n int
+	for i := 0; i < b.N; i++ {
+		dec.ResetBytes(data)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+	}
+}
+
+func BenchmarkJsonDecodeInt(b *testing.B) {
+	sb := new(strings.Builder)
+	enc := jsoniter.NewEncoder(sb)
+	enc.Encode(1)
+	enc.Encode(122)
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode("12345")
+	enc.Encode(nil)
+	enc.Encode("")
+	data := ([]byte)(sb.String())
+	var n int
+	for i := 0; i < b.N; i++ {
+		dec := jsoniter.NewDecoder(bytes.NewReader(data))
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+		dec.Decode(&n)
+	}
 }

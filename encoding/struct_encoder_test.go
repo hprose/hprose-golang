@@ -131,7 +131,7 @@ func TestEncodeStruct(t *testing.T) {
 	}
 
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	var s TestStruct
 	s.IntValue = 1
 	s.Int8Value = 2
@@ -232,7 +232,7 @@ func TestEncodeSomeStructField(t *testing.T) {
 		F big.Rat
 	}
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	var s TestStruct2
 	s.A = big.NewInt(1)
 	s.B = big.NewFloat(2)
@@ -259,7 +259,7 @@ func TestEncodeTimeStructField(t *testing.T) {
 		F *time.Duration
 	}
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	var s TestStruct3
 	s.A = time.Date(1980, 12, 1, 2, 3, 4, 5, time.Local)
 	s.B = time.Duration(1000)
@@ -282,7 +282,7 @@ func TestEncodeErrorStructField(t *testing.T) {
 		C **error
 	}
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	var s TestStruct4
 	s.A = errors.New("test error")
 	s.B = &s.A
@@ -304,7 +304,7 @@ func TestAmbiguousFields(t *testing.T) {
 			B int `json:"a"`
 		}
 		sb := &strings.Builder{}
-		enc := NewEncoder(sb, false)
+		enc := NewEncoder(sb).Simple(false)
 		enc.Encode(TestStruct{})
 	})
 }
@@ -317,14 +317,14 @@ func TestInvalidStructName(t *testing.T) {
 		}
 		newStructEncoder(reflect.TypeOf((*TestStruct)(nil)).Elem(), "\xFE", []string{})
 		sb := &strings.Builder{}
-		enc := NewEncoder(sb, false)
+		enc := NewEncoder(sb).Simple(false)
 		enc.Encode(TestStruct{})
 	})
 }
 
 func TestEmptyAnonymousStruct(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	var s struct{}
 	assert.NoError(t, enc.Encode(s))
 	assert.NoError(t, enc.Encode((*struct{})(nil)))
@@ -339,7 +339,7 @@ func TestEncodeOnePtrFieldStruct(t *testing.T) {
 		B *TestEmbedStruct
 	}
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	var s TestStruct
 	i := 1
 	s.B = &TestEmbedStruct{i}

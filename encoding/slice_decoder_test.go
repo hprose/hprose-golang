@@ -25,7 +25,7 @@ import (
 
 func TestDecodeIntSlice(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode([]int{1, 2, 3, 4, 5})
 	enc.Encode([]float32{1, 2, 3, 4, 5})
 	enc.Encode([]string{"1", "2", "3", "4", "5"})
@@ -50,7 +50,7 @@ func TestDecodeIntSlice(t *testing.T) {
 
 func TestDecodeCustomIntSlice(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode([]int{1, 2, 3, 4, 5})
 	enc.Encode([]float32{1, 2, 3, 4, 5})
 	enc.Encode([]string{"1", "2", "3", "4", "5"})
@@ -76,7 +76,7 @@ func TestDecodeCustomIntSlice(t *testing.T) {
 
 func BenchmarkDecodeIntSlice(b *testing.B) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode([]int{1, 2, 3, 4, 5})
 	enc.Encode([]float32{1, 2, 3, 4, 5})
 	enc.Encode([]string{"1", "2", "3", "4", "5"})
@@ -97,7 +97,7 @@ func BenchmarkDecodeIntSlice(b *testing.B) {
 
 func BenchmarkDecodeCustomIntSlice(b *testing.B) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode([]int{1, 2, 3, 4, 5})
 	enc.Encode([]float32{1, 2, 3, 4, 5})
 	enc.Encode([]string{"1", "2", "3", "4", "5"})
@@ -139,7 +139,7 @@ func BenchmarkJsonDecodeIntSlice(b *testing.B) {
 
 func BenchmarkDecodeInt64Slice(b *testing.B) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode([]int{1, 2, 3, 4, 5})
 	enc.Encode([]float32{1, 2, 3, 4, 5})
 	enc.Encode([]string{"1", "2", "3", "4", "5"})
@@ -179,7 +179,7 @@ func BenchmarkJsonDecodeInt64Slice(b *testing.B) {
 }
 func BenchmarkDecodeBigIntSlice(b *testing.B) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode([]int{1, 2, 3, 4, 5})
 	enc.Encode([]float32{1, 2, 3, 4, 5})
 	enc.Encode([]string{"1", "2", "3", "4", "5"})

@@ -25,7 +25,7 @@ import (
 
 func TestDecodeString(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -102,7 +102,7 @@ func TestDecodeString(t *testing.T) {
 
 func TestDecodeStringFromReader(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)

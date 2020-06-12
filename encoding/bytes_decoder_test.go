@@ -22,7 +22,7 @@ import (
 
 func TestDecodeBytes(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode("字")
 	enc.Encode("Pokémon")
 	enc.Encode("中文")
@@ -59,7 +59,7 @@ func TestDecodeBytes(t *testing.T) {
 
 func TestDecodeBytesPtr(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode("字")
 	enc.Encode("Pokémon")
 	enc.Encode("中文")

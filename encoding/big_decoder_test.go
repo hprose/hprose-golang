@@ -24,7 +24,7 @@ import (
 
 func TestDecodeBigInt(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -99,7 +99,7 @@ func TestDecodeBigInt(t *testing.T) {
 
 func TestDecodeBigIntPtr(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -174,7 +174,7 @@ func TestDecodeBigIntPtr(t *testing.T) {
 
 func TestDecodeBigFloat(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -248,7 +248,7 @@ func TestDecodeBigFloat(t *testing.T) {
 
 func TestDecodeBigFloatPtr(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -322,7 +322,7 @@ func TestDecodeBigFloatPtr(t *testing.T) {
 
 func TestDecodeBigRat(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -402,7 +402,7 @@ func TestDecodeBigRat(t *testing.T) {
 
 func TestDecodeBigRatPtr(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)

@@ -257,21 +257,23 @@ func (dec *Decoder) Decode(p interface{}) {
 }
 
 // Reset the value reference and struct type reference
-func (dec *Decoder) Reset() {
+func (dec *Decoder) Reset() *Decoder {
 	if dec.refer != nil {
 		dec.refer.Reset()
 	}
 	dec.ref = dec.ref[:0]
+	return dec
 }
 
 // Simple resets the encoder to simple mode or not
-func (dec *Decoder) Simple(simple bool) {
+func (dec *Decoder) Simple(simple bool) *Decoder {
 	if simple {
 		dec.refer = nil
 	} else {
 		dec.refer = &decoderRefer{}
 	}
 	dec.ref = dec.ref[:0]
+	return dec
 }
 
 // AddReference adds o to the reference

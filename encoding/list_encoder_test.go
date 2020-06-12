@@ -23,7 +23,7 @@ import (
 
 func TestEncodeList(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	lst := list.New()
 	lst.PushBack(1)
 	lst.PushBack(2)

@@ -35,12 +35,8 @@ type Encoder struct {
 }
 
 // NewEncoder create an encoder object
-func NewEncoder(w io.Writer, simple bool) (encoder *Encoder) {
-	encoder = &Encoder{Writer: w}
-	if !simple {
-		encoder.refer = &encoderRefer{}
-	}
-	return
+func NewEncoder(w io.Writer) *Encoder {
+	return &Encoder{Writer: w}
 }
 
 func (enc *Encoder) copyCheck() {
@@ -287,16 +283,17 @@ func (enc *Encoder) WriteStructType(t reflect.Type, action func()) (r int) {
 }
 
 // Reset the value reference and struct type reference
-func (enc *Encoder) Reset() {
+func (enc *Encoder) Reset() *Encoder {
 	if enc.refer != nil {
 		enc.refer.Reset()
 	}
 	enc.ref = nil
 	enc.last = 0
+	return enc
 }
 
 // Simple resets the encoder to simple mode or not
-func (enc *Encoder) Simple(simple bool) {
+func (enc *Encoder) Simple(simple bool) *Encoder {
 	if simple {
 		enc.refer = nil
 	} else {
@@ -304,6 +301,7 @@ func (enc *Encoder) Simple(simple bool) {
 	}
 	enc.ref = nil
 	enc.last = 0
+	return enc
 }
 
 // WriteNil to encoder

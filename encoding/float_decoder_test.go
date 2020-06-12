@@ -23,7 +23,7 @@ import (
 
 func TestDecodeFloat32(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -92,7 +92,7 @@ func TestDecodeFloat32(t *testing.T) {
 
 func TestDecodeFloat64(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -161,7 +161,7 @@ func TestDecodeFloat64(t *testing.T) {
 
 func TestDecodeFloat32Ptr(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)
@@ -230,7 +230,7 @@ func TestDecodeFloat32Ptr(t *testing.T) {
 
 func TestDecodeFloat64Ptr(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1)

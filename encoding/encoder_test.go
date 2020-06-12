@@ -28,7 +28,7 @@ import (
 
 func TestWriteInt(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.WriteInt(-1)
 	enc.WriteInt(0)
 	enc.WriteInt(1)
@@ -146,7 +146,7 @@ func TestWriteBigFloat(t *testing.T) {
 
 func TestEncoderEncode(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	i := 0
 	i8 := int8(1)
 	i16 := int16(2)
@@ -232,7 +232,7 @@ func TestEncoderEncode(t *testing.T) {
 
 func TestEncoderWrite(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	i := 0
 	i8 := int8(1)
 	i16 := int16(2)
@@ -315,7 +315,7 @@ func TestEncoderWrite(t *testing.T) {
 
 func TestEncodeError(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	e := errors.New("test error")
 	assert.NoError(t, enc.Encode(e))
 	assert.NoError(t, enc.Encode(&e))
@@ -325,7 +325,7 @@ func TestEncodeError(t *testing.T) {
 
 func TestEncodeString(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	assert.NoError(t, enc.Encode(""))
 	assert.NoError(t, enc.Encode("Hello"))
 	assert.NoError(t, enc.Encode("Pokémon"))
@@ -337,7 +337,7 @@ func TestEncodeString(t *testing.T) {
 
 func TestWriteBadString(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb)
 	assert.NoError(t, enc.Write("\xfe\xfe"))
 	assert.NoError(t, enc.Write("\xf0\xfe"))
 	assert.NoError(t, enc.Write("\xf0\x80"))
@@ -346,7 +346,7 @@ func TestWriteBadString(t *testing.T) {
 
 func TestReset(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []interface{}{1, "hello", true}
 	var nilslice []interface{}
 	assert.NoError(t, enc.Encode(nilslice))
@@ -361,7 +361,7 @@ func TestReset(t *testing.T) {
 
 func TestEncodeByteArray(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	hello := [5]byte{'H', 'e', 'l', 'l', 'o'}
 	assert.NoError(t, enc.Encode([0]byte{}))
 	assert.NoError(t, enc.Encode(hello))
@@ -373,7 +373,7 @@ func TestEncodeByteArray(t *testing.T) {
 
 func TestEncodeByteArray2(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	hello := [5]byte{'H', 'e', 'l', 'l', 'o'}
 	assert.NoError(t, enc.Encode([0]byte{}))
 	assert.NoError(t, enc.Encode(hello))
@@ -385,7 +385,7 @@ func TestEncodeByteArray2(t *testing.T) {
 
 func TestEncodeBigIntArray(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	array := [2]*big.Int{big.NewInt(1), big.NewInt(2)}
 	var emptyArray [0]*big.Int
 	assert.NoError(t, enc.Encode(emptyArray))
@@ -399,7 +399,7 @@ func TestEncodeBigIntArray(t *testing.T) {
 
 func TestEncodeNil(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	var x interface{}
 	var xp interface{} = &x
 	var i interface{} = (****int)(nil)
@@ -416,7 +416,7 @@ func TestEncodeNil(t *testing.T) {
 
 func TestWriteNil(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	var x interface{}
 	var xp interface{} = &x
 	var i interface{} = (****int)(nil)
@@ -433,7 +433,7 @@ func TestWriteNil(t *testing.T) {
 
 func TestWriteDuration(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	d := time.Duration(1000)
 	assert.NoError(t, enc.Write(d))
 	assert.NoError(t, enc.Write(&d))
@@ -442,7 +442,7 @@ func TestWriteDuration(t *testing.T) {
 
 func TestWriteTime(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	assert.NoError(t, enc.Write(time.Date(2020, 2, 22, 0, 0, 0, 0, time.UTC)))
 	assert.NoError(t, enc.Write(time.Date(1970, 1, 1, 12, 12, 12, 0, time.UTC)))
 	assert.NoError(t, enc.Write(time.Date(1970, 1, 1, 12, 12, 12, 123456789, time.Local)))
@@ -453,7 +453,7 @@ func TestWriteTime(t *testing.T) {
 
 func TestEncodeStringStringMap(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	m := map[string]string{
 		"hello": "world",
 	}
@@ -469,7 +469,7 @@ func TestEncodeStringStringMap(t *testing.T) {
 
 func TestEncodeIntBigIntMap(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	m := map[int]*big.Int{
 		1: big.NewInt(1),
 	}
@@ -485,7 +485,7 @@ func TestEncodeIntBigIntMap(t *testing.T) {
 
 func TestEncodeStringInterfaceMap(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	m := map[string]interface{}{
 		"hello": "world",
 	}
@@ -522,7 +522,7 @@ func TestEncodeCustomType(t *testing.T) {
 	RegisterValueEncoder((*BigIntType)(nil), bigIntEncoder{})
 
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	i := IntType(0)
 	i8 := Int8Type(1)
 	i16 := Int16Type(2)
@@ -589,7 +589,7 @@ func TestGetEncoder(t *testing.T) {
 
 func TestUnsupportedTypeError(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	f := func() {}
 	var ch chan int
 	assert.EqualError(t, enc.Encode(f), (UnsupportedTypeError{reflect.TypeOf(f)}).Error())
@@ -601,7 +601,7 @@ func TestUnsupportedTypeError(t *testing.T) {
 func TestEncoderCopiedByValuePanic(t *testing.T) {
 	assert.PanicsWithValue(t, "hprose/encoding: illegal use of non-zero Encoder copied by value", func() {
 		sb := &strings.Builder{}
-		enc := NewEncoder(sb, false)
+		enc := NewEncoder(sb).Simple(false)
 		enc.Encode(1)
 		enc2 := *enc
 		enc2.Encode(2)
@@ -636,7 +636,7 @@ func TestWriteTag(t *testing.T) {
 
 func BenchmarkHproseEncodeSlice(b *testing.B) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []int16{
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
@@ -651,7 +651,7 @@ func BenchmarkHproseEncodeSlice(b *testing.B) {
 
 func BenchmarkSampleHproseEncodeSlice(b *testing.B) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	slice := []int16{
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
@@ -681,7 +681,7 @@ func BenchmarkJsonEncodeSlice(b *testing.B) {
 
 func BenchmarkHproseEncodeArray(b *testing.B) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	array := [50]int16{
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
@@ -696,7 +696,7 @@ func BenchmarkHproseEncodeArray(b *testing.B) {
 
 func BenchmarkSampleHproseEncodeArray(b *testing.B) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	array := [50]int16{
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
 		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
@@ -726,7 +726,7 @@ func BenchmarkJsonEncodeArray(b *testing.B) {
 
 func BenchmarkHproseEncodeMap(b *testing.B) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	m := map[int16]int16{
 		1: 1,
 		2: 2,
@@ -746,7 +746,7 @@ func BenchmarkHproseEncodeMap(b *testing.B) {
 
 func BenchmarkSampleHproseEncodeMap(b *testing.B) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	m := map[int16]int16{
 		1: 1,
 		2: 2,
@@ -786,7 +786,7 @@ func BenchmarkJsonEncodeMap(b *testing.B) {
 
 func BenchmarkHproseEncodeStruct(b *testing.B) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	type TestStruct struct {
 		Name     string
 		Age      int
@@ -806,7 +806,7 @@ func BenchmarkHproseEncodeStruct(b *testing.B) {
 
 func BenchmarkSampleHproseEncodeStruct(b *testing.B) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	type TestStruct struct {
 		Name     string
 		Age      int

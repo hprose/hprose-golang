@@ -23,7 +23,7 @@ import (
 
 func TestDecodeBool(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode(-1)
 	enc.Encode(0)
 	enc.Encode(1.0)

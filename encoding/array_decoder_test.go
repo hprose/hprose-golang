@@ -24,7 +24,7 @@ import (
 
 func TestDecodeIntArray(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode([]int{1, 2, 3, 4, 5, 6})
 	enc.Encode([]float32{4, 3, 2, 1})
 	enc.Encode([]string{"1", "2", "3", "4", "5"})
@@ -49,7 +49,7 @@ func TestDecodeIntArray(t *testing.T) {
 
 func TestDecodeCustomIntArray(t *testing.T) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode([]int{1, 2, 3, 4, 5, 6})
 	enc.Encode([]float32{4, 3, 2, 1})
 	enc.Encode([]string{"1", "2", "3", "4", "5"})
@@ -75,7 +75,7 @@ func TestDecodeCustomIntArray(t *testing.T) {
 
 func BenchmarkDecodeIntArray(b *testing.B) {
 	sb := new(strings.Builder)
-	enc := NewEncoder(sb, true)
+	enc := NewEncoder(sb)
 	enc.Encode([]int{1, 2, 3, 4, 5})
 	enc.Encode([]float32{1, 2, 3, 4, 5})
 	enc.Encode([]string{"1", "2", "3", "4", "5"})

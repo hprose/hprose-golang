@@ -23,7 +23,7 @@ import (
 
 func TestEncodeBytes(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	hello := []byte("Hello")
 	assert.NoError(t, enc.Encode([]byte("")))
 	assert.NoError(t, enc.Encode(hello))
@@ -39,7 +39,7 @@ func TestEncodeBytes(t *testing.T) {
 
 func TestEncodeUint16Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []uint16{1, 2, 3, 4, 5}
 	var nilslice []uint16
 	assert.NoError(t, enc.Encode(nilslice))
@@ -53,7 +53,7 @@ func TestEncodeUint16Slice(t *testing.T) {
 
 func TestEncodeUint32Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []uint32{1, 2, 3, 4, 5}
 	var nilslice []uint32
 	assert.NoError(t, enc.Encode(nilslice))
@@ -67,7 +67,7 @@ func TestEncodeUint32Slice(t *testing.T) {
 
 func TestEncodeUint64Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []uint64{1, 2, 3, 4, 5}
 	var nilslice []uint64
 	assert.NoError(t, enc.Encode(nilslice))
@@ -81,7 +81,7 @@ func TestEncodeUint64Slice(t *testing.T) {
 
 func TestEncodeUintSlice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []uint{1, 2, 3, 4, 5}
 	var nilslice []uint
 	assert.NoError(t, enc.Encode(nilslice))
@@ -95,7 +95,7 @@ func TestEncodeUintSlice(t *testing.T) {
 
 func TestEncodeInt8Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []int8{1, 2, 3, 4, 5}
 	var nilslice []int8
 	assert.NoError(t, enc.Encode(nilslice))
@@ -109,7 +109,7 @@ func TestEncodeInt8Slice(t *testing.T) {
 
 func TestEncodeInt16Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []int16{1, 2, 3, 4, 5}
 	var nilslice []int16
 	assert.NoError(t, enc.Encode(nilslice))
@@ -123,7 +123,7 @@ func TestEncodeInt16Slice(t *testing.T) {
 
 func TestEncodeInt32Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []int32{1, 2, 3, 4, 5}
 	var nilslice []int32
 	assert.NoError(t, enc.Encode(nilslice))
@@ -137,7 +137,7 @@ func TestEncodeInt32Slice(t *testing.T) {
 
 func TestEncodeInt64Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []int64{1, 2, 3, 4, 5}
 	var nilslice []int64
 	assert.NoError(t, enc.Encode(nilslice))
@@ -151,7 +151,7 @@ func TestEncodeInt64Slice(t *testing.T) {
 
 func TestEncodeIntSlice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []int{1, 2, 3, 4, 5}
 	var nilslice []int
 	assert.NoError(t, enc.Encode(nilslice))
@@ -165,7 +165,7 @@ func TestEncodeIntSlice(t *testing.T) {
 
 func TestEncodeFloat32Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []float32{1, 2, 3, 4, 5}
 	var nilslice []float32
 	assert.NoError(t, enc.Encode(nilslice))
@@ -179,7 +179,7 @@ func TestEncodeFloat32Slice(t *testing.T) {
 
 func TestEncodeFloat64Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []float64{1, 2, 3, 4, 5}
 	var nilslice []float64
 	assert.NoError(t, enc.Encode(nilslice))
@@ -193,7 +193,7 @@ func TestEncodeFloat64Slice(t *testing.T) {
 
 func TestEncodeBoolSlice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []bool{true, false}
 	var nilslice []bool
 	assert.NoError(t, enc.Encode(nilslice))
@@ -207,7 +207,7 @@ func TestEncodeBoolSlice(t *testing.T) {
 
 func TestEncodeStringSlice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []string{"hello", "world"}
 	var nilslice []string
 	assert.NoError(t, enc.Encode(nilslice))
@@ -221,7 +221,7 @@ func TestEncodeStringSlice(t *testing.T) {
 
 func TestEncodeComplex64Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []complex64{complex(1, 2), complex(3, 4)}
 	var nilslice []complex64
 	assert.NoError(t, enc.Encode(nilslice))
@@ -235,7 +235,7 @@ func TestEncodeComplex64Slice(t *testing.T) {
 
 func TestEncodeComplex128Slice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []complex128{complex(1, 2), complex(3, 4)}
 	var nilslice []complex128
 	assert.NoError(t, enc.Encode(nilslice))
@@ -249,7 +249,7 @@ func TestEncodeComplex128Slice(t *testing.T) {
 
 func TestEncodeInterfaceSlice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []interface{}{1, "hello", true}
 	var nilslice []interface{}
 	assert.NoError(t, enc.Encode(nilslice))
@@ -263,7 +263,7 @@ func TestEncodeInterfaceSlice(t *testing.T) {
 
 func TestEncodeBigIntSlice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	slice := []*big.Int{big.NewInt(1), big.NewInt(2)}
 	var nilslice []*big.Int
 	assert.NoError(t, enc.Encode(nilslice))
@@ -277,7 +277,7 @@ func TestEncodeBigIntSlice(t *testing.T) {
 
 func TestEncode2dSlice(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	assert.NoError(t, enc.Encode([][]int{
 		{1, 2, 3}, {4, 5, 6},
 	}))

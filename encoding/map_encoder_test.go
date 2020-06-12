@@ -23,7 +23,7 @@ import (
 
 func TestEncodeMap(t *testing.T) {
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb, false)
+	enc := NewEncoder(sb).Simple(false)
 	assert.NoError(t, enc.Encode(map[string]string{"stringstring": "string"}))
 	assert.Equal(t, `m1{s12"stringstring"s6"string"}`, sb.String())
 	enc.Reset()
