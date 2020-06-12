@@ -48,8 +48,10 @@ func (dec *Decoder) decodeInterface(tag byte) interface{} {
 		switch dec.RealType {
 		case RealTypeFloat32:
 			return float32(math.NaN())
-		default:
+		case RealTypeFloat64:
 			return math.NaN()
+		default:
+			dec.Error = DecodeError("hprose/encoding: can not parse NaN to *big.Float")
 		}
 	case TagInfinity:
 		var f float64

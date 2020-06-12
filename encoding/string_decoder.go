@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/string_decoder.go                               |
 |                                                          |
-| LastModified: Jun 2, 2020                                |
+| LastModified: Jun 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -51,13 +51,13 @@ func (dec *Decoder) fastReadStringAsBytes(utf16Length int) (data []byte) {
 	return buf[:off]
 }
 
-func (dec *Decoder) readStringAsBytes(utf16Length int) (data []byte) {
+func (dec *Decoder) readStringAsBytes(utf16Length int) (data []byte, safe bool) {
 	if (utf16Length == 0) || (dec.head == dec.tail) && !dec.loadMore() {
-		return
+		return nil, true
 	}
 	length := dec.tail - dec.head
 	if length >= utf16Length*3 {
-		return dec.fastReadStringAsBytes(utf16Length)
+		return dec.fastReadStringAsBytes(utf16Length), false
 	}
 	for {
 		buf := dec.buf[dec.head:dec.tail]
@@ -91,11 +91,12 @@ func (dec *Decoder) readStringAsBytes(utf16Length int) (data []byte) {
 		if remains > 0 {
 			dec.head += off
 			if data == nil {
-				return buf[:off]
+				return buf[:off], false
 			}
 			data = append(data, buf[:off]...)
 			return
 		}
+		safe = true
 		data = append(data, buf...)
 		if !dec.loadMore() {
 			if remains < 0 {
@@ -111,8 +112,23 @@ func (dec *Decoder) readStringAsBytes(utf16Length int) (data []byte) {
 	}
 }
 
+func (dec *Decoder) readStringAsSafeBytes(utf16Length int) []byte {
+	data, safe := dec.readStringAsBytes(utf16Length)
+	if safe {
+		return data
+	}
+	return append([]byte{}, data...)
+}
+
+// ReadStringAsBytes reads string as bytes
+func (dec *Decoder) ReadStringAsBytes() (data []byte) {
+	data = dec.readStringAsSafeBytes(dec.ReadInt())
+	dec.Skip()
+	return
+}
+
 func (dec *Decoder) readUnsafeString(utf16Length int) (s string) {
-	data := dec.readStringAsBytes(utf16Length)
+	data, _ := dec.readStringAsBytes(utf16Length)
 	if data == nil {
 		return
 	}
@@ -120,11 +136,11 @@ func (dec *Decoder) readUnsafeString(utf16Length int) (s string) {
 }
 
 func (dec *Decoder) readSafeString(utf16Length int) (s string) {
-	data := dec.readStringAsBytes(utf16Length)
+	data := dec.readStringAsSafeBytes(utf16Length)
 	if data == nil {
 		return
 	}
-	return string(data)
+	return unsafeString(data)
 }
 
 // ReadUnsafeString reads unsafe string

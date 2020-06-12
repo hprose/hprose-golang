@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/float_decoder.go                                |
 |                                                          |
-| LastModified: Jun 11, 2020                               |
+| LastModified: Jun 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -64,6 +64,9 @@ func (dec *Decoder) decodeFloat32(t reflect.Type, tag byte) float32 {
 	case TagUTF8Char:
 		return dec.stringToFloat32(dec.readUnsafeString(1))
 	case TagString:
+		if dec.IsSimple() {
+			return dec.stringToFloat32(dec.ReadUnsafeString())
+		}
 		return dec.stringToFloat32(dec.ReadString())
 	default:
 		dec.decodeError(t, tag)
@@ -91,6 +94,9 @@ func (dec *Decoder) decodeFloat64(t reflect.Type, tag byte) float64 {
 	case TagUTF8Char:
 		return dec.stringToFloat64(dec.readUnsafeString(1))
 	case TagString:
+		if dec.IsSimple() {
+			return dec.stringToFloat64(dec.ReadUnsafeString())
+		}
 		return dec.stringToFloat64(dec.ReadString())
 	default:
 		dec.decodeError(t, tag)

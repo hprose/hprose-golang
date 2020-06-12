@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/complex_decoder.go                              |
 |                                                          |
-| LastModified: Jun 11, 2020                               |
+| LastModified: Jun 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -57,6 +57,9 @@ func (dec *Decoder) decodeComplex64(t reflect.Type, tag byte) complex64 {
 	case TagUTF8Char:
 		return dec.stringToComplex64(dec.readUnsafeString(1))
 	case TagString:
+		if dec.IsSimple() {
+			return dec.stringToComplex64(dec.ReadUnsafeString())
+		}
 		return dec.stringToComplex64(dec.ReadString())
 	default:
 		dec.decodeError(t, tag)
@@ -84,6 +87,9 @@ func (dec *Decoder) decodeComplex128(t reflect.Type, tag byte) complex128 {
 	case TagUTF8Char:
 		return dec.stringToComplex128(dec.readUnsafeString(1))
 	case TagString:
+		if dec.IsSimple() {
+			return dec.stringToComplex128(dec.ReadUnsafeString())
+		}
 		return dec.stringToComplex128(dec.ReadString())
 	default:
 		dec.decodeError(t, tag)

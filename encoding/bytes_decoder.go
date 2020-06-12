@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bytes_decoder.go                                |
 |                                                          |
-| LastModified: Jun 2, 2020                                |
+| LastModified: Jun 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -54,8 +54,11 @@ func (dec *Decoder) decodeBytes(t reflect.Type, tag byte) []byte {
 	case TagList:
 		return dec.readUint8Slice(t.Elem())
 	case TagUTF8Char:
-		return dec.readStringAsBytes(1)
+		return dec.readStringAsSafeBytes(1)
 	case TagString:
+		if dec.IsSimple() {
+			return dec.ReadStringAsBytes()
+		}
 		return reflect2.UnsafeCastString(dec.ReadString())
 	default:
 		dec.decodeError(t, tag)

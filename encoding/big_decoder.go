@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 11, 2020                               |
+| LastModified: Jun 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -103,6 +103,9 @@ func (dec *Decoder) decodeBigInt(t reflect.Type, tag byte) *big.Int {
 	case TagUTF8Char:
 		return dec.strToBigInt(dec.readUnsafeString(1), t)
 	case TagString:
+		if dec.IsSimple() {
+			return dec.strToBigInt(dec.ReadUnsafeString(), t)
+		}
 		return dec.strToBigInt(dec.ReadString(), t)
 	default:
 		dec.decodeError(t, tag)
@@ -133,6 +136,9 @@ func (dec *Decoder) decodeBigFloat(t reflect.Type, tag byte) *big.Float {
 	case TagUTF8Char:
 		return dec.strToBigFloat(dec.readUnsafeString(1), t)
 	case TagString:
+		if dec.IsSimple() {
+			return dec.strToBigFloat(dec.ReadUnsafeString(), t)
+		}
 		return dec.strToBigFloat(dec.ReadString(), t)
 	default:
 		dec.decodeError(t, tag)
@@ -160,6 +166,9 @@ func (dec *Decoder) decodeBigRat(t reflect.Type, tag byte) *big.Rat {
 	case TagUTF8Char:
 		return dec.strToBigRat(dec.readUnsafeString(1), t)
 	case TagString:
+		if dec.IsSimple() {
+			return dec.strToBigRat(dec.ReadUnsafeString(), t)
+		}
 		return dec.strToBigRat(dec.ReadString(), t)
 	default:
 		dec.decodeError(t, tag)

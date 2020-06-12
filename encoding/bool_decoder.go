@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bool_decoder.go                                 |
 |                                                          |
-| LastModified: Jun 2, 2020                                |
+| LastModified: Jun 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -52,6 +52,9 @@ func (dec *Decoder) decodeBool(t reflect.Type, tag byte) bool {
 	case TagUTF8Char:
 		return dec.stringToBool(dec.readUnsafeString(1))
 	case TagString:
+		if dec.IsSimple() {
+			return dec.stringToBool(dec.ReadUnsafeString())
+		}
 		return dec.stringToBool(dec.ReadString())
 	default:
 		dec.decodeError(t, tag)

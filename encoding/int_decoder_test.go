@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder_test.go                             |
 |                                                          |
-| LastModified: Jun 11, 2020                               |
+| LastModified: Jun 12, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -831,11 +831,6 @@ func BenchmarkDecodeInt(b *testing.B) {
 	enc.Encode(1)
 	enc.Encode(122)
 	enc.Encode("12345")
-	enc.Encode("12345")
-	enc.Encode("12345")
-	enc.Encode("12345")
-	enc.Encode("12345")
-	enc.Encode("12345")
 	enc.Encode(nil)
 	enc.Encode("")
 	data := ([]byte)(sb.String())
@@ -843,11 +838,6 @@ func BenchmarkDecodeInt(b *testing.B) {
 	var n int
 	for i := 0; i < b.N; i++ {
 		dec.ResetBytes(data)
-		dec.Decode(&n)
-		dec.Decode(&n)
-		dec.Decode(&n)
-		dec.Decode(&n)
-		dec.Decode(&n)
 		dec.Decode(&n)
 		dec.Decode(&n)
 		dec.Decode(&n)
@@ -862,22 +852,12 @@ func BenchmarkJsonDecodeInt(b *testing.B) {
 	enc.Encode(1)
 	enc.Encode(122)
 	enc.Encode("12345")
-	enc.Encode("12345")
-	enc.Encode("12345")
-	enc.Encode("12345")
-	enc.Encode("12345")
-	enc.Encode("12345")
 	enc.Encode(nil)
 	enc.Encode("")
 	data := ([]byte)(sb.String())
 	var n int
 	for i := 0; i < b.N; i++ {
 		dec := jsoniter.NewDecoder(bytes.NewReader(data))
-		dec.Decode(&n)
-		dec.Decode(&n)
-		dec.Decode(&n)
-		dec.Decode(&n)
-		dec.Decode(&n)
 		dec.Decode(&n)
 		dec.Decode(&n)
 		dec.Decode(&n)
