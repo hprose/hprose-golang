@@ -221,7 +221,7 @@ func (enc *Encoder) String() string {
 
 // WriteReference of v to stream
 func (enc *Encoder) WriteReference(v interface{}) bool {
-	if enc.refer != nil {
+	if !enc.IsSimple() {
 		return enc.refer.Write(enc, v)
 	}
 	return false
@@ -229,7 +229,7 @@ func (enc *Encoder) WriteReference(v interface{}) bool {
 
 // WriteStringReference of v to stream
 func (enc *Encoder) WriteStringReference(s string) bool {
-	if enc.refer != nil {
+	if !enc.IsSimple() {
 		return enc.refer.WriteString(enc, s)
 	}
 	return false
@@ -237,7 +237,7 @@ func (enc *Encoder) WriteStringReference(s string) bool {
 
 // SetReference of v
 func (enc *Encoder) SetReference(v interface{}) {
-	if enc.refer != nil {
+	if !enc.IsSimple() {
 		switch reflect.TypeOf(v).Kind() {
 		case reflect.Ptr:
 			enc.refer.Set(v)
@@ -248,21 +248,21 @@ func (enc *Encoder) SetReference(v interface{}) {
 }
 
 func (enc *Encoder) setReference(v interface{}) {
-	if enc.refer != nil {
+	if !enc.IsSimple() {
 		enc.refer.Set(v)
 	}
 }
 
 // SetStringReference of v
 func (enc *Encoder) SetStringReference(s string) {
-	if enc.refer != nil {
+	if !enc.IsSimple() {
 		enc.refer.SetString(s)
 	}
 }
 
 // AddReferenceCount n
 func (enc *Encoder) AddReferenceCount(n int) {
-	if enc.refer != nil {
+	if !enc.IsSimple() {
 		enc.refer.AddCount(n)
 	}
 }
@@ -284,7 +284,7 @@ func (enc *Encoder) WriteStructType(t reflect.Type, action func()) (r int) {
 
 // Reset the value reference and struct type reference
 func (enc *Encoder) Reset() *Encoder {
-	if enc.refer != nil {
+	if !enc.IsSimple() {
 		enc.refer.Reset()
 	}
 	enc.ref = nil
@@ -302,6 +302,11 @@ func (enc *Encoder) Simple(simple bool) *Encoder {
 	enc.ref = nil
 	enc.last = 0
 	return enc
+}
+
+// IsSimple returns the encoder is in simple mode or not
+func (enc *Encoder) IsSimple() bool {
+	return nil == enc.refer
 }
 
 // WriteNil to encoder

@@ -258,14 +258,14 @@ func (dec *Decoder) Decode(p interface{}) {
 
 // Reset the value reference and struct type reference
 func (dec *Decoder) Reset() *Decoder {
-	if dec.refer != nil {
+	if !dec.IsSimple() {
 		dec.refer.Reset()
 	}
 	dec.ref = dec.ref[:0]
 	return dec
 }
 
-// Simple resets the encoder to simple mode or not
+// Simple resets the decoder to simple mode or not
 func (dec *Decoder) Simple(simple bool) *Decoder {
 	if simple {
 		dec.refer = nil
@@ -276,23 +276,28 @@ func (dec *Decoder) Simple(simple bool) *Decoder {
 	return dec
 }
 
+// IsSimple returns the decoder is in simple mode or not
+func (dec *Decoder) IsSimple() bool {
+	return nil == dec.refer
+}
+
 // AddReference adds o to the reference
 func (dec *Decoder) AddReference(o interface{}) {
-	if dec.refer != nil {
+	if !dec.IsSimple() {
 		dec.refer.Add(o)
 	}
 }
 
 // SetReference sets o to the reference at index i
 func (dec *Decoder) SetReference(i int, o interface{}) {
-	if dec.refer != nil {
+	if !dec.IsSimple() {
 		dec.refer.Set(i, o)
 	}
 }
 
 // LastReferenceIndex returns the last index of the reference
 func (dec *Decoder) LastReferenceIndex() int {
-	if dec.refer != nil {
+	if !dec.IsSimple() {
 		dec.refer.Last()
 	}
 	return -1
