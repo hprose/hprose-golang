@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Jun 2, 2020                                |
+| LastModified: Jun 13, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -338,20 +338,17 @@ func (dec *Decoder) Skip() {
 	dec.head++
 }
 
-// Next returns a slice containing the next n bytes from the buffer,
-// advancing the buffer as if the bytes had been returned by Read.
-// If there are fewer than n bytes in the buffer, Next returns the entire buffer.
-// The slice is only valid until the next call to a read method.
-func (dec *Decoder) Next(n int) (data []byte) {
+func (dec *Decoder) next(n int) (data []byte, safe bool) {
 	if (dec.head == dec.tail) && !dec.loadMore() {
-		return
+		return nil, true
 	}
 	remain := dec.tail - dec.head
 	if remain >= n {
 		data = dec.buf[dec.head : dec.head+n]
 		dec.head += n
-		return
+		return data, false
 	}
+	safe = true
 	data = make([]byte, 0, n)
 	data = append(data, dec.buf[dec.head:dec.tail]...)
 	n -= remain
@@ -361,11 +358,33 @@ func (dec *Decoder) Next(n int) (data []byte) {
 		}
 		if dec.tail >= n {
 			dec.head = n
-			return append(data, dec.buf[0:n]...)
+			data = append(data, dec.buf[0:n]...)
+			return
 		}
 		data = append(data, dec.buf[:dec.tail]...)
 		n -= dec.tail
 	}
+}
+
+// UnsafeNext returns a slice containing the next n bytes from the buffer,
+// advancing the buffer as if the bytes had been returned by Read.
+// If there are fewer than n bytes in the buffer, Next returns the entire buffer.
+// The returned slice is only valid until the next call to a read method.
+func (dec *Decoder) UnsafeNext(n int) (data []byte) {
+	data, _ = dec.next(n)
+	return
+}
+
+// Next returns a slice containing the next n bytes from the buffer,
+// advancing the buffer as if the bytes had been returned by Read.
+// If there are fewer than n bytes in the buffer, Next returns the entire buffer.
+// The returned slice is always valid.
+func (dec *Decoder) Next(n int) []byte {
+	data, safe := dec.next(n)
+	if safe {
+		return data
+	}
+	return append(([]byte)(nil), data...)
 }
 
 // Remains reads and returns all bytes data in this iter that has not been read.
@@ -376,22 +395,21 @@ func (dec *Decoder) Remains() (data []byte) {
 	for {
 		data = append(data, dec.buf[dec.head:dec.tail]...)
 		if !dec.loadMore() {
-			return data
+			return
 		}
 	}
 }
 
-// Until reads until the first occurrence of delim in the input,
-// returning a slice containing the data up to and not including the delimiter.
-func (dec *Decoder) Until(delim byte) (data []byte) {
+func (dec *Decoder) until(delim byte) (data []byte, safe bool) {
 	if (dec.head == dec.tail) && !dec.loadMore() {
-		return
+		return nil, true
 	}
 	if i := bytes.IndexByte(dec.buf[dec.head:dec.tail], delim); i >= 0 {
 		data = dec.buf[dec.head : dec.head+i]
 		dec.head += i + 1
-		return
+		return data, false
 	}
+	safe = true
 	for {
 		data = append(data, dec.buf[dec.head:dec.tail]...)
 		if !dec.loadMore() {
@@ -403,6 +421,25 @@ func (dec *Decoder) Until(delim byte) (data []byte) {
 			return
 		}
 	}
+}
+
+// UnsafeUntil reads until the first occurrence of delim in the input,
+// returning a slice containing the data up to and not including the delimiter.
+// The returned slice is only valid until the next call to a read method.
+func (dec *Decoder) UnsafeUntil(delim byte) (data []byte) {
+	data, _ = dec.until(delim)
+	return
+}
+
+// Until reads until the first occurrence of delim in the input,
+// returning a slice containing the data up to and not including the delimiter.
+// The returned slice is always valid.
+func (dec *Decoder) Until(delim byte) []byte {
+	data, safe := dec.until(delim)
+	if safe {
+		return data
+	}
+	return append(([]byte)(nil), data...)
 }
 
 func (dec *Decoder) loadMore() bool {

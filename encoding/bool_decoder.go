@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bool_decoder.go                                 |
 |                                                          |
-| LastModified: Jun 12, 2020                               |
+| LastModified: Jun 13, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -38,7 +38,7 @@ func (dec *Decoder) decodeBool(t reflect.Type, tag byte) bool {
 	case TagTrue, TagNaN:
 		return true
 	case TagInteger, TagLong, TagDouble:
-		bytes := dec.Until(TagSemicolon)
+		bytes := dec.UnsafeUntil(TagSemicolon)
 		if len(bytes) == 0 {
 			return false
 		}

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder.go                                  |
 |                                                          |
-| LastModified: Apr 25, 2020                               |
+| LastModified: Jun 13, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -176,7 +176,7 @@ func (dec *Decoder) ReadUint() (value uint) {
 
 // ReadFloat32 reads float32
 func (dec *Decoder) ReadFloat32() (value float32) {
-	f, err := strconv.ParseFloat(unsafeString(dec.Until(TagSemicolon)), 32)
+	f, err := strconv.ParseFloat(unsafeString(dec.UnsafeUntil(TagSemicolon)), 32)
 	if dec.Error == nil && err != nil {
 		dec.Error = err
 	}
@@ -185,7 +185,7 @@ func (dec *Decoder) ReadFloat32() (value float32) {
 
 // ReadFloat64 reads float64
 func (dec *Decoder) ReadFloat64() (value float64) {
-	f, err := strconv.ParseFloat(unsafeString(dec.Until(TagSemicolon)), 64)
+	f, err := strconv.ParseFloat(unsafeString(dec.UnsafeUntil(TagSemicolon)), 64)
 	if dec.Error == nil && err != nil {
 		dec.Error = err
 	}

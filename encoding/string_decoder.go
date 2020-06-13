@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/string_decoder.go                               |
 |                                                          |
-| LastModified: Jun 12, 2020                               |
+| LastModified: Jun 13, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -117,7 +117,7 @@ func (dec *Decoder) readStringAsSafeBytes(utf16Length int) []byte {
 	if safe {
 		return data
 	}
-	return append([]byte{}, data...)
+	return append(([]byte)(nil), data...)
 }
 
 // ReadStringAsBytes reads string as bytes
@@ -182,7 +182,7 @@ func (dec *Decoder) decodeString(t reflect.Type, tag byte) string {
 		}
 		return "+Inf"
 	case TagInteger, TagLong, TagDouble:
-		return string(dec.Until(TagSemicolon))
+		return unsafeString(dec.Until(TagSemicolon))
 	case TagUTF8Char:
 		return dec.readSafeString(1)
 	case TagString:
