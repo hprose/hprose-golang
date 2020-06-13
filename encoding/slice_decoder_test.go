@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/slice_decoder_test.go                           |
 |                                                          |
-| LastModified: Jun 11, 2020                               |
+| LastModified: Jun 13, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -34,12 +34,13 @@ func TestDecodeIntSlice(t *testing.T) {
 	enc.Encode(1)
 	dec := NewDecoder(([]byte)(sb.String()))
 	var slice []int
+	expected := []int{1, 2, 3, 4, 5}
 	dec.Decode(&slice)
-	assert.Equal(t, []int{1, 2, 3, 4, 5}, slice) // []int{1, 2, 3, 4, 5}
+	assert.Equal(t, expected, slice) // []int{1, 2, 3, 4, 5}
 	dec.Decode(&slice)
-	assert.Equal(t, []int{1, 2, 3, 4, 5}, slice) // []float32{1, 2, 3, 4, 5}
+	assert.Equal(t, expected, slice) // []float32{1, 2, 3, 4, 5}
 	dec.Decode(&slice)
-	assert.Equal(t, []int{1, 2, 3, 4, 5}, slice) // []string{"1", "2", "3", "4", "5"}
+	assert.Equal(t, expected, slice) // []string{"1", "2", "3", "4", "5"}
 	dec.Decode(&slice)
 	assert.Nil(t, slice) // nil
 	dec.Decode(&slice)
@@ -60,18 +61,45 @@ func TestDecodeCustomIntSlice(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	type Int int
 	var slice []Int
+	expected := []Int{1, 2, 3, 4, 5}
 	dec.Decode(&slice)
-	assert.Equal(t, []Int{1, 2, 3, 4, 5}, slice) // []int{1, 2, 3, 4, 5}
+	assert.Equal(t, expected, slice) // []int{1, 2, 3, 4, 5}
 	dec.Decode(&slice)
-	assert.Equal(t, []Int{1, 2, 3, 4, 5}, slice) // []float32{1, 2, 3, 4, 5}
+	assert.Equal(t, expected, slice) // []float32{1, 2, 3, 4, 5}
 	dec.Decode(&slice)
-	assert.Equal(t, []Int{1, 2, 3, 4, 5}, slice) // []string{"1", "2", "3", "4", "5"}
+	assert.Equal(t, expected, slice) // []string{"1", "2", "3", "4", "5"}
 	dec.Decode(&slice)
 	assert.Nil(t, slice) // nil
 	dec.Decode(&slice)
 	assert.Equal(t, []Int{}, slice) // ""
 	dec.Decode(&slice)
 	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to []encoding.Int`) // 1
+}
+
+func TestDecodeBigIntSlice(t *testing.T) {
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb)
+	enc.Encode([]int{1, 2, 3, 4, 5})
+	enc.Encode([]float32{1, 2, 3, 4, 5})
+	enc.Encode([]string{"1", "2", "3", "4", "5"})
+	enc.Encode(nil)
+	enc.Encode("")
+	enc.Encode(1)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var slice []*big.Int
+	expected := []*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5)}
+	dec.Decode(&slice)
+	assert.Equal(t, expected, slice) // []int{1, 2, 3, 4, 5}
+	dec.Decode(&slice)
+	assert.Equal(t, expected, slice) // []float32{1, 2, 3, 4, 5}
+	dec.Decode(&slice)
+	assert.Equal(t, expected, slice) // []string{"1", "2", "3", "4", "5"}
+	dec.Decode(&slice)
+	assert.Nil(t, slice) // nil
+	dec.Decode(&slice)
+	assert.Equal(t, []*big.Int{}, slice) // ""
+	dec.Decode(&slice)
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to []*big.Int`) // 1
 }
 
 func BenchmarkDecodeIntSlice(b *testing.B) {
