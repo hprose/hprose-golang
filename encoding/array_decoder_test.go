@@ -73,6 +73,40 @@ func TestDecodeCustomIntArray(t *testing.T) {
 	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to [5]encoding.Int`) // 1
 }
 
+func TestDecodeByteArray(t *testing.T) {
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb)
+	enc.Encode([]int{1, 2, 3, 4, 5, 6})
+	enc.Encode([]float32{4, 3, 2, 1})
+	enc.Encode([]string{"1", "2", "3", "4", "5"})
+	enc.Encode(nil)
+	enc.Encode("")
+	enc.Encode("123456789")
+	enc.Encode("A")
+	enc.Encode([]byte("OK"))
+	enc.Encode(1)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var array [5]byte
+	dec.Decode(&array)
+	assert.Equal(t, [...]byte{1, 2, 3, 4, 5}, array) // []int{1, 2, 3, 4, 5, 6}
+	dec.Decode(&array)
+	assert.Equal(t, [...]byte{4, 3, 2, 1, 0}, array) // []float32{4, 3, 2, 1}
+	dec.Decode(&array)
+	assert.Equal(t, [...]byte{1, 2, 3, 4, 5}, array) // []string{"1", "2", "3", "4", "5"}
+	dec.Decode(&array)
+	assert.Equal(t, [5]byte{}, array) // nil
+	dec.Decode(&array)
+	assert.Equal(t, [5]byte{}, array) // ""
+	dec.Decode(&array)
+	assert.Equal(t, [5]byte{'1', '2', '3', '4', '5'}, array) // "123456789"
+	dec.Decode(&array)
+	assert.Equal(t, [5]byte{'A', 0, 0, 0, 0}, array) // "A"
+	dec.Decode(&array)
+	assert.Equal(t, [5]byte{'O', 'K', 0, 0, 0}, array) // []byte("OK")
+	dec.Decode(&array)
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to [5]uint8`) // 1
+}
+
 func TestDecodeInterfaceArray(t *testing.T) {
 	sb := new(strings.Builder)
 	enc := NewEncoder(sb)

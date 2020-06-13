@@ -197,3 +197,47 @@ func otherArrayDecoder(t reflect.Type) ValueDecoder {
 		valdec.Decode(dec, et2.UnsafeIndirect(ep), dec.NextByte())
 	})
 }
+
+type byteArrayDecoder struct {
+	arrayDecoder
+}
+
+func (valdec byteArrayDecoder) copy(p interface{}, data []byte) {
+	count := len(data)
+	length := valdec.at.Len()
+	slice := *(*[]byte)(unsafe.Pointer(&sliceHeader{reflect2.PtrOf(p), length, length}))
+	copy(slice, data)
+	if length > count {
+		for i := count; i < length; i++ {
+			slice[i] = 0
+		}
+	}
+}
+
+func (valdec byteArrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	switch tag {
+	case TagBytes:
+		data := dec.UnsafeNext(dec.ReadInt())
+		dec.Skip()
+		valdec.copy(p, data)
+		dec.AddReference(p)
+	case TagUTF8Char:
+		data, _ := dec.readStringAsBytes(1)
+		valdec.copy(p, data)
+	case TagString:
+		if dec.IsSimple() {
+			data, _ := dec.readStringAsBytes(dec.ReadInt())
+			dec.Skip()
+			valdec.copy(p, data)
+		} else {
+			valdec.copy(p, reflect2.UnsafeCastString(dec.ReadString()))
+		}
+	default:
+		valdec.arrayDecoder.Decode(dec, p, tag)
+	}
+}
+
+// ByteArrayDecoder returns a ValueDecoder for [N]byte.
+func ByteArrayDecoder(t reflect.Type) ValueDecoder {
+	return byteArrayDecoder{uint8ArrayDecoder(t).(arrayDecoder)}
+}

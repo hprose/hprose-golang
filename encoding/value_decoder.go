@@ -134,7 +134,7 @@ func init() {
 		reflect.Int32:         int32ArrayDecoder,
 		reflect.Int64:         int64ArrayDecoder,
 		reflect.Uint:          uintArrayDecoder,
-		reflect.Uint8:         uint8ArrayDecoder,
+		reflect.Uint8:         ByteArrayDecoder,
 		reflect.Uint16:        uint16ArrayDecoder,
 		reflect.Uint32:        uint32ArrayDecoder,
 		reflect.Uint64:        uint64ArrayDecoder,
