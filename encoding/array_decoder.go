@@ -27,7 +27,6 @@ type arrayDecoder struct {
 	empty     unsafe.Pointer
 	st        *reflect2.UnsafeSliceType
 	emptyElem unsafe.Pointer
-	tempElem  unsafe.Pointer
 	readElem  func(dec *Decoder, et reflect.Type, ep unsafe.Pointer)
 }
 
@@ -53,8 +52,9 @@ func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 				valdec.st.UnsafeSetIndex(slice, i, valdec.emptyElem)
 			}
 		case n < count:
+			temp := reflect2.Type2(valdec.et).UnsafeNew()
 			for i := n; i < count; i++ {
-				valdec.readElem(dec, valdec.et, valdec.tempElem)
+				valdec.readElem(dec, valdec.et, temp)
 			}
 		}
 		dec.Skip()
@@ -76,7 +76,6 @@ func ArrayDecoder(t reflect.Type, readElem func(dec *Decoder, et reflect.Type, e
 		et,
 		at.UnsafeNew(),
 		reflect2.Type2(reflect.SliceOf(et)).(*reflect2.UnsafeSliceType),
-		reflect2.Type2(et).UnsafeNew(),
 		reflect2.Type2(et).UnsafeNew(),
 		readElem,
 	}
