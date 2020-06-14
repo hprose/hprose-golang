@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/array_decoder.go                                |
 |                                                          |
-| LastModified: Jun 13, 2020                               |
+| LastModified: Jun 14, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -22,12 +22,12 @@ import (
 
 // arrayDecoder is the implementation of ValueDecoder for [N]T.
 type arrayDecoder struct {
-	at        *reflect2.UnsafeArrayType
-	et        reflect.Type
-	empty     unsafe.Pointer
-	st        *reflect2.UnsafeSliceType
-	emptyElem unsafe.Pointer
-	readElem  func(dec *Decoder, et reflect.Type, ep unsafe.Pointer)
+	at         *reflect2.UnsafeArrayType
+	et         reflect.Type
+	empty      unsafe.Pointer
+	st         *reflect2.UnsafeSliceType
+	emptyElem  unsafe.Pointer
+	decodeElem DecodeHandler
 }
 
 func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
@@ -44,7 +44,7 @@ func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 			n = count
 		}
 		for i := 0; i < n; i++ {
-			valdec.readElem(dec, valdec.et, valdec.st.UnsafeGetIndex(slice, i))
+			valdec.decodeElem(dec, valdec.et, valdec.st.UnsafeGetIndex(slice, i))
 		}
 		switch {
 		case n < length:
@@ -54,7 +54,7 @@ func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		case n < count:
 			temp := reflect2.Type2(valdec.et).UnsafeNew()
 			for i := n; i < count; i++ {
-				valdec.readElem(dec, valdec.et, temp)
+				valdec.decodeElem(dec, valdec.et, temp)
 			}
 		}
 		dec.Skip()
@@ -68,7 +68,7 @@ func (valdec arrayDecoder) Type() reflect.Type {
 }
 
 // ArrayDecoder returns a ValueDecoder for [N]T.
-func ArrayDecoder(t reflect.Type, readElem func(dec *Decoder, et reflect.Type, ep unsafe.Pointer)) ValueDecoder {
+func ArrayDecoder(t reflect.Type, decodeElem DecodeHandler) ValueDecoder {
 	at := reflect2.Type2(t).(*reflect2.UnsafeArrayType)
 	et := t.Elem()
 	return arrayDecoder{
@@ -77,124 +77,84 @@ func ArrayDecoder(t reflect.Type, readElem func(dec *Decoder, et reflect.Type, e
 		at.UnsafeNew(),
 		reflect2.Type2(reflect.SliceOf(et)).(*reflect2.UnsafeSliceType),
 		reflect2.Type2(et).UnsafeNew(),
-		readElem,
+		decodeElem,
 	}
 }
 
 func boolArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*bool)(ep) = dec.decodeBool(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, boolDecode)
 }
 
 func intArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int)(ep) = dec.decodeInt(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, intDecode)
 }
 
 func int8ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int8)(ep) = dec.decodeInt8(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, int8Decode)
 }
 
 func int16ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int16)(ep) = dec.decodeInt16(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, int16Decode)
 }
 
 func int32ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int32)(ep) = dec.decodeInt32(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, int32Decode)
 }
 
 func int64ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int64)(ep) = dec.decodeInt64(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, int64Decode)
 }
 
 func uintArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint)(ep) = dec.decodeUint(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, uintDecode)
 }
 
 func uint8ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint8)(ep) = dec.decodeUint8(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, uint8Decode)
 }
 
 func uint16ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint16)(ep) = dec.decodeUint16(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, uint16Decode)
 }
 
 func uint32ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint32)(ep) = dec.decodeUint32(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, uint32Decode)
 }
 
 func uint64ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint64)(ep) = dec.decodeUint64(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, uint64Decode)
 }
 
 func uintptrArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uintptr)(ep) = dec.decodeUintptr(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, uintptrDecode)
 }
 
 func float32ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*float32)(ep) = dec.decodeFloat32(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, float32Decode)
 }
 
 func float64ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*float64)(ep) = dec.decodeFloat64(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, float64Decode)
 }
 
 func complex64ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*complex64)(ep) = dec.decodeComplex64(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, complex64Decode)
 }
 
 func complex128ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*complex128)(ep) = dec.decodeComplex128(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, complex128Decode)
 }
 
 func interfaceArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*interface{})(ep) = dec.decodeInterface(dec.NextByte())
-	})
+	return ArrayDecoder(t, interfaceDecode)
 }
 
 func stringArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*string)(ep) = dec.decodeString(et, dec.NextByte())
-	})
+	return ArrayDecoder(t, stringDecode)
 }
 
 func otherArrayDecoder(t reflect.Type) ValueDecoder {
-	valdec := getValueDecoder(t.Elem())
-	et2 := reflect2.Type2(t.Elem())
-	return ArrayDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		valdec.Decode(dec, et2.UnsafeIndirect(ep), dec.NextByte())
-	})
+	return ArrayDecoder(t, otherDecode(t))
 }
 
 type byteArrayDecoder struct {

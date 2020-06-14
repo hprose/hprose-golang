@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/slice_decoder.go                                |
 |                                                          |
-| LastModified: Jun 7, 2020                                |
+| LastModified: Jun 14, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,10 +23,10 @@ import (
 
 // sliceDecoder is the implementation of ValueDecoder for []T.
 type sliceDecoder struct {
-	t        *reflect2.UnsafeSliceType
-	et       reflect.Type
-	empty    unsafe.Pointer
-	readElem func(dec *Decoder, et reflect.Type, ep unsafe.Pointer)
+	t          *reflect2.UnsafeSliceType
+	et         reflect.Type
+	empty      unsafe.Pointer
+	decodeElem DecodeHandler
 }
 
 func (valdec sliceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
@@ -41,7 +41,7 @@ func (valdec sliceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		valdec.t.UnsafeGrow(slice, count)
 		dec.AddReference(p)
 		for i := 0; i < count; i++ {
-			valdec.readElem(dec, valdec.et, valdec.t.UnsafeGetIndex(slice, i))
+			valdec.decodeElem(dec, valdec.et, valdec.t.UnsafeGetIndex(slice, i))
 		}
 		dec.Skip()
 	default:
@@ -54,147 +54,105 @@ func (valdec sliceDecoder) Type() reflect.Type {
 }
 
 // SliceDecoder returns a ValueDecoder for []T.
-func SliceDecoder(t reflect.Type, readElem func(dec *Decoder, et reflect.Type, ep unsafe.Pointer)) ValueDecoder {
+func SliceDecoder(t reflect.Type, decodeElem DecodeHandler) ValueDecoder {
 	return sliceDecoder{
 		reflect2.Type2(t).(*reflect2.UnsafeSliceType),
 		t.Elem(),
 		reflect2.Type2(reflect.ArrayOf(0, t.Elem())).UnsafeNew(),
-		readElem,
+		decodeElem,
 	}
 }
 
 func boolSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*bool)(ep) = dec.decodeBool(et, dec.NextByte())
-	})
+	return SliceDecoder(t, boolDecode)
 }
 
 func intSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int)(ep) = dec.decodeInt(et, dec.NextByte())
-	})
+	return SliceDecoder(t, intDecode)
 }
 
 func int8SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int8)(ep) = dec.decodeInt8(et, dec.NextByte())
-	})
+	return SliceDecoder(t, int8Decode)
 }
 
 func int16SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int16)(ep) = dec.decodeInt16(et, dec.NextByte())
-	})
+	return SliceDecoder(t, int16Decode)
 }
 
 func int32SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int32)(ep) = dec.decodeInt32(et, dec.NextByte())
-	})
+	return SliceDecoder(t, int32Decode)
 }
 
 func int64SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*int64)(ep) = dec.decodeInt64(et, dec.NextByte())
-	})
+	return SliceDecoder(t, int64Decode)
 }
 
 func uintSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint)(ep) = dec.decodeUint(et, dec.NextByte())
-	})
+	return SliceDecoder(t, uintDecode)
 }
 
 func uint8SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint8)(ep) = dec.decodeUint8(et, dec.NextByte())
-	})
+	return SliceDecoder(t, uint8Decode)
 }
 
 func uint16SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint16)(ep) = dec.decodeUint16(et, dec.NextByte())
-	})
+	return SliceDecoder(t, uint16Decode)
 }
 
 func uint32SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint32)(ep) = dec.decodeUint32(et, dec.NextByte())
-	})
+	return SliceDecoder(t, uint32Decode)
 }
 
 func uint64SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uint64)(ep) = dec.decodeUint64(et, dec.NextByte())
-	})
+	return SliceDecoder(t, uint64Decode)
 }
 
 func uintptrSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*uintptr)(ep) = dec.decodeUintptr(et, dec.NextByte())
-	})
+	return SliceDecoder(t, uintptrDecode)
 }
 
 func float32SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*float32)(ep) = dec.decodeFloat32(et, dec.NextByte())
-	})
+	return SliceDecoder(t, float32Decode)
 }
 
 func float64SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*float64)(ep) = dec.decodeFloat64(et, dec.NextByte())
-	})
+	return SliceDecoder(t, float64Decode)
 }
 
 func complex64SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*complex64)(ep) = dec.decodeComplex64(et, dec.NextByte())
-	})
+	return SliceDecoder(t, complex64Decode)
 }
 
 func complex128SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*complex128)(ep) = dec.decodeComplex128(et, dec.NextByte())
-	})
+	return SliceDecoder(t, complex128Decode)
 }
 
 func interfaceSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*interface{})(ep) = dec.decodeInterface(dec.NextByte())
-	})
+	return SliceDecoder(t, interfaceDecode)
+}
+
+func bytesSliceDecoder(t reflect.Type) ValueDecoder {
+	return SliceDecoder(t, bytesDecode)
 }
 
 func stringSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(*string)(ep) = dec.decodeString(et, dec.NextByte())
-	})
+	return SliceDecoder(t, stringDecode)
 }
 
 func bigIntSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(**big.Int)(ep) = dec.decodeBigInt(et, dec.NextByte())
-	})
+	return SliceDecoder(t, bigIntDecode)
 }
 
 func bigFloatSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(**big.Float)(ep) = dec.decodeBigFloat(et, dec.NextByte())
-	})
+	return SliceDecoder(t, bigFloatDecode)
 }
 
 func bigRatSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		*(**big.Rat)(ep) = dec.decodeBigRat(et, dec.NextByte())
-	})
+	return SliceDecoder(t, bigRatDecode)
 }
 
 func otherSliceDecoder(t reflect.Type) ValueDecoder {
-	valdec := getValueDecoder(t.Elem())
-	et2 := reflect2.Type2(t.Elem())
-	return SliceDecoder(t, func(dec *Decoder, et reflect.Type, ep unsafe.Pointer) {
-		valdec.Decode(dec, et2.UnsafeIndirect(ep), dec.NextByte())
-	})
+	return SliceDecoder(t, otherDecode(t))
 }
 
 var (
@@ -214,6 +172,7 @@ var (
 	c64sdec  sliceDecoder
 	c128sdec sliceDecoder
 	ifsdec   sliceDecoder
+	u8ssdec  sliceDecoder
 	ssdec    sliceDecoder
 	bisdec   sliceDecoder
 	bfsdec   sliceDecoder
@@ -237,6 +196,7 @@ func init() {
 	c64sdec = complex64SliceDecoder(reflect.TypeOf(([]complex64)(nil))).(sliceDecoder)
 	c128sdec = complex128SliceDecoder(reflect.TypeOf(([]complex128)(nil))).(sliceDecoder)
 	ifsdec = interfaceSliceDecoder(reflect.TypeOf(([]interface{})(nil))).(sliceDecoder)
+	u8ssdec = bytesSliceDecoder(reflect.TypeOf(([][]byte)(nil))).(sliceDecoder)
 	ssdec = stringSliceDecoder(reflect.TypeOf(([]string)(nil))).(sliceDecoder)
 	bisdec = bigIntSliceDecoder(reflect.TypeOf(([]*big.Int)(nil))).(sliceDecoder)
 	bfsdec = bigFloatSliceDecoder(reflect.TypeOf(([]*big.Float)(nil))).(sliceDecoder)
@@ -258,6 +218,7 @@ func init() {
 	RegisterValueDecoder(c64sdec)
 	RegisterValueDecoder(c128sdec)
 	RegisterValueDecoder(ifsdec)
+	RegisterValueDecoder(u8ssdec)
 	RegisterValueDecoder(ssdec)
 	RegisterValueDecoder(bisdec)
 	RegisterValueDecoder(bfsdec)

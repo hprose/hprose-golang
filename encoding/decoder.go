@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Jun 13, 2020                               |
+| LastModified: Jun 14, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -222,6 +222,8 @@ func (dec *Decoder) fastDecodeSlice(p interface{}, tag byte) bool {
 		c128sdec.Decode(dec, p, tag)
 	case *[]interface{}:
 		ifsdec.Decode(dec, p, tag)
+	case *[][]byte:
+		u8ssdec.Decode(dec, p, tag)
 	case *[]string:
 		ssdec.Decode(dec, p, tag)
 	case *[]*big.Int:
