@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/float_decoder.go                                |
 |                                                          |
-| LastModified: Jun 12, 2020                               |
+| LastModified: Jun 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -74,6 +74,14 @@ func (dec *Decoder) decodeFloat32(t reflect.Type, tag byte) float32 {
 	return 0
 }
 
+func (dec *Decoder) decodeFloat32Ptr(t reflect.Type, tag byte) *float32 {
+	if tag == TagNull {
+		return nil
+	}
+	f := dec.decodeFloat32(t, tag)
+	return &f
+}
+
 func (dec *Decoder) decodeFloat64(t reflect.Type, tag byte) float64 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return float64(i)
@@ -104,19 +112,21 @@ func (dec *Decoder) decodeFloat64(t reflect.Type, tag byte) float64 {
 	return 0
 }
 
+func (dec *Decoder) decodeFloat64Ptr(t reflect.Type, tag byte) *float64 {
+	if tag == TagNull {
+		return nil
+	}
+	f := dec.decodeFloat64(t, tag)
+	return &f
+}
+
 // float32Decoder is the implementation of ValueDecoder for float32.
 type float32Decoder struct {
 	t reflect.Type
 }
 
-func (valdec float32Decoder) decode(dec *Decoder, pv *float32, tag byte) {
-	if f := dec.decodeFloat32(valdec.t, tag); dec.Error == nil {
-		*pv = f
-	}
-}
-
 func (valdec float32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*float32)(reflect2.PtrOf(p)), tag)
+	*(*float32)(reflect2.PtrOf(p)) = dec.decodeFloat32(valdec.t, tag)
 }
 
 func (valdec float32Decoder) Type() reflect.Type {
@@ -128,16 +138,8 @@ type float32PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec float32PtrDecoder) decode(dec *Decoder, pv **float32, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if f := dec.decodeFloat32(valdec.t, tag); dec.Error == nil {
-		*pv = &f
-	}
-}
-
 func (valdec float32PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**float32)(reflect2.PtrOf(p)), tag)
+	*(**float32)(reflect2.PtrOf(p)) = dec.decodeFloat32Ptr(valdec.t, tag)
 }
 
 func (valdec float32PtrDecoder) Type() reflect.Type {
@@ -149,14 +151,8 @@ type float64Decoder struct {
 	t reflect.Type
 }
 
-func (valdec float64Decoder) decode(dec *Decoder, pv *float64, tag byte) {
-	if f := dec.decodeFloat64(valdec.t, tag); dec.Error == nil {
-		*pv = f
-	}
-}
-
 func (valdec float64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*float64)(reflect2.PtrOf(p)), tag)
+	*(*float64)(reflect2.PtrOf(p)) = dec.decodeFloat64(valdec.t, tag)
 }
 
 func (valdec float64Decoder) Type() reflect.Type {
@@ -168,32 +164,10 @@ type float64PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec float64PtrDecoder) decode(dec *Decoder, pv **float64, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if f := dec.decodeFloat64(valdec.t, tag); dec.Error == nil {
-		*pv = &f
-	}
-}
-
 func (valdec float64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**float64)(reflect2.PtrOf(p)), tag)
+	*(**float64)(reflect2.PtrOf(p)) = dec.decodeFloat64Ptr(valdec.t, tag)
 }
 
 func (valdec float64PtrDecoder) Type() reflect.Type {
 	return valdec.t
-}
-
-var (
-	f32dec  = float32Decoder{reflect.TypeOf((float32)(0))}
-	f64dec  = float64Decoder{reflect.TypeOf((float64)(0))}
-	pf32dec = float32PtrDecoder{reflect.TypeOf((*float32)(nil))}
-	pf64dec = float64PtrDecoder{reflect.TypeOf((*float64)(nil))}
-)
-
-func init() {
-	RegisterValueDecoder(f32dec)
-	RegisterValueDecoder(f64dec)
-	RegisterValueDecoder(pf32dec)
-	RegisterValueDecoder(pf64dec)
 }

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bool_decoder.go                                 |
 |                                                          |
-| LastModified: Jun 13, 2020                               |
+| LastModified: Jun 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -62,19 +62,21 @@ func (dec *Decoder) decodeBool(t reflect.Type, tag byte) bool {
 	return false
 }
 
+func (dec *Decoder) decodeBoolPtr(t reflect.Type, tag byte) *bool {
+	if tag == TagNull {
+		return nil
+	}
+	b := dec.decodeBool(t, tag)
+	return &b
+}
+
 // boolDecoder is the implementation of ValueDecoder for bool.
 type boolDecoder struct {
 	t reflect.Type
 }
 
-func (valdec boolDecoder) decode(dec *Decoder, pv *bool, tag byte) {
-	if b := dec.decodeBool(valdec.t, tag); dec.Error == nil {
-		*pv = b
-	}
-}
-
 func (valdec boolDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*bool)(reflect2.PtrOf(p)), tag)
+	*(*bool)(reflect2.PtrOf(p)) = dec.decodeBool(valdec.t, tag)
 }
 
 func (valdec boolDecoder) Type() reflect.Type {
@@ -86,28 +88,10 @@ type boolPtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec boolPtrDecoder) decode(dec *Decoder, pv **bool, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if b := dec.decodeBool(valdec.t, tag); dec.Error == nil {
-		*pv = &b
-	}
-}
-
 func (valdec boolPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**bool)(reflect2.PtrOf(p)), tag)
+	*(**bool)(reflect2.PtrOf(p)) = dec.decodeBoolPtr(valdec.t, tag)
 }
 
 func (valdec boolPtrDecoder) Type() reflect.Type {
 	return valdec.t
-}
-
-var (
-	bdec  = boolDecoder{reflect.TypeOf(false)}
-	pbdec = boolPtrDecoder{reflect.TypeOf((*bool)(nil))}
-)
-
-func init() {
-	RegisterValueDecoder(bdec)
-	RegisterValueDecoder(pbdec)
 }

@@ -63,96 +63,12 @@ func SliceDecoder(t reflect.Type, decodeElem DecodeHandler) ValueDecoder {
 	}
 }
 
-func boolSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, boolDecode)
-}
-
-func intSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, intDecode)
-}
-
-func int8SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, int8Decode)
-}
-
-func int16SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, int16Decode)
-}
-
-func int32SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, int32Decode)
-}
-
-func int64SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, int64Decode)
-}
-
-func uintSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, uintDecode)
-}
-
-func uint8SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, uint8Decode)
-}
-
-func uint16SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, uint16Decode)
-}
-
-func uint32SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, uint32Decode)
-}
-
-func uint64SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, uint64Decode)
-}
-
-func uintptrSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, uintptrDecode)
-}
-
-func float32SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, float32Decode)
-}
-
-func float64SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, float64Decode)
-}
-
-func complex64SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, complex64Decode)
-}
-
-func complex128SliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, complex128Decode)
-}
-
-func interfaceSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, interfaceDecode)
-}
-
-func bytesSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, bytesDecode)
-}
-
-func stringSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, stringDecode)
-}
-
-func bigIntSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, bigIntDecode)
-}
-
-func bigFloatSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, bigFloatDecode)
-}
-
-func bigRatSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, bigRatDecode)
-}
-
-func otherSliceDecoder(t reflect.Type) ValueDecoder {
-	return SliceDecoder(t, otherDecode(t))
+func getSliceDecoder(t reflect.Type) ValueDecoder {
+	et := t.Elem()
+	if et.Kind() == reflect.Uint8 {
+		return bytesDecoder{t}
+	}
+	return SliceDecoder(t, getDecodeHandler(et))
 }
 
 var (
@@ -180,27 +96,27 @@ var (
 )
 
 func init() {
-	bsdec = boolSliceDecoder(reflect.TypeOf(([]bool)(nil))).(sliceDecoder)
-	isdec = intSliceDecoder(reflect.TypeOf(([]int)(nil))).(sliceDecoder)
-	i8sdec = int8SliceDecoder(reflect.TypeOf(([]int8)(nil))).(sliceDecoder)
-	i16sdec = int16SliceDecoder(reflect.TypeOf(([]int16)(nil))).(sliceDecoder)
-	i32sdec = int32SliceDecoder(reflect.TypeOf(([]int32)(nil))).(sliceDecoder)
-	i64sdec = int64SliceDecoder(reflect.TypeOf(([]int64)(nil))).(sliceDecoder)
-	usdec = uintSliceDecoder(reflect.TypeOf(([]uint)(nil))).(sliceDecoder)
-	u16sdec = uint16SliceDecoder(reflect.TypeOf(([]uint16)(nil))).(sliceDecoder)
-	u32sdec = uint32SliceDecoder(reflect.TypeOf(([]uint32)(nil))).(sliceDecoder)
-	u64sdec = uint64SliceDecoder(reflect.TypeOf(([]uint64)(nil))).(sliceDecoder)
-	upsdec = uintSliceDecoder(reflect.TypeOf(([]uintptr)(nil))).(sliceDecoder)
-	f32sdec = float32SliceDecoder(reflect.TypeOf(([]float32)(nil))).(sliceDecoder)
-	f64sdec = float64SliceDecoder(reflect.TypeOf(([]float64)(nil))).(sliceDecoder)
-	c64sdec = complex64SliceDecoder(reflect.TypeOf(([]complex64)(nil))).(sliceDecoder)
-	c128sdec = complex128SliceDecoder(reflect.TypeOf(([]complex128)(nil))).(sliceDecoder)
-	ifsdec = interfaceSliceDecoder(reflect.TypeOf(([]interface{})(nil))).(sliceDecoder)
-	u8ssdec = bytesSliceDecoder(reflect.TypeOf(([][]byte)(nil))).(sliceDecoder)
-	ssdec = stringSliceDecoder(reflect.TypeOf(([]string)(nil))).(sliceDecoder)
-	bisdec = bigIntSliceDecoder(reflect.TypeOf(([]*big.Int)(nil))).(sliceDecoder)
-	bfsdec = bigFloatSliceDecoder(reflect.TypeOf(([]*big.Float)(nil))).(sliceDecoder)
-	brsdec = bigRatSliceDecoder(reflect.TypeOf(([]*big.Rat)(nil))).(sliceDecoder)
+	bsdec = SliceDecoder(reflect.TypeOf(([]bool)(nil)), boolDecode).(sliceDecoder)
+	isdec = SliceDecoder(reflect.TypeOf(([]int)(nil)), intDecode).(sliceDecoder)
+	i8sdec = SliceDecoder(reflect.TypeOf(([]int8)(nil)), int8Decode).(sliceDecoder)
+	i16sdec = SliceDecoder(reflect.TypeOf(([]int16)(nil)), int16Decode).(sliceDecoder)
+	i32sdec = SliceDecoder(reflect.TypeOf(([]int32)(nil)), int32Decode).(sliceDecoder)
+	i64sdec = SliceDecoder(reflect.TypeOf(([]int64)(nil)), int64Decode).(sliceDecoder)
+	usdec = SliceDecoder(reflect.TypeOf(([]uint)(nil)), uintDecode).(sliceDecoder)
+	u16sdec = SliceDecoder(reflect.TypeOf(([]uint16)(nil)), uint16Decode).(sliceDecoder)
+	u32sdec = SliceDecoder(reflect.TypeOf(([]uint32)(nil)), uint32Decode).(sliceDecoder)
+	u64sdec = SliceDecoder(reflect.TypeOf(([]uint64)(nil)), uint64Decode).(sliceDecoder)
+	upsdec = SliceDecoder(reflect.TypeOf(([]uintptr)(nil)), uintDecode).(sliceDecoder)
+	f32sdec = SliceDecoder(reflect.TypeOf(([]float32)(nil)), float32Decode).(sliceDecoder)
+	f64sdec = SliceDecoder(reflect.TypeOf(([]float64)(nil)), float64Decode).(sliceDecoder)
+	c64sdec = SliceDecoder(reflect.TypeOf(([]complex64)(nil)), complex64Decode).(sliceDecoder)
+	c128sdec = SliceDecoder(reflect.TypeOf(([]complex128)(nil)), complex128Decode).(sliceDecoder)
+	ifsdec = SliceDecoder(reflect.TypeOf(([]interface{})(nil)), interfaceDecode).(sliceDecoder)
+	u8ssdec = SliceDecoder(reflect.TypeOf(([][]byte)(nil)), bytesDecode).(sliceDecoder)
+	ssdec = SliceDecoder(reflect.TypeOf(([]string)(nil)), stringDecode).(sliceDecoder)
+	bisdec = SliceDecoder(reflect.TypeOf(([]*big.Int)(nil)), bigIntDecode).(sliceDecoder)
+	bfsdec = SliceDecoder(reflect.TypeOf(([]*big.Float)(nil)), bigFloatDecode).(sliceDecoder)
+	brsdec = SliceDecoder(reflect.TypeOf(([]*big.Rat)(nil)), bigRatDecode).(sliceDecoder)
 
 	RegisterValueDecoder(bsdec)
 	RegisterValueDecoder(isdec)

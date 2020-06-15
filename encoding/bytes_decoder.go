@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bytes_decoder.go                                |
 |                                                          |
-| LastModified: Jun 12, 2020                               |
+| LastModified: Jun 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -66,19 +66,21 @@ func (dec *Decoder) decodeBytes(t reflect.Type, tag byte) []byte {
 	return nil
 }
 
+func (dec *Decoder) decodeBytesPtr(t reflect.Type, tag byte) *[]byte {
+	if tag == TagNull {
+		return nil
+	}
+	bytes := dec.decodeBytes(t, tag)
+	return &bytes
+}
+
 // bytesDecoder is the implementation of ValueDecoder for []byte.
 type bytesDecoder struct {
 	t reflect.Type
 }
 
-func (valdec bytesDecoder) decode(dec *Decoder, pv *[]byte, tag byte) {
-	if bytes := dec.decodeBytes(valdec.t, tag); dec.Error == nil {
-		*pv = bytes
-	}
-}
-
 func (valdec bytesDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*[]byte)(reflect2.PtrOf(p)), tag)
+	*(*[]byte)(reflect2.PtrOf(p)) = dec.decodeBytes(valdec.t, tag)
 }
 
 func (valdec bytesDecoder) Type() reflect.Type {
@@ -90,26 +92,10 @@ type bytesPtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec bytesPtrDecoder) decode(dec *Decoder, pv **[]byte, tag byte) {
-	if bytes := dec.decodeBytes(valdec.t, tag); dec.Error == nil {
-		*pv = &bytes
-	}
-}
-
 func (valdec bytesPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**[]byte)(reflect2.PtrOf(p)), tag)
+	*(**[]byte)(reflect2.PtrOf(p)) = dec.decodeBytesPtr(valdec.t, tag)
 }
 
 func (valdec bytesPtrDecoder) Type() reflect.Type {
 	return valdec.t
-}
-
-var (
-	u8sdec  = bytesDecoder{reflect.TypeOf(([]byte)(nil))}
-	pu8sdec = bytesPtrDecoder{reflect.TypeOf((*[]byte)(nil))}
-)
-
-func init() {
-	RegisterValueDecoder(u8sdec)
-	RegisterValueDecoder(pu8sdec)
 }

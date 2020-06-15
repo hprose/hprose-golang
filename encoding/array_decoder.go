@@ -81,82 +81,6 @@ func ArrayDecoder(t reflect.Type, decodeElem DecodeHandler) ValueDecoder {
 	}
 }
 
-func boolArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, boolDecode)
-}
-
-func intArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, intDecode)
-}
-
-func int8ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, int8Decode)
-}
-
-func int16ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, int16Decode)
-}
-
-func int32ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, int32Decode)
-}
-
-func int64ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, int64Decode)
-}
-
-func uintArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, uintDecode)
-}
-
-func uint8ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, uint8Decode)
-}
-
-func uint16ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, uint16Decode)
-}
-
-func uint32ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, uint32Decode)
-}
-
-func uint64ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, uint64Decode)
-}
-
-func uintptrArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, uintptrDecode)
-}
-
-func float32ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, float32Decode)
-}
-
-func float64ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, float64Decode)
-}
-
-func complex64ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, complex64Decode)
-}
-
-func complex128ArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, complex128Decode)
-}
-
-func interfaceArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, interfaceDecode)
-}
-
-func stringArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, stringDecode)
-}
-
-func otherArrayDecoder(t reflect.Type) ValueDecoder {
-	return ArrayDecoder(t, otherDecode(t))
-}
-
 type byteArrayDecoder struct {
 	arrayDecoder
 }
@@ -198,5 +122,13 @@ func (valdec byteArrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 
 // ByteArrayDecoder returns a ValueDecoder for [N]byte.
 func ByteArrayDecoder(t reflect.Type) ValueDecoder {
-	return byteArrayDecoder{uint8ArrayDecoder(t).(arrayDecoder)}
+	return byteArrayDecoder{ArrayDecoder(t, uint8Decode).(arrayDecoder)}
+}
+
+func getArrayDecoder(t reflect.Type) ValueDecoder {
+	et := t.Elem()
+	if et.Kind() == reflect.Uint8 {
+		return ByteArrayDecoder(t)
+	}
+	return ArrayDecoder(t, getDecodeHandler(et))
 }

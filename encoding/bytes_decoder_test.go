@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bytes_decoder_test.go                           |
 |                                                          |
-| LastModified: Jun 11, 2020                               |
+| LastModified: Jun 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -85,7 +85,7 @@ func TestDecodeBytesPtr(t *testing.T) {
 	dec.Decode(&b)
 	assert.Equal(t, []byte(""), *b) // ""
 	dec.Decode(&b)
-	assert.Equal(t, []byte(nil), *b) // nil
+	assert.Equal(t, (*[]byte)(nil), b) // nil
 	dec.Decode(&b)
 	assert.Equal(t, []byte{1, 2, 3, 4, 5}, *b) // []byte{1, 2, 3, 4, 5}
 	dec.Decode(&b)

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/interface_decoder.go                            |
 |                                                          |
-| LastModified: Jun 2, 2020                                |
+| LastModified: Jun 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -18,9 +18,11 @@ import (
 	"math"
 	"math/big"
 	"reflect"
+
+	"github.com/modern-go/reflect2"
 )
 
-func (dec *Decoder) decodeInterface(tag byte) interface{} {
+func (dec *Decoder) decodeInterface(t reflect.Type, tag byte) interface{} {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int(i)
 	}
@@ -81,6 +83,8 @@ func (dec *Decoder) decodeInterface(tag byte) interface{} {
 		return dec.readSafeString(1)
 	case TagString:
 		return dec.ReadString()
+	case TagBytes:
+		return dec.ReadBytes()
 	}
 	if dec.Error == nil {
 		dec.Error = DecodeError(fmt.Sprintf("hprose/encoding: invalid tag '%s'(0x%x)", string(tag), tag))
@@ -88,19 +92,21 @@ func (dec *Decoder) decodeInterface(tag byte) interface{} {
 	return nil
 }
 
+func (dec *Decoder) decodeInterfacePtr(t reflect.Type, tag byte) *interface{} {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeInterface(t, tag)
+	return &i
+}
+
 // interfaceDecoder is the implementation of ValueDecoder for interface{}.
 type interfaceDecoder struct {
 	t reflect.Type
 }
 
-func (valdec interfaceDecoder) decode(dec *Decoder, pv *interface{}, tag byte) {
-	if i := dec.decodeInterface(tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec interfaceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, p.(*interface{}), tag)
+	*(*interface{})(reflect2.PtrOf(p)) = dec.decodeInterface(valdec.t, tag)
 }
 
 func (valdec interfaceDecoder) Type() reflect.Type {
@@ -112,26 +118,10 @@ type interfacePtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec interfacePtrDecoder) decode(dec *Decoder, pv **interface{}, tag byte) {
-	if i := dec.decodeInterface(tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec interfacePtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, p.(**interface{}), tag)
+	*(**interface{})(reflect2.PtrOf(p)) = dec.decodeInterfacePtr(valdec.t, tag)
 }
 
 func (valdec interfacePtrDecoder) Type() reflect.Type {
 	return valdec.t
-}
-
-var (
-	ifdec  = interfaceDecoder{reflect.TypeOf(interface{}(nil))}
-	pifdec = interfacePtrDecoder{reflect.TypeOf((*interface{})(nil))}
-)
-
-func init() {
-	RegisterValueDecoder(ifdec)
-	RegisterValueDecoder(pifdec)
 }

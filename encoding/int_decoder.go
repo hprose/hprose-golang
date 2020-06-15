@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 12, 2020                               |
+| LastModified: Jun 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -62,6 +62,14 @@ func (dec *Decoder) decodeInt(t reflect.Type, tag byte) int {
 	return 0
 }
 
+func (dec *Decoder) decodeIntPtr(t reflect.Type, tag byte) *int {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeInt(t, tag)
+	return &i
+}
+
 func (dec *Decoder) decodeInt8(t reflect.Type, tag byte) int8 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int8(i)
@@ -86,6 +94,14 @@ func (dec *Decoder) decodeInt8(t reflect.Type, tag byte) int8 {
 		dec.decodeError(t, tag)
 	}
 	return 0
+}
+
+func (dec *Decoder) decodeInt8Ptr(t reflect.Type, tag byte) *int8 {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeInt8(t, tag)
+	return &i
 }
 
 func (dec *Decoder) decodeInt16(t reflect.Type, tag byte) int16 {
@@ -114,6 +130,14 @@ func (dec *Decoder) decodeInt16(t reflect.Type, tag byte) int16 {
 	return 0
 }
 
+func (dec *Decoder) decodeInt16Ptr(t reflect.Type, tag byte) *int16 {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeInt16(t, tag)
+	return &i
+}
+
 func (dec *Decoder) decodeInt32(t reflect.Type, tag byte) int32 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int32(i)
@@ -138,6 +162,14 @@ func (dec *Decoder) decodeInt32(t reflect.Type, tag byte) int32 {
 		dec.decodeError(t, tag)
 	}
 	return 0
+}
+
+func (dec *Decoder) decodeInt32Ptr(t reflect.Type, tag byte) *int32 {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeInt32(t, tag)
+	return &i
 }
 
 func (dec *Decoder) decodeInt64(t reflect.Type, tag byte) int64 {
@@ -166,6 +198,14 @@ func (dec *Decoder) decodeInt64(t reflect.Type, tag byte) int64 {
 	return 0
 }
 
+func (dec *Decoder) decodeInt64Ptr(t reflect.Type, tag byte) *int64 {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeInt64(t, tag)
+	return &i
+}
+
 func (dec *Decoder) decodeUint(t reflect.Type, tag byte) uint {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint(i)
@@ -190,6 +230,14 @@ func (dec *Decoder) decodeUint(t reflect.Type, tag byte) uint {
 		dec.decodeError(t, tag)
 	}
 	return 0
+}
+
+func (dec *Decoder) decodeUintPtr(t reflect.Type, tag byte) *uint {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeUint(t, tag)
+	return &i
 }
 
 func (dec *Decoder) decodeUint8(t reflect.Type, tag byte) uint8 {
@@ -218,6 +266,14 @@ func (dec *Decoder) decodeUint8(t reflect.Type, tag byte) uint8 {
 	return 0
 }
 
+func (dec *Decoder) decodeUint8Ptr(t reflect.Type, tag byte) *uint8 {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeUint8(t, tag)
+	return &i
+}
+
 func (dec *Decoder) decodeUint16(t reflect.Type, tag byte) uint16 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint16(i)
@@ -242,6 +298,14 @@ func (dec *Decoder) decodeUint16(t reflect.Type, tag byte) uint16 {
 		dec.decodeError(t, tag)
 	}
 	return 0
+}
+
+func (dec *Decoder) decodeUint16Ptr(t reflect.Type, tag byte) *uint16 {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeUint16(t, tag)
+	return &i
 }
 
 func (dec *Decoder) decodeUint32(t reflect.Type, tag byte) uint32 {
@@ -270,6 +334,14 @@ func (dec *Decoder) decodeUint32(t reflect.Type, tag byte) uint32 {
 	return 0
 }
 
+func (dec *Decoder) decodeUint32Ptr(t reflect.Type, tag byte) *uint32 {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeUint32(t, tag)
+	return &i
+}
+
 func (dec *Decoder) decodeUint64(t reflect.Type, tag byte) uint64 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return i
@@ -294,6 +366,14 @@ func (dec *Decoder) decodeUint64(t reflect.Type, tag byte) uint64 {
 		dec.decodeError(t, tag)
 	}
 	return 0
+}
+
+func (dec *Decoder) decodeUint64Ptr(t reflect.Type, tag byte) *uint64 {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeUint64(t, tag)
+	return &i
 }
 
 func (dec *Decoder) decodeUintptr(t reflect.Type, tag byte) uintptr {
@@ -322,19 +402,21 @@ func (dec *Decoder) decodeUintptr(t reflect.Type, tag byte) uintptr {
 	return 0
 }
 
+func (dec *Decoder) decodeUintptrPtr(t reflect.Type, tag byte) *uintptr {
+	if tag == TagNull {
+		return nil
+	}
+	i := dec.decodeUintptr(t, tag)
+	return &i
+}
+
 // intDecoder is the implementation of ValueDecoder for int.
 type intDecoder struct {
 	t reflect.Type
 }
 
-func (valdec intDecoder) decode(dec *Decoder, pv *int, tag byte) {
-	if i := dec.decodeInt(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec intDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*int)(reflect2.PtrOf(p)), tag)
+	*(*int)(reflect2.PtrOf(p)) = dec.decodeInt(valdec.t, tag)
 }
 
 func (valdec intDecoder) Type() reflect.Type {
@@ -346,16 +428,8 @@ type intPtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec intPtrDecoder) decode(dec *Decoder, pv **int, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeInt(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec intPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**int)(reflect2.PtrOf(p)), tag)
+	*(**int)(reflect2.PtrOf(p)) = dec.decodeIntPtr(valdec.t, tag)
 }
 
 func (valdec intPtrDecoder) Type() reflect.Type {
@@ -367,14 +441,8 @@ type int8Decoder struct {
 	t reflect.Type
 }
 
-func (valdec int8Decoder) decode(dec *Decoder, pv *int8, tag byte) {
-	if i := dec.decodeInt8(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec int8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*int8)(reflect2.PtrOf(p)), tag)
+	*(*int8)(reflect2.PtrOf(p)) = dec.decodeInt8(valdec.t, tag)
 }
 
 func (valdec int8Decoder) Type() reflect.Type {
@@ -386,16 +454,8 @@ type int8PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec int8PtrDecoder) decode(dec *Decoder, pv **int8, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeInt8(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec int8PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**int8)(reflect2.PtrOf(p)), tag)
+	*(**int8)(reflect2.PtrOf(p)) = dec.decodeInt8Ptr(valdec.t, tag)
 }
 
 func (valdec int8PtrDecoder) Type() reflect.Type {
@@ -407,14 +467,8 @@ type int16Decoder struct {
 	t reflect.Type
 }
 
-func (valdec int16Decoder) decode(dec *Decoder, pv *int16, tag byte) {
-	if i := dec.decodeInt16(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec int16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*int16)(reflect2.PtrOf(p)), tag)
+	*(*int16)(reflect2.PtrOf(p)) = dec.decodeInt16(valdec.t, tag)
 }
 
 func (valdec int16Decoder) Type() reflect.Type {
@@ -426,16 +480,8 @@ type int16PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec int16PtrDecoder) decode(dec *Decoder, pv **int16, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeInt16(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec int16PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**int16)(reflect2.PtrOf(p)), tag)
+	*(*int16)(reflect2.PtrOf(p)) = dec.decodeInt16(valdec.t, tag)
 }
 
 func (valdec int16PtrDecoder) Type() reflect.Type {
@@ -447,14 +493,8 @@ type int32Decoder struct {
 	t reflect.Type
 }
 
-func (valdec int32Decoder) decode(dec *Decoder, pv *int32, tag byte) {
-	if i := dec.decodeInt32(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec int32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*int32)(reflect2.PtrOf(p)), tag)
+	*(*int32)(reflect2.PtrOf(p)) = dec.decodeInt32(valdec.t, tag)
 }
 
 func (valdec int32Decoder) Type() reflect.Type {
@@ -466,16 +506,8 @@ type int32PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec int32PtrDecoder) decode(dec *Decoder, pv **int32, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeInt32(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec int32PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**int32)(reflect2.PtrOf(p)), tag)
+	*(**int32)(reflect2.PtrOf(p)) = dec.decodeInt32Ptr(valdec.t, tag)
 }
 
 func (valdec int32PtrDecoder) Type() reflect.Type {
@@ -487,14 +519,8 @@ type int64Decoder struct {
 	t reflect.Type
 }
 
-func (valdec int64Decoder) decode(dec *Decoder, pv *int64, tag byte) {
-	if i := dec.decodeInt64(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec int64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*int64)(reflect2.PtrOf(p)), tag)
+	*(*int64)(reflect2.PtrOf(p)) = dec.decodeInt64(valdec.t, tag)
 }
 
 func (valdec int64Decoder) Type() reflect.Type {
@@ -506,16 +532,8 @@ type int64PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec int64PtrDecoder) decode(dec *Decoder, pv **int64, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeInt64(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec int64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**int64)(reflect2.PtrOf(p)), tag)
+	*(**int64)(reflect2.PtrOf(p)) = dec.decodeInt64Ptr(valdec.t, tag)
 }
 
 func (valdec int64PtrDecoder) Type() reflect.Type {
@@ -527,14 +545,8 @@ type uintDecoder struct {
 	t reflect.Type
 }
 
-func (valdec uintDecoder) decode(dec *Decoder, pv *uint, tag byte) {
-	if i := dec.decodeUint(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec uintDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*uint)(reflect2.PtrOf(p)), tag)
+	*(*uint)(reflect2.PtrOf(p)) = dec.decodeUint(valdec.t, tag)
 }
 
 func (valdec uintDecoder) Type() reflect.Type {
@@ -546,16 +558,8 @@ type uintPtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec uintPtrDecoder) decode(dec *Decoder, pv **uint, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeUint(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec uintPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**uint)(reflect2.PtrOf(p)), tag)
+	*(**uint)(reflect2.PtrOf(p)) = dec.decodeUintPtr(valdec.t, tag)
 }
 
 func (valdec uintPtrDecoder) Type() reflect.Type {
@@ -567,14 +571,8 @@ type uint8Decoder struct {
 	t reflect.Type
 }
 
-func (valdec uint8Decoder) decode(dec *Decoder, pv *uint8, tag byte) {
-	if i := dec.decodeUint8(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec uint8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*uint8)(reflect2.PtrOf(p)), tag)
+	*(*uint8)(reflect2.PtrOf(p)) = dec.decodeUint8(valdec.t, tag)
 }
 
 func (valdec uint8Decoder) Type() reflect.Type {
@@ -586,16 +584,8 @@ type uint8PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec uint8PtrDecoder) decode(dec *Decoder, pv **uint8, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeUint8(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec uint8PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**uint8)(reflect2.PtrOf(p)), tag)
+	*(**uint8)(reflect2.PtrOf(p)) = dec.decodeUint8Ptr(valdec.t, tag)
 }
 
 func (valdec uint8PtrDecoder) Type() reflect.Type {
@@ -607,14 +597,8 @@ type uint16Decoder struct {
 	t reflect.Type
 }
 
-func (valdec uint16Decoder) decode(dec *Decoder, pv *uint16, tag byte) {
-	if i := dec.decodeUint16(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec uint16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*uint16)(reflect2.PtrOf(p)), tag)
+	*(*uint16)(reflect2.PtrOf(p)) = dec.decodeUint16(valdec.t, tag)
 }
 
 func (valdec uint16Decoder) Type() reflect.Type {
@@ -626,16 +610,8 @@ type uint16PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec uint16PtrDecoder) decode(dec *Decoder, pv **uint16, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeUint16(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec uint16PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**uint16)(reflect2.PtrOf(p)), tag)
+	*(**uint16)(reflect2.PtrOf(p)) = dec.decodeUint16Ptr(valdec.t, tag)
 }
 
 func (valdec uint16PtrDecoder) Type() reflect.Type {
@@ -647,14 +623,8 @@ type uint32Decoder struct {
 	t reflect.Type
 }
 
-func (valdec uint32Decoder) decode(dec *Decoder, pv *uint32, tag byte) {
-	if i := dec.decodeUint32(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec uint32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*uint32)(reflect2.PtrOf(p)), tag)
+	*(*uint32)(reflect2.PtrOf(p)) = dec.decodeUint32(valdec.t, tag)
 }
 
 func (valdec uint32Decoder) Type() reflect.Type {
@@ -666,16 +636,8 @@ type uint32PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec uint32PtrDecoder) decode(dec *Decoder, pv **uint32, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeUint32(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec uint32PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**uint32)(reflect2.PtrOf(p)), tag)
+	*(**uint32)(reflect2.PtrOf(p)) = dec.decodeUint32Ptr(valdec.t, tag)
 }
 
 func (valdec uint32PtrDecoder) Type() reflect.Type {
@@ -687,14 +649,8 @@ type uint64Decoder struct {
 	t reflect.Type
 }
 
-func (valdec uint64Decoder) decode(dec *Decoder, pv *uint64, tag byte) {
-	if i := dec.decodeUint64(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec uint64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*uint64)(reflect2.PtrOf(p)), tag)
+	*(*uint64)(reflect2.PtrOf(p)) = dec.decodeUint64(valdec.t, tag)
 }
 
 func (valdec uint64Decoder) Type() reflect.Type {
@@ -706,16 +662,8 @@ type uint64PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec uint64PtrDecoder) decode(dec *Decoder, pv **uint64, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeUint64(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec uint64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**uint64)(reflect2.PtrOf(p)), tag)
+	*(**uint64)(reflect2.PtrOf(p)) = dec.decodeUint64Ptr(valdec.t, tag)
 }
 
 func (valdec uint64PtrDecoder) Type() reflect.Type {
@@ -727,14 +675,8 @@ type uintptrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec uintptrDecoder) decode(dec *Decoder, pv *uintptr, tag byte) {
-	if i := dec.decodeUintptr(valdec.t, tag); dec.Error == nil {
-		*pv = i
-	}
-}
-
 func (valdec uintptrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*uintptr)(reflect2.PtrOf(p)), tag)
+	*(*uintptr)(reflect2.PtrOf(p)) = dec.decodeUintptr(valdec.t, tag)
 }
 
 func (valdec uintptrDecoder) Type() reflect.Type {
@@ -746,68 +688,10 @@ type uintptrPtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec uintptrPtrDecoder) decode(dec *Decoder, pv **uintptr, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if i := dec.decodeUintptr(valdec.t, tag); dec.Error == nil {
-		*pv = &i
-	}
-}
-
 func (valdec uintptrPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**uintptr)(reflect2.PtrOf(p)), tag)
+	*(**uintptr)(reflect2.PtrOf(p)) = dec.decodeUintptrPtr(valdec.t, tag)
 }
 
 func (valdec uintptrPtrDecoder) Type() reflect.Type {
 	return valdec.t
-}
-
-var (
-	idec    = intDecoder{reflect.TypeOf((int)(0))}
-	i8dec   = int8Decoder{reflect.TypeOf((int8)(0))}
-	i16dec  = int16Decoder{reflect.TypeOf((int16)(0))}
-	i32dec  = int32Decoder{reflect.TypeOf((int32)(0))}
-	i64dec  = int64Decoder{reflect.TypeOf((int64)(0))}
-	udec    = uintDecoder{reflect.TypeOf((uint)(0))}
-	u8dec   = uint8Decoder{reflect.TypeOf((uint8)(0))}
-	u16dec  = uint16Decoder{reflect.TypeOf((uint16)(0))}
-	u32dec  = uint32Decoder{reflect.TypeOf((uint32)(0))}
-	u64dec  = uint64Decoder{reflect.TypeOf((uint64)(0))}
-	updec   = uintptrDecoder{reflect.TypeOf((uintptr)(0))}
-	pidec   = intPtrDecoder{reflect.TypeOf((*int)(nil))}
-	pi8dec  = int8PtrDecoder{reflect.TypeOf((*int8)(nil))}
-	pi16dec = int16PtrDecoder{reflect.TypeOf((*int16)(nil))}
-	pi32dec = int32PtrDecoder{reflect.TypeOf((*int32)(nil))}
-	pi64dec = int64PtrDecoder{reflect.TypeOf((*int64)(nil))}
-	pudec   = uintPtrDecoder{reflect.TypeOf((*uint)(nil))}
-	pu8dec  = uint8PtrDecoder{reflect.TypeOf((*uint8)(nil))}
-	pu16dec = uint16PtrDecoder{reflect.TypeOf((*uint16)(nil))}
-	pu32dec = uint32PtrDecoder{reflect.TypeOf((*uint32)(nil))}
-	pu64dec = uint64PtrDecoder{reflect.TypeOf((*uint64)(nil))}
-	pupdec  = uintptrPtrDecoder{reflect.TypeOf((*uintptr)(nil))}
-)
-
-func init() {
-	RegisterValueDecoder(idec)
-	RegisterValueDecoder(i8dec)
-	RegisterValueDecoder(i16dec)
-	RegisterValueDecoder(i32dec)
-	RegisterValueDecoder(i64dec)
-	RegisterValueDecoder(udec)
-	RegisterValueDecoder(u8dec)
-	RegisterValueDecoder(u16dec)
-	RegisterValueDecoder(u32dec)
-	RegisterValueDecoder(u64dec)
-	RegisterValueDecoder(updec)
-	RegisterValueDecoder(pidec)
-	RegisterValueDecoder(pi8dec)
-	RegisterValueDecoder(pi16dec)
-	RegisterValueDecoder(pi32dec)
-	RegisterValueDecoder(pi64dec)
-	RegisterValueDecoder(pudec)
-	RegisterValueDecoder(pu8dec)
-	RegisterValueDecoder(pu16dec)
-	RegisterValueDecoder(pu32dec)
-	RegisterValueDecoder(pu64dec)
-	RegisterValueDecoder(pupdec)
 }

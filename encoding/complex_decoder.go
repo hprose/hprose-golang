@@ -67,6 +67,14 @@ func (dec *Decoder) decodeComplex64(t reflect.Type, tag byte) complex64 {
 	return 0
 }
 
+func (dec *Decoder) decodeComplex64Ptr(t reflect.Type, tag byte) *complex64 {
+	if tag == TagNull {
+		return nil
+	}
+	c := dec.decodeComplex64(t, tag)
+	return &c
+}
+
 func (dec *Decoder) decodeComplex128(t reflect.Type, tag byte) complex128 {
 	if i := intDigits[tag]; i != invalidDigit {
 		return complex(float64(i), 0)
@@ -97,19 +105,21 @@ func (dec *Decoder) decodeComplex128(t reflect.Type, tag byte) complex128 {
 	return 0
 }
 
+func (dec *Decoder) decodeComplex128Ptr(t reflect.Type, tag byte) *complex128 {
+	if tag == TagNull {
+		return nil
+	}
+	c := dec.decodeComplex128(t, tag)
+	return &c
+}
+
 // complex64Decoder is the implementation of ValueDecoder for complex64.
 type complex64Decoder struct {
 	t reflect.Type
 }
 
-func (valdec complex64Decoder) decode(dec *Decoder, pv *complex64, tag byte) {
-	if c := dec.decodeComplex64(valdec.t, tag); dec.Error == nil {
-		*pv = c
-	}
-}
-
 func (valdec complex64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*complex64)(reflect2.PtrOf(p)), tag)
+	*(*complex64)(reflect2.PtrOf(p)) = dec.decodeComplex64(valdec.t, tag)
 }
 
 func (valdec complex64Decoder) Type() reflect.Type {
@@ -121,16 +131,8 @@ type complex64PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec complex64PtrDecoder) decode(dec *Decoder, pv **complex64, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if c := dec.decodeComplex64(valdec.t, tag); dec.Error == nil {
-		*pv = &c
-	}
-}
-
 func (valdec complex64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**complex64)(reflect2.PtrOf(p)), tag)
+	*(**complex64)(reflect2.PtrOf(p)) = dec.decodeComplex64Ptr(valdec.t, tag)
 }
 
 func (valdec complex64PtrDecoder) Type() reflect.Type {
@@ -142,14 +144,8 @@ type complex128Decoder struct {
 	t reflect.Type
 }
 
-func (valdec complex128Decoder) decode(dec *Decoder, pv *complex128, tag byte) {
-	if c := dec.decodeComplex128(valdec.t, tag); dec.Error == nil {
-		*pv = c
-	}
-}
-
 func (valdec complex128Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*complex128)(reflect2.PtrOf(p)), tag)
+	*(*complex128)(reflect2.PtrOf(p)) = dec.decodeComplex128(valdec.t, tag)
 }
 
 func (valdec complex128Decoder) Type() reflect.Type {
@@ -161,32 +157,10 @@ type complex128PtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec complex128PtrDecoder) decode(dec *Decoder, pv **complex128, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if c := dec.decodeComplex128(valdec.t, tag); dec.Error == nil {
-		*pv = &c
-	}
-}
-
 func (valdec complex128PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**complex128)(reflect2.PtrOf(p)), tag)
+	*(**complex128)(reflect2.PtrOf(p)) = dec.decodeComplex128Ptr(valdec.t, tag)
 }
 
 func (valdec complex128PtrDecoder) Type() reflect.Type {
 	return valdec.t
-}
-
-var (
-	c64dec   = complex64Decoder{reflect.TypeOf((complex64)(0))}
-	c128dec  = complex128Decoder{reflect.TypeOf((complex128)(0))}
-	pc64dec  = complex64PtrDecoder{reflect.TypeOf((*complex64)(nil))}
-	pc128dec = complex128PtrDecoder{reflect.TypeOf((*complex128)(nil))}
-)
-
-func init() {
-	RegisterValueDecoder(c64dec)
-	RegisterValueDecoder(c128dec)
-	RegisterValueDecoder(pc64dec)
-	RegisterValueDecoder(pc128dec)
 }

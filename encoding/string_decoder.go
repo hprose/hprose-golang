@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/string_decoder.go                               |
 |                                                          |
-| LastModified: Jun 13, 2020                               |
+| LastModified: Jun 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -193,19 +193,21 @@ func (dec *Decoder) decodeString(t reflect.Type, tag byte) string {
 	return ""
 }
 
+func (dec *Decoder) decodeStringPtr(t reflect.Type, tag byte) *string {
+	if tag == TagNull {
+		return nil
+	}
+	s := dec.decodeString(t, tag)
+	return &s
+}
+
 // stringDecoder is the implementation of ValueDecoder for string.
 type stringDecoder struct {
 	t reflect.Type
 }
 
-func (valdec stringDecoder) decode(dec *Decoder, pv *string, tag byte) {
-	if s := dec.decodeString(valdec.t, tag); dec.Error == nil {
-		*pv = s
-	}
-}
-
 func (valdec stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (*string)(reflect2.PtrOf(p)), tag)
+	*(*string)(reflect2.PtrOf(p)) = dec.decodeString(valdec.t, tag)
 }
 
 func (valdec stringDecoder) Type() reflect.Type {
@@ -217,28 +219,10 @@ type stringPtrDecoder struct {
 	t reflect.Type
 }
 
-func (valdec stringPtrDecoder) decode(dec *Decoder, pv **string, tag byte) {
-	if tag == TagNull {
-		*pv = nil
-	} else if s := dec.decodeString(valdec.t, tag); dec.Error == nil {
-		*pv = &s
-	}
-}
-
 func (valdec stringPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	valdec.decode(dec, (**string)(reflect2.PtrOf(p)), tag)
+	*(**string)(reflect2.PtrOf(p)) = dec.decodeStringPtr(valdec.t, tag)
 }
 
 func (valdec stringPtrDecoder) Type() reflect.Type {
 	return valdec.t
-}
-
-var (
-	sdec  = stringDecoder{reflect.TypeOf("")}
-	psdec = stringPtrDecoder{reflect.TypeOf((*string)(nil))}
-)
-
-func init() {
-	RegisterValueDecoder(sdec)
-	RegisterValueDecoder(psdec)
 }

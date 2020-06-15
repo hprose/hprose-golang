@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/float_decoder_test.go                           |
 |                                                          |
-| LastModified: Jun 6, 2020                                |
+| LastModified: Jun 15, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -86,8 +86,9 @@ func TestDecodeFloat32(t *testing.T) {
 	dec.Error = nil
 	dec.Decode(&f)
 	assert.True(t, math.IsNaN(float64(f)))
+	dec.Error = nil
 	dec.Decode(&f)
-	assert.True(t, math.IsNaN(float64(f)))
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast []uint8 to float32`)
 }
 
 func TestDecodeFloat64(t *testing.T) {
@@ -155,8 +156,9 @@ func TestDecodeFloat64(t *testing.T) {
 	dec.Error = nil
 	dec.Decode(&f)
 	assert.True(t, math.IsNaN(f))
+	dec.Error = nil
 	dec.Decode(&f)
-	assert.True(t, math.IsNaN(f))
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast []uint8 to float64`)
 }
 
 func TestDecodeFloat32Ptr(t *testing.T) {
@@ -224,8 +226,9 @@ func TestDecodeFloat32Ptr(t *testing.T) {
 	dec.Error = nil
 	dec.Decode(&f)
 	assert.True(t, math.IsNaN(float64(*f)))
+	dec.Error = nil
 	dec.Decode(&f)
-	assert.True(t, math.IsNaN(float64(*f)))
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast []uint8 to *float32`)
 }
 
 func TestDecodeFloat64Ptr(t *testing.T) {
@@ -293,6 +296,7 @@ func TestDecodeFloat64Ptr(t *testing.T) {
 	dec.Error = nil
 	dec.Decode(&f)
 	assert.True(t, math.IsNaN(*f))
+	dec.Error = nil
 	dec.Decode(&f)
-	assert.True(t, math.IsNaN(*f))
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast []uint8 to *float64`)
 }

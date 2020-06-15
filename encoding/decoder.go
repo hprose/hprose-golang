@@ -87,49 +87,49 @@ func NewDecoderFromReader(reader io.Reader, bufSize int) *Decoder {
 func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	switch pv := p.(type) {
 	case *bool:
-		bdec.decode(dec, pv, tag)
+		*pv = dec.decodeBool(boolType, tag)
 	case *int:
-		idec.decode(dec, pv, tag)
+		*pv = dec.decodeInt(intType, tag)
 	case *int8:
-		i8dec.decode(dec, pv, tag)
+		*pv = dec.decodeInt8(int8Type, tag)
 	case *int16:
-		i16dec.decode(dec, pv, tag)
+		*pv = dec.decodeInt16(int16Type, tag)
 	case *int32:
-		i32dec.decode(dec, pv, tag)
+		*pv = dec.decodeInt32(int32Type, tag)
 	case *int64:
-		i64dec.decode(dec, pv, tag)
+		*pv = dec.decodeInt64(int64Type, tag)
 	case *uint:
-		udec.decode(dec, pv, tag)
+		*pv = dec.decodeUint(uintType, tag)
 	case *uint8:
-		u8dec.decode(dec, pv, tag)
+		*pv = dec.decodeUint8(uint8Type, tag)
 	case *uint16:
-		u16dec.decode(dec, pv, tag)
+		*pv = dec.decodeUint16(uint16Type, tag)
 	case *uint32:
-		u32dec.decode(dec, pv, tag)
+		*pv = dec.decodeUint32(uint32Type, tag)
 	case *uint64:
-		u64dec.decode(dec, pv, tag)
+		*pv = dec.decodeUint64(uint64Type, tag)
 	case *uintptr:
-		updec.decode(dec, pv, tag)
+		*pv = dec.decodeUintptr(uintptrType, tag)
 	case *float32:
-		f32dec.decode(dec, pv, tag)
+		*pv = dec.decodeFloat32(float32Type, tag)
 	case *float64:
-		f64dec.decode(dec, pv, tag)
+		*pv = dec.decodeFloat64(float64Type, tag)
 	case *complex64:
-		c64dec.decode(dec, pv, tag)
+		*pv = dec.decodeComplex64(complex64Type, tag)
 	case *complex128:
-		c128dec.decode(dec, pv, tag)
+		*pv = dec.decodeComplex128(complex128Type, tag)
 	case *interface{}:
-		ifdec.decode(dec, pv, tag)
+		*pv = dec.decodeInterface(interfaceType, tag)
 	case *[]byte:
-		u8sdec.decode(dec, pv, tag)
+		*pv = dec.decodeBytes(bytesType, tag)
 	case *string:
-		sdec.decode(dec, pv, tag)
+		*pv = dec.decodeString(stringType, tag)
 	case *big.Int:
-		bivdec.decode(dec, pv, tag)
+		*pv = dec.decodeBigIntValue(bigIntValueType, tag)
 	case *big.Float:
-		bfvdec.decode(dec, pv, tag)
+		*pv = dec.decodeBigFloatValue(bigFloatValueType, tag)
 	case *big.Rat:
-		brvdec.decode(dec, pv, tag)
+		*pv = dec.decodeBigRatValue(bigRatValueType, tag)
 	default:
 		return false
 	}
@@ -139,49 +139,49 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	switch pv := p.(type) {
 	case **bool:
-		pbdec.decode(dec, pv, tag)
+		*pv = dec.decodeBoolPtr(boolPtrType, tag)
 	case **int:
-		pidec.decode(dec, pv, tag)
+		*pv = dec.decodeIntPtr(intPtrType, tag)
 	case **int8:
-		pi8dec.decode(dec, pv, tag)
+		*pv = dec.decodeInt8Ptr(int8PtrType, tag)
 	case **int16:
-		pi16dec.decode(dec, pv, tag)
+		*pv = dec.decodeInt16Ptr(int16PtrType, tag)
 	case **int32:
-		pi32dec.decode(dec, pv, tag)
+		*pv = dec.decodeInt32Ptr(int32PtrType, tag)
 	case **int64:
-		pi64dec.decode(dec, pv, tag)
+		*pv = dec.decodeInt64Ptr(int64PtrType, tag)
 	case **uint:
-		pudec.decode(dec, pv, tag)
+		*pv = dec.decodeUintPtr(uintPtrType, tag)
 	case **uint8:
-		pu8dec.decode(dec, pv, tag)
+		*pv = dec.decodeUint8Ptr(uint8PtrType, tag)
 	case **uint16:
-		pu16dec.decode(dec, pv, tag)
+		*pv = dec.decodeUint16Ptr(uint16PtrType, tag)
 	case **uint32:
-		pu32dec.decode(dec, pv, tag)
+		*pv = dec.decodeUint32Ptr(uint32PtrType, tag)
 	case **uint64:
-		pu64dec.decode(dec, pv, tag)
+		*pv = dec.decodeUint64Ptr(uint64PtrType, tag)
 	case **uintptr:
-		pupdec.decode(dec, pv, tag)
+		*pv = dec.decodeUintptrPtr(uintptrPtrType, tag)
 	case **float32:
-		pf32dec.decode(dec, pv, tag)
+		*pv = dec.decodeFloat32Ptr(float32PtrType, tag)
 	case **float64:
-		pf64dec.decode(dec, pv, tag)
+		*pv = dec.decodeFloat64Ptr(float64PtrType, tag)
 	case **complex64:
-		pc64dec.decode(dec, pv, tag)
+		*pv = dec.decodeComplex64Ptr(complex64PtrType, tag)
 	case **complex128:
-		pc128dec.decode(dec, pv, tag)
+		*pv = dec.decodeComplex128Ptr(complex128PtrType, tag)
 	case **interface{}:
-		pifdec.decode(dec, pv, tag)
+		*pv = dec.decodeInterfacePtr(interfacePtrType, tag)
 	case **[]byte:
-		pu8sdec.decode(dec, pv, tag)
+		*pv = dec.decodeBytesPtr(bytesPtrType, tag)
 	case **string:
-		psdec.decode(dec, pv, tag)
+		*pv = dec.decodeStringPtr(stringPtrType, tag)
 	case **big.Int:
-		bidec.decode(dec, pv, tag)
+		*pv = dec.decodeBigInt(bigIntType, tag)
 	case **big.Float:
-		bfdec.decode(dec, pv, tag)
+		*pv = dec.decodeBigFloat(bigFloatType, tag)
 	case **big.Rat:
-		brdec.decode(dec, pv, tag)
+		*pv = dec.decodeBigRat(bigRatType, tag)
 	default:
 		return false
 	}
@@ -248,7 +248,8 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 	if dec.fastDecodeSlice(p, tag) {
 		return
 	}
-	if valdec := GetValueDecoder(p); valdec != nil {
+	t := reflect.TypeOf(p).Elem()
+	if valdec := getValueDecoder(t); valdec != nil {
 		valdec.Decode(dec, p, tag)
 	}
 }
