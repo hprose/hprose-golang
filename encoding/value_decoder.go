@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/value_decoder.go                                |
 |                                                          |
-| LastModified: Jun 15, 2020                               |
+| LastModified: Jun 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -30,9 +30,7 @@ func getValueDecoder(t reflect.Type) (valdec ValueDecoder) {
 	if valdec, ok := decoderMap.Load(t); ok {
 		return valdec.(ValueDecoder)
 	}
-	valdec = valueDecoderFactories[t.Kind()](t)
-	RegisterValueDecoder(valdec)
-	return
+	return nil
 }
 
 // RegisterValueDecoder valdec
@@ -40,9 +38,14 @@ func RegisterValueDecoder(valdec ValueDecoder) {
 	decoderMap.Store(valdec.Type(), valdec)
 }
 
-// GetValueDecoder of type(p)
-func GetValueDecoder(p interface{}) ValueDecoder {
-	return getValueDecoder(reflect.TypeOf(p).Elem())
+// GetValueDecoder of Type t
+func GetValueDecoder(t reflect.Type) (valdec ValueDecoder) {
+	valdec = getValueDecoder(t)
+	if valdec == nil {
+		valdec = valueDecoderFactories[t.Kind()](t)
+		RegisterValueDecoder(valdec)
+	}
+	return
 }
 
 var valueDecoderFactories []func(t reflect.Type) ValueDecoder
@@ -52,35 +55,31 @@ func invalidDecoder(t reflect.Type) ValueDecoder {
 	panic(UnsupportedTypeError{t})
 }
 
-func mapDecoderFactory(t reflect.Type) ValueDecoder {
-	panic(UnsupportedTypeError{t})
-}
-
-func ptrDecoderFactory(t reflect.Type) ValueDecoder {
+func getPtrDecoder(t reflect.Type) ValueDecoder {
 	return ptrDecoderFactories[t.Elem().Kind()](t)
 }
 
-func structDecoderFactory(t reflect.Type) ValueDecoder {
+func getStructDecoder(t reflect.Type) ValueDecoder {
 	panic(UnsupportedTypeError{t})
 }
 
-func arrayPtrDecoderFactory(t reflect.Type) ValueDecoder {
+func getArrayPtrDecoder(t reflect.Type) ValueDecoder {
 	panic(UnsupportedTypeError{t})
 }
 
-func mapPtrDecoderFactory(t reflect.Type) ValueDecoder {
+func getMapPtrDecoder(t reflect.Type) ValueDecoder {
 	panic(UnsupportedTypeError{t})
 }
 
-func ptrPtrDecoderFactory(t reflect.Type) ValueDecoder {
+func getPtrPtrDecoder(t reflect.Type) ValueDecoder {
 	panic(UnsupportedTypeError{t})
 }
 
-func slicePtrDecoderFactory(t reflect.Type) ValueDecoder {
+func getSlicePtrDecoder(t reflect.Type) ValueDecoder {
 	panic(UnsupportedTypeError{t})
 }
 
-func structPtrDecoderFactory(t reflect.Type) ValueDecoder {
+func getStructPtrDecoder(t reflect.Type) ValueDecoder {
 	panic(UnsupportedTypeError{t})
 }
 
@@ -107,11 +106,11 @@ func init() {
 		reflect.Chan:          invalidDecoder,
 		reflect.Func:          invalidDecoder,
 		reflect.Interface:     func(t reflect.Type) ValueDecoder { return interfaceDecoder{t} },
-		reflect.Map:           mapDecoderFactory,
-		reflect.Ptr:           ptrDecoderFactory,
+		reflect.Map:           getMapDecoder,
+		reflect.Ptr:           getPtrDecoder,
 		reflect.Slice:         getSliceDecoder,
 		reflect.String:        func(t reflect.Type) ValueDecoder { return stringDecoder{t} },
-		reflect.Struct:        structDecoderFactory,
+		reflect.Struct:        getStructDecoder,
 		reflect.UnsafePointer: invalidDecoder,
 	}
 
@@ -133,15 +132,15 @@ func init() {
 		reflect.Float64:       func(t reflect.Type) ValueDecoder { return float64PtrDecoder{t} },
 		reflect.Complex64:     func(t reflect.Type) ValueDecoder { return complex64PtrDecoder{t} },
 		reflect.Complex128:    func(t reflect.Type) ValueDecoder { return complex128PtrDecoder{t} },
-		reflect.Array:         arrayPtrDecoderFactory,
+		reflect.Array:         getArrayPtrDecoder,
 		reflect.Chan:          invalidDecoder,
 		reflect.Func:          invalidDecoder,
 		reflect.Interface:     func(t reflect.Type) ValueDecoder { return interfacePtrDecoder{t} },
-		reflect.Map:           mapPtrDecoderFactory,
-		reflect.Ptr:           ptrPtrDecoderFactory,
-		reflect.Slice:         slicePtrDecoderFactory,
+		reflect.Map:           getMapPtrDecoder,
+		reflect.Ptr:           getPtrPtrDecoder,
+		reflect.Slice:         getSlicePtrDecoder,
 		reflect.String:        func(t reflect.Type) ValueDecoder { return stringPtrDecoder{t} },
-		reflect.Struct:        structPtrDecoderFactory,
+		reflect.Struct:        getStructPtrDecoder,
 		reflect.UnsafePointer: invalidDecoder,
 	}
 }

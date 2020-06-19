@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Jun 14, 2020                               |
+| LastModified: Jun 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -238,18 +238,67 @@ func (dec *Decoder) fastDecodeSlice(p interface{}, tag byte) bool {
 	return true
 }
 
+func (dec *Decoder) fastDecodeMap(p interface{}, tag byte) bool {
+	switch p.(type) {
+	case *map[int]bool:
+		ibmdec.Decode(dec, p, tag)
+	case *map[int]int:
+		iimdec.Decode(dec, p, tag)
+	case *map[int]int8:
+		ii8mdec.Decode(dec, p, tag)
+	case *map[int]int16:
+		ii16mdec.Decode(dec, p, tag)
+	case *map[int]int32:
+		ii32mdec.Decode(dec, p, tag)
+	case *map[int]int64:
+		ii64mdec.Decode(dec, p, tag)
+	case *map[int]uint:
+		iumdec.Decode(dec, p, tag)
+	case *map[int]uint8:
+		iu8mdec.Decode(dec, p, tag)
+	case *map[int]uint16:
+		iu16mdec.Decode(dec, p, tag)
+	case *map[int]uint32:
+		iu32mdec.Decode(dec, p, tag)
+	case *map[int]uint64:
+		iu64mdec.Decode(dec, p, tag)
+	case *map[int]float32:
+		if32mdec.Decode(dec, p, tag)
+	case *map[int]float64:
+		if64mdec.Decode(dec, p, tag)
+	case *map[int]string:
+		ismdec.Decode(dec, p, tag)
+	case *map[int]interface{}:
+		iifmdec.Decode(dec, p, tag)
+	default:
+		return false
+	}
+	return true
+}
+
 func (dec *Decoder) decode(p interface{}, tag byte) {
 	if dec.fastDecode(p, tag) {
 		return
 	}
-	if dec.fastDecodePtr(p, tag) {
-		return
-	}
-	if dec.fastDecodeSlice(p, tag) {
-		return
-	}
 	t := reflect.TypeOf(p).Elem()
-	if valdec := getValueDecoder(t); valdec != nil {
+	switch t.Kind() {
+	case reflect.Map:
+		switch t.Key().Kind() {
+		case reflect.Int:
+			if dec.fastDecodeMap(p, tag) {
+				return
+			}
+		}
+	case reflect.Ptr:
+		if dec.fastDecodePtr(p, tag) {
+			return
+		}
+	case reflect.Slice:
+		if dec.fastDecodeSlice(p, tag) {
+			return
+		}
+	}
+	if valdec := GetValueDecoder(t); valdec != nil {
 		valdec.Decode(dec, p, tag)
 	}
 }

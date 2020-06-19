@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decode_handler.go                               |
 |                                                          |
-| LastModified: Jun 14, 2020                               |
+| LastModified: Jun 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -205,7 +205,7 @@ func bigRatDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func otherDecode(t reflect.Type) DecodeHandler {
-	valdec := getValueDecoder(t)
+	valdec := GetValueDecoder(t)
 	t2 := reflect2.Type2(t)
 	return func(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 		valdec.Decode(dec, t2.UnsafeIndirect(p), dec.NextByte())
@@ -273,34 +273,36 @@ var decodePtrHandlers = []DecodeHandler{
 }
 
 func getDecodeHandler(t reflect.Type) DecodeHandler {
-	kind := t.Kind()
-	if decode := decodeHandlers[kind]; decode != nil {
-		return decode
-	}
-	if kind == reflect.Ptr {
-		if decode := decodePtrHandlers[t.Elem().Kind()]; decode != nil {
+	if getValueDecoder(t) == nil {
+		kind := t.Kind()
+		if decode := decodeHandlers[kind]; decode != nil {
 			return decode
 		}
-		switch t {
-		case bytesPtrType:
-			return bytesPtrDecode
-		case bigIntType:
-			return bigIntDecode
-		case bigFloatType:
-			return bigFloatDecode
-		case bigRatType:
-			return bigRatDecode
+		if kind == reflect.Ptr {
+			if decode := decodePtrHandlers[t.Elem().Kind()]; decode != nil {
+				return decode
+			}
+			switch t {
+			case bytesPtrType:
+				return bytesPtrDecode
+			case bigIntType:
+				return bigIntDecode
+			case bigFloatType:
+				return bigFloatDecode
+			case bigRatType:
+				return bigRatDecode
+			}
 		}
-	}
-	switch t {
-	case bytesType:
-		return bytesDecode
-	case bigIntValueType:
-		return bigIntValueDecode
-	case bigFloatValueType:
-		return bigFloatValueDecode
-	case bigRatValueType:
-		return bigRatValueDecode
+		switch t {
+		case bytesType:
+			return bytesDecode
+		case bigIntValueType:
+			return bigIntValueDecode
+		case bigFloatValueType:
+			return bigFloatValueDecode
+		case bigRatValueType:
+			return bigRatValueDecode
+		}
 	}
 	return otherDecode(t)
 }
