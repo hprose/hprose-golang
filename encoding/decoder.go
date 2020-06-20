@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Jun 19, 2020                               |
+| LastModified: Jun 20, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -188,94 +188,6 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	return true
 }
 
-func (dec *Decoder) fastDecodeSlice(p interface{}, tag byte) bool {
-	switch p.(type) {
-	case *[]bool:
-		bsdec.Decode(dec, p, tag)
-	case *[]int:
-		isdec.Decode(dec, p, tag)
-	case *[]int8:
-		i8sdec.Decode(dec, p, tag)
-	case *[]int16:
-		i16sdec.Decode(dec, p, tag)
-	case *[]int32:
-		i32sdec.Decode(dec, p, tag)
-	case *[]int64:
-		i64sdec.Decode(dec, p, tag)
-	case *[]uint:
-		usdec.Decode(dec, p, tag)
-	case *[]uint16:
-		u16sdec.Decode(dec, p, tag)
-	case *[]uint32:
-		u32sdec.Decode(dec, p, tag)
-	case *[]uint64:
-		u64sdec.Decode(dec, p, tag)
-	case *[]uintptr:
-		upsdec.Decode(dec, p, tag)
-	case *[]float32:
-		f32sdec.Decode(dec, p, tag)
-	case *[]float64:
-		f64sdec.Decode(dec, p, tag)
-	case *[]complex64:
-		c64sdec.Decode(dec, p, tag)
-	case *[]complex128:
-		c128sdec.Decode(dec, p, tag)
-	case *[]interface{}:
-		ifsdec.Decode(dec, p, tag)
-	case *[][]byte:
-		u8ssdec.Decode(dec, p, tag)
-	case *[]string:
-		ssdec.Decode(dec, p, tag)
-	case *[]*big.Int:
-		bisdec.Decode(dec, p, tag)
-	case *[]*big.Float:
-		bfsdec.Decode(dec, p, tag)
-	case *[]*big.Rat:
-		brsdec.Decode(dec, p, tag)
-	default:
-		return false
-	}
-	return true
-}
-
-func (dec *Decoder) fastDecodeMap(p interface{}, tag byte) bool {
-	switch p.(type) {
-	case *map[int]bool:
-		ibmdec.Decode(dec, p, tag)
-	case *map[int]int:
-		iimdec.Decode(dec, p, tag)
-	case *map[int]int8:
-		ii8mdec.Decode(dec, p, tag)
-	case *map[int]int16:
-		ii16mdec.Decode(dec, p, tag)
-	case *map[int]int32:
-		ii32mdec.Decode(dec, p, tag)
-	case *map[int]int64:
-		ii64mdec.Decode(dec, p, tag)
-	case *map[int]uint:
-		iumdec.Decode(dec, p, tag)
-	case *map[int]uint8:
-		iu8mdec.Decode(dec, p, tag)
-	case *map[int]uint16:
-		iu16mdec.Decode(dec, p, tag)
-	case *map[int]uint32:
-		iu32mdec.Decode(dec, p, tag)
-	case *map[int]uint64:
-		iu64mdec.Decode(dec, p, tag)
-	case *map[int]float32:
-		if32mdec.Decode(dec, p, tag)
-	case *map[int]float64:
-		if64mdec.Decode(dec, p, tag)
-	case *map[int]string:
-		ismdec.Decode(dec, p, tag)
-	case *map[int]interface{}:
-		iifmdec.Decode(dec, p, tag)
-	default:
-		return false
-	}
-	return true
-}
-
 func (dec *Decoder) decode(p interface{}, tag byte) {
 	if dec.fastDecode(p, tag) {
 		return
@@ -283,11 +195,8 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 	t := reflect.TypeOf(p).Elem()
 	switch t.Kind() {
 	case reflect.Map:
-		switch t.Key().Kind() {
-		case reflect.Int:
-			if dec.fastDecodeMap(p, tag) {
-				return
-			}
+		if dec.fastDecodeMap(t, p, tag) {
+			return
 		}
 	case reflect.Ptr:
 		if dec.fastDecodePtr(p, tag) {
