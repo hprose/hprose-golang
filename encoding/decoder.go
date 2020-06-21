@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Jun 20, 2020                               |
+| LastModified: Jun 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -45,6 +45,16 @@ const (
 	RealTypeBigFloat
 )
 
+// MapType represents the default type for decode map
+type MapType int8
+
+const (
+	// MapTypeIIMap represents the default type is map[interface{}]interface{}
+	MapTypeIIMap MapType = iota
+	// MapTypeSIMap represents the default type is map[string]interface{}
+	MapTypeSIMap
+)
+
 const defaultBufferSize = 8192
 
 // Decoder is a io.Reader like object, with hprose specific read functions.
@@ -59,6 +69,7 @@ type Decoder struct {
 	Error  error
 	LongType
 	RealType
+	MapType
 }
 
 // NewDecoder creates an Decoder instance from byte array
