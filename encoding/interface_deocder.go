@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/interface_decoder.go                            |
 |                                                          |
-| LastModified: Jun 15, 2020                               |
+| LastModified: Jun 21, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -85,6 +85,21 @@ func (dec *Decoder) decodeInterface(t reflect.Type, tag byte) interface{} {
 		return dec.ReadString()
 	case TagBytes:
 		return dec.ReadBytes()
+	case TagList:
+		var result []interface{}
+		ifsdec.Decode(dec, &result, tag)
+		return result
+	case TagMap:
+		switch dec.MapType {
+		case MapTypeIIMap:
+			var result map[interface{}]interface{}
+			ififmdec.Decode(dec, &result, tag)
+			return result
+		default:
+			var result map[string]interface{}
+			sifmdec.Decode(dec, &result, tag)
+			return result
+		}
 	}
 	if dec.Error == nil {
 		dec.Error = DecodeError(fmt.Sprintf("hprose/encoding: invalid tag '%s'(0x%x)", string(tag), tag))
