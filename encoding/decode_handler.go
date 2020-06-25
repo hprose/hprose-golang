@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decode_handler.go                               |
 |                                                          |
-| LastModified: Jun 19, 2020                               |
+| LastModified: Jun 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -212,67 +212,8 @@ func otherDecode(t reflect.Type) DecodeHandler {
 	}
 }
 
-var decodeHandlers = []DecodeHandler{
-	reflect.Invalid:       invalidDecode,
-	reflect.Bool:          boolDecode,
-	reflect.Int:           intDecode,
-	reflect.Int8:          int8Decode,
-	reflect.Int16:         int16Decode,
-	reflect.Int32:         int32Decode,
-	reflect.Int64:         int64Decode,
-	reflect.Uint:          uintDecode,
-	reflect.Uint8:         uint8Decode,
-	reflect.Uint16:        uint16Decode,
-	reflect.Uint32:        uint32Decode,
-	reflect.Uint64:        uint64Decode,
-	reflect.Uintptr:       uintptrDecode,
-	reflect.Float32:       float32Decode,
-	reflect.Float64:       float64Decode,
-	reflect.Complex64:     complex64Decode,
-	reflect.Complex128:    complex128Decode,
-	reflect.Array:         nil,
-	reflect.Chan:          invalidDecode,
-	reflect.Func:          invalidDecode,
-	reflect.Interface:     interfaceDecode,
-	reflect.Map:           nil,
-	reflect.Ptr:           nil,
-	reflect.Slice:         nil,
-	reflect.String:        stringDecode,
-	reflect.Struct:        nil,
-	reflect.UnsafePointer: invalidDecode,
-}
-
-var decodePtrHandlers = []DecodeHandler{
-	reflect.Invalid:       invalidDecode,
-	reflect.Bool:          boolPtrDecode,
-	reflect.Int:           intPtrDecode,
-	reflect.Int8:          int8PtrDecode,
-	reflect.Int16:         int16PtrDecode,
-	reflect.Int32:         int32PtrDecode,
-	reflect.Int64:         int64PtrDecode,
-	reflect.Uint:          uintPtrDecode,
-	reflect.Uint8:         uint8PtrDecode,
-	reflect.Uint16:        uint16PtrDecode,
-	reflect.Uint32:        uint32PtrDecode,
-	reflect.Uint64:        uint64PtrDecode,
-	reflect.Uintptr:       uintptrPtrDecode,
-	reflect.Float32:       float32PtrDecode,
-	reflect.Float64:       float64PtrDecode,
-	reflect.Complex64:     complex64PtrDecode,
-	reflect.Complex128:    complex128PtrDecode,
-	reflect.Array:         nil,
-	reflect.Chan:          invalidDecode,
-	reflect.Func:          invalidDecode,
-	reflect.Interface:     interfacePtrDecode,
-	reflect.Map:           nil,
-	reflect.Ptr:           nil,
-	reflect.Slice:         nil,
-	reflect.String:        stringPtrDecode,
-	reflect.Struct:        nil,
-	reflect.UnsafePointer: invalidDecode,
-}
-
-func getDecodeHandler(t reflect.Type) DecodeHandler {
+// GetDecodeHandler for specified type
+func GetDecodeHandler(t reflect.Type) DecodeHandler {
 	if getValueDecoder(t) == nil {
 		kind := t.Kind()
 		if decode := decodeHandlers[kind]; decode != nil {
@@ -305,4 +246,70 @@ func getDecodeHandler(t reflect.Type) DecodeHandler {
 		}
 	}
 	return otherDecode(t)
+}
+
+var (
+	decodeHandlers    []DecodeHandler
+	decodePtrHandlers []DecodeHandler
+)
+
+func init() {
+	decodeHandlers = []DecodeHandler{
+		reflect.Invalid:       invalidDecode,
+		reflect.Bool:          boolDecode,
+		reflect.Int:           intDecode,
+		reflect.Int8:          int8Decode,
+		reflect.Int16:         int16Decode,
+		reflect.Int32:         int32Decode,
+		reflect.Int64:         int64Decode,
+		reflect.Uint:          uintDecode,
+		reflect.Uint8:         uint8Decode,
+		reflect.Uint16:        uint16Decode,
+		reflect.Uint32:        uint32Decode,
+		reflect.Uint64:        uint64Decode,
+		reflect.Uintptr:       uintptrDecode,
+		reflect.Float32:       float32Decode,
+		reflect.Float64:       float64Decode,
+		reflect.Complex64:     complex64Decode,
+		reflect.Complex128:    complex128Decode,
+		reflect.Array:         nil,
+		reflect.Chan:          invalidDecode,
+		reflect.Func:          invalidDecode,
+		reflect.Interface:     interfaceDecode,
+		reflect.Map:           nil,
+		reflect.Ptr:           nil,
+		reflect.Slice:         nil,
+		reflect.String:        stringDecode,
+		reflect.Struct:        nil,
+		reflect.UnsafePointer: invalidDecode,
+	}
+	decodePtrHandlers = []DecodeHandler{
+		reflect.Invalid:       invalidDecode,
+		reflect.Bool:          boolPtrDecode,
+		reflect.Int:           intPtrDecode,
+		reflect.Int8:          int8PtrDecode,
+		reflect.Int16:         int16PtrDecode,
+		reflect.Int32:         int32PtrDecode,
+		reflect.Int64:         int64PtrDecode,
+		reflect.Uint:          uintPtrDecode,
+		reflect.Uint8:         uint8PtrDecode,
+		reflect.Uint16:        uint16PtrDecode,
+		reflect.Uint32:        uint32PtrDecode,
+		reflect.Uint64:        uint64PtrDecode,
+		reflect.Uintptr:       uintptrPtrDecode,
+		reflect.Float32:       float32PtrDecode,
+		reflect.Float64:       float64PtrDecode,
+		reflect.Complex64:     complex64PtrDecode,
+		reflect.Complex128:    complex128PtrDecode,
+		reflect.Array:         nil,
+		reflect.Chan:          invalidDecode,
+		reflect.Func:          invalidDecode,
+		reflect.Interface:     interfacePtrDecode,
+		reflect.Map:           nil,
+		reflect.Ptr:           nil,
+		reflect.Slice:         nil,
+		reflect.String:        stringPtrDecode,
+		reflect.Struct:        nil,
+		reflect.UnsafePointer: invalidDecode,
+	}
 }

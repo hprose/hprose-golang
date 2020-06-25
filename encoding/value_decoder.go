@@ -54,10 +54,6 @@ func invalidDecoder(t reflect.Type) ValueDecoder {
 	panic(UnsupportedTypeError{t})
 }
 
-func getStructDecoder(t reflect.Type) ValueDecoder {
-	panic(UnsupportedTypeError{t})
-}
-
 func init() {
 	valueDecoderFactories = []func(t reflect.Type) ValueDecoder{
 		reflect.Invalid:       invalidDecoder,

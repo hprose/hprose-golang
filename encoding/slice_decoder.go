@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/slice_decoder.go                                |
 |                                                          |
-| LastModified: Jun 20, 2020                               |
+| LastModified: Jun 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -53,8 +53,8 @@ func (valdec sliceDecoder) Type() reflect.Type {
 	return valdec.t.Type1()
 }
 
-// SliceDecoder returns a ValueDecoder for []T.
-func SliceDecoder(t reflect.Type, decodeElem DecodeHandler) ValueDecoder {
+// makeSliceDecoder returns a ValueDecoder for []T.
+func makeSliceDecoder(t reflect.Type, decodeElem DecodeHandler) sliceDecoder {
 	return sliceDecoder{
 		reflect2.Type2(t).(*reflect2.UnsafeSliceType),
 		t.Elem(),
@@ -68,7 +68,7 @@ func getSliceDecoder(t reflect.Type) ValueDecoder {
 	if et.Kind() == reflect.Uint8 {
 		return bytesDecoder{t}
 	}
-	return SliceDecoder(t, getDecodeHandler(et))
+	return makeSliceDecoder(t, GetDecodeHandler(et))
 }
 
 func (dec *Decoder) fastDecodeSlice(p interface{}, tag byte) bool {
@@ -146,27 +146,27 @@ var (
 )
 
 func init() {
-	bsdec = SliceDecoder(reflect.TypeOf(([]bool)(nil)), boolDecode).(sliceDecoder)
-	isdec = SliceDecoder(reflect.TypeOf(([]int)(nil)), intDecode).(sliceDecoder)
-	i8sdec = SliceDecoder(reflect.TypeOf(([]int8)(nil)), int8Decode).(sliceDecoder)
-	i16sdec = SliceDecoder(reflect.TypeOf(([]int16)(nil)), int16Decode).(sliceDecoder)
-	i32sdec = SliceDecoder(reflect.TypeOf(([]int32)(nil)), int32Decode).(sliceDecoder)
-	i64sdec = SliceDecoder(reflect.TypeOf(([]int64)(nil)), int64Decode).(sliceDecoder)
-	usdec = SliceDecoder(reflect.TypeOf(([]uint)(nil)), uintDecode).(sliceDecoder)
-	u16sdec = SliceDecoder(reflect.TypeOf(([]uint16)(nil)), uint16Decode).(sliceDecoder)
-	u32sdec = SliceDecoder(reflect.TypeOf(([]uint32)(nil)), uint32Decode).(sliceDecoder)
-	u64sdec = SliceDecoder(reflect.TypeOf(([]uint64)(nil)), uint64Decode).(sliceDecoder)
-	upsdec = SliceDecoder(reflect.TypeOf(([]uintptr)(nil)), uintDecode).(sliceDecoder)
-	f32sdec = SliceDecoder(reflect.TypeOf(([]float32)(nil)), float32Decode).(sliceDecoder)
-	f64sdec = SliceDecoder(reflect.TypeOf(([]float64)(nil)), float64Decode).(sliceDecoder)
-	c64sdec = SliceDecoder(reflect.TypeOf(([]complex64)(nil)), complex64Decode).(sliceDecoder)
-	c128sdec = SliceDecoder(reflect.TypeOf(([]complex128)(nil)), complex128Decode).(sliceDecoder)
-	ifsdec = SliceDecoder(reflect.TypeOf(([]interface{})(nil)), interfaceDecode).(sliceDecoder)
-	u8ssdec = SliceDecoder(reflect.TypeOf(([][]byte)(nil)), bytesDecode).(sliceDecoder)
-	ssdec = SliceDecoder(reflect.TypeOf(([]string)(nil)), stringDecode).(sliceDecoder)
-	bisdec = SliceDecoder(reflect.TypeOf(([]*big.Int)(nil)), bigIntDecode).(sliceDecoder)
-	bfsdec = SliceDecoder(reflect.TypeOf(([]*big.Float)(nil)), bigFloatDecode).(sliceDecoder)
-	brsdec = SliceDecoder(reflect.TypeOf(([]*big.Rat)(nil)), bigRatDecode).(sliceDecoder)
+	bsdec = makeSliceDecoder(reflect.TypeOf(([]bool)(nil)), boolDecode)
+	isdec = makeSliceDecoder(reflect.TypeOf(([]int)(nil)), intDecode)
+	i8sdec = makeSliceDecoder(reflect.TypeOf(([]int8)(nil)), int8Decode)
+	i16sdec = makeSliceDecoder(reflect.TypeOf(([]int16)(nil)), int16Decode)
+	i32sdec = makeSliceDecoder(reflect.TypeOf(([]int32)(nil)), int32Decode)
+	i64sdec = makeSliceDecoder(reflect.TypeOf(([]int64)(nil)), int64Decode)
+	usdec = makeSliceDecoder(reflect.TypeOf(([]uint)(nil)), uintDecode)
+	u16sdec = makeSliceDecoder(reflect.TypeOf(([]uint16)(nil)), uint16Decode)
+	u32sdec = makeSliceDecoder(reflect.TypeOf(([]uint32)(nil)), uint32Decode)
+	u64sdec = makeSliceDecoder(reflect.TypeOf(([]uint64)(nil)), uint64Decode)
+	upsdec = makeSliceDecoder(reflect.TypeOf(([]uintptr)(nil)), uintDecode)
+	f32sdec = makeSliceDecoder(reflect.TypeOf(([]float32)(nil)), float32Decode)
+	f64sdec = makeSliceDecoder(reflect.TypeOf(([]float64)(nil)), float64Decode)
+	c64sdec = makeSliceDecoder(reflect.TypeOf(([]complex64)(nil)), complex64Decode)
+	c128sdec = makeSliceDecoder(reflect.TypeOf(([]complex128)(nil)), complex128Decode)
+	ifsdec = makeSliceDecoder(reflect.TypeOf(([]interface{})(nil)), interfaceDecode)
+	u8ssdec = makeSliceDecoder(reflect.TypeOf(([][]byte)(nil)), bytesDecode)
+	ssdec = makeSliceDecoder(reflect.TypeOf(([]string)(nil)), stringDecode)
+	bisdec = makeSliceDecoder(reflect.TypeOf(([]*big.Int)(nil)), bigIntDecode)
+	bfsdec = makeSliceDecoder(reflect.TypeOf(([]*big.Float)(nil)), bigFloatDecode)
+	brsdec = makeSliceDecoder(reflect.TypeOf(([]*big.Rat)(nil)), bigRatDecode)
 
 	RegisterValueDecoder(bsdec)
 	RegisterValueDecoder(isdec)

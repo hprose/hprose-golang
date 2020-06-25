@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_encoder_test.go                          |
 |                                                          |
-| LastModified: Apr 6, 2020                                |
+| LastModified: Jun 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -313,9 +313,9 @@ func TestInvalidStructName(t *testing.T) {
 	assert.PanicsWithValue(t, "hprose/encoding: invalid UTF-8 in struct name", func() {
 		type TestStruct struct {
 			A int
-			B int `json:"a"`
+			B int
 		}
-		newStructEncoder(reflect.TypeOf((*TestStruct)(nil)).Elem(), "\xFE", []string{})
+		newStructEncoder(reflect.TypeOf((*TestStruct)(nil)).Elem(), "\xFE")
 		sb := &strings.Builder{}
 		enc := NewEncoder(sb).Simple(false)
 		enc.Encode(TestStruct{})

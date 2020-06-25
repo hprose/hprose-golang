@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Jun 21, 2020                               |
+| LastModified: Jun 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -65,7 +65,7 @@ type Decoder struct {
 	head   int
 	tail   int
 	refer  *decoderRefer
-	ref    []reflect.Type
+	ref    []structInfo
 	Error  error
 	LongType
 	RealType
@@ -200,6 +200,17 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 }
 
 func (dec *Decoder) decode(p interface{}, tag byte) {
+	switch tag {
+	case TagRef:
+
+	case TagClass:
+		dec.ReadStruct()
+		dec.Decode(p)
+		return
+	case TagError:
+		dec.Error = DecodeError(dec.decodeString(stringType, dec.NextByte()))
+		return
+	}
 	if dec.fastDecode(p, tag) {
 		return
 	}

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/array_decoder.go                                |
 |                                                          |
-| LastModified: Jun 14, 2020                               |
+| LastModified: Jun 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -67,8 +67,8 @@ func (valdec arrayDecoder) Type() reflect.Type {
 	return valdec.at.Type1()
 }
 
-// ArrayDecoder returns a ValueDecoder for [N]T.
-func ArrayDecoder(t reflect.Type, decodeElem DecodeHandler) ValueDecoder {
+// makeArrayDecoder returns a arrayDecoder for [N]T.
+func makeArrayDecoder(t reflect.Type, decodeElem DecodeHandler) arrayDecoder {
 	at := reflect2.Type2(t).(*reflect2.UnsafeArrayType)
 	et := t.Elem()
 	return arrayDecoder{
@@ -120,15 +120,15 @@ func (valdec byteArrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	}
 }
 
-// ByteArrayDecoder returns a ValueDecoder for [N]byte.
-func ByteArrayDecoder(t reflect.Type) ValueDecoder {
-	return byteArrayDecoder{ArrayDecoder(t, uint8Decode).(arrayDecoder)}
+// makeByteArrayDecoder returns a ValueDecoder for [N]byte.
+func makeByteArrayDecoder(t reflect.Type) byteArrayDecoder {
+	return byteArrayDecoder{makeArrayDecoder(t, uint8Decode)}
 }
 
 func getArrayDecoder(t reflect.Type) ValueDecoder {
 	et := t.Elem()
 	if et.Kind() == reflect.Uint8 {
-		return ByteArrayDecoder(t)
+		return makeByteArrayDecoder(t)
 	}
-	return ArrayDecoder(t, getDecodeHandler(et))
+	return makeArrayDecoder(t, GetDecodeHandler(et))
 }

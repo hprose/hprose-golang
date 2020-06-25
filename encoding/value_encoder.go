@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/value_encoder.go                                |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Jun 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -43,7 +43,7 @@ func getStructEncoder(t reflect.Type) ValueEncoder {
 	if name == "" {
 		return newAnonymousStructEncoder(t)
 	}
-	return newStructEncoder(t, name, []string{"json"})
+	return newStructEncoder(t, name)
 }
 
 func getOtherEncoder(t reflect.Type) ValueEncoder {
