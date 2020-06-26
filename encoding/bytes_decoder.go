@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bytes_decoder.go                                |
 |                                                          |
-| LastModified: Jun 15, 2020                               |
+| LastModified: Jun 26, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -98,4 +98,9 @@ func (valdec bytesPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 
 func (valdec bytesPtrDecoder) Type() reflect.Type {
 	return valdec.t
+}
+
+func init() {
+	RegisterValueDecoder(bytesDecoder{bytesType})
+	RegisterValueDecoder(bytesPtrDecoder{bytesPtrType})
 }
