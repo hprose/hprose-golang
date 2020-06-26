@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decode_handler.go                               |
 |                                                          |
-| LastModified: Jun 26, 2020                               |
+| LastModified: Jun 27, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,6 +16,7 @@ package encoding
 import (
 	"math/big"
 	"reflect"
+	"time"
 	"unsafe"
 
 	"github.com/modern-go/reflect2"
@@ -102,6 +103,10 @@ func stringDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 
 func bytesDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 	*(*[]byte)(p) = dec.decodeBytes(t, dec.NextByte())
+}
+
+func timeDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
+	*(*time.Time)(p) = dec.decodeTime(t, dec.NextByte())
 }
 
 func bigIntDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -192,7 +197,7 @@ func otherDecode(t reflect.Type) DecodeHandler {
 	valdec := GetValueDecoder(t)
 	t2 := reflect2.Type2(t)
 	return func(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-		valdec.Decode(dec, t2.UnsafeIndirect(p), dec.NextByte())
+		valdec.Decode(dec, t2.PackEFace(p), dec.NextByte())
 	}
 }
 

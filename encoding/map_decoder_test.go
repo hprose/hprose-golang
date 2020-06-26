@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/map_decoder_test.go                             |
 |                                                          |
-| LastModified: Jun 26, 2020                               |
+| LastModified: Jun 27, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
@@ -7061,63 +7062,64 @@ func TestHproseDecodeObjectAsMap(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb)
 	type TestStruct1 struct {
-		Name string
-		Age  int
-		//Birthday time.Time
-		Male bool
+		Name     string
+		Age      int
+		Birthday time.Time
+		Male     bool
 	}
-	//Register((*TestStruct)(nil), "TestStruct")
+	birthday := time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local)
 	ts := &TestStruct1{
-		Name: "Tom",
-		Age:  18,
-		//Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
-		Male: true,
+		Name:     "Tom",
+		Age:      18,
+		Birthday: birthday,
+		Male:     true,
 	}
 	enc.Encode(ts)
 	dec := NewDecoder(([]byte)(sb.String()))
 	var m map[string]interface{}
 	dec.Decode(&m)
-	assert.Equal(t, map[string]interface{}{"name": "Tom", "age": 18, "male": true}, m)
+	assert.Equal(t, map[string]interface{}{"name": "Tom", "age": 18, "birthday": birthday, "male": true}, m)
 }
 
 func TestHproseDecodeObjectAsMap2(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb)
 	type TestStruct2 struct {
-		Name string
-		Age  int
-		//Birthday time.Time
-		Male bool
+		Name     string
+		Age      int
+		Birthday *time.Time
+		Male     bool
 	}
 	Register((*TestStruct2)(nil), "TestStruct2")
+	birthday := time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local)
 	ts := &TestStruct2{
-		Name: "Tom",
-		Age:  18,
-		//Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
-		Male: true,
+		Name:     "Tom",
+		Age:      18,
+		Birthday: &birthday,
+		Male:     true,
 	}
 	enc.Encode(ts)
 	dec := NewDecoder(([]byte)(sb.String()))
 	var m map[string]interface{}
 	dec.Decode(&m)
-	assert.Equal(t, map[string]interface{}{"name": "Tom", "age": 18, "male": true}, m)
+	assert.Equal(t, map[string]interface{}{"name": "Tom", "age": 18, "birthday": &birthday, "male": true}, m)
 }
 
 func TestHproseDecodeObjectAsMapError(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb)
 	type TestStruct3 struct {
-		Name string
-		Age  int
-		//Birthday time.Time
-		Male bool
+		Name     string
+		Age      int
+		Birthday time.Time
+		Male     bool
 	}
-	//Register((*TestStruct3)(nil), "TestStruct3")
+	birthday := time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local)
 	ts := &TestStruct3{
-		Name: "Tom",
-		Age:  18,
-		//Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
-		Male: true,
+		Name:     "Tom",
+		Age:      18,
+		Birthday: birthday,
+		Male:     true,
 	}
 	enc.Encode(ts)
 	dec := NewDecoder(([]byte)(sb.String()))
@@ -7130,17 +7132,18 @@ func TestHproseDecodeObjectAsMapError2(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb)
 	type TestStruct4 struct {
-		Name string
-		Age  int
-		//Birthday time.Time
-		Male bool
+		Name     string
+		Age      int
+		Birthday *time.Time
+		Male     bool
 	}
 	Register((*TestStruct4)(nil), "TestStruct4")
+	birthday := time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local)
 	ts := &TestStruct4{
-		Name: "Tom",
-		Age:  18,
-		//Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
-		Male: true,
+		Name:     "Tom",
+		Age:      18,
+		Birthday: &birthday,
+		Male:     true,
 	}
 	enc.Encode(ts)
 	dec := NewDecoder(([]byte)(sb.String()))

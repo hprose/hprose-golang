@@ -19,6 +19,7 @@ import (
 	"math"
 	"math/big"
 	"reflect"
+	"time"
 )
 
 // LongType represents the default type for decode long integer
@@ -135,6 +136,8 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 		*pv = dec.decodeBytes(bytesType, tag)
 	case *string:
 		*pv = dec.decodeString(stringType, tag)
+	case *time.Time:
+		*pv = dec.decodeTime(timeType, tag)
 	case *big.Int:
 		*pv = dec.decodeBigIntValue(bigIntValueType, tag)
 	case *big.Float:
@@ -187,6 +190,8 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 		*pv = dec.decodeBytesPtr(bytesPtrType, tag)
 	case **string:
 		*pv = dec.decodeStringPtr(stringPtrType, tag)
+	case **time.Time:
+		*pv = dec.decodeTimePtr(timePtrType, tag)
 	case **big.Int:
 		*pv = dec.decodeBigInt(bigIntType, tag)
 	case **big.Float:

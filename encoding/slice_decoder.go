@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/slice_decoder.go                                |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Jun 26, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,6 +16,7 @@ package encoding
 import (
 	"math/big"
 	"reflect"
+	"time"
 	"unsafe"
 
 	"github.com/modern-go/reflect2"
@@ -109,6 +110,8 @@ func (dec *Decoder) fastDecodeSlice(p interface{}, tag byte) bool {
 		u8ssdec.Decode(dec, p, tag)
 	case *[]string:
 		ssdec.Decode(dec, p, tag)
+	case *[]time.Time:
+		tsdec.Decode(dec, p, tag)
 	case *[]*big.Int:
 		bisdec.Decode(dec, p, tag)
 	case *[]*big.Float:
@@ -140,6 +143,7 @@ var (
 	ifsdec   sliceDecoder
 	u8ssdec  sliceDecoder
 	ssdec    sliceDecoder
+	tsdec    sliceDecoder
 	bisdec   sliceDecoder
 	bfsdec   sliceDecoder
 	brsdec   sliceDecoder
@@ -164,6 +168,7 @@ func init() {
 	ifsdec = makeSliceDecoder(reflect.TypeOf(([]interface{})(nil)), interfaceDecode)
 	u8ssdec = makeSliceDecoder(reflect.TypeOf(([][]byte)(nil)), bytesDecode)
 	ssdec = makeSliceDecoder(reflect.TypeOf(([]string)(nil)), stringDecode)
+	tsdec = makeSliceDecoder(reflect.TypeOf(([]time.Time)(nil)), timeDecode)
 	bisdec = makeSliceDecoder(reflect.TypeOf(([]*big.Int)(nil)), bigIntDecode)
 	bfsdec = makeSliceDecoder(reflect.TypeOf(([]*big.Float)(nil)), bigFloatDecode)
 	brsdec = makeSliceDecoder(reflect.TypeOf(([]*big.Rat)(nil)), bigRatDecode)
@@ -186,6 +191,7 @@ func init() {
 	RegisterValueDecoder(ifsdec)
 	RegisterValueDecoder(u8ssdec)
 	RegisterValueDecoder(ssdec)
+	RegisterValueDecoder(tsdec)
 	RegisterValueDecoder(bisdec)
 	RegisterValueDecoder(bfsdec)
 	RegisterValueDecoder(brsdec)

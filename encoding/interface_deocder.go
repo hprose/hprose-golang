@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/interface_decoder.go                            |
 |                                                          |
-| LastModified: Jun 26, 2020                               |
+| LastModified: Jun 27, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -79,6 +79,10 @@ func (dec *Decoder) decodeInterface(t reflect.Type, tag byte) interface{} {
 		default:
 			return dec.ReadBigFloat()
 		}
+	case TagTime:
+		return dec.ReadTime()
+	case TagDate:
+		return dec.ReadDateTime()
 	case TagUTF8Char:
 		return dec.readSafeString(1)
 	case TagString:

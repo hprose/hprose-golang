@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/relect.go                                       |
 |                                                          |
-| LastModified: Jun 15, 2020                               |
+| LastModified: Jun 27, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,6 +16,7 @@ package encoding
 import (
 	"math/big"
 	"reflect"
+	"time"
 	"unsafe"
 )
 
@@ -63,8 +64,9 @@ var float64Type = reflect.TypeOf((float64)(0))
 var complex64Type = reflect.TypeOf((complex64)(0))
 var complex128Type = reflect.TypeOf((complex128)(0))
 var interfaceType = reflect.TypeOf((interface{})(nil))
-var stringType = reflect.TypeOf("")
 var bytesType = reflect.TypeOf(([]byte)(nil))
+var stringType = reflect.TypeOf("")
+var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 var bigIntValueType = reflect.TypeOf((*big.Int)(nil)).Elem()
 var bigFloatValueType = reflect.TypeOf((*big.Float)(nil)).Elem()
 var bigRatValueType = reflect.TypeOf((*big.Rat)(nil)).Elem()
@@ -86,8 +88,9 @@ var float64PtrType = reflect.TypeOf((*float64)(nil))
 var complex64PtrType = reflect.TypeOf((*complex64)(nil))
 var complex128PtrType = reflect.TypeOf((*complex128)(nil))
 var interfacePtrType = reflect.TypeOf((*interface{})(nil))
-var stringPtrType = reflect.TypeOf((*string)(nil))
 var bytesPtrType = reflect.TypeOf((*[]byte)(nil))
+var stringPtrType = reflect.TypeOf((*string)(nil))
+var timePtrType = reflect.TypeOf((*time.Time)(nil))
 var bigIntType = reflect.TypeOf((*big.Int)(nil))
 var bigFloatType = reflect.TypeOf((*big.Float)(nil))
 var bigRatType = reflect.TypeOf((*big.Rat)(nil))
