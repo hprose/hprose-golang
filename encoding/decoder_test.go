@@ -16,8 +16,11 @@ package encoding
 import (
 	"bytes"
 	"io"
+	"strings"
 	"testing"
+	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -273,5 +276,90 @@ func BenchmarkReadIntFromBytes(b *testing.B) {
 		dec.ReadInt()
 		dec.ReadInt()
 		dec.ReadInt()
+	}
+}
+
+func BenchmarkHproseDecodeStruct(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb)
+	type TestStruct struct {
+		Name     string
+		Age      int
+		Birthday time.Time
+		Male     bool
+	}
+	ts := &TestStruct{
+		Name:     "Tom",
+		Age:      18,
+		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male:     true,
+	}
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	data := ([]byte)(sb.String())
+	dec := &Decoder{}
+	var obj TestStruct
+	for i := 0; i < b.N; i++ {
+		dec.ResetBytes(data)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+	}
+}
+
+func BenchmarkJsonDecodeStruct(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := jsoniter.NewEncoder(sb)
+	type TestStruct struct {
+		Name     string
+		Age      int
+		Birthday time.Time
+		Male     bool
+	}
+	ts := &TestStruct{
+		Name:     "Tom",
+		Age:      18,
+		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male:     true,
+	}
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	data := ([]byte)(sb.String())
+	var obj TestStruct
+	for i := 0; i < b.N; i++ {
+		dec := jsoniter.NewDecoder(bytes.NewReader(data))
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
 	}
 }
