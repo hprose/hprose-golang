@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decode_handler.go                               |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Jun 26, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -104,16 +104,16 @@ func bytesDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 	*(*[]byte)(p) = dec.decodeBytes(t, dec.NextByte())
 }
 
-func bigIntValueDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*big.Int)(p) = dec.decodeBigIntValue(t, dec.NextByte())
+func bigIntDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
+	*(**big.Int)(p) = dec.decodeBigInt(t, dec.NextByte())
 }
 
-func bigFloatValueDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*big.Float)(p) = dec.decodeBigFloatValue(t, dec.NextByte())
+func bigFloatDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
+	*(**big.Float)(p) = dec.decodeBigFloat(t, dec.NextByte())
 }
 
-func bigRatValueDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*big.Rat)(p) = dec.decodeBigRatValue(t, dec.NextByte())
+func bigRatDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
+	*(**big.Rat)(p) = dec.decodeBigRat(t, dec.NextByte())
 }
 
 func boolPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -188,22 +188,6 @@ func stringPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 	*(**string)(p) = dec.decodeStringPtr(t, dec.NextByte())
 }
 
-func bytesPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**[]byte)(p) = dec.decodeBytesPtr(t, dec.NextByte())
-}
-
-func bigIntDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**big.Int)(p) = dec.decodeBigInt(t, dec.NextByte())
-}
-
-func bigFloatDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**big.Float)(p) = dec.decodeBigFloat(t, dec.NextByte())
-}
-
-func bigRatDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**big.Rat)(p) = dec.decodeBigRat(t, dec.NextByte())
-}
-
 func otherDecode(t reflect.Type) DecodeHandler {
 	valdec := GetValueDecoder(t)
 	t2 := reflect2.Type2(t)
@@ -223,26 +207,6 @@ func GetDecodeHandler(t reflect.Type) DecodeHandler {
 			if decode := decodePtrHandlers[t.Elem().Kind()]; decode != nil {
 				return decode
 			}
-			switch t {
-			case bytesPtrType:
-				return bytesPtrDecode
-			case bigIntType:
-				return bigIntDecode
-			case bigFloatType:
-				return bigFloatDecode
-			case bigRatType:
-				return bigRatDecode
-			}
-		}
-		switch t {
-		case bytesType:
-			return bytesDecode
-		case bigIntValueType:
-			return bigIntValueDecode
-		case bigFloatValueType:
-			return bigFloatValueDecode
-		case bigRatValueType:
-			return bigRatValueDecode
 		}
 	}
 	return otherDecode(t)
