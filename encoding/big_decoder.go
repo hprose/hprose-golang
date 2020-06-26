@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 15, 2020                               |
+| LastModified: Jun 26, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -279,4 +279,13 @@ func (valdec bigRatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 
 func (valdec bigRatDecoder) Type() reflect.Type {
 	return valdec.t
+}
+
+func init() {
+	RegisterValueDecoder(bigIntDecoder{bigIntType})
+	RegisterValueDecoder(bigFloatDecoder{bigFloatType})
+	RegisterValueDecoder(bigRatDecoder{bigRatType})
+	RegisterValueDecoder(bigIntValueDecoder{bigIntValueType})
+	RegisterValueDecoder(bigFloatValueDecoder{bigFloatValueType})
+	RegisterValueDecoder(bigRatValueDecoder{bigRatValueType})
 }
