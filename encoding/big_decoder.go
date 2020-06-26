@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 26, 2020                               |
+| LastModified: Jun 27, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -198,94 +198,76 @@ func (dec *Decoder) decodeBigRatValue(t reflect.Type, tag byte) big.Rat {
 }
 
 // bigIntValueDecoder is the implementation of ValueDecoder for big.Int.
-type bigIntValueDecoder struct {
-	t reflect.Type
+type bigIntValueDecoder struct{}
+
+func (bigIntValueDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	*(*big.Int)(reflect2.PtrOf(p)) = dec.decodeBigIntValue(bigIntValueType, tag)
 }
 
-func (valdec bigIntValueDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*big.Int)(reflect2.PtrOf(p)) = dec.decodeBigIntValue(valdec.t, tag)
-}
-
-func (valdec bigIntValueDecoder) Type() reflect.Type {
-	return valdec.t
+func (bigIntValueDecoder) Type() reflect.Type {
+	return bigIntValueType
 }
 
 // bigIntDecoder is the implementation of ValueDecoder for *big.Int.
-type bigIntDecoder struct {
-	t reflect.Type
+type bigIntDecoder struct{}
+
+func (bigIntDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	*(**big.Int)(reflect2.PtrOf(p)) = dec.decodeBigInt(bigIntType, tag)
 }
 
-func (valdec bigIntDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**big.Int)(reflect2.PtrOf(p)) = dec.decodeBigInt(valdec.t, tag)
-}
-
-func (valdec bigIntDecoder) Type() reflect.Type {
-	return valdec.t
+func (bigIntDecoder) Type() reflect.Type {
+	return bigIntType
 }
 
 // bigFloatValueDecoder is the implementation of ValueDecoder for big.Float.
-type bigFloatValueDecoder struct {
-	t reflect.Type
+type bigFloatValueDecoder struct{}
+
+func (bigFloatValueDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	*(*big.Float)(reflect2.PtrOf(p)) = dec.decodeBigFloatValue(bigFloatValueType, tag)
 }
 
-func (valdec bigFloatValueDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*big.Float)(reflect2.PtrOf(p)) = dec.decodeBigFloatValue(valdec.t, tag)
-}
-
-func (valdec bigFloatValueDecoder) Type() reflect.Type {
-	return valdec.t
+func (bigFloatValueDecoder) Type() reflect.Type {
+	return bigFloatValueType
 }
 
 // bigFloatDecoder is the implementation of ValueDecoder for *big.Float.
-type bigFloatDecoder struct {
-	t reflect.Type
+type bigFloatDecoder struct{}
+
+func (bigFloatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	*(**big.Float)(reflect2.PtrOf(p)) = dec.decodeBigFloat(bigFloatType, tag)
 }
 
-func (valdec bigFloatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**big.Float)(reflect2.PtrOf(p)) = dec.decodeBigFloat(valdec.t, tag)
-}
-
-func (valdec bigFloatDecoder) Type() reflect.Type {
-	return valdec.t
+func (bigFloatDecoder) Type() reflect.Type {
+	return bigFloatType
 }
 
 // bigRatValueDecoder is the implementation of ValueDecoder for big.Rat.
-type bigRatValueDecoder struct {
-	t reflect.Type
+type bigRatValueDecoder struct{}
+
+func (bigRatValueDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	*(*big.Rat)(reflect2.PtrOf(p)) = dec.decodeBigRatValue(bigRatValueType, tag)
 }
 
-func (valdec bigRatValueDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*big.Rat)(reflect2.PtrOf(p)) = dec.decodeBigRatValue(valdec.t, tag)
-}
-
-func (valdec bigRatValueDecoder) Type() reflect.Type {
-	return valdec.t
+func (bigRatValueDecoder) Type() reflect.Type {
+	return bigRatValueType
 }
 
 // bigRatDecoder is the implementation of ValueDecoder for big.Rat/*big.Rat.
-type bigRatDecoder struct {
-	t reflect.Type
+type bigRatDecoder struct{}
+
+func (bigRatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+	*(**big.Rat)(reflect2.PtrOf(p)) = dec.decodeBigRat(bigRatType, tag)
 }
 
-func (valdec bigRatDecoder) decode(dec *Decoder, pv **big.Rat, tag byte) {
-	if r := dec.decodeBigRat(valdec.t, tag); dec.Error == nil {
-		*pv = r
-	}
-}
-
-func (valdec bigRatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**big.Rat)(reflect2.PtrOf(p)) = dec.decodeBigRat(valdec.t, tag)
-}
-
-func (valdec bigRatDecoder) Type() reflect.Type {
-	return valdec.t
+func (bigRatDecoder) Type() reflect.Type {
+	return bigRatType
 }
 
 func init() {
-	RegisterValueDecoder(bigIntDecoder{bigIntType})
-	RegisterValueDecoder(bigFloatDecoder{bigFloatType})
-	RegisterValueDecoder(bigRatDecoder{bigRatType})
-	RegisterValueDecoder(bigIntValueDecoder{bigIntValueType})
-	RegisterValueDecoder(bigFloatValueDecoder{bigFloatValueType})
-	RegisterValueDecoder(bigRatValueDecoder{bigRatValueType})
+	RegisterValueDecoder(bigIntDecoder{})
+	RegisterValueDecoder(bigFloatDecoder{})
+	RegisterValueDecoder(bigRatDecoder{})
+	RegisterValueDecoder(bigIntValueDecoder{})
+	RegisterValueDecoder(bigFloatValueDecoder{})
+	RegisterValueDecoder(bigRatValueDecoder{})
 }
