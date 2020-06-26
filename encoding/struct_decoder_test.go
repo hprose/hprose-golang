@@ -79,3 +79,29 @@ func TestDecodeStructPtr(t *testing.T) {
 	dec.Decode(&ts)
 	assert.Equal(t, &TestStruct{1, false, &hello, 3.14, 0}, ts)
 }
+
+func TestDecodeMapAsObject(t *testing.T) {
+	type TestStruct struct {
+		A int
+		B bool    `hprose:"-"`
+		C *string `json:"json,omitempty"`
+		D float32 `json:",omitempty"`
+		e float64
+	}
+
+	hello := "hello"
+	src := make(map[string]interface{})
+	src["a"] = 1
+	src["b"] = true
+	src["c"] = "c"
+	src["json"] = "hello"
+	src["d"] = 3.14
+	src["e"] = 2.178
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb).Simple(false)
+	enc.Encode(src)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var ts *TestStruct
+	dec.Decode(&ts)
+	assert.Equal(t, &TestStruct{1, false, &hello, 3.14, 0}, ts)
+}

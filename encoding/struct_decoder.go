@@ -16,6 +16,7 @@ package encoding
 import (
 	"reflect"
 	"sync"
+	"unsafe"
 
 	"github.com/modern-go/reflect2"
 )
@@ -27,7 +28,15 @@ type structDecoder struct {
 	lock   sync.RWMutex
 }
 
-func (valdec *structDecoder) decode(dec *Decoder, p interface{}) {
+func (valdec *structDecoder) decodeField(dec *Decoder, ptr unsafe.Pointer, name string) {
+	if field, ok := valdec.fields[name]; ok {
+		field.Decode(dec, field.Type.Type1(), field.Field.UnsafeGet(ptr))
+	} else {
+		_ = dec.decodeInterface(interfaceType, dec.NextByte())
+	}
+}
+
+func (valdec *structDecoder) decodeObject(dec *Decoder, p interface{}) {
 	index := dec.ReadInt()
 	structInfo := dec.getStructInfo(index)
 	dec.AddReference(p)
@@ -35,8 +44,19 @@ func (valdec *structDecoder) decode(dec *Decoder, p interface{}) {
 	valdec.lock.RLock()
 	defer valdec.lock.RUnlock()
 	for _, name := range structInfo.names {
-		field := valdec.fields[name]
-		field.Decode(dec, field.Type.Type1(), field.Field.UnsafeGet(ptr))
+		valdec.decodeField(dec, ptr, name)
+	}
+	dec.Skip()
+}
+
+func (valdec *structDecoder) decodeMapAsObject(dec *Decoder, p interface{}) {
+	ptr := reflect2.PtrOf(p)
+	valdec.lock.RLock()
+	defer valdec.lock.RUnlock()
+	count := dec.ReadInt()
+	dec.AddReference(p)
+	for i := 0; i < count; i++ {
+		valdec.decodeField(dec, ptr, dec.decodeString(stringType, dec.NextByte()))
 	}
 	dec.Skip()
 }
@@ -44,8 +64,9 @@ func (valdec *structDecoder) decode(dec *Decoder, p interface{}) {
 func (valdec *structDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	switch tag {
 	case TagObject:
-		valdec.decode(dec, p)
+		valdec.decodeObject(dec, p)
 	case TagMap:
+		valdec.decodeMapAsObject(dec, p)
 	case TagEmpty:
 		valdec.t.UnsafeSet(reflect2.PtrOf(p), valdec.t.UnsafeNew())
 	default:
@@ -60,9 +81,9 @@ func (valdec *structDecoder) Type() reflect.Type {
 // newStructDecoder returns a ValueDecoder for struct T.
 func newStructDecoder(t reflect.Type) *structDecoder {
 	decoder := &structDecoder{t: reflect2.Type2(t).(*reflect2.UnsafeStructType)}
-	RegisterValueDecoder(decoder)
 	decoder.lock.Lock()
 	defer decoder.lock.Unlock()
+	RegisterValueDecoder(decoder)
 	decoder.fields = getFieldMap(t)
 	return decoder
 }
