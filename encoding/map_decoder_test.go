@@ -7050,11 +7050,11 @@ func TestDecodeMapError(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var m map[*int]int
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast []interface {} to map[*int]int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast []interface {} to map[*int]int`)
 	dec.Error = nil
 	var slice []int
 	dec.Decode(&slice)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast map[interface {}]interface {} to []int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast map[interface {}]interface {} to []int`)
 }
 
 func TestHproseDecodeObjectAsMap(t *testing.T) {
@@ -7101,6 +7101,52 @@ func TestHproseDecodeObjectAsMap2(t *testing.T) {
 	var m map[string]interface{}
 	dec.Decode(&m)
 	assert.Equal(t, map[string]interface{}{"name": "Tom", "age": 18, "male": true}, m)
+}
+
+func TestHproseDecodeObjectAsMapError(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb)
+	type TestStruct3 struct {
+		Name string
+		Age  int
+		//Birthday time.Time
+		Male bool
+	}
+	//Register((*TestStruct3)(nil), "TestStruct3")
+	ts := &TestStruct3{
+		Name: "Tom",
+		Age:  18,
+		//Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male: true,
+	}
+	enc.Encode(ts)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var m map[string]string
+	dec.Decode(&m)
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast map[string]interface {} to map[string]string`)
+}
+
+func TestHproseDecodeObjectAsMapError2(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb)
+	type TestStruct4 struct {
+		Name string
+		Age  int
+		//Birthday time.Time
+		Male bool
+	}
+	Register((*TestStruct4)(nil), "TestStruct4")
+	ts := &TestStruct4{
+		Name: "Tom",
+		Age:  18,
+		//Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male: true,
+	}
+	enc.Encode(ts)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var m map[string]string
+	dec.Decode(&m)
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast *encoding.TestStruct4 to map[string]string`)
 }
 
 func BenchmarkDecodeIntIntMap(b *testing.B) {
