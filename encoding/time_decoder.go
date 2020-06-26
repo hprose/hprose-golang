@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/time_decoder.go                                 |
 |                                                          |
-| LastModified: Jun 26, 2020                               |
+| LastModified: Jun 27, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -180,11 +180,11 @@ func (dec *Decoder) decodeTimePtr(t reflect.Type, tag byte) *time.Time {
 // timeDecoder is the implementation of ValueDecoder for time.Time.
 type timeDecoder struct{}
 
-func (valdec timeDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
+func (timeDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*time.Time)(reflect2.PtrOf(p)) = dec.decodeTime(timeType, tag)
 }
 
-func (valdec timeDecoder) Type() reflect.Type {
+func (timeDecoder) Type() reflect.Type {
 	return timeType
 }
 
