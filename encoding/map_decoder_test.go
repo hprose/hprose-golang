@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/map_decoder_test.go                             |
 |                                                          |
-| LastModified: Jun 21, 2020                               |
+| LastModified: Jun 26, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -7055,6 +7055,52 @@ func TestDecodeMapError(t *testing.T) {
 	var slice []int
 	dec.Decode(&slice)
 	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast map[interface {}]interface {} to []int`) // 1
+}
+
+func TestHproseDecodeObjectAsMap(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb)
+	type TestStruct1 struct {
+		Name string
+		Age  int
+		//Birthday time.Time
+		Male bool
+	}
+	//Register((*TestStruct)(nil), "TestStruct")
+	ts := &TestStruct1{
+		Name: "Tom",
+		Age:  18,
+		//Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male: true,
+	}
+	enc.Encode(ts)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var m map[string]interface{}
+	dec.Decode(&m)
+	assert.Equal(t, map[string]interface{}{"name": "Tom", "age": 18, "male": true}, m)
+}
+
+func TestHproseDecodeObjectAsMap2(t *testing.T) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb)
+	type TestStruct2 struct {
+		Name string
+		Age  int
+		//Birthday time.Time
+		Male bool
+	}
+	Register((*TestStruct2)(nil), "TestStruct2")
+	ts := &TestStruct2{
+		Name: "Tom",
+		Age:  18,
+		//Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male: true,
+	}
+	enc.Encode(ts)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var m map[string]interface{}
+	dec.Decode(&m)
+	assert.Equal(t, map[string]interface{}{"name": "Tom", "age": 18, "male": true}, m)
 }
 
 func BenchmarkDecodeIntIntMap(b *testing.B) {
