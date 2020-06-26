@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/array_decoder.go                                |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Jun 26, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,7 +23,7 @@ import (
 // arrayDecoder is the implementation of ValueDecoder for [N]T.
 type arrayDecoder struct {
 	at         *reflect2.UnsafeArrayType
-	et         reflect.Type
+	et         reflect2.Type
 	empty      unsafe.Pointer
 	st         *reflect2.UnsafeSliceType
 	emptyElem  unsafe.Pointer
@@ -43,8 +43,9 @@ func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		if n > count {
 			n = count
 		}
+		et := valdec.et.Type1()
 		for i := 0; i < n; i++ {
-			valdec.decodeElem(dec, valdec.et, valdec.st.UnsafeGetIndex(slice, i))
+			valdec.decodeElem(dec, et, valdec.st.UnsafeGetIndex(slice, i))
 		}
 		switch {
 		case n < length:
@@ -52,9 +53,9 @@ func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 				valdec.st.UnsafeSetIndex(slice, i, valdec.emptyElem)
 			}
 		case n < count:
-			temp := reflect2.Type2(valdec.et).UnsafeNew()
+			temp := valdec.et.UnsafeNew()
 			for i := n; i < count; i++ {
-				valdec.decodeElem(dec, valdec.et, temp)
+				valdec.decodeElem(dec, et, temp)
 			}
 		}
 		dec.Skip()
@@ -71,12 +72,13 @@ func (valdec arrayDecoder) Type() reflect.Type {
 func makeArrayDecoder(t reflect.Type, decodeElem DecodeHandler) arrayDecoder {
 	at := reflect2.Type2(t).(*reflect2.UnsafeArrayType)
 	et := t.Elem()
+	et2 := reflect2.Type2(et)
 	return arrayDecoder{
 		at,
-		et,
+		et2,
 		at.UnsafeNew(),
 		reflect2.Type2(reflect.SliceOf(et)).(*reflect2.UnsafeSliceType),
-		reflect2.Type2(et).UnsafeNew(),
+		et2.UnsafeNew(),
 		decodeElem,
 	}
 }
