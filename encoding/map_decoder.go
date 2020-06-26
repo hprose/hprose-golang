@@ -23,15 +23,35 @@ import (
 
 // mapDecoder is the implementation of ValueDecoder for map[K]V.
 type mapDecoder struct {
-	t                    *reflect2.UnsafeMapType
-	kt                   reflect.Type
-	kt2                  reflect2.Type
-	vt                   reflect.Type
-	vt2                  reflect2.Type
-	decodeKey            DecodeHandler
-	decodeValue          DecodeHandler
-	canDecodeListAsMap   bool
-	canDecodeObjectAsMap bool
+	t           *reflect2.UnsafeMapType
+	kt          reflect2.Type
+	vt          reflect2.Type
+	decodeKey   DecodeHandler
+	decodeValue DecodeHandler
+}
+
+func (valdec mapDecoder) canDecodeListAsMap() bool {
+	switch valdec.kt.Kind() {
+	case reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64,
+		reflect.Uintptr,
+		reflect.Float32,
+		reflect.Float64,
+		reflect.Complex64,
+		reflect.Complex128,
+		reflect.Interface,
+		reflect.String:
+		return true
+	}
+	return false
 }
 
 func (valdec mapDecoder) convertKey(i int, p unsafe.Pointer) {
@@ -73,8 +93,18 @@ func (valdec mapDecoder) convertKey(i int, p unsafe.Pointer) {
 	}
 }
 
+func (valdec mapDecoder) canDecodeObjectAsMap() bool {
+	ktKind := valdec.kt.Kind()
+	vtKind := valdec.vt.Kind()
+	if (ktKind == reflect.String || ktKind == reflect.Interface) &&
+		(vtKind == reflect.Interface) {
+		return true
+	}
+	return false
+}
+
 func (valdec mapDecoder) decodeListAsMap(dec *Decoder, p interface{}, tag byte) {
-	if !valdec.canDecodeListAsMap {
+	if !valdec.canDecodeListAsMap() {
 		dec.decodeError(valdec.t.Type1(), tag)
 		return
 	}
@@ -82,11 +112,12 @@ func (valdec mapDecoder) decodeListAsMap(dec *Decoder, p interface{}, tag byte) 
 	count := dec.ReadInt()
 	valdec.t.UnsafeSet(mp, valdec.t.UnsafeMakeMap(count))
 	dec.AddReference(p)
-	kp := valdec.kt2.UnsafeNew()
-	vp := valdec.vt2.UnsafeNew()
+	kp := valdec.kt.UnsafeNew()
+	vp := valdec.vt.UnsafeNew()
+	vt := valdec.vt.Type1()
 	for i := 0; i < count; i++ {
 		valdec.convertKey(i, kp)
-		valdec.decodeValue(dec, valdec.vt, vp)
+		valdec.decodeValue(dec, vt, vp)
 		valdec.t.UnsafeSetIndex(mp, kp, vp)
 	}
 	dec.Skip()
@@ -97,18 +128,20 @@ func (valdec mapDecoder) decodeMap(dec *Decoder, p interface{}) {
 	count := dec.ReadInt()
 	valdec.t.UnsafeSet(mp, valdec.t.UnsafeMakeMap(count))
 	dec.AddReference(p)
-	kp := valdec.kt2.UnsafeNew()
-	vp := valdec.vt2.UnsafeNew()
+	kp := valdec.kt.UnsafeNew()
+	vp := valdec.vt.UnsafeNew()
+	kt := valdec.kt.Type1()
+	vt := valdec.vt.Type1()
 	for i := 0; i < count; i++ {
-		valdec.decodeKey(dec, valdec.kt, kp)
-		valdec.decodeValue(dec, valdec.vt, vp)
+		valdec.decodeKey(dec, kt, kp)
+		valdec.decodeValue(dec, vt, vp)
 		valdec.t.UnsafeSetIndex(mp, kp, vp)
 	}
 	dec.Skip()
 }
 
 func (valdec mapDecoder) decodeObjectAsMap(dec *Decoder, p interface{}, tag byte) {
-	if !valdec.canDecodeObjectAsMap {
+	if !valdec.canDecodeObjectAsMap() {
 		dec.decodeError(valdec.t.Type1(), tag)
 		return
 	}
@@ -128,7 +161,7 @@ func (valdec mapDecoder) decodeObjectAsMap(dec *Decoder, p interface{}, tag byte
 		}
 	} else {
 		for _, name := range structInfo.names {
-			v := dec.decodeInterface(valdec.vt, dec.NextByte())
+			v := dec.decodeInterface(interfaceType, dec.NextByte())
 			valdec.t.UnsafeSetIndex(mp, reflect2.PtrOf(name), reflect2.PtrOf(&v))
 		}
 	}
@@ -159,53 +192,17 @@ func (valdec mapDecoder) Type() reflect.Type {
 	return valdec.t.Type1()
 }
 
-func canDecodeListAsMap(ktKind reflect.Kind) bool {
-	switch ktKind {
-	case reflect.Int,
-		reflect.Int8,
-		reflect.Int16,
-		reflect.Int32,
-		reflect.Int64,
-		reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64,
-		reflect.Uintptr,
-		reflect.Float32,
-		reflect.Float64,
-		reflect.Complex64,
-		reflect.Complex128,
-		reflect.Interface,
-		reflect.String:
-		return true
-	}
-	return false
-}
-
-func canDecodeObjectAsMap(ktKind, vtKind reflect.Kind) bool {
-	if (ktKind == reflect.String || ktKind == reflect.Interface) &&
-		(vtKind == reflect.Interface) {
-		return true
-	}
-	return false
-}
-
 // makeMapDecoder returns a mapDecoder for map[K]V.
 func makeMapDecoder(t reflect.Type) mapDecoder {
-	at := reflect2.Type2(t).(*reflect2.UnsafeMapType)
+	mt := reflect2.Type2(t).(*reflect2.UnsafeMapType)
 	kt := t.Key()
 	vt := t.Elem()
 	return mapDecoder{
-		at,
-		kt,
+		mt,
 		reflect2.Type2(kt),
-		vt,
 		reflect2.Type2(vt),
-		GetDecodeHandler(t.Key()),
-		GetDecodeHandler(t.Elem()),
-		canDecodeListAsMap(kt.Kind()),
-		canDecodeObjectAsMap(kt.Kind(), vt.Kind()),
+		GetDecodeHandler(kt),
+		GetDecodeHandler(vt),
 	}
 }
 
