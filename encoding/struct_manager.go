@@ -179,11 +179,11 @@ func Register(proto interface{}, alias string, tag ...string) {
 	structTypeMap.Store(alias, t)
 	name := t.Name()
 	if name == "" {
-		_ = newAnonymousStructEncoder(t, tag...)
+		newAnonymousStructEncoder(t, tag...)
 	} else {
-		_ = newStructEncoder(t, name, tag...)
+		newStructEncoder(t, name, tag...)
 	}
-	_ = newStructDecoder(t)
+	newStructDecoder(t)
 }
 
 // GetStructType by alias
