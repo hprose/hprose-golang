@@ -14,6 +14,7 @@
 package encoding
 
 import (
+	"container/list"
 	"math/big"
 	"reflect"
 	"time"
@@ -98,3 +99,5 @@ var uuidPtrType = reflect.TypeOf((*uuid.UUID)(nil))
 var bigIntType = reflect.TypeOf((*big.Int)(nil))
 var bigFloatType = reflect.TypeOf((*big.Float)(nil))
 var bigRatType = reflect.TypeOf((*big.Rat)(nil))
+
+var listType = reflect.TypeOf((*list.List)(nil))
