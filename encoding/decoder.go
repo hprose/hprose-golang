@@ -20,6 +20,8 @@ import (
 	"math/big"
 	"reflect"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // LongType represents the default type for decode long integer
@@ -138,6 +140,8 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 		*pv = dec.decodeString(stringType, tag)
 	case *time.Time:
 		*pv = dec.decodeTime(timeType, tag)
+	case *uuid.UUID:
+		*pv = dec.decodeUUID(uuidType, tag)
 	case *big.Int:
 		*pv = dec.decodeBigIntValue(bigIntValueType, tag)
 	case *big.Float:
@@ -192,6 +196,8 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 		*pv = dec.decodeStringPtr(stringPtrType, tag)
 	case **time.Time:
 		*pv = dec.decodeTimePtr(timePtrType, tag)
+	case **uuid.UUID:
+		*pv = dec.decodeUUIDPtr(uuidPtrType, tag)
 	case **big.Int:
 		*pv = dec.decodeBigInt(bigIntType, tag)
 	case **big.Float:
