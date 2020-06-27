@@ -83,6 +83,8 @@ func (dec *Decoder) decodeInterface(t reflect.Type, tag byte) interface{} {
 		return dec.ReadTime()
 	case TagDate:
 		return dec.ReadDateTime()
+	case TagGUID:
+		return dec.ReadUUID()
 	case TagUTF8Char:
 		return dec.readSafeString(1)
 	case TagString:

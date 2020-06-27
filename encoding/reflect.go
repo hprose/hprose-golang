@@ -18,6 +18,8 @@ import (
 	"reflect"
 	"time"
 	"unsafe"
+
+	"github.com/google/uuid"
 )
 
 type eface struct {
@@ -67,6 +69,7 @@ var interfaceType = reflect.TypeOf((interface{})(nil))
 var bytesType = reflect.TypeOf(([]byte)(nil))
 var stringType = reflect.TypeOf("")
 var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
+var uuidType = reflect.TypeOf((*uuid.UUID)(nil)).Elem()
 var bigIntValueType = reflect.TypeOf((*big.Int)(nil)).Elem()
 var bigFloatValueType = reflect.TypeOf((*big.Float)(nil)).Elem()
 var bigRatValueType = reflect.TypeOf((*big.Rat)(nil)).Elem()
@@ -91,6 +94,7 @@ var interfacePtrType = reflect.TypeOf((*interface{})(nil))
 var bytesPtrType = reflect.TypeOf((*[]byte)(nil))
 var stringPtrType = reflect.TypeOf((*string)(nil))
 var timePtrType = reflect.TypeOf((*time.Time)(nil))
+var uuidPtrType = reflect.TypeOf((*uuid.UUID)(nil))
 var bigIntType = reflect.TypeOf((*big.Int)(nil))
 var bigFloatType = reflect.TypeOf((*big.Float)(nil))
 var bigRatType = reflect.TypeOf((*big.Rat)(nil))

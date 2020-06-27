@@ -19,6 +19,12 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
+func (dec *Decoder) readUnsafeBytes() []byte {
+	bytes := dec.UnsafeNext(dec.ReadInt())
+	dec.Skip()
+	return bytes
+}
+
 func (dec *Decoder) readBytes() []byte {
 	bytes := dec.Next(dec.ReadInt())
 	dec.Skip()
@@ -60,6 +66,9 @@ func (dec *Decoder) decodeBytes(t reflect.Type, tag byte) []byte {
 			return dec.ReadStringAsBytes()
 		}
 		return reflect2.UnsafeCastString(dec.ReadString())
+	case TagGUID:
+		bytes, _ := dec.ReadUUID().MarshalBinary()
+		return bytes
 	default:
 		dec.decodeError(t, tag)
 	}

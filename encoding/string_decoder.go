@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/string_decoder.go                               |
 |                                                          |
-| LastModified: Jun 15, 2020                               |
+| LastModified: Jun 27, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -187,6 +187,14 @@ func (dec *Decoder) decodeString(t reflect.Type, tag byte) string {
 		return dec.readSafeString(1)
 	case TagString:
 		return dec.ReadString()
+	case TagBytes:
+		return unsafeString(dec.ReadBytes())
+	case TagTime:
+		return dec.ReadTime().String()
+	case TagDate:
+		return dec.ReadDateTime().String()
+	case TagGUID:
+		return dec.ReadUUID().String()
 	default:
 		dec.decodeError(t, tag)
 	}
