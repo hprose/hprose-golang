@@ -42,7 +42,7 @@ func (dec *Decoder) readObject(structInfo structInfo) interface{} {
 		if field, ok := structInfo.fields[name]; ok {
 			field.Decode(dec, field.Type.Type1(), field.Field.UnsafeGet(ptr))
 		} else {
-			_ = dec.decodeInterface(interfaceType, dec.NextByte())
+			dec.decodeInterface(interfaceType, dec.NextByte())
 		}
 	}
 	dec.Skip()
@@ -70,7 +70,7 @@ func (valdec *structDecoder) decodeField(dec *Decoder, ptr unsafe.Pointer, name 
 	if field, ok := valdec.fields[name]; ok {
 		field.Decode(dec, field.Type.Type1(), field.Field.UnsafeGet(ptr))
 	} else {
-		_ = dec.decodeInterface(interfaceType, dec.NextByte())
+		dec.decodeInterface(interfaceType, dec.NextByte())
 	}
 }
 
