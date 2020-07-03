@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_decoder_test.go                             |
 |                                                          |
-| LastModified: Jun 11, 2020                               |
+| LastModified: Jul 3, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -357,9 +357,9 @@ func TestDecodeBigRat(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, big.NewRat(123, 1), &i)
 	dec.Decode(&i)
-	assert.Equal(t, big.NewRat(math.MinInt64, 1), &i)
+	assert.Equal(t, new(big.Rat).SetInt64(math.MinInt64), &i)
 	dec.Decode(&i)
-	assert.Equal(t, big.NewRat(-math.MaxInt64, 1), &i)
+	assert.Equal(t, new(big.Rat).SetInt64(-math.MaxInt64), &i)
 	dec.Decode(&i)
 	assert.Equal(t, new(big.Rat).SetUint64(math.MaxUint64), &i)
 	dec.Decode(&i)
@@ -387,14 +387,14 @@ func TestDecodeBigRat(t *testing.T) {
 	assert.Equal(t, big.NewRat(123, 1), &i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, new(big.Rat).SetInt(bi), &i)
+	assert.Equal(t, new(big.Rat).SetInt(bi).RatString(), (&i).RatString())
 	dec.Decode(&i)
 	assert.EqualError(t, dec.Error, `hprose/encoding: can not parse "NaN" to big.Rat`)
 	dec.Error = nil
 	dec.Decode(&i)
 	assert.Equal(t, new(big.Rat).SetInt(bi), &i)
 	dec.Decode(&i)
-	assert.Equal(t, br, &i)
+	assert.Equal(t, br.RatString(), (&i).RatString())
 	dec.Error = nil
 	dec.Decode(&i)
 	assert.EqualError(t, dec.Error, "EOF")
@@ -437,9 +437,9 @@ func TestDecodeBigRatPtr(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, big.NewRat(123, 1), i)
 	dec.Decode(&i)
-	assert.Equal(t, big.NewRat(math.MinInt64, 1), i)
+	assert.Equal(t, new(big.Rat).SetInt64(math.MinInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, big.NewRat(-math.MaxInt64, 1), i)
+	assert.Equal(t, new(big.Rat).SetInt64(-math.MaxInt64), i)
 	dec.Decode(&i)
 	assert.Equal(t, new(big.Rat).SetUint64(math.MaxUint64), i)
 	dec.Decode(&i)
@@ -467,14 +467,14 @@ func TestDecodeBigRatPtr(t *testing.T) {
 	assert.Equal(t, big.NewRat(123, 1), i)
 	assert.NoError(t, dec.Error)
 	dec.Decode(&i)
-	assert.Equal(t, new(big.Rat).SetInt(bi), i)
+	assert.Equal(t, new(big.Rat).SetInt(bi).RatString(), i.RatString())
 	dec.Decode(&i)
 	assert.EqualError(t, dec.Error, `hprose/encoding: can not parse "NaN" to *big.Rat`)
 	dec.Error = nil
 	dec.Decode(&i)
 	assert.Equal(t, new(big.Rat).SetInt(bi), i)
 	dec.Decode(&i)
-	assert.Equal(t, br, i)
+	assert.Equal(t, br.RatString(), i.RatString())
 	dec.Error = nil
 	dec.Decode(&i)
 	assert.EqualError(t, dec.Error, "EOF")
