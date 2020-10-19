@@ -12,7 +12,7 @@
  *                                                        *
  * hprose http client for Go.                             *
  *                                                        *
- * LastModified: Jan 7, 2017                              *
+ * LastModified: Oct 19, 2020                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -20,6 +20,7 @@
 package rpc
 
 import (
+	ctx "context"
 	"crypto/tls"
 	"io"
 	"io/ioutil"
@@ -160,6 +161,8 @@ func (client *HTTPClient) sendAndReceive(
 			}
 		}
 	}
+	timeoutContext, _ := ctx.WithTimeout(ctx.Background(), context.Timeout)
+	req = req.WithContext(timeoutContext)
 	req.ContentLength = int64(len(data))
 	req.Header.Set("Content-Type", "application/hprose")
 	resp, err := client.httpClient.Do(req)
