@@ -162,7 +162,6 @@ func (client *HTTPClient) sendAndReceive(
 	}
 	req.ContentLength = int64(len(data))
 	req.Header.Set("Content-Type", "application/hprose")
-	client.httpClient.Timeout = context.Timeout
 	resp, err := client.httpClient.Do(req)
 	if err != nil {
 		return nil, err
