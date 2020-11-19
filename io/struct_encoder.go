@@ -149,7 +149,7 @@ func getStructCache(structType reflect.Type) *structCache {
 	if !ok {
 		cache = &structCache{}
 		cache.Alias = structType.Name()
-		cache.Fields = getFields(structType, "")
+		cache.Fields = getFields(structType, "hprose")
 		initStructCacheData(cache)
 		structTypeCache[typ] = cache
 		structTypesLocker.Lock()
