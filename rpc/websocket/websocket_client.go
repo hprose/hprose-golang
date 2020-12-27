@@ -134,6 +134,7 @@ func (client *WebSocketClient) sendLoop() {
 
 func (client *WebSocketClient) recvLoop() {
 	conn := client.conn
+	requests := client.requests
 	for {
 		msgType, data, err := conn.ReadMessage()
 		if err != nil {
@@ -152,7 +153,7 @@ func (client *WebSocketClient) recvLoop() {
 			client.limiter.L.Unlock()
 		}
 	}
-	close(client.requests)
+	close(requests)
 }
 
 func (client *WebSocketClient) getConn(uri string) (err error) {
