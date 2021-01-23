@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder_test.go                                 |
 |                                                          |
-| LastModified: Apr 25, 2020                               |
+| LastModified: Jan 23, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -361,5 +361,27 @@ func BenchmarkJsonDecodeStruct(b *testing.B) {
 		dec.Decode(&obj)
 		dec.Decode(&obj)
 		dec.Decode(&obj)
+	}
+}
+
+func BenchmarkCopy(b *testing.B) {
+	src := []byte{}
+	for i := 0; i < 100000; i++ {
+		src = append(src, byte(i/200))
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		dst := make([]byte, len(src))
+		copy(dst, src)
+	}
+}
+func BenchmarkAppend(b *testing.B) {
+	src := []byte{}
+	for i := 0; i < 100000; i++ {
+		src = append(src, byte(i/200))
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = append([]byte(nil), src...)
 	}
 }

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Jan 23, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -343,8 +343,8 @@ func (dec *Decoder) next(n int) (data []byte, safe bool) {
 		return data, false
 	}
 	safe = true
-	data = make([]byte, 0, n)
-	data = append(data, dec.buf[dec.head:dec.tail]...)
+	data = make([]byte, remain, n)
+	copy(data, dec.buf[dec.head:dec.tail])
 	n -= remain
 	for {
 		if !dec.loadMore() {
@@ -378,7 +378,9 @@ func (dec *Decoder) Next(n int) []byte {
 	if safe {
 		return data
 	}
-	return append(([]byte)(nil), data...)
+	result := make([]byte, len(data))
+	copy(result, data)
+	return result
 }
 
 // Remains reads and returns all bytes data in this iter that has not been read.
@@ -433,7 +435,9 @@ func (dec *Decoder) Until(delim byte) []byte {
 	if safe {
 		return data
 	}
-	return append(([]byte)(nil), data...)
+	result := make([]byte, len(data))
+	copy(result, data)
+	return result
 }
 
 func (dec *Decoder) loadMore() bool {
