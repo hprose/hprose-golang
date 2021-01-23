@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/relect.go                                       |
 |                                                          |
-| LastModified: Jun 27, 2020                               |
+| LastModified: Jan 23, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -21,6 +21,7 @@ import (
 	"unsafe"
 
 	"github.com/google/uuid"
+	"github.com/modern-go/reflect2"
 )
 
 type eface struct {
@@ -48,6 +49,23 @@ func setSliceHeader(slicePtr unsafe.Pointer, arrayPtr unsafe.Pointer, length int
 	sliceHeader.Data = arrayPtr
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
+}
+
+func newSliceHeader(data unsafe.Pointer, count int) *sliceHeader {
+	return &sliceHeader{
+		Data: data,
+		Len:  count,
+		Cap:  count,
+	}
+}
+
+func toSlice(array interface{}) (slice interface{}) {
+	t := reflect.TypeOf(array)
+	sliceType := reflect.SliceOf(t.Elem())
+	sliceStruct := unpackEFace(&slice)
+	sliceStruct.typ = (uintptr)(reflect2.PtrOf(sliceType))
+	sliceStruct.ptr = unsafe.Pointer(newSliceHeader(reflect2.PtrOf(array), t.Len()))
+	return
 }
 
 var boolType = reflect.TypeOf(false)

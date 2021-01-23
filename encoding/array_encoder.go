@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/array_encoder.go                                |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Jan 23, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,9 +15,6 @@ package encoding
 
 import (
 	"reflect"
-	"unsafe"
-
-	"github.com/modern-go/reflect2"
 )
 
 // arrayEncoder is the implementation of ValueEncoder for *array.
@@ -42,20 +39,6 @@ func (enc *Encoder) WriteArray(v interface{}) {
 	enc.writeArray(v)
 }
 
-func makeSlice(array interface{}, count int) unsafe.Pointer {
-	return unsafe.Pointer(&reflect.SliceHeader{
-		Data: (uintptr)(reflect2.PtrOf(array)),
-		Len:  count,
-		Cap:  count,
-	})
-}
-
 func (enc *Encoder) writeArray(array interface{}) {
-	t := reflect.TypeOf(array)
-	sliceType := reflect.SliceOf(t.Elem())
-	var slice interface{}
-	sliceStruct := unpackEFace(&slice)
-	sliceStruct.typ = (uintptr)(reflect2.PtrOf(sliceType))
-	sliceStruct.ptr = makeSlice(array, t.Len())
-	enc.writeSlice(slice)
+	enc.writeSlice(toSlice(array))
 }
