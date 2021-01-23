@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Jan 23, 2021                               |
+| LastModified: Jan 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -28,12 +28,12 @@ import (
 type LongType int8
 
 const (
-	// LongTypeBigInt represents the default type is *big.Int
-	LongTypeBigInt LongType = iota
 	// LongTypeInt64 represents the default type is int64
-	LongTypeInt64
+	LongTypeInt64 LongType = iota
 	// LongTypeUint64 represents the default type is uint64
 	LongTypeUint64
+	// LongTypeBigInt represents the default type is *big.Int
+	LongTypeBigInt
 )
 
 // RealType represents the default type for decode real number
