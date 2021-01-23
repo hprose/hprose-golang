@@ -51,12 +51,12 @@ func setSliceHeader(slicePtr unsafe.Pointer, arrayPtr unsafe.Pointer, length int
 	sliceHeader.Cap = length
 }
 
-func newSliceHeader(data unsafe.Pointer, count int) *sliceHeader {
-	return &sliceHeader{
-		Data: data,
+func unsafeToSlice(array interface{}, count int) unsafe.Pointer {
+	return unsafe.Pointer(&sliceHeader{
+		Data: reflect2.PtrOf(array),
 		Len:  count,
 		Cap:  count,
-	}
+	})
 }
 
 func toSlice(array interface{}) (slice interface{}) {
@@ -64,7 +64,7 @@ func toSlice(array interface{}) (slice interface{}) {
 	sliceType := reflect.SliceOf(t.Elem())
 	sliceStruct := unpackEFace(&slice)
 	sliceStruct.typ = (uintptr)(reflect2.PtrOf(sliceType))
-	sliceStruct.ptr = unsafe.Pointer(newSliceHeader(reflect2.PtrOf(array), t.Len()))
+	sliceStruct.ptr = unsafeToSlice(array, t.Len())
 	return
 }
 

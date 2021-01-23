@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/array_decoder_test.go                           |
 |                                                          |
-| LastModified: Jun 13, 2020                               |
+| LastModified: Jan 23, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -41,10 +41,26 @@ func TestDecodeIntArray(t *testing.T) {
 	assert.Equal(t, [...]int{1, 2, 3, 4, 5}, array) // []string{"1", "2", "3", "4", "5"}
 	dec.Decode(&array)
 	assert.Equal(t, [5]int{}, array) // nil
+	array[3] = 3
+	assert.Equal(t, [5]int{0, 0, 0, 3, 0}, array)
 	dec.Decode(&array)
 	assert.Equal(t, [5]int{}, array) // ""
 	dec.Decode(&array)
 	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to [5]int`) // 1
+}
+
+func TestDecodeIntPtrArray(t *testing.T) {
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb)
+	enc.Encode([]int{1, 2, 3})
+	dec := NewDecoder(([]byte)(sb.String()))
+	var array [5]*int
+	dec.Decode(&array)
+	assert.Equal(t, 1, *array[0])
+	assert.Equal(t, 2, *array[1])
+	assert.Equal(t, 3, *array[2])
+	assert.Equal(t, (*int)(nil), array[3])
+	assert.Equal(t, (*int)(nil), array[4])
 }
 
 func TestDecodeCustomIntArray(t *testing.T) {

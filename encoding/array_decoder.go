@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/array_decoder.go                                |
 |                                                          |
-| LastModified: Jun 26, 2020                               |
+| LastModified: Jan 23, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -25,7 +25,6 @@ type arrayDecoder struct {
 	at         *reflect2.UnsafeArrayType
 	et         reflect2.Type
 	empty      unsafe.Pointer
-	st         *reflect2.UnsafeSliceType
 	emptyElem  unsafe.Pointer
 	decodeElem DecodeHandler
 }
@@ -37,7 +36,7 @@ func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	case TagList:
 		length := valdec.at.Len()
 		count := dec.ReadInt()
-		slice := reflect2.PtrOf(sliceHeader{reflect2.PtrOf(p), length, length})
+		array := reflect2.PtrOf(p)
 		dec.AddReference(p)
 		n := length
 		if n > count {
@@ -45,12 +44,12 @@ func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		et := valdec.et.Type1()
 		for i := 0; i < n; i++ {
-			valdec.decodeElem(dec, et, valdec.st.UnsafeGetIndex(slice, i))
+			valdec.decodeElem(dec, et, valdec.at.UnsafeGetIndex(array, i))
 		}
 		switch {
 		case n < length:
 			for i := n; i < length; i++ {
-				valdec.st.UnsafeSetIndex(slice, i, valdec.emptyElem)
+				valdec.at.UnsafeSetIndex(array, i, valdec.emptyElem)
 			}
 		case n < count:
 			temp := valdec.et.UnsafeNew()
@@ -71,14 +70,12 @@ func (valdec arrayDecoder) Type() reflect.Type {
 // makeArrayDecoder returns a arrayDecoder for [N]T.
 func makeArrayDecoder(t reflect.Type, decodeElem DecodeHandler) arrayDecoder {
 	at := reflect2.Type2(t).(*reflect2.UnsafeArrayType)
-	et := t.Elem()
-	et2 := reflect2.Type2(et)
+	et := reflect2.Type2(t.Elem())
 	return arrayDecoder{
 		at,
-		et2,
+		et,
 		at.UnsafeNew(),
-		reflect2.Type2(reflect.SliceOf(et)).(*reflect2.UnsafeSliceType),
-		et2.UnsafeNew(),
+		et.UnsafeNew(),
 		decodeElem,
 	}
 }
@@ -90,7 +87,7 @@ type byteArrayDecoder struct {
 func (valdec byteArrayDecoder) copy(p interface{}, data []byte) {
 	count := len(data)
 	length := valdec.at.Len()
-	slice := *(*[]byte)(unsafe.Pointer(&sliceHeader{reflect2.PtrOf(p), length, length}))
+	slice := *(*[]byte)(unsafeToSlice(p, length))
 	copy(slice, data)
 	if length > count {
 		for i := count; i < length; i++ {
