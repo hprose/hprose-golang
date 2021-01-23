@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/modern-go/reflect2"
 )
 
 // LongType represents the default type for decode long integer
@@ -248,6 +249,14 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 // Decode a data from the Decoder
 func (dec *Decoder) Decode(p interface{}) {
 	dec.decode(p, dec.NextByte())
+}
+
+// Read a data from the Decoder
+func (dec *Decoder) Read(t reflect.Type) interface{} {
+	t2 := reflect2.Type2(t)
+	p := t2.New()
+	dec.decode(p, dec.NextByte())
+	return t2.Indirect(p)
 }
 
 // Reset the value reference and struct type reference
