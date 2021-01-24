@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/headers.go                                      |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Jan 25, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,12 +15,17 @@ package core
 
 import "sync"
 
-// Headers represent the key-value pairs.
-type Headers interface {
+// Items represent the key-value pairs.
+type Items interface {
 	Set(name string, value interface{})
 	Get(name string) (value interface{}, ok bool)
 	Del(name string)
-	Range(func(name string, value interface{}) bool)
+	Range(f func(name string, value interface{}) bool)
+}
+
+// Headers represent the key-value pairs.
+type Headers interface {
+	Items
 	Clone() Headers
 	CopyTo(headers Headers)
 }
