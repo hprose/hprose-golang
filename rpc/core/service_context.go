@@ -15,17 +15,16 @@ package core
 
 import (
 	"net"
-	"reflect"
 )
 
 // ServiceContext for RPC.
 type ServiceContext interface {
 	Context
 	Service() Service
-	Method() reflect.Method
+	Method() Method
 	LocalAddr() net.Addr
 	RemoteAddr() net.Addr
-	SetMethod(method reflect.Method)
+	SetMethod(method Method)
 	SetLocalAddr(addr net.Addr)
 	SetRemoteAddr(addr net.Addr)
 }
@@ -33,7 +32,7 @@ type ServiceContext interface {
 type serviceContext struct {
 	Context
 	service    Service
-	method     reflect.Method
+	method     Method
 	localAddr  net.Addr
 	remoteAddr net.Addr
 }
@@ -50,7 +49,7 @@ func (c *serviceContext) Service() Service {
 	return c.service
 }
 
-func (c *serviceContext) Method() reflect.Method {
+func (c *serviceContext) Method() Method {
 	return c.method
 }
 
@@ -62,7 +61,7 @@ func (c *serviceContext) RemoteAddr() net.Addr {
 	return c.remoteAddr
 }
 
-func (c *serviceContext) SetMethod(method reflect.Method) {
+func (c *serviceContext) SetMethod(method Method) {
 	c.method = method
 }
 
