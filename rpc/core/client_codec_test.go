@@ -23,8 +23,9 @@ import (
 func TestClientCodecEncode(t *testing.T) {
 	context := NewClientContext()
 	context.RequestHeaders().Set("id", "test_id")
-	result := string(DefaultClientCodec.Encode("hello", []interface{}{"World"}, context))
-	assert.Equal(t, `Hm1{s2"id"s7"test_id"}Cs5"hello"a1{s5"World"}z`, result)
+	result, err := DefaultClientCodec.Encode("hello", []interface{}{"World"}, context)
+	assert.Equal(t, `Hm1{s2"id"s7"test_id"}Cs5"hello"a1{s5"World"}z`, string(result))
+	assert.NoError(t, err)
 }
 
 func TestClientCodecDecode(t *testing.T) {

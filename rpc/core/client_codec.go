@@ -22,7 +22,7 @@ import (
 
 // ClientCodec for RPC.
 type ClientCodec interface {
-	Encode(name string, args []interface{}, context ClientContext) []byte
+	Encode(name string, args []interface{}, context ClientContext) (reqeust []byte, err error)
 	Decode(response []byte, context ClientContext) (result interface{}, err error)
 }
 
@@ -33,7 +33,7 @@ type clientCodec struct {
 	encoding.MapType
 }
 
-func (c clientCodec) Encode(name string, args []interface{}, context ClientContext) []byte {
+func (c clientCodec) Encode(name string, args []interface{}, context ClientContext) ([]byte, error) {
 	encoder := new(encoding.Encoder)
 	encoder.Simple(c.Simple)
 	if c.Simple {
@@ -51,7 +51,7 @@ func (c clientCodec) Encode(name string, args []interface{}, context ClientConte
 		encoder.Write(args)
 	}
 	encoder.WriteTag(encoding.TagEnd)
-	return encoder.Bytes()
+	return encoder.Bytes(), encoder.Error
 }
 
 func (c clientCodec) Decode(response []byte, context ClientContext) (result interface{}, err error) {
