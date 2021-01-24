@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/context.go                                      |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Jan 25, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,10 +23,7 @@ var contextKey = contextKeyT("github.com/hprose/hprose-golang/rpc/core.Context")
 
 // Context for RPC.
 type Context interface {
-	Set(key string, value interface{})
-	Get(key string) (value interface{}, ok bool)
-	Contains(key string) bool
-	Value(key string) (value interface{})
+	Items
 	HasRequestHeaders() bool
 	RequestHeaders() Headers
 	HasResponseHeaders() bool
@@ -45,34 +42,35 @@ func NewContext() Context {
 	return &rpcContext{}
 }
 
-func (c *rpcContext) Set(key string, value interface{}) {
+func (c *rpcContext) Set(name string, value interface{}) {
 	if c.items == nil {
 		c.items = make(map[string]interface{})
 	}
-	c.items[key] = value
+	c.items[name] = value
 }
 
-func (c *rpcContext) Get(key string) (value interface{}, ok bool) {
+func (c *rpcContext) Get(name string) (value interface{}, ok bool) {
 	if c.items == nil {
 		return nil, false
 	}
-	value, ok = c.items[key]
+	value, ok = c.items[name]
 	return
 }
 
-func (c *rpcContext) Contains(key string) (ok bool) {
-	if c.items == nil {
-		return false
+func (c *rpcContext) Del(name string) {
+	if c.items != nil {
+		delete(c.items, name)
 	}
-	_, ok = c.items[key]
-	return
 }
 
-func (c *rpcContext) Value(key string) (value interface{}) {
-	if c.items == nil {
-		return nil
+func (c *rpcContext) Range(f func(name string, value interface{}) bool) {
+	if c.items != nil {
+		for k, v := range c.items {
+			if !f(k, v) {
+				return
+			}
+		}
 	}
-	return c.items[key]
 }
 
 func (c *rpcContext) HasRequestHeaders() bool {
