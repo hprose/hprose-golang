@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/context.go                                      |
 |                                                          |
-| LastModified: Jan 25, 2021                               |
+| LastModified: Feb 8, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,18 +23,18 @@ var contextKey = contextKeyT("github.com/hprose/hprose-golang/rpc/core.Context")
 
 // Context for RPC.
 type Context interface {
-	Items
+	Items() Dict
 	HasRequestHeaders() bool
-	RequestHeaders() Headers
+	RequestHeaders() Dict
 	HasResponseHeaders() bool
-	ResponseHeaders() Headers
+	ResponseHeaders() Dict
 	Clone() Context
 }
 
 type rpcContext struct {
-	items           map[string]interface{}
-	requestHeaders  Headers
-	responseHeaders Headers
+	items           Dict
+	requestHeaders  Dict
+	responseHeaders Dict
 }
 
 // NewContext returns a core.Context.
@@ -42,55 +42,31 @@ func NewContext() Context {
 	return &rpcContext{}
 }
 
-func (c *rpcContext) Set(name string, value interface{}) {
+func (c *rpcContext) Items() Dict {
 	if c.items == nil {
-		c.items = make(map[string]interface{})
+		c.items = NewDict()
 	}
-	c.items[name] = value
-}
-
-func (c *rpcContext) Get(name string) (value interface{}, ok bool) {
-	if c.items == nil {
-		return nil, false
-	}
-	value, ok = c.items[name]
-	return
-}
-
-func (c *rpcContext) Del(name string) {
-	if c.items != nil {
-		delete(c.items, name)
-	}
-}
-
-func (c *rpcContext) Range(f func(name string, value interface{}) bool) {
-	if c.items != nil {
-		for k, v := range c.items {
-			if !f(k, v) {
-				return
-			}
-		}
-	}
+	return c.items
 }
 
 func (c *rpcContext) HasRequestHeaders() bool {
-	return c.requestHeaders != nil && len(c.requestHeaders.(headers)) > 0
+	return !c.requestHeaders.Empty()
 }
 
-func (c *rpcContext) RequestHeaders() Headers {
+func (c *rpcContext) RequestHeaders() Dict {
 	if c.requestHeaders == nil {
-		c.requestHeaders = NewHeaders()
+		c.requestHeaders = NewDict()
 	}
 	return c.requestHeaders
 }
 
 func (c *rpcContext) HasResponseHeaders() bool {
-	return c.responseHeaders != nil && len(c.requestHeaders.(headers)) > 0
+	return !c.responseHeaders.Empty()
 }
 
-func (c *rpcContext) ResponseHeaders() Headers {
+func (c *rpcContext) ResponseHeaders() Dict {
 	if c.responseHeaders == nil {
-		c.responseHeaders = NewHeaders()
+		c.responseHeaders = NewDict()
 	}
 	return c.responseHeaders
 }
@@ -98,16 +74,16 @@ func (c *rpcContext) ResponseHeaders() Headers {
 func (c *rpcContext) Clone() Context {
 	clone := &rpcContext{}
 	if c.items != nil {
-		clone.items = make(map[string]interface{})
-		for k, v := range c.items {
-			clone.items[k] = v
-		}
+		clone.items = NewDict()
+		c.items.CopyTo(clone.items)
 	}
 	if c.requestHeaders != nil {
-		clone.requestHeaders = c.requestHeaders.Clone()
+		clone.requestHeaders = NewDict()
+		c.requestHeaders.CopyTo(clone.requestHeaders)
 	}
 	if c.responseHeaders != nil {
-		clone.responseHeaders = c.responseHeaders.Clone()
+		clone.responseHeaders = NewDict()
+		c.responseHeaders.CopyTo(clone.responseHeaders)
 	}
 	return clone
 }

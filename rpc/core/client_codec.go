@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_codec.go                                 |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Feb 8, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -41,7 +41,7 @@ func (c clientCodec) Encode(name string, args []interface{}, context ClientConte
 	}
 	if context.HasRequestHeaders() {
 		encoder.WriteTag(encoding.TagHeader)
-		encoder.Write((map[string]interface{})(context.RequestHeaders().(headers)))
+		encoder.Write((map[string]interface{})(context.RequestHeaders().(dict)))
 		encoder.Reset()
 	}
 	encoder.WriteTag(encoding.TagCall)
@@ -64,7 +64,7 @@ func (c clientCodec) Decode(response []byte, context ClientContext) (result inte
 	if tag == encoding.TagHeader {
 		var h map[string]interface{}
 		decoder.Decode(&h)
-		((headers)(h)).CopyTo(context.ResponseHeaders())
+		((dict)(h)).CopyTo(context.ResponseHeaders())
 		decoder.Reset()
 		tag = decoder.NextByte()
 	}

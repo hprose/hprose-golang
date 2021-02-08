@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/method.go                                       |
 |                                                          |
-| LastModified: Jan 25, 2021                               |
+| LastModified: Feb 8, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -33,7 +33,7 @@ type Method interface {
 	Name() string
 	Missing() bool
 	PassContext() bool
-	Options() Items
+	Options() Dict
 }
 
 type method struct {
@@ -42,7 +42,7 @@ type method struct {
 	name        string
 	missing     bool
 	passContext bool
-	options     Items
+	options     Dict
 }
 
 func (m method) Func() reflect.Value {
@@ -65,7 +65,7 @@ func (m method) PassContext() bool {
 	return m.passContext
 }
 
-func (m method) Options() Items {
+func (m method) Options() Dict {
 	return m.options
 }
 
@@ -73,7 +73,7 @@ func makeMethod(f reflect.Value, name string, missing bool) method {
 	if f.Kind() != reflect.Func {
 		panic("f " + name + " is not a function.")
 	}
-	m := method{f: f, name: name, missing: missing, options: NewSafeHeaders()}
+	m := method{f: f, name: name, missing: missing, options: NewSafeDict()}
 	if name == "" {
 		m.name = runtime.FuncForPC(f.Pointer()).Name()
 		if i := strings.LastIndexByte(m.name, '.'); i > -1 {

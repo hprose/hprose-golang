@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client.go                                       |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Feb 8, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -22,5 +22,5 @@ import (
 type Client interface {
 	URLs() []url.URL
 	Timeout() time.Duration
-	RequestHeaders() Headers
+	RequestHeaders() Dict
 }

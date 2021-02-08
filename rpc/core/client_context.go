@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_context.go                               |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Feb 8, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -58,7 +58,9 @@ func (c *clientContext) Init(client Client, returnType ...reflect.Type) {
 	if c.timeout == 0 {
 		c.timeout = client.Timeout()
 	}
-	client.RequestHeaders().CopyTo(c.RequestHeaders())
+	if !client.RequestHeaders().Empty() {
+		client.RequestHeaders().CopyTo(c.RequestHeaders())
+	}
 }
 
 func (c *clientContext) Client() Client {
