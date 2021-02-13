@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/method_manager.go                               |
 |                                                          |
-| LastModified: Jan 25, 2021                               |
+| LastModified: Feb 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -40,7 +40,7 @@ func NewMethodManager() MethodManager {
 }
 
 func (mm methodManager) Get(name string) Method {
-	if method, ok := mm.methods.Load(name); ok {
+	if method, ok := mm.methods.Load(strings.ToLower(name)); ok {
 		return method.(Method)
 	}
 	return nil
@@ -55,7 +55,7 @@ func (mm methodManager) GetNames() (names []string) {
 }
 
 func (mm methodManager) Remove(name string) {
-	mm.methods.Delete(name)
+	mm.methods.Delete(strings.ToLower(name))
 }
 
 func (mm methodManager) Add(method Method) {
@@ -85,6 +85,13 @@ func (mm methodManager) AddFunction(f interface{}, name string) {
 	mm.Add(method)
 }
 
+func (mm methodManager) addFunction(f interface{}, name string, namespace ...string) {
+	if len(namespace) > 0 && namespace[0] != "" {
+		name = namespace[0] + "_" + name
+	}
+	mm.AddFunction(f, name)
+}
+
 func (mm methodManager) AddMethod(name string, target interface{}, alias ...string) {
 	obj := reflect.ValueOf(target)
 	f := obj.MethodByName(name)
@@ -101,22 +108,111 @@ func (mm methodManager) AddMethod(name string, target interface{}, alias ...stri
 	if len(alias) > 0 && alias[0] != "" {
 		name = alias[0]
 	}
-	mm.Add(NewMethod(f, name))
+	if f.CanInterface() {
+		mm.Add(NewMethod(f, name))
+	}
+}
+
+func (mm methodManager) addMethod(name string, target interface{}, namespace ...string) {
+	alias := ""
+	if len(namespace) > 0 && namespace[0] != "" {
+		alias = namespace[0] + "_" + name
+	}
+	mm.AddMethod(name, target, alias)
 }
 
 func (mm methodManager) AddMethods(names []string, target interface{}, namespace ...string) {
 	for _, name := range names {
-		alias := ""
-		if len(namespace) > 0 && namespace[0] != "" {
-			alias = namespace[0] + "_" + name
-		}
-		mm.AddMethod(name, target, alias)
+		mm.addMethod(name, target, namespace...)
 	}
 }
 
-// AddInstanceMethods is used for publishing all the public methods and func fields with options.
+func (mm *methodManager) addMethods(v reflect.Value, t reflect.Type, namespace ...string) {
+	n := t.NumMethod()
+	for i := 0; i < n; i++ {
+		name := t.Method(i).Name
+		method := v.Method(i)
+		if method.CanInterface() {
+			mm.addFunction(method, name, namespace...)
+		}
+	}
+}
+
+func getPtrTo(v reflect.Value, t reflect.Type, kind reflect.Kind) (reflect.Value, reflect.Type) {
+	for t.Kind() == reflect.Ptr && !v.IsNil() && t.Elem().Kind() == kind {
+		v = v.Elem()
+		t = t.Elem()
+	}
+	return v, t
+}
+
+func (mm methodManager) addFuncField(v reflect.Value, t reflect.Type, i int, namespace ...string) {
+	f := v.Field(i)
+	name := t.Field(i).Name
+	if f.IsValid() {
+		f, _ = getPtrTo(f, f.Type(), reflect.Func)
+		if f.Kind() == reflect.Func && !f.IsNil() && f.CanInterface() {
+			mm.addFunction(f, name, namespace...)
+		}
+	}
+}
+
+func (mm *methodManager) recursiveAddFuncFields(v reflect.Value, t reflect.Type, i int, namespace ...string) {
+	f := v.Field(i)
+	fs := t.Field(i)
+	name := fs.Name
+	if f.IsValid() {
+		return
+	}
+	f, _ = getPtrTo(f, f.Type(), reflect.Func)
+	switch f.Kind() {
+	case reflect.Func, reflect.Ptr, reflect.Interface, reflect.Slice, reflect.Map, reflect.Chan:
+		if f.IsNil() {
+			return
+		}
+	}
+	if !f.CanInterface() {
+		return
+	}
+	if f.Kind() == reflect.Func {
+		mm.addFunction(f, name, namespace...)
+		return
+	}
+	if !fs.Anonymous {
+		if len(namespace) > 0 {
+			if namespace[0] == "" {
+				namespace[0] = name
+			} else {
+				namespace[0] += "_" + name
+			}
+		} else {
+			namespace = append(namespace, name)
+		}
+	}
+	mm.AddAllMethods(f.Interface(), namespace...)
+}
+
+type addFuncFunc func(v reflect.Value, t reflect.Type, i int, namespace ...string)
+
+func (mm methodManager) addInstanceMethods(target interface{}, addFunc addFuncFunc, namespace ...string) {
+	if target == nil {
+		panic("target can't be nil")
+	}
+	v := reflect.ValueOf(target)
+	t := v.Type()
+	mm.addMethods(v, t, namespace...)
+	v, t = getPtrTo(v, t, reflect.Struct)
+	if t.Kind() == reflect.Struct {
+		n := t.NumField()
+		for i := 0; i < n; i++ {
+			addFunc(v, t, i, namespace...)
+		}
+	}
+}
+
+// AddInstanceMethods is used for publishing all the public methods and func fields with namespace.
 func (mm methodManager) AddInstanceMethods(target interface{}, namespace ...string) {
-	// TODO
+	mm.addInstanceMethods(target, mm.addFuncField, namespace...)
 }
 
 // AddAllMethods will publish all methods and non-nil function fields on the
@@ -124,7 +220,7 @@ func (mm methodManager) AddInstanceMethods(target interface{}, namespace ...stri
 // pointer ... to pointer struct fields). This is a recursive operation.
 // So it's a pit, if you do not know what you are doing, do not step on.
 func (mm *methodManager) AddAllMethods(target interface{}, namespace ...string) {
-	// TODO
+	mm.addInstanceMethods(target, mm.recursiveAddFuncFields, namespace...)
 }
 
 // AddMissingMethod is used for publishing a method,
