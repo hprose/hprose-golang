@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/method_manager.go                               |
 |                                                          |
-| LastModified: Feb 14, 2021                               |
+| LastModified: Feb 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -105,10 +105,10 @@ func (mm methodManager) AddMethod(name string, target interface{}, alias ...stri
 			}
 		}
 	}
-	if len(alias) > 0 && alias[0] != "" {
-		name = alias[0]
-	}
 	if f.CanInterface() {
+		if len(alias) > 0 && alias[0] != "" {
+			name = alias[0]
+		}
 		mm.Add(NewMethod(f, name))
 	}
 }
@@ -127,7 +127,7 @@ func (mm methodManager) AddMethods(names []string, target interface{}, namespace
 	}
 }
 
-func (mm *methodManager) addMethods(v reflect.Value, t reflect.Type, namespace ...string) {
+func (mm methodManager) addMethods(v reflect.Value, t reflect.Type, namespace ...string) {
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
 		name := t.Method(i).Name
@@ -157,7 +157,7 @@ func (mm methodManager) addFuncField(v reflect.Value, t reflect.Type, i int, nam
 	}
 }
 
-func (mm *methodManager) recursiveAddFuncFields(v reflect.Value, t reflect.Type, i int, namespace ...string) {
+func (mm methodManager) recursiveAddFuncFields(v reflect.Value, t reflect.Type, i int, namespace ...string) {
 	f := v.Field(i)
 	fs := t.Field(i)
 	name := fs.Name
@@ -219,19 +219,17 @@ func (mm methodManager) AddInstanceMethods(target interface{}, namespace ...stri
 // obj self and on its anonymous or non-anonymous struct fields (or pointer to
 // pointer ... to pointer struct fields). This is a recursive operation.
 // So it's a pit, if you do not know what you are doing, do not step on.
-func (mm *methodManager) AddAllMethods(target interface{}, namespace ...string) {
+func (mm methodManager) AddAllMethods(target interface{}, namespace ...string) {
 	mm.addInstanceMethods(target, mm.recursiveAddFuncFields, namespace...)
 }
 
 // AddMissingMethod is used for publishing a method,
 // all methods not explicitly published will be redirected to this method.
-func (mm *methodManager) AddMissingMethod(f MissingMethod) {
+func (mm methodManager) AddMissingMethod(f MissingMethod) {
 	mm.Add(NewMissingMethod(f))
 }
 
-// TODO
-/*
-func (mm *methodManager) AddNetRPCMethods(rcvr interface{}, namespace ...string) {
+func (mm methodManager) AddNetRPCMethods(rcvr interface{}, namespace ...string) {
 	if rcvr == nil {
 		panic("rcvr can't be nil")
 	}
@@ -239,41 +237,39 @@ func (mm *methodManager) AddNetRPCMethods(rcvr interface{}, namespace ...string)
 	t := v.Type()
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
-		name := t.Method(i).Name
-		method := v.Method(i)
-		if method.CanInterface() {
-			mm.addNetRPCMethod(name, method, namespace...)
+		if method := v.Method(i); method.CanInterface() {
+			name := t.Method(i).Name
+			if len(namespace) > 0 && namespace[0] != "" {
+				name = namespace[0] + "_" + name
+			}
+			mm.addNetRPCMethod(name, method)
 		}
 	}
 }
 
-func (mm *methodManager) addNetRPCMethod(name string, method reflect.Value, namespace ...string) {
+func (mm methodManager) addNetRPCMethod(name string, method reflect.Value) {
 	ft := method.Type()
 	if ft.NumIn() != 2 || ft.IsVariadic() {
-		// panic("the method " + name + " must has two arguments")
 		return
 	}
 	if ft.In(1).Kind() != reflect.Ptr {
-		// panic("the second argument of method " + name + " must be a pointer")
 		return
 	}
 	if ft.NumOut() != 1 || ft.Out(0) != errorType {
-		// panic("the result type of method " + name + " must be error")
 		return
 	}
 	argsType := ft.In(0)
-	resultType := ft.In(1).Elem()
+	resultType := ft.In(1)
 	in := []reflect.Type{argsType}
 	out := []reflect.Type{resultType, errorType}
 	newft := reflect.FuncOf(in, out, false)
 	newMethod := reflect.MakeFunc(newft, func(
 		args []reflect.Value) (results []reflect.Value) {
-		result := reflect.New(resultType)
+		result := reflect.New(resultType.Elem())
 		in := []reflect.Value{args[0], result}
 		err := method.Call(in)[0]
-		results = []reflect.Value{result.Elem(), err}
+		results = []reflect.Value{result, err}
 		return
 	})
 	mm.AddFunction(newMethod, name)
 }
-*/
