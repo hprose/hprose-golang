@@ -22,12 +22,16 @@ import (
 // MethodManager for RPC.
 type MethodManager interface {
 	Get(name string) Method
-	GetNames() (names []string)
+	Names() (names []string)
 	Remove(name string)
 	Add(method Method)
 	AddFunction(f interface{}, name string)
 	AddMethod(name string, target interface{}, alias ...string)
 	AddMethods(names []string, target interface{}, namespace ...string)
+	AddInstanceMethods(target interface{}, namespace ...string)
+	AddAllMethods(target interface{}, namespace ...string)
+	AddMissingMethod(f MissingMethod)
+	AddNetRPCMethods(rcvr interface{}, namespace ...string)
 }
 
 type methodManager struct {
@@ -46,9 +50,17 @@ func (mm methodManager) Get(name string) Method {
 	return nil
 }
 
-func (mm methodManager) GetNames() (names []string) {
+func (mm methodManager) Names() (names []string) {
 	mm.methods.Range(func(key, value interface{}) bool {
 		names = append(names, value.(Method).Name())
+		return true
+	})
+	return
+}
+
+func (mm methodManager) Methods() (methods []Method) {
+	mm.methods.Range(func(key, value interface{}) bool {
+		methods = append(methods, value.(Method))
 		return true
 	})
 	return
@@ -229,6 +241,7 @@ func (mm methodManager) AddMissingMethod(f MissingMethod) {
 	mm.Add(NewMissingMethod(f))
 }
 
+// AddNetRPCMethods is used for publishing methods defined for net/rpc.
 func (mm methodManager) AddNetRPCMethods(rcvr interface{}, namespace ...string) {
 	if rcvr == nil {
 		panic("rcvr can't be nil")
