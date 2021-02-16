@@ -214,7 +214,8 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 func (dec *Decoder) decode(p interface{}, tag byte) {
 	switch tag {
 	case TagRef:
-
+		dec.ReadReference(p)
+		return
 	case TagClass:
 		dec.ReadStruct()
 		dec.Decode(p)
@@ -247,15 +248,23 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 }
 
 // Decode a data from the Decoder
-func (dec *Decoder) Decode(p interface{}) {
-	dec.decode(p, dec.NextByte())
+func (dec *Decoder) Decode(p interface{}, tag ...byte) {
+	if len(tag) > 0 {
+		dec.decode(p, tag[0])
+	} else {
+		dec.decode(p, dec.NextByte())
+	}
 }
 
-// Read a data from the Decoder
-func (dec *Decoder) Read(t reflect.Type) interface{} {
+// Read returns a data of the specified type from the Decoder
+func (dec *Decoder) Read(t reflect.Type, tag ...byte) interface{} {
 	t2 := reflect2.Type2(t)
 	p := t2.New()
-	dec.decode(p, dec.NextByte())
+	if len(tag) > 0 {
+		dec.decode(p, tag[0])
+	} else {
+		dec.decode(p, dec.NextByte())
+	}
 	return t2.Indirect(p)
 }
 
@@ -304,6 +313,21 @@ func (dec *Decoder) LastReferenceIndex() int {
 		dec.refer.Last()
 	}
 	return -1
+}
+
+// ReadReference to p
+func (dec *Decoder) ReadReference(p interface{}) {
+	o := dec.refer.Read(dec.ReadInt())
+	src := reflect.TypeOf(o)
+	dest := reflect.TypeOf(p).Elem()
+	if conv := GetConverter(src, dest); conv != nil {
+		conv(dec, o, p)
+	} else if dec.Error == nil {
+		dec.Error = CastError{
+			Source:      src,
+			Destination: dest,
+		}
+	}
 }
 
 // ResetReader reuse decoder instance by specifying another reader
