@@ -15,4 +15,5 @@ package core
 
 // Service for RPC.
 type Service interface {
+	MethodManager
 }
