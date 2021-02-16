@@ -224,6 +224,9 @@ func init() {
 	RegisterConverter(stringType, bytesType, func(dec *Decoder, o interface{}, p interface{}) {
 		*(*[]byte)(reflect2.PtrOf(p)) = reflect2.UnsafeCastString(*(*string)(reflect2.PtrOf(o)))
 	})
+	RegisterConverter(bytesType, stringType, func(dec *Decoder, o interface{}, p interface{}) {
+		*(*string)(reflect2.PtrOf(p)) = unsafeString(*(*[]byte)(reflect2.PtrOf(o)))
+	})
 	RegisterConverter(stringType, timeType, func(dec *Decoder, o interface{}, p interface{}) {
 		*(*time.Time)(reflect2.PtrOf(p)) = dec.stringToTime(*(*string)(reflect2.PtrOf(o)))
 	})

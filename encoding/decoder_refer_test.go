@@ -291,6 +291,32 @@ func TestDecodeSliceRefer(t *testing.T) {
 	assert.Equal(t, src, **intspp)
 }
 
+func TestDecodeBytesRefer(t *testing.T) {
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb)
+	enc.Simple(false)
+	src := []byte("hello world")
+	for i := 0; i < 4; i++ {
+		enc.Encode(&src)
+	}
+	assert.Equal(t, `b11"hello world"r0;r0;r0;`, sb.String())
+
+	dec := NewDecoder(([]byte)(sb.String()))
+	dec.Simple(false)
+	var bytes []byte
+	dec.Decode(&bytes)
+	assert.Equal(t, src, bytes)
+	var bytesp *[]byte
+	dec.Decode(&bytesp)
+	assert.Equal(t, src, *bytesp)
+	var bytespp **[]byte
+	dec.Decode(&bytespp)
+	assert.Equal(t, src, **bytespp)
+	var s string
+	dec.Decode(&s)
+	assert.Equal(t, "hello world", s)
+}
+
 func TestDecodeListRefer(t *testing.T) {
 	sb := new(strings.Builder)
 	enc := NewEncoder(sb)
