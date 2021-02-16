@@ -30,7 +30,7 @@ var (
 	bigRatOne    = big.NewRat(1, 1)
 )
 
-func (dec *Decoder) strToBigInt(s string, t reflect.Type) *big.Int {
+func (dec *Decoder) stringToBigInt(s string, t reflect.Type) *big.Int {
 	if bi, ok := new(big.Int).SetString(s, 10); ok {
 		return bi
 	}
@@ -42,7 +42,7 @@ func (dec *Decoder) strToBigInt(s string, t reflect.Type) *big.Int {
 	return nil
 }
 
-func (dec *Decoder) strToBigFloat(s string, t reflect.Type) *big.Float {
+func (dec *Decoder) stringToBigFloat(s string, t reflect.Type) *big.Float {
 	if bf, ok := new(big.Float).SetString(s); ok {
 		return bf
 	}
@@ -54,7 +54,7 @@ func (dec *Decoder) strToBigFloat(s string, t reflect.Type) *big.Float {
 	return nil
 }
 
-func (dec *Decoder) strToBigRat(s string, t reflect.Type) *big.Rat {
+func (dec *Decoder) stringToBigRat(s string, t reflect.Type) *big.Rat {
 	if bf, ok := new(big.Rat).SetString(s); ok {
 		return bf
 	}
@@ -63,11 +63,11 @@ func (dec *Decoder) strToBigRat(s string, t reflect.Type) *big.Rat {
 }
 
 func (dec *Decoder) readBigInt(t reflect.Type) *big.Int {
-	return dec.strToBigInt(unsafeString(dec.UnsafeUntil(TagSemicolon)), t)
+	return dec.stringToBigInt(unsafeString(dec.UnsafeUntil(TagSemicolon)), t)
 }
 
 func (dec *Decoder) readBigFloat(t reflect.Type) *big.Float {
-	return dec.strToBigFloat(unsafeString(dec.UnsafeUntil(TagSemicolon)), t)
+	return dec.stringToBigFloat(unsafeString(dec.UnsafeUntil(TagSemicolon)), t)
 }
 
 // ReadBigInt reads *big.Int
@@ -101,12 +101,12 @@ func (dec *Decoder) decodeBigInt(t reflect.Type, tag byte) *big.Int {
 			return bi
 		}
 	case TagUTF8Char:
-		return dec.strToBigInt(dec.readUnsafeString(1), t)
+		return dec.stringToBigInt(dec.readUnsafeString(1), t)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.strToBigInt(dec.ReadUnsafeString(), t)
+			return dec.stringToBigInt(dec.ReadUnsafeString(), t)
 		}
-		return dec.strToBigInt(dec.ReadString(), t)
+		return dec.stringToBigInt(dec.ReadString(), t)
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -141,12 +141,12 @@ func (dec *Decoder) decodeBigFloat(t reflect.Type, tag byte) *big.Float {
 		}
 		return big.NewFloat(math.Inf(1))
 	case TagUTF8Char:
-		return dec.strToBigFloat(dec.readUnsafeString(1), t)
+		return dec.stringToBigFloat(dec.readUnsafeString(1), t)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.strToBigFloat(dec.ReadUnsafeString(), t)
+			return dec.stringToBigFloat(dec.ReadUnsafeString(), t)
 		}
-		return dec.strToBigFloat(dec.ReadString(), t)
+		return dec.stringToBigFloat(dec.ReadString(), t)
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -178,12 +178,12 @@ func (dec *Decoder) decodeBigRat(t reflect.Type, tag byte) *big.Rat {
 	case TagDouble:
 		return new(big.Rat).SetFloat64(dec.ReadFloat64())
 	case TagUTF8Char:
-		return dec.strToBigRat(dec.readUnsafeString(1), t)
+		return dec.stringToBigRat(dec.readUnsafeString(1), t)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.strToBigRat(dec.ReadUnsafeString(), t)
+			return dec.stringToBigRat(dec.ReadUnsafeString(), t)
 		}
-		return dec.strToBigRat(dec.ReadString(), t)
+		return dec.stringToBigRat(dec.ReadString(), t)
 	default:
 		dec.decodeError(t, tag)
 	}
