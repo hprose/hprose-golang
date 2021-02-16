@@ -20,16 +20,16 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-func (dec *Decoder) stringToInt64(s string) int64 {
-	i, err := strconv.ParseInt(s, 10, 64)
+func (dec *Decoder) stringToInt64(s string, bitSize int) int64 {
+	i, err := strconv.ParseInt(s, 10, bitSize)
 	if err != nil {
 		dec.Error = err
 	}
 	return i
 }
 
-func (dec *Decoder) stringToUint64(s string) uint64 {
-	i, err := strconv.ParseUint(s, 10, 64)
+func (dec *Decoder) stringToUint64(s string, bitSize int) uint64 {
+	i, err := strconv.ParseUint(s, 10, bitSize)
 	if err != nil {
 		dec.Error = err
 	}
@@ -50,12 +50,12 @@ func (dec *Decoder) decodeInt(t reflect.Type, tag byte) int {
 	case TagDouble:
 		return int(dec.ReadFloat64())
 	case TagUTF8Char:
-		return int(dec.stringToInt64(dec.readUnsafeString(1)))
+		return int(dec.stringToInt64(dec.readUnsafeString(1), 0))
 	case TagString:
 		if dec.IsSimple() {
-			return int(dec.stringToInt64(dec.ReadUnsafeString()))
+			return int(dec.stringToInt64(dec.ReadUnsafeString(), 0))
 		}
-		return int(dec.stringToInt64(dec.ReadString()))
+		return int(dec.stringToInt64(dec.ReadString(), 0))
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -84,12 +84,12 @@ func (dec *Decoder) decodeInt8(t reflect.Type, tag byte) int8 {
 	case TagDouble:
 		return int8(dec.ReadFloat64())
 	case TagUTF8Char:
-		return int8(dec.stringToInt64(dec.readUnsafeString(1)))
+		return int8(dec.stringToInt64(dec.readUnsafeString(1), 8))
 	case TagString:
 		if dec.IsSimple() {
-			return int8(dec.stringToInt64(dec.ReadUnsafeString()))
+			return int8(dec.stringToInt64(dec.ReadUnsafeString(), 8))
 		}
-		return int8(dec.stringToInt64(dec.ReadString()))
+		return int8(dec.stringToInt64(dec.ReadString(), 8))
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -118,12 +118,12 @@ func (dec *Decoder) decodeInt16(t reflect.Type, tag byte) int16 {
 	case TagDouble:
 		return int16(dec.ReadFloat64())
 	case TagUTF8Char:
-		return int16(dec.stringToInt64(dec.readUnsafeString(1)))
+		return int16(dec.stringToInt64(dec.readUnsafeString(1), 16))
 	case TagString:
 		if dec.IsSimple() {
-			return int16(dec.stringToInt64(dec.ReadUnsafeString()))
+			return int16(dec.stringToInt64(dec.ReadUnsafeString(), 16))
 		}
-		return int16(dec.stringToInt64(dec.ReadString()))
+		return int16(dec.stringToInt64(dec.ReadString(), 16))
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -152,12 +152,12 @@ func (dec *Decoder) decodeInt32(t reflect.Type, tag byte) int32 {
 	case TagDouble:
 		return int32(dec.ReadFloat64())
 	case TagUTF8Char:
-		return int32(dec.stringToInt64(dec.readUnsafeString(1)))
+		return int32(dec.stringToInt64(dec.readUnsafeString(1), 32))
 	case TagString:
 		if dec.IsSimple() {
-			return int32(dec.stringToInt64(dec.ReadUnsafeString()))
+			return int32(dec.stringToInt64(dec.ReadUnsafeString(), 32))
 		}
-		return int32(dec.stringToInt64(dec.ReadString()))
+		return int32(dec.stringToInt64(dec.ReadString(), 32))
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -186,12 +186,12 @@ func (dec *Decoder) decodeInt64(t reflect.Type, tag byte) int64 {
 	case TagDouble:
 		return int64(dec.ReadFloat64())
 	case TagUTF8Char:
-		return dec.stringToInt64(dec.readUnsafeString(1))
+		return dec.stringToInt64(dec.readUnsafeString(1), 64)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToInt64(dec.ReadUnsafeString())
+			return dec.stringToInt64(dec.ReadUnsafeString(), 64)
 		}
-		return dec.stringToInt64(dec.ReadString())
+		return dec.stringToInt64(dec.ReadString(), 64)
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -220,12 +220,12 @@ func (dec *Decoder) decodeUint(t reflect.Type, tag byte) uint {
 	case TagDouble:
 		return uint(dec.ReadFloat64())
 	case TagUTF8Char:
-		return uint(dec.stringToUint64(dec.readUnsafeString(1)))
+		return uint(dec.stringToUint64(dec.readUnsafeString(1), 0))
 	case TagString:
 		if dec.IsSimple() {
-			return uint(dec.stringToUint64(dec.ReadUnsafeString()))
+			return uint(dec.stringToUint64(dec.ReadUnsafeString(), 0))
 		}
-		return uint(dec.stringToUint64(dec.ReadString()))
+		return uint(dec.stringToUint64(dec.ReadString(), 0))
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -254,12 +254,12 @@ func (dec *Decoder) decodeUint8(t reflect.Type, tag byte) uint8 {
 	case TagDouble:
 		return uint8(dec.ReadFloat64())
 	case TagUTF8Char:
-		return uint8(dec.stringToUint64(dec.readUnsafeString(1)))
+		return uint8(dec.stringToUint64(dec.readUnsafeString(1), 8))
 	case TagString:
 		if dec.IsSimple() {
-			return uint8(dec.stringToUint64(dec.ReadUnsafeString()))
+			return uint8(dec.stringToUint64(dec.ReadUnsafeString(), 8))
 		}
-		return uint8(dec.stringToUint64(dec.ReadString()))
+		return uint8(dec.stringToUint64(dec.ReadString(), 8))
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -288,12 +288,12 @@ func (dec *Decoder) decodeUint16(t reflect.Type, tag byte) uint16 {
 	case TagDouble:
 		return uint16(dec.ReadFloat64())
 	case TagUTF8Char:
-		return uint16(dec.stringToUint64(dec.readUnsafeString(1)))
+		return uint16(dec.stringToUint64(dec.readUnsafeString(1), 16))
 	case TagString:
 		if dec.IsSimple() {
-			return uint16(dec.stringToUint64(dec.ReadUnsafeString()))
+			return uint16(dec.stringToUint64(dec.ReadUnsafeString(), 16))
 		}
-		return uint16(dec.stringToUint64(dec.ReadString()))
+		return uint16(dec.stringToUint64(dec.ReadString(), 16))
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -322,12 +322,12 @@ func (dec *Decoder) decodeUint32(t reflect.Type, tag byte) uint32 {
 	case TagDouble:
 		return uint32(dec.ReadFloat64())
 	case TagUTF8Char:
-		return uint32(dec.stringToUint64(dec.readUnsafeString(1)))
+		return uint32(dec.stringToUint64(dec.readUnsafeString(1), 32))
 	case TagString:
 		if dec.IsSimple() {
-			return uint32(dec.stringToUint64(dec.ReadUnsafeString()))
+			return uint32(dec.stringToUint64(dec.ReadUnsafeString(), 32))
 		}
-		return uint32(dec.stringToUint64(dec.ReadString()))
+		return uint32(dec.stringToUint64(dec.ReadString(), 32))
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -356,12 +356,12 @@ func (dec *Decoder) decodeUint64(t reflect.Type, tag byte) uint64 {
 	case TagDouble:
 		return uint64(dec.ReadFloat64())
 	case TagUTF8Char:
-		return dec.stringToUint64(dec.readUnsafeString(1))
+		return dec.stringToUint64(dec.readUnsafeString(1), 64)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToUint64(dec.ReadUnsafeString())
+			return dec.stringToUint64(dec.ReadUnsafeString(), 64)
 		}
-		return dec.stringToUint64(dec.ReadString())
+		return dec.stringToUint64(dec.ReadString(), 64)
 	default:
 		dec.decodeError(t, tag)
 	}
@@ -390,12 +390,12 @@ func (dec *Decoder) decodeUintptr(t reflect.Type, tag byte) uintptr {
 	case TagDouble:
 		return uintptr(dec.ReadFloat64())
 	case TagUTF8Char:
-		return uintptr(dec.stringToUint64(dec.readUnsafeString(1)))
+		return uintptr(dec.stringToUint64(dec.readUnsafeString(1), 64))
 	case TagString:
 		if dec.IsSimple() {
-			return uintptr(dec.stringToUint64(dec.ReadUnsafeString()))
+			return uintptr(dec.stringToUint64(dec.ReadUnsafeString(), 64))
 		}
-		return uintptr(dec.stringToUint64(dec.ReadString()))
+		return uintptr(dec.stringToUint64(dec.ReadString(), 64))
 	default:
 		dec.decodeError(t, tag)
 	}
