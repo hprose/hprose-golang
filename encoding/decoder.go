@@ -257,7 +257,11 @@ func (dec *Decoder) Decode(p interface{}, tag ...byte) {
 }
 
 // Read returns a data of the specified type from the Decoder
-func (dec *Decoder) Read(t reflect.Type, tag ...byte) interface{} {
+func (dec *Decoder) Read(t reflect.Type, tag ...byte) (result interface{}) {
+	if t == nil {
+		dec.Decode(&result, tag...)
+		return
+	}
 	t2 := reflect2.Type2(t)
 	p := t2.New()
 	if len(tag) > 0 {
