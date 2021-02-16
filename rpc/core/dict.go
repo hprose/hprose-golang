@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/dict.go                                         |
 |                                                          |
-| LastModified: Feb 8, 2021                                |
+| LastModified: Feb 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -183,56 +183,56 @@ func NewDict() Dict {
 }
 
 type safeDict struct {
-	m *sync.Map
+	m sync.Map
 }
 
-func (d safeDict) Set(name string, value interface{}) {
+func (d *safeDict) Set(name string, value interface{}) {
 	d.m.Store(name, value)
 }
 
-func (d safeDict) Get(name string) (value interface{}, ok bool) {
+func (d *safeDict) Get(name string) (value interface{}, ok bool) {
 	return d.m.Load(name)
 }
 
-func (d safeDict) GetInt(key string, defaultValue ...int) int {
+func (d *safeDict) GetInt(key string, defaultValue ...int) int {
 	return getInt(d, key, defaultValue...)
 }
 
-func (d safeDict) GetUInt(key string, defaultValue ...uint) uint {
+func (d *safeDict) GetUInt(key string, defaultValue ...uint) uint {
 	return getUInt(d, key, defaultValue...)
 }
 
-func (d safeDict) GetInt64(key string, defaultValue ...int64) int64 {
+func (d *safeDict) GetInt64(key string, defaultValue ...int64) int64 {
 	return getInt64(d, key, defaultValue...)
 }
 
-func (d safeDict) GetUInt64(key string, defaultValue ...uint64) uint64 {
+func (d *safeDict) GetUInt64(key string, defaultValue ...uint64) uint64 {
 	return getUInt64(d, key, defaultValue...)
 }
 
-func (d safeDict) GetFloat(key string, defaultValue ...float64) float64 {
+func (d *safeDict) GetFloat(key string, defaultValue ...float64) float64 {
 	return getFloat(d, key, defaultValue...)
 }
 
-func (d safeDict) GetBool(key string, defaultValue ...bool) bool {
+func (d *safeDict) GetBool(key string, defaultValue ...bool) bool {
 	return getBool(d, key, defaultValue...)
 }
 
-func (d safeDict) GetString(key string, defaultValue ...string) string {
+func (d *safeDict) GetString(key string, defaultValue ...string) string {
 	return getString(d, key, defaultValue...)
 }
 
-func (d safeDict) Del(name string) {
+func (d *safeDict) Del(name string) {
 	d.m.Delete(name)
 }
 
-func (d safeDict) Range(f func(name string, value interface{}) bool) {
+func (d *safeDict) Range(f func(name string, value interface{}) bool) {
 	d.m.Range(func(key, value interface{}) bool {
 		return f(key.(string), value)
 	})
 }
 
-func (d safeDict) Empty() bool {
+func (d *safeDict) Empty() bool {
 	empty := true
 	d.m.Range(func(key, value interface{}) bool {
 		empty = false
@@ -241,7 +241,7 @@ func (d safeDict) Empty() bool {
 	return empty
 }
 
-func (d safeDict) CopyTo(dict Dict) {
+func (d *safeDict) CopyTo(dict Dict) {
 	d.m.Range(func(key, value interface{}) bool {
 		dict.Set(key.(string), value)
 		return true
@@ -250,5 +250,5 @@ func (d safeDict) CopyTo(dict Dict) {
 
 // NewSafeDict returns a thread-safe Dict.
 func NewSafeDict() Dict {
-	return safeDict{&sync.Map{}}
+	return &safeDict{}
 }
