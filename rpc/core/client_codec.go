@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_codec.go                                 |
 |                                                          |
-| LastModified: Feb 8, 2021                                |
+| LastModified: Feb 17, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -34,8 +34,7 @@ type clientCodec struct {
 }
 
 func (c clientCodec) Encode(name string, args []interface{}, context ClientContext) ([]byte, error) {
-	encoder := new(encoding.Encoder)
-	encoder.Simple(c.Simple)
+	encoder := new(encoding.Encoder).Simple(c.Simple)
 	if c.Simple {
 		context.RequestHeaders().Set("simple", true)
 	}
@@ -55,8 +54,7 @@ func (c clientCodec) Encode(name string, args []interface{}, context ClientConte
 }
 
 func (c clientCodec) Decode(response []byte, context ClientContext) (result interface{}, err error) {
-	decoder := encoding.NewDecoder(response)
-	decoder.Simple(false)
+	decoder := encoding.NewDecoder(response).Simple(false)
 	decoder.LongType = c.LongType
 	decoder.RealType = c.RealType
 	decoder.MapType = c.MapType
@@ -70,7 +68,7 @@ func (c clientCodec) Decode(response []byte, context ClientContext) (result inte
 	}
 	switch tag {
 	case encoding.TagResult:
-		if simple, ok := context.ResponseHeaders().Get("simple"); ok && simple.(bool) {
+		if context.ResponseHeaders().GetBool("simple") {
 			decoder.Simple(true)
 		}
 		returnType := context.ReturnType()
