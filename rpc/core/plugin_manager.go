@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/plugin_manager.go                               |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Feb 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -30,7 +30,7 @@ type PluginManager interface {
 
 type pluginManager struct {
 	handlers       []PluginHandler
-	rwlock         *sync.RWMutex
+	rwlock         sync.RWMutex
 	defaultHandler NextPluginHandler
 	handler        NextPluginHandler
 	getNextHandler func(handler PluginHandler, next NextPluginHandler) NextPluginHandler
@@ -38,7 +38,6 @@ type pluginManager struct {
 
 func newPluginManager(handler NextPluginHandler, getNextHandler func(handler PluginHandler, next NextPluginHandler) NextPluginHandler) PluginManager {
 	return &pluginManager{
-		rwlock:         &sync.RWMutex{},
 		handler:        handler,
 		defaultHandler: handler,
 		getNextHandler: getNextHandler,
