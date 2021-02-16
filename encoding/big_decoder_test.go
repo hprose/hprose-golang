@@ -196,7 +196,6 @@ func TestDecodeBigFloat(t *testing.T) {
 	enc.Encode("NaN")
 	bf, _ := new(big.Float).SetString("12345678901234567890.12345678901234567890")
 	enc.Encode(bf)
-	println(sb.String())
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i big.Float
 	dec.Decode(&i)
@@ -270,7 +269,6 @@ func TestDecodeBigFloatPtr(t *testing.T) {
 	enc.Encode("NaN")
 	bf, _ := new(big.Float).SetString("12345678901234567890.12345678901234567890")
 	enc.Encode(bf)
-	println(sb.String())
 	dec := NewDecoder(([]byte)(sb.String()))
 	var i *big.Float
 	dec.Decode(&i)
