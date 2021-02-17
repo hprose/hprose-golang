@@ -158,10 +158,10 @@ func TestDecodeRefer(t *testing.T) {
 	assert.Equal(t, big.NewFloat(123).String(), bf.String())
 	var brv big.Rat
 	dec.Decode(&brv)
-	assert.Equal(t, *big.NewRat(123, 1), brv)
+	assert.Equal(t, big.NewRat(123, 1).RatString(), brv.RatString())
 	var br *big.Rat
 	dec.Decode(&br)
-	assert.Equal(t, big.NewRat(123, 1), br)
+	assert.Equal(t, big.NewRat(123, 1).RatString(), br.RatString())
 	var spp **string
 	dec.Decode(&spp)
 	assert.Equal(t, "123", **spp)
