@@ -31,7 +31,7 @@ type MethodManager interface {
 	AddMethods(names []string, target interface{}, namespace ...string)
 	AddInstanceMethods(target interface{}, namespace ...string)
 	AddAllMethods(target interface{}, namespace ...string)
-	AddMissingMethod(f MissingMethod)
+	AddMissingMethod(f interface{})
 	AddNetRPCMethods(rcvr interface{}, namespace ...string)
 }
 
@@ -226,26 +226,18 @@ func (mm *methodManager) addInstanceMethods(target interface{}, addFunc addFuncF
 	}
 }
 
-// AddInstanceMethods is used for publishing all the public methods and func fields with namespace.
 func (mm *methodManager) AddInstanceMethods(target interface{}, namespace ...string) {
 	mm.addInstanceMethods(target, mm.addFuncField, namespace...)
 }
 
-// AddAllMethods will publish all methods and non-nil function fields on the
-// obj self and on its anonymous or non-anonymous struct fields (or pointer to
-// pointer ... to pointer struct fields). This is a recursive operation.
-// So it's a pit, if you do not know what you are doing, do not step on.
 func (mm *methodManager) AddAllMethods(target interface{}, namespace ...string) {
 	mm.addInstanceMethods(target, mm.recursiveAddFuncFields, namespace...)
 }
 
-// AddMissingMethod is used for publishing a method,
-// all methods not explicitly published will be redirected to this method.
-func (mm *methodManager) AddMissingMethod(f MissingMethod) {
-	mm.Add(NewMissingMethod(f))
+func (mm *methodManager) AddMissingMethod(f interface{}) {
+	mm.Add(MissingMethod(f))
 }
 
-// AddNetRPCMethods is used for publishing methods defined for net/rpc.
 func (mm *methodManager) AddNetRPCMethods(rcvr interface{}, namespace ...string) {
 	if rcvr == nil {
 		panic("rcvr can't be nil")
