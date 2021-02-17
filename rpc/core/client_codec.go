@@ -75,9 +75,9 @@ func (c clientCodec) Decode(response []byte, context *ClientContext) (result []i
 		n := len(returnType)
 		switch n {
 		case 0:
-			decoder.Read(nil)
+			// Ignore the result to speed up.
 		case 1:
-			result = append(result, decoder.Read(returnType[0]))
+			result = []interface{}{decoder.Read(returnType[0])}
 		default:
 			results := make([]interface{}, n)
 			tag = decoder.NextByte()
