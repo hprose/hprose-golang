@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_context.go                               |
 |                                                          |
-| LastModified: Feb 8, 2021                                |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,6 +14,7 @@
 package core
 
 import (
+	"context"
 	"net/url"
 	"reflect"
 	"time"
@@ -22,7 +23,7 @@ import (
 // ClientContext for RPC.
 type ClientContext struct {
 	Context
-	URL        url.URL
+	URL        *url.URL
 	ReturnType []reflect.Type
 	Timeout    time.Duration
 	client     *Client
@@ -47,8 +48,8 @@ func (c *ClientContext) Init(client *Client, returnType ...reflect.Type) {
 	if c.Timeout == 0 {
 		c.Timeout = client.Timeout
 	}
-	if client.RequestHeaders != nil && !client.RequestHeaders.Empty() {
-		client.RequestHeaders.CopyTo(c.RequestHeaders())
+	if !client.RequestHeaders().Empty() {
+		client.RequestHeaders().CopyTo(c.RequestHeaders())
 	}
 }
 
@@ -66,4 +67,12 @@ func (c *ClientContext) Clone() Context {
 		c.Timeout,
 		c.client,
 	}
+}
+
+// GetClientContext returns the *core.ClientContext bound to the context.
+func GetClientContext(ctx context.Context) *ClientContext {
+	if c, ok := FromContext(ctx); ok {
+		return c.(*ClientContext)
+	}
+	return nil
 }

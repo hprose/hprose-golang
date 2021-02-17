@@ -37,6 +37,15 @@ var ErrTimeout = errors.New("timeout")
 // // ErrURIListEmpty represents a error.
 // var ErrURIListEmpty = errors.New("uriList must contain at least one uri")
 
+// UnsupportedProtocolError represents a error.
+type UnsupportedProtocolError struct {
+	Scheme string
+}
+
+func (e UnsupportedProtocolError) Error() string {
+	return "hprose/rpc/core: unsupported protocol: " + e.Scheme
+}
+
 // UnsupportedServerTypeError represents a error.
 type UnsupportedServerTypeError struct {
 	ServerType reflect.Type
