@@ -22,8 +22,8 @@ import (
 
 // ServiceCodec for RPC.
 type ServiceCodec interface {
-	Encode(result interface{}, context ServiceContext) (response []byte, err error)
-	Decode(request []byte, context ServiceContext) (name string, args []interface{}, err error)
+	Encode(result interface{}, context *ServiceContext) (response []byte, err error)
+	Decode(request []byte, context *ServiceContext) (name string, args []interface{}, err error)
 }
 
 type serviceCodec struct {
@@ -34,7 +34,7 @@ type serviceCodec struct {
 	encoding.MapType
 }
 
-func (c serviceCodec) Encode(result interface{}, context ServiceContext) (response []byte, err error) {
+func (c serviceCodec) Encode(result interface{}, context *ServiceContext) (response []byte, err error) {
 	encoder := new(encoding.Encoder).Simple(c.Simple)
 	if c.Simple {
 		context.RequestHeaders().Set("simple", true)
@@ -62,7 +62,7 @@ func (c serviceCodec) Encode(result interface{}, context ServiceContext) (respon
 	return encoder.Bytes(), encoder.Error
 }
 
-func (c serviceCodec) Decode(request []byte, context ServiceContext) (name string, args []interface{}, err error) {
+func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name string, args []interface{}, err error) {
 	if len(request) == 0 {
 		name = "~"
 		_, err = c.decodeMethod(name, context)
@@ -99,18 +99,18 @@ func (c serviceCodec) Decode(request []byte, context ServiceContext) (name strin
 	return
 }
 
-func (c serviceCodec) decodeMethod(name string, context ServiceContext) (method Method, err error) {
+func (c serviceCodec) decodeMethod(name string, context *ServiceContext) (method Method, err error) {
 	service := context.Service()
 	method = service.Get(name)
 	if method == nil {
 		err = errors.New("Can't find this method " + name + "().")
 	} else {
-		context.SetMethod(method)
+		context.Method = method
 	}
 	return method, err
 }
 
-func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder, context ServiceContext) (args []interface{}, err error) {
+func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder, context *ServiceContext) (args []interface{}, err error) {
 	tag := decoder.NextByte()
 	if tag != encoding.TagList {
 		return

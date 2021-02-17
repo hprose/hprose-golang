@@ -90,7 +90,7 @@ func (s *Service) Handle(context context.Context, request []byte) ([]byte, error
 
 // Process the reqeust and returns the response.
 func (s *Service) Process(context context.Context, request []byte) ([]byte, error) {
-	serviceContext := FromContext(context).(ServiceContext)
+	serviceContext := FromContext(context).(*ServiceContext)
 	name, args, err := s.Codec.Decode(request, serviceContext)
 	if err != nil {
 		return s.Codec.Encode(err, serviceContext)
@@ -121,8 +121,8 @@ func (s *Service) Process(context context.Context, request []byte) ([]byte, erro
 
 // Execute the method and returns the results.
 func (s *Service) Execute(context context.Context, name string, args []interface{}) (result []interface{}, err error) {
-	serviceContext := FromContext(context).(ServiceContext)
-	method := serviceContext.Method()
+	serviceContext := FromContext(context).(*ServiceContext)
+	method := serviceContext.Method
 	if method.Missing() {
 		if method.PassContext() {
 			return method.(contextMissingMethod)(context, name, args)

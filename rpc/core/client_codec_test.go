@@ -38,7 +38,7 @@ func TestClientCodecDecode(t *testing.T) {
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
-	context.SetReturnType([]reflect.Type{reflect.TypeOf("")})
+	context.ReturnType = []reflect.Type{reflect.TypeOf("")}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Rs12"hello World!"z`)
 	result, err = DefaultClientCodec.Decode(response, context)
 	id, ok = context.ResponseHeaders().Get("id")
@@ -47,7 +47,7 @@ func TestClientCodecDecode(t *testing.T) {
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
-	context.SetReturnType([]reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true)})
+	context.ReturnType = []reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true)}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Rs12"hello World!"z`)
 	result, err = DefaultClientCodec.Decode(response, context)
 	results := result.([]interface{})
@@ -58,7 +58,7 @@ func TestClientCodecDecode(t *testing.T) {
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
-	context.SetReturnType([]reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true)})
+	context.ReturnType = []reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true)}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Ra2{s12"hello World!"t}z`)
 	result, err = DefaultClientCodec.Decode(response, context)
 	results = result.([]interface{})
@@ -69,7 +69,7 @@ func TestClientCodecDecode(t *testing.T) {
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
-	context.SetReturnType([]reflect.Type{reflect.TypeOf("")})
+	context.ReturnType = []reflect.Type{reflect.TypeOf("")}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Es12"hello World!"z`)
 	result, err = DefaultClientCodec.Decode(response, context)
 	id, ok = context.ResponseHeaders().Get("id")
@@ -78,7 +78,7 @@ func TestClientCodecDecode(t *testing.T) {
 	assert.Equal(t, ok, true)
 	assert.EqualError(t, err, "hello World!")
 
-	context.SetReturnType([]reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true), reflect.TypeOf(0)})
+	context.ReturnType = []reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true), reflect.TypeOf(0)}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Ra2{s12"hello World!"t}z`)
 	result, err = DefaultClientCodec.Decode(response, context)
 	results = result.([]interface{})
@@ -90,7 +90,7 @@ func TestClientCodecDecode(t *testing.T) {
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
-	context.SetReturnType([]reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true), reflect.TypeOf(0)})
+	context.ReturnType = []reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true), reflect.TypeOf(0)}
 	response = ([]byte)(`{code:200,msg:"ok"}`)
 	result, err = DefaultClientCodec.Decode(response, context)
 	assert.Equal(t, nil, result)

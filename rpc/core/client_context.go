@@ -20,83 +20,50 @@ import (
 )
 
 // ClientContext for RPC.
-type ClientContext interface {
+type ClientContext struct {
 	Context
-	Init(client Client, returnType ...reflect.Type)
-	Client() Client
-	URL() url.URL
-	ReturnType() []reflect.Type
-	Timeout() time.Duration
-	SetURL(url url.URL)
-	SetReturnType(returnType []reflect.Type)
-	SetTimeout(timeout time.Duration)
-}
-
-type clientContext struct {
-	Context
-	client     Client
-	url        url.URL
-	returnType []reflect.Type
-	timeout    time.Duration
+	URL        url.URL
+	ReturnType []reflect.Type
+	Timeout    time.Duration
+	client     *Client
 }
 
 // NewClientContext returns a core.ClientContext.
-func NewClientContext() ClientContext {
-	return &clientContext{
+func NewClientContext() *ClientContext {
+	return &ClientContext{
 		Context: NewContext(),
 	}
 }
 
-func (c *clientContext) Init(client Client, returnType ...reflect.Type) {
+// Init this ClientContext.
+func (c *ClientContext) Init(client *Client, returnType ...reflect.Type) {
 	c.client = client
-	if urls := c.client.URLs(); len(urls) > 0 {
-		c.url = urls[0]
+	if urls := client.URLs; len(urls) > 0 {
+		c.URL = urls[0]
 	}
-	if c.returnType == nil {
-		c.returnType = returnType
+	if c.ReturnType == nil {
+		c.ReturnType = returnType
 	}
-	if c.timeout == 0 {
-		c.timeout = client.Timeout()
+	if c.Timeout == 0 {
+		c.Timeout = client.Timeout
 	}
-	if !client.RequestHeaders().Empty() {
-		client.RequestHeaders().CopyTo(c.RequestHeaders())
+	if client.RequestHeaders != nil && !client.RequestHeaders.Empty() {
+		client.RequestHeaders.CopyTo(c.RequestHeaders())
 	}
 }
 
-func (c *clientContext) Client() Client {
+// Client returns the Client reference.
+func (c *ClientContext) Client() *Client {
 	return c.client
 }
 
-func (c *clientContext) URL() url.URL {
-	return c.url
-}
-
-func (c *clientContext) ReturnType() []reflect.Type {
-	return c.returnType
-}
-
-func (c *clientContext) Timeout() time.Duration {
-	return c.timeout
-}
-
-func (c *clientContext) SetURL(url url.URL) {
-	c.url = url
-}
-
-func (c *clientContext) SetReturnType(returnType []reflect.Type) {
-	c.returnType = returnType
-}
-
-func (c *clientContext) SetTimeout(timeout time.Duration) {
-	c.timeout = timeout
-}
-
-func (c *clientContext) Clone() Context {
-	return &clientContext{
+// Clone returns a copy of this ClientContext.
+func (c *ClientContext) Clone() Context {
+	return &ClientContext{
 		c.Context.Clone(),
+		c.URL,
+		c.ReturnType,
+		c.Timeout,
 		c.client,
-		c.url,
-		c.returnType,
-		c.timeout,
 	}
 }

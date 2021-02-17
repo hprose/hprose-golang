@@ -19,8 +19,8 @@ import (
 )
 
 // Client for RPC.
-type Client interface {
-	URLs() []url.URL
-	Timeout() time.Duration
-	RequestHeaders() Dict
+type Client struct {
+	URLs           []url.URL
+	Timeout        time.Duration
+	RequestHeaders Dict
 }

@@ -22,8 +22,8 @@ import (
 
 // ClientCodec for RPC.
 type ClientCodec interface {
-	Encode(name string, args []interface{}, context ClientContext) (reqeust []byte, err error)
-	Decode(response []byte, context ClientContext) (result interface{}, err error)
+	Encode(name string, args []interface{}, context *ClientContext) (reqeust []byte, err error)
+	Decode(response []byte, context *ClientContext) (result interface{}, err error)
 }
 
 type clientCodec struct {
@@ -33,7 +33,7 @@ type clientCodec struct {
 	encoding.MapType
 }
 
-func (c clientCodec) Encode(name string, args []interface{}, context ClientContext) ([]byte, error) {
+func (c clientCodec) Encode(name string, args []interface{}, context *ClientContext) ([]byte, error) {
 	encoder := new(encoding.Encoder).Simple(c.Simple)
 	if c.Simple {
 		context.RequestHeaders().Set("simple", true)
@@ -53,7 +53,7 @@ func (c clientCodec) Encode(name string, args []interface{}, context ClientConte
 	return encoder.Bytes(), encoder.Error
 }
 
-func (c clientCodec) Decode(response []byte, context ClientContext) (result interface{}, err error) {
+func (c clientCodec) Decode(response []byte, context *ClientContext) (result interface{}, err error) {
 	decoder := encoding.NewDecoder(response).Simple(false)
 	decoder.LongType = c.LongType
 	decoder.RealType = c.RealType
@@ -71,7 +71,7 @@ func (c clientCodec) Decode(response []byte, context ClientContext) (result inte
 		if context.ResponseHeaders().GetBool("simple") {
 			decoder.Simple(true)
 		}
-		returnType := context.ReturnType()
+		returnType := context.ReturnType
 		n := len(returnType)
 		switch n {
 		case 0:

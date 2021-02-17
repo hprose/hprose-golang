@@ -18,67 +18,34 @@ import (
 )
 
 // ServiceContext for RPC.
-type ServiceContext interface {
+type ServiceContext struct {
 	Context
-	Service() *Service
-	Method() Method
-	LocalAddr() net.Addr
-	RemoteAddr() net.Addr
-	SetMethod(method Method)
-	SetLocalAddr(addr net.Addr)
-	SetRemoteAddr(addr net.Addr)
-}
-
-type serviceContext struct {
-	Context
+	Method     Method
+	LocalAddr  net.Addr
+	RemoteAddr net.Addr
 	service    *Service
-	method     Method
-	localAddr  net.Addr
-	remoteAddr net.Addr
 }
 
 // NewServiceContext returns a core.ServiceContext.
-func NewServiceContext(service *Service) ServiceContext {
-	return &serviceContext{
+func NewServiceContext(service *Service) *ServiceContext {
+	return &ServiceContext{
 		Context: NewContext(),
 		service: service,
 	}
 }
 
-func (c *serviceContext) Service() *Service {
+// Service returns the Service reference.
+func (c *ServiceContext) Service() *Service {
 	return c.service
 }
 
-func (c *serviceContext) Method() Method {
-	return c.method
-}
-
-func (c *serviceContext) LocalAddr() net.Addr {
-	return c.localAddr
-}
-
-func (c *serviceContext) RemoteAddr() net.Addr {
-	return c.remoteAddr
-}
-
-func (c *serviceContext) SetMethod(method Method) {
-	c.method = method
-}
-
-func (c *serviceContext) SetLocalAddr(addr net.Addr) {
-	c.localAddr = addr
-}
-
-func (c *serviceContext) SetRemoteAddr(addr net.Addr) {
-	c.remoteAddr = addr
-}
-
-func (c *serviceContext) Clone() Context {
-	return &serviceContext{
+// Clone returns a copy of this ServiceContext.
+func (c *ServiceContext) Clone() Context {
+	return &ServiceContext{
 		c.Context.Clone(),
+		c.Method,
+		c.LocalAddr,
+		c.RemoteAddr,
 		c.service,
-		c.method,
-		c.localAddr,
-		c.remoteAddr,
 	}
 }
