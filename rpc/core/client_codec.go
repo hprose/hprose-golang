@@ -81,18 +81,19 @@ func (c clientCodec) Decode(response []byte, context ClientContext) (result inte
 		default:
 			results := make([]interface{}, n)
 			tag = decoder.NextByte()
-			count := 0
+			count := 1
 			if tag == encoding.TagList {
 				count = decoder.ReadInt()
 				decoder.AddReference(nil)
-			}
-			for i := 0; i < n; i++ {
-				if i < count {
+				for i := 0; i < n && i < count; i++ {
 					results[i] = decoder.Read(returnType[i])
-				} else {
-					t := reflect2.Type2(returnType[i])
-					results[i] = t.Indirect(t.New())
 				}
+			} else {
+				results[0] = decoder.Read(returnType[0], tag)
+			}
+			for i := count; i < n; i++ {
+				t := reflect2.Type2(returnType[i])
+				results[i] = t.Indirect(t.New())
 			}
 			result = results
 		}
