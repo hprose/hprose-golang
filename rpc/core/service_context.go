@@ -20,7 +20,7 @@ import (
 // ServiceContext for RPC.
 type ServiceContext interface {
 	Context
-	Service() Service
+	Service() *Service
 	Method() Method
 	LocalAddr() net.Addr
 	RemoteAddr() net.Addr
@@ -31,21 +31,21 @@ type ServiceContext interface {
 
 type serviceContext struct {
 	Context
-	service    Service
+	service    *Service
 	method     Method
 	localAddr  net.Addr
 	remoteAddr net.Addr
 }
 
 // NewServiceContext returns a core.ServiceContext.
-func NewServiceContext(service Service) ServiceContext {
+func NewServiceContext(service *Service) ServiceContext {
 	return &serviceContext{
 		Context: NewContext(),
 		service: service,
 	}
 }
 
-func (c *serviceContext) Service() Service {
+func (c *serviceContext) Service() *Service {
 	return c.service
 }
 
