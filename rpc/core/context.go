@@ -93,7 +93,8 @@ func WithContext(ctx context.Context, rpcContext Context) context.Context {
 	return context.WithValue(ctx, contextKey, rpcContext)
 }
 
-// GetContext returns the core.Context bound to the context.
-func GetContext(ctx context.Context) Context {
-	return ctx.Value(contextKey).(Context)
+// FromContext returns the core.Context bound to the context.
+func FromContext(ctx context.Context) (Context, bool) {
+	c, ok := ctx.Value(contextKey).(Context)
+	return c, ok
 }

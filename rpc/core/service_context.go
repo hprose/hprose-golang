@@ -53,5 +53,8 @@ func (c *ServiceContext) Clone() Context {
 
 // GetServiceContext returns the *core.ServiceContext bound to the context.
 func GetServiceContext(ctx context.Context) *ServiceContext {
-	return GetContext(ctx).(*ServiceContext)
+	if c, ok := FromContext(ctx); ok {
+		return c.(*ServiceContext)
+	}
+	return nil
 }

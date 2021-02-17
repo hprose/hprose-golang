@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/plugin_manager.go                               |
 |                                                          |
-| LastModified: Feb 16, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -20,6 +20,18 @@ type NextPluginHandler interface{}
 
 // PluginHandler must be one of InvokeHandler or IOHandler.
 type PluginHandler interface{}
+
+func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHandler, ioHandler []PluginHandler) {
+	for _, handler := range handlers {
+		switch handler.(type) {
+		case InvokeHandler:
+			invokeHandlers = append(invokeHandlers, handler)
+		case IOHandler:
+			ioHandler = append(ioHandler, handler)
+		}
+	}
+	return
+}
 
 // PluginManager for RPC.
 type PluginManager interface {

@@ -95,13 +95,13 @@ func (s *Service) Handler(name string) Handler {
 }
 
 // Handle the reqeust and returns the response.
-func (s *Service) Handle(context context.Context, request []byte) ([]byte, error) {
-	return s.ioManager.Handler().(NextIOHandler)(context, request)
+func (s *Service) Handle(ctx context.Context, request []byte) ([]byte, error) {
+	return s.ioManager.Handler().(NextIOHandler)(ctx, request)
 }
 
 // Process the reqeust and returns the response.
-func (s *Service) Process(context context.Context, request []byte) ([]byte, error) {
-	serviceContext := GetServiceContext(context)
+func (s *Service) Process(ctx context.Context, request []byte) ([]byte, error) {
+	serviceContext := GetServiceContext(ctx)
 	name, args, err := s.Codec.Decode(request, serviceContext)
 	if err != nil {
 		return s.Codec.Encode(err, serviceContext)
@@ -113,7 +113,7 @@ func (s *Service) Process(context context.Context, request []byte) ([]byte, erro
 				result = NewPanicError(p)
 			}
 		}()
-		results, err := s.invokeManager.Handler().(NextInvokeHandler)(context, name, args)
+		results, err := s.invokeManager.Handler().(NextInvokeHandler)(ctx, name, args)
 		if err != nil {
 			result = err
 			return
@@ -131,12 +131,12 @@ func (s *Service) Process(context context.Context, request []byte) ([]byte, erro
 }
 
 // Execute the method and returns the results.
-func (s *Service) Execute(context context.Context, name string, args []interface{}) (result []interface{}, err error) {
-	serviceContext := GetServiceContext(context)
+func (s *Service) Execute(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
+	serviceContext := GetServiceContext(ctx)
 	method := serviceContext.Method
 	if method.Missing() {
 		if method.PassContext() {
-			return method.(contextMissingMethod)(context, name, args)
+			return method.(contextMissingMethod)(ctx, name, args)
 		}
 		return method.(missingMethod)(name, args)
 	}
@@ -144,7 +144,7 @@ func (s *Service) Execute(context context.Context, name string, args []interface
 	var in []reflect.Value
 	if method.PassContext() {
 		in = make([]reflect.Value, n+1)
-		in[0] = reflect.ValueOf(context)
+		in[0] = reflect.ValueOf(ctx)
 		for i := 0; i < n; i++ {
 			in[i+1] = reflect.ValueOf(args[i])
 		}
@@ -170,21 +170,9 @@ func (s *Service) Execute(context context.Context, name string, args []interface
 	return
 }
 
-func splitPluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHandler, ioHandler []PluginHandler) {
-	for _, handler := range handlers {
-		switch handler.(type) {
-		case InvokeHandler:
-			invokeHandlers = append(invokeHandlers, handler)
-		case IOHandler:
-			ioHandler = append(ioHandler, handler)
-		}
-	}
-	return
-}
-
 // Use plugin handlers.
 func (s *Service) Use(handler ...PluginHandler) *Service {
-	invokeHandlers, ioHandler := splitPluginHandlers(handler)
+	invokeHandlers, ioHandler := separatePluginHandlers(handler)
 	if len(invokeHandlers) > 0 {
 		s.invokeManager.Use(invokeHandlers...)
 	}
@@ -196,7 +184,7 @@ func (s *Service) Use(handler ...PluginHandler) *Service {
 
 // Unuse plugin handlers.
 func (s *Service) Unuse(handler ...PluginHandler) *Service {
-	invokeHandlers, ioHandler := splitPluginHandlers(handler)
+	invokeHandlers, ioHandler := separatePluginHandlers(handler)
 	if len(invokeHandlers) > 0 {
 		s.invokeManager.Unuse(invokeHandlers...)
 	}

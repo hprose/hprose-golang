@@ -30,11 +30,11 @@ type Method interface {
 	Options() Dict
 }
 
-var contextType = reflect.TypeOf((*context.Context)(nil)).Elem()
+var contextType = reflect.TypeOf((context.Context)(nil))
 var nameType = reflect.TypeOf("")
 var argsType = reflect.TypeOf([]interface{}{})
 
-type contextMissingMethod func(context context.Context, name string, args []interface{}) (result []interface{}, err error)
+type contextMissingMethod func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error)
 
 func (m contextMissingMethod) Func() reflect.Value {
 	return reflect.ValueOf(m)
@@ -89,7 +89,7 @@ func (m missingMethod) Options() Dict {
 // MissingMethod returns a missing Method object.
 func MissingMethod(f interface{}) Method {
 	switch m := f.(type) {
-	case func(context context.Context, name string, args []interface{}) (result []interface{}, err error):
+	case func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error):
 		return contextMissingMethod(m)
 	case func(name string, args []interface{}) (result []interface{}, err error):
 		return missingMethod(m)
