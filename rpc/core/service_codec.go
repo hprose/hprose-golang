@@ -23,7 +23,7 @@ import (
 // ServiceCodec for RPC.
 type ServiceCodec interface {
 	Encode(result interface{}, context ServiceContext) (response []byte, err error)
-	Decode(request []byte, context ClientContext) (name string, args []interface{}, err error)
+	Decode(request []byte, context ServiceContext) (name string, args []interface{}, err error)
 }
 
 type serviceCodec struct {
@@ -122,19 +122,26 @@ func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder, 
 	}
 	count := decoder.ReadInt()
 	parameters := method.Parameters()
-	if len(parameters) == 0 {
-		parameters = make([]reflect.Type, count)
-	} else {
+	paramTypes := make([]reflect.Type, count)
+	if method.Func().Type().IsVariadic() {
 		n := len(parameters)
+		copy(paramTypes, parameters[:n-1])
 		for i := n; i < count; i++ {
-			parameters = append(parameters, nil)
+			paramTypes[i] = parameters[n-1].Elem()
 		}
+	} else {
+		copy(paramTypes, parameters[:])
 	}
 	args = make([]interface{}, count)
 	decoder.AddReference(&args)
 	for i := 0; i < count; i++ {
-		args[i] = decoder.Read(parameters[i])
+		args[i] = decoder.Read(paramTypes[i])
 	}
 	decoder.Skip()
 	return args, decoder.Error
+}
+
+// NewServiceCodec returns the ServiceCodec.
+func NewServiceCodec(debug bool, simple bool, longType encoding.LongType, realType encoding.RealType, mapType encoding.MapType) ServiceCodec {
+	return serviceCodec{debug, simple, longType, realType, mapType}
 }
