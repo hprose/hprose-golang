@@ -20,12 +20,6 @@ import (
 	"strings"
 )
 
-// MissingMethod is missing method.
-type MissingMethod func(context context.Context, name string, args []interface{}) (result []interface{}, err error)
-
-var missingMethodType = reflect.TypeOf((*MissingMethod)(nil)).Elem()
-var contextType = reflect.TypeOf((*context.Context)(nil)).Elem()
-
 // Method for RPC.
 type Method interface {
 	Func() reflect.Value
@@ -36,11 +30,77 @@ type Method interface {
 	Options() Dict
 }
 
+var contextType = reflect.TypeOf((*context.Context)(nil)).Elem()
+var nameType = reflect.TypeOf("")
+var argsType = reflect.TypeOf([]interface{}{})
+
+type contextMissingMethod func(context context.Context, name string, args []interface{}) (result []interface{}, err error)
+
+func (m contextMissingMethod) Func() reflect.Value {
+	return reflect.ValueOf(m)
+}
+
+func (m contextMissingMethod) Parameters() []reflect.Type {
+	return []reflect.Type{nameType, argsType}
+}
+
+func (m contextMissingMethod) Name() string {
+	return "*"
+}
+
+func (m contextMissingMethod) Missing() bool {
+	return true
+}
+
+func (m contextMissingMethod) PassContext() bool {
+	return true
+}
+
+func (m contextMissingMethod) Options() Dict {
+	return nil
+}
+
+type missingMethod func(name string, args []interface{}) (result []interface{}, err error)
+
+func (m missingMethod) Func() reflect.Value {
+	return reflect.ValueOf(m)
+}
+
+func (m missingMethod) Parameters() []reflect.Type {
+	return []reflect.Type{nameType, argsType}
+}
+
+func (m missingMethod) Name() string {
+	return "*"
+}
+
+func (m missingMethod) Missing() bool {
+	return true
+}
+
+func (m missingMethod) PassContext() bool {
+	return false
+}
+
+func (m missingMethod) Options() Dict {
+	return nil
+}
+
+// MissingMethod returns a missing Method object.
+func MissingMethod(f interface{}) Method {
+	switch m := f.(type) {
+	case func(context context.Context, name string, args []interface{}) (result []interface{}, err error):
+		return contextMissingMethod(m)
+	case func(name string, args []interface{}) (result []interface{}, err error):
+		return missingMethod(m)
+	}
+	return nil
+}
+
 type method struct {
 	f           reflect.Value
 	params      []reflect.Type
 	name        string
-	missing     bool
 	passContext bool
 	options     Dict
 }
@@ -58,7 +118,7 @@ func (m method) Name() string {
 }
 
 func (m method) Missing() bool {
-	return m.missing
+	return false
 }
 
 func (m method) PassContext() bool {
@@ -69,11 +129,11 @@ func (m method) Options() Dict {
 	return m.options
 }
 
-func makeMethod(f reflect.Value, name string, missing bool) method {
+func makeMethod(f reflect.Value, name string) method {
 	if f.Kind() != reflect.Func {
 		panic("f " + name + " is not a function.")
 	}
-	m := method{f: f, name: name, missing: missing, options: NewSafeDict()}
+	m := method{f: f, name: name, options: NewSafeDict()}
 	if name == "" {
 		m.name = runtime.FuncForPC(f.Pointer()).Name()
 		if i := strings.LastIndexByte(m.name, '.'); i > -1 {
@@ -97,10 +157,5 @@ func makeMethod(f reflect.Value, name string, missing bool) method {
 
 // NewMethod returns a Method object.
 func NewMethod(f reflect.Value, name string) Method {
-	return makeMethod(f, name, false)
-}
-
-// NewMissingMethod returns a missing Method object.
-func NewMissingMethod(f MissingMethod) Method {
-	return makeMethod(reflect.ValueOf(f), "*", true)
+	return makeMethod(f, name)
 }
