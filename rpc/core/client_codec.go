@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_codec.go                                 |
 |                                                          |
-| LastModified: Feb 17, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,7 +23,7 @@ import (
 // ClientCodec for RPC.
 type ClientCodec interface {
 	Encode(name string, args []interface{}, context *ClientContext) (reqeust []byte, err error)
-	Decode(response []byte, context *ClientContext) (result interface{}, err error)
+	Decode(response []byte, context *ClientContext) (result []interface{}, err error)
 }
 
 type clientCodec struct {
@@ -53,7 +53,7 @@ func (c clientCodec) Encode(name string, args []interface{}, context *ClientCont
 	return encoder.Bytes(), encoder.Error
 }
 
-func (c clientCodec) Decode(response []byte, context *ClientContext) (result interface{}, err error) {
+func (c clientCodec) Decode(response []byte, context *ClientContext) (result []interface{}, err error) {
 	decoder := encoding.NewDecoder(response).Simple(false)
 	decoder.LongType = c.LongType
 	decoder.RealType = c.RealType
@@ -75,9 +75,9 @@ func (c clientCodec) Decode(response []byte, context *ClientContext) (result int
 		n := len(returnType)
 		switch n {
 		case 0:
-			decoder.Decode(&result)
+			decoder.Read(nil)
 		case 1:
-			result = decoder.Read(returnType[0])
+			result = append(result, decoder.Read(returnType[0]))
 		default:
 			results := make([]interface{}, n)
 			tag = decoder.NextByte()
@@ -117,6 +117,3 @@ func (c clientCodec) Decode(response []byte, context *ClientContext) (result int
 func NewClientCodec(simple bool, longType encoding.LongType, realType encoding.RealType, mapType encoding.MapType) ClientCodec {
 	return clientCodec{simple, longType, realType, mapType}
 }
-
-// DefaultClientCodec is the default ClientCodec
-var DefaultClientCodec ClientCodec = clientCodec{}

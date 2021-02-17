@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_codec_test.go                            |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,7 +23,7 @@ import (
 func TestClientCodecEncode(t *testing.T) {
 	context := NewClientContext()
 	context.RequestHeaders().Set("id", "test_id")
-	result, err := DefaultClientCodec.Encode("hello", []interface{}{"World"}, context)
+	result, err := clientCodec{}.Encode("hello", []interface{}{"World"}, context)
 	assert.Equal(t, `Hm1{s2"id"s7"test_id"}Cs5"hello"a1{s5"World"}z`, string(result))
 	assert.NoError(t, err)
 }
@@ -31,68 +31,65 @@ func TestClientCodecEncode(t *testing.T) {
 func TestClientCodecDecode(t *testing.T) {
 	context := NewClientContext()
 	response := ([]byte)(`Hm1{s2"id"s7"test_id"}Rs12"hello World!"z`)
-	result, err := DefaultClientCodec.Decode(response, context)
+	result, err := clientCodec{}.Decode(response, context)
 	id, ok := context.ResponseHeaders().Get("id")
-	assert.Equal(t, `hello World!`, result)
+	assert.Nil(t, result)
 	assert.Equal(t, id, "test_id")
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
 	context.ReturnType = []reflect.Type{reflect.TypeOf("")}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Rs12"hello World!"z`)
-	result, err = DefaultClientCodec.Decode(response, context)
+	result, err = clientCodec{}.Decode(response, context)
 	id, ok = context.ResponseHeaders().Get("id")
-	assert.Equal(t, `hello World!`, result)
+	assert.Equal(t, `hello World!`, result[0])
 	assert.Equal(t, id, "test_id")
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
 	context.ReturnType = []reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true)}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Rs12"hello World!"z`)
-	result, err = DefaultClientCodec.Decode(response, context)
-	results := result.([]interface{})
+	result, err = clientCodec{}.Decode(response, context)
 	id, ok = context.ResponseHeaders().Get("id")
-	assert.Equal(t, `hello World!`, results[0])
-	assert.Equal(t, false, results[1])
+	assert.Equal(t, `hello World!`, result[0])
+	assert.Equal(t, false, result[1])
 	assert.Equal(t, id, "test_id")
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
 	context.ReturnType = []reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true)}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Ra2{s12"hello World!"t}z`)
-	result, err = DefaultClientCodec.Decode(response, context)
-	results = result.([]interface{})
+	result, err = clientCodec{}.Decode(response, context)
 	id, ok = context.ResponseHeaders().Get("id")
-	assert.Equal(t, `hello World!`, results[0])
-	assert.Equal(t, true, results[1])
+	assert.Equal(t, `hello World!`, result[0])
+	assert.Equal(t, true, result[1])
 	assert.Equal(t, id, "test_id")
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
 	context.ReturnType = []reflect.Type{reflect.TypeOf("")}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Es12"hello World!"z`)
-	result, err = DefaultClientCodec.Decode(response, context)
+	result, err = clientCodec{}.Decode(response, context)
 	id, ok = context.ResponseHeaders().Get("id")
-	assert.Equal(t, nil, result)
+	assert.Nil(t, result)
 	assert.Equal(t, id, "test_id")
 	assert.Equal(t, ok, true)
 	assert.EqualError(t, err, "hello World!")
 
 	context.ReturnType = []reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true), reflect.TypeOf(0)}
 	response = ([]byte)(`Hm1{s2"id"s7"test_id"}Ra2{s12"hello World!"t}z`)
-	result, err = DefaultClientCodec.Decode(response, context)
-	results = result.([]interface{})
+	result, err = clientCodec{}.Decode(response, context)
 	id, ok = context.ResponseHeaders().Get("id")
-	assert.Equal(t, `hello World!`, results[0])
-	assert.Equal(t, true, results[1])
-	assert.Equal(t, 0, results[2])
+	assert.Equal(t, `hello World!`, result[0])
+	assert.Equal(t, true, result[1])
+	assert.Equal(t, 0, result[2])
 	assert.Equal(t, id, "test_id")
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
 
 	context.ReturnType = []reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true), reflect.TypeOf(0)}
 	response = ([]byte)(`{code:200,msg:"ok"}`)
-	result, err = DefaultClientCodec.Decode(response, context)
-	assert.Equal(t, nil, result)
+	result, err = clientCodec{}.Decode(response, context)
+	assert.Nil(t, result)
 	assert.EqualError(t, err, "Invalid response\r\n"+`{code:200,msg:"ok"}`)
 }
