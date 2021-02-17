@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service.go                                      |
 |                                                          |
-| LastModified: Feb 17, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,19 +24,28 @@ type Server interface{}
 
 // Handler is an interface used to bind service to any server.
 type Handler interface {
-	Bind(server Server) error
+	Bind(server Server)
 }
 
 // HandlerFactory is a constructor for Handler.
-type HandlerFactory func(service *Service) Handler
+type HandlerFactory interface {
+	ServerTypes() []reflect.Type
+	New(service *Service) Handler
+}
 
 var handlerFactories sync.Map
 var serverTypes sync.Map
 
 // RegisterHandler for Service.
-func RegisterHandler(name string, handlerFactory HandlerFactory, serverType reflect.Type) {
+func RegisterHandler(name string, handlerFactory HandlerFactory) {
 	handlerFactories.Store(name, handlerFactory)
-	serverTypes.Store(serverType, name)
+	for _, serverType := range handlerFactory.ServerTypes() {
+		if value, loaded := serverTypes.LoadOrStore(serverType, []string{name}); loaded {
+			names := value.([]string)
+			names = append(names, name)
+			serverTypes.Store(serverType, names)
+		}
+	}
 }
 
 // Service for RPC.
@@ -58,7 +67,7 @@ func NewService() *Service {
 		Options:          NewSafeDict(),
 	}
 	handlerFactories.Range(func(key, value interface{}) bool {
-		handler := value.(HandlerFactory)(service)
+		handler := value.(HandlerFactory).New(service)
 		service.handlers[key.(string)] = handler
 		return true
 	})
@@ -71,9 +80,11 @@ func NewService() *Service {
 // Bind to server.
 func (s *Service) Bind(server Server) error {
 	serverType := reflect.TypeOf(server)
-	if name, ok := serverTypes.Load(serverType); ok {
-		handler := s.handlers[name.(string)]
-		return handler.Bind(server)
+	if value, ok := serverTypes.Load(serverType); ok {
+		names := value.([]string)
+		for _, name := range names {
+			s.handlers[name].Bind(server)
+		}
 	}
 	return UnsupportedServerTypeError{serverType}
 }
