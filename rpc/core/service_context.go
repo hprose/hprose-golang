@@ -14,6 +14,7 @@
 package core
 
 import (
+	"context"
 	"net"
 )
 
@@ -48,4 +49,9 @@ func (c *ServiceContext) Clone() Context {
 		c.RemoteAddr,
 		c.service,
 	}
+}
+
+// GetServiceContext returns the *core.ServiceContext bound to the context.
+func GetServiceContext(ctx context.Context) *ServiceContext {
+	return GetContext(ctx).(*ServiceContext)
 }

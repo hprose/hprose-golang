@@ -89,11 +89,11 @@ func (c *rpcContext) Clone() Context {
 }
 
 // WithContext returns a copy of the parent context and associates it with a core.Context.
-func WithContext(ctx context.Context, rpcCtx Context) context.Context {
-	return context.WithValue(ctx, contextKey, rpcCtx)
+func WithContext(ctx context.Context, rpcContext Context) context.Context {
+	return context.WithValue(ctx, contextKey, rpcContext)
 }
 
-// FromContext returns the core.Context bound to the context.
-func FromContext(ctx context.Context) (rpcCtx Context) {
+// GetContext returns the core.Context bound to the context.
+func GetContext(ctx context.Context) Context {
 	return ctx.Value(contextKey).(Context)
 }
