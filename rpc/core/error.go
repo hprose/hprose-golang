@@ -37,6 +37,15 @@ var ErrTimeout = errors.New("timeout")
 // // ErrURIListEmpty represents a error.
 // var ErrURIListEmpty = errors.New("uriList must contain at least one uri")
 
+// InvalidRequestError represents a error.
+type InvalidRequestError struct {
+	Request []byte
+}
+
+func (e InvalidRequestError) Error() string {
+	return "hprose/rpc/core: invalid request:\r\n" + string(e.Request)
+}
+
 // UnsupportedProtocolError represents a error.
 type UnsupportedProtocolError struct {
 	Scheme string

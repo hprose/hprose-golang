@@ -94,7 +94,7 @@ func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name stri
 		name = "~"
 		_, err = c.decodeMethod("~", context)
 	default:
-		err = errors.New("Invalid request:\r\n" + string(request))
+		err = InvalidRequestError{request}
 	}
 	return
 }
