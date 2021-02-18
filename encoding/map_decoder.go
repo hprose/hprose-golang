@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/map_decoder.go                                  |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -161,7 +161,7 @@ func (valdec mapDecoder) decodeObjectAsMap(dec *Decoder, p interface{}, tag byte
 		}
 	} else {
 		for _, name := range structInfo.names {
-			v := dec.decodeInterface(interfaceType, dec.NextByte())
+			v := dec.decodeInterface(dec.NextByte())
 			valdec.t.UnsafeSetIndex(mp, reflect2.PtrOf(name), reflect2.PtrOf(&v))
 		}
 	}
@@ -210,6 +210,7 @@ func getMapDecoder(t reflect.Type) ValueDecoder {
 	return makeMapDecoder(t)
 }
 
+//nolint
 func fastDecodeIntMap(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[int]string:
@@ -248,6 +249,7 @@ func fastDecodeIntMap(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeInt8Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[int8]string:
@@ -286,6 +288,7 @@ func fastDecodeInt8Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeInt16Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[int16]string:
@@ -324,6 +327,7 @@ func fastDecodeInt16Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeInt32Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[int32]string:
@@ -362,6 +366,7 @@ func fastDecodeInt32Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeInt64Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[int64]string:
@@ -400,6 +405,7 @@ func fastDecodeInt64Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeUintMap(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[uint]string:
@@ -438,6 +444,7 @@ func fastDecodeUintMap(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeUint8Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[uint8]string:
@@ -476,6 +483,7 @@ func fastDecodeUint8Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeUint16Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[uint16]string:
@@ -514,6 +522,7 @@ func fastDecodeUint16Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeUint32Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[uint32]string:
@@ -552,6 +561,7 @@ func fastDecodeUint32Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeUint64Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[uint64]string:
@@ -590,6 +600,7 @@ func fastDecodeUint64Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeFloat32Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[float32]string:
@@ -628,6 +639,7 @@ func fastDecodeFloat32Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeFloat64Map(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[float64]string:
@@ -666,6 +678,7 @@ func fastDecodeFloat64Map(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeStringMap(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[string]string:
@@ -704,6 +717,7 @@ func fastDecodeStringMap(dec *Decoder, p interface{}, tag byte) bool {
 	return true
 }
 
+//nolint
 func fastDecodeInterfaceMap(dec *Decoder, p interface{}, tag byte) bool {
 	switch p.(type) {
 	case *map[interface{}]string:

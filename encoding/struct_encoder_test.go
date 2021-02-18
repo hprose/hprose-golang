@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_encoder_test.go                          |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -21,8 +21,6 @@ import (
 	"testing"
 	"time"
 	"unsafe"
-
-	// jsoniter "github.com/json-iterator/go"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -361,5 +359,4 @@ func TestEncodeOnePtrFieldStruct(t *testing.T) {
 	assert.NoError(t, enc.Encode(&s2))
 	assert.NoError(t, enc.Encode(&s2))
 	assert.Equal(t, `m1{ubc15"TestEmbedStruct"1{s1"a"}o0{1}}m1{ubr2;}m1{ubr2;}r4;`, sb.String())
-
 }

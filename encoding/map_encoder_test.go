@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/map_encoder_test.go                             |
 |                                                          |
-| LastModified: Mar 20, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -1070,5 +1070,4 @@ func TestEncodeMap(t *testing.T) {
 	assert.Equal(t, `m1{i15;l0;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
-
 }

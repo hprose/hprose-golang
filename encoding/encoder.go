@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encoder.go                                      |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -22,9 +22,9 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// An Encoder writes hprose data to an output stream
+// An Encoder writes hprose data to an output stream.
 type Encoder struct {
-	addr   *Encoder // of receiver, to detect copies by value
+	addr   *Encoder // of receiver, to detect copies by value.
 	buf    []byte
 	off    int
 	refer  *encoderRefer
@@ -34,7 +34,7 @@ type Encoder struct {
 	Error  error
 }
 
-// NewEncoder create an encoder object
+// NewEncoder create an encoder object.
 func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{Writer: w}
 }
@@ -181,7 +181,7 @@ func (enc *Encoder) write(v interface{}) {
 	})
 }
 
-// Flush writes the encoding data from buf to Writer
+// Flush writes the encoding data from buf to Writer.
 func (enc *Encoder) Flush() (err error) {
 	if enc.Error != nil {
 		return enc.Error
@@ -193,16 +193,16 @@ func (enc *Encoder) Flush() (err error) {
 	return
 }
 
-// Encode writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as reference
+// Encode writes the hprose encoding of v to stream.
+// If v is already written to stream, it will writes it as reference.
 func (enc *Encoder) Encode(v interface{}) (err error) {
 	enc.copyCheck()
 	enc.encode(v)
 	return enc.Flush()
 }
 
-// Write writes the hprose encoding of v to stream
-// if v is already written to stream, it will writes it as value
+// Write writes the hprose encoding of v to stream.
+// If v is already written to stream, it will writes it as value.
 func (enc *Encoder) Write(v interface{}) (err error) {
 	enc.copyCheck()
 	enc.write(v)
@@ -219,7 +219,7 @@ func (enc *Encoder) String() string {
 	return *(*string)(unsafe.Pointer(&enc.buf))
 }
 
-// WriteReference of v to stream
+// WriteReference of v to stream.
 func (enc *Encoder) WriteReference(v interface{}) bool {
 	if !enc.IsSimple() {
 		return enc.refer.Write(enc, v)
@@ -227,7 +227,7 @@ func (enc *Encoder) WriteReference(v interface{}) bool {
 	return false
 }
 
-// WriteStringReference of v to stream
+// WriteStringReference of v to stream.
 func (enc *Encoder) WriteStringReference(s string) bool {
 	if !enc.IsSimple() {
 		return enc.refer.WriteString(enc, s)
@@ -235,7 +235,7 @@ func (enc *Encoder) WriteStringReference(s string) bool {
 	return false
 }
 
-// SetReference of v
+// SetReference of v.
 func (enc *Encoder) SetReference(v interface{}) {
 	if !enc.IsSimple() {
 		switch reflect.TypeOf(v).Kind() {
@@ -253,21 +253,21 @@ func (enc *Encoder) setReference(v interface{}) {
 	}
 }
 
-// SetStringReference of v
+// SetStringReference of v.
 func (enc *Encoder) SetStringReference(s string) {
 	if !enc.IsSimple() {
 		enc.refer.SetString(s)
 	}
 }
 
-// AddReferenceCount n
+// AddReferenceCount n.
 func (enc *Encoder) AddReferenceCount(n int) {
 	if !enc.IsSimple() {
 		enc.refer.AddCount(n)
 	}
 }
 
-// WriteStructType of t to stream with action
+// WriteStructType of t to stream with action.
 func (enc *Encoder) WriteStructType(t reflect.Type, action func()) (r int) {
 	if enc.ref == nil {
 		enc.ref = make(map[reflect.Type]int)
@@ -282,7 +282,7 @@ func (enc *Encoder) WriteStructType(t reflect.Type, action func()) (r int) {
 	return
 }
 
-// Reset the value reference and struct type reference
+// Reset the value reference and struct type reference.
 func (enc *Encoder) Reset() *Encoder {
 	if !enc.IsSimple() {
 		enc.refer.Reset()
@@ -292,7 +292,7 @@ func (enc *Encoder) Reset() *Encoder {
 	return enc
 }
 
-// Simple resets the encoder to simple mode or not
+// Simple resets the encoder to simple mode or not.
 func (enc *Encoder) Simple(simple bool) *Encoder {
 	if simple {
 		enc.refer = nil
@@ -304,12 +304,12 @@ func (enc *Encoder) Simple(simple bool) *Encoder {
 	return enc
 }
 
-// IsSimple returns the encoder is in simple mode or not
+// IsSimple returns the encoder is in simple mode or not.
 func (enc *Encoder) IsSimple() bool {
 	return nil == enc.refer
 }
 
-// WriteNil to encoder
+// WriteNil to encoder.
 func (enc *Encoder) WriteNil() {
 	enc.buf = append(enc.buf, TagNull)
 }
@@ -322,29 +322,29 @@ func (enc *Encoder) writeHead(n int, tag byte) {
 	enc.buf = append(enc.buf, TagOpenbrace)
 }
 
-// WriteListHead to encoder, n is the count of elements in list
+// WriteListHead to encoder, n is the count of elements in list.
 func (enc *Encoder) WriteListHead(n int) {
 	enc.writeHead(n, TagList)
 }
 
-// WriteMapHead to encoder, n is the count of elements in map
+// WriteMapHead to encoder, n is the count of elements in map.
 func (enc *Encoder) WriteMapHead(n int) {
 	enc.writeHead(n, TagMap)
 }
 
-// WriteObjectHead to encoder, r is the reference number of struct
+// WriteObjectHead to encoder, r is the reference number of struct.
 func (enc *Encoder) WriteObjectHead(r int) {
 	enc.buf = append(enc.buf, TagObject)
 	enc.buf = AppendUint64(enc.buf, uint64(r))
 	enc.buf = append(enc.buf, TagOpenbrace)
 }
 
-// WriteFoot of list or map to encoder
+// WriteFoot of list or map to encoder.
 func (enc *Encoder) WriteFoot() {
 	enc.buf = append(enc.buf, TagClosebrace)
 }
 
-// EncodeReference to encoder
+// EncodeReference to encoder.
 func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
 	if reflect2.IsNil(v) {
 		enc.WriteNil()
@@ -353,7 +353,7 @@ func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
 	}
 }
 
-// WriteTag to encoder
+// WriteTag to encoder.
 func (enc *Encoder) WriteTag(tag byte) {
 	enc.buf = append(enc.buf, tag)
 }

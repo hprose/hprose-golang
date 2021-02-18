@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder_test.go                             |
 |                                                          |
-| LastModified: Jun 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -730,7 +730,7 @@ func TestDecodeUint64(t *testing.T) {
 	dec.Decode(&i)
 	assert.Equal(t, uint64(-maxInt64), i)
 	dec.Decode(&i)
-	assert.Equal(t, uint64(maxUint64), i)
+	assert.Equal(t, maxUint64, i)
 	dec.Decode(&i)
 	assert.Equal(t, uint64(1), i)
 	dec.Decode(&i)
@@ -829,10 +829,10 @@ func BenchmarkDecodeInt(b *testing.B) {
 	sb := new(strings.Builder)
 	enc := NewEncoder(sb)
 	enc.Encode(1)
-	enc.Encode(122)
-	enc.Encode("12345")
-	enc.Encode(nil)
-	enc.Encode("")
+	enc.Encode(12345)
+	enc.Encode(1234567890)
+	enc.Encode(1234567890123456789)
+	enc.Encode(math.MaxInt64)
 	data := ([]byte)(sb.String())
 	dec := &Decoder{}
 	var n int
@@ -850,10 +850,10 @@ func BenchmarkJsonDecodeInt(b *testing.B) {
 	sb := new(strings.Builder)
 	enc := jsoniter.NewEncoder(sb)
 	enc.Encode(1)
-	enc.Encode(122)
-	enc.Encode("12345")
-	enc.Encode(nil)
-	enc.Encode("")
+	enc.Encode(12345)
+	enc.Encode(1234567890)
+	enc.Encode(1234567890123456789)
+	enc.Encode(math.MaxInt64)
 	data := ([]byte)(sb.String())
 	var n int
 	for i := 0; i < b.N; i++ {

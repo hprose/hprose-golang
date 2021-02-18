@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decode_handler.go                               |
 |                                                          |
-| LastModified: Jun 27, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -22,7 +22,7 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// DecodeHandler is an decode handler
+// DecodeHandler is an decode handler.
 type DecodeHandler func(dec *Decoder, t reflect.Type, p unsafe.Pointer)
 
 func invalidDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -94,7 +94,7 @@ func complex128Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func interfaceDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*interface{})(p) = dec.decodeInterface(t, dec.NextByte())
+	*(*interface{})(p) = dec.decodeInterface(dec.NextByte())
 }
 
 func stringDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -186,7 +186,7 @@ func complex128PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func interfacePtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**interface{})(p) = dec.decodeInterfacePtr(t, dec.NextByte())
+	*(**interface{})(p) = dec.decodeInterfacePtr(dec.NextByte())
 }
 
 func stringPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -201,7 +201,7 @@ func otherDecode(t reflect.Type) DecodeHandler {
 	}
 }
 
-// GetDecodeHandler for specified type
+// GetDecodeHandler for specified type.
 func GetDecodeHandler(t reflect.Type) DecodeHandler {
 	if getValueDecoder(t) == nil {
 		kind := t.Kind()

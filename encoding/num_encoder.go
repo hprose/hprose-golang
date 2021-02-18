@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/num_encoder.go                                  |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -18,7 +18,7 @@ import (
 	"strconv"
 )
 
-// WriteBool to encoder
+// WriteBool to encoder.
 func (enc *Encoder) WriteBool(b bool) {
 	if b {
 		enc.buf = append(enc.buf, TagTrue)
@@ -27,7 +27,7 @@ func (enc *Encoder) WriteBool(b bool) {
 	}
 }
 
-// WriteInt64 to encoder
+// WriteInt64 to encoder.
 func (enc *Encoder) WriteInt64(i int64) {
 	if (i >= 0) && (i <= 9) {
 		enc.buf = append(enc.buf, digits[i])
@@ -42,9 +42,9 @@ func (enc *Encoder) WriteInt64(i int64) {
 	}
 }
 
-// WriteUint64 to encoder
+// WriteUint64 to encoder.
 func (enc *Encoder) WriteUint64(i uint64) {
-	if (i >= 0) && (i <= 9) {
+	if i <= 9 {
 		enc.buf = append(enc.buf, digits[i])
 	} else {
 		var tag = TagInteger
@@ -57,7 +57,7 @@ func (enc *Encoder) WriteUint64(i uint64) {
 	}
 }
 
-// WriteInt32 to encoder
+// WriteInt32 to encoder.
 func (enc *Encoder) WriteInt32(i int32) {
 	if (i >= 0) && (i <= 9) {
 		enc.buf = append(enc.buf, digits[i])
@@ -68,44 +68,43 @@ func (enc *Encoder) WriteInt32(i int32) {
 	}
 }
 
-// WriteUint32 to encoder
+// WriteUint32 to encoder.
 func (enc *Encoder) WriteUint32(i uint32) {
 	enc.WriteUint64(uint64(i))
 }
 
-// WriteInt16 to encoder
+// WriteInt16 to encoder.
 func (enc *Encoder) WriteInt16(i int16) {
 	enc.WriteInt32(int32(i))
 }
 
-// WriteUint16 to encoder
+// WriteUint16 to encoder.
 func (enc *Encoder) WriteUint16(i uint16) {
-	if (i >= 0) && (i <= 9) {
+	if i <= 9 {
 		enc.buf = append(enc.buf, digits[i])
 		return
 	}
 	enc.buf = append(enc.buf, TagInteger)
 	enc.buf = AppendUint64(enc.buf, uint64(i))
 	enc.buf = append(enc.buf, TagSemicolon)
-	return
 }
 
-// WriteInt8 to encoder
+// WriteInt8 to encoder.
 func (enc *Encoder) WriteInt8(i int8) {
 	enc.WriteInt32(int32(i))
 }
 
-// WriteUint8 to encoder
+// WriteUint8 to encoder.
 func (enc *Encoder) WriteUint8(i uint8) {
 	enc.WriteUint16(uint16(i))
 }
 
-// WriteInt to encoder
+// WriteInt to encoder.
 func (enc *Encoder) WriteInt(i int) {
 	enc.WriteInt64(int64(i))
 }
 
-// WriteUint to encoder
+// WriteUint to encoder.
 func (enc *Encoder) WriteUint(i uint) {
 	enc.WriteUint64(uint64(i))
 }
@@ -125,12 +124,12 @@ func (enc *Encoder) writeFloat(f float64, bitSize int) {
 	}
 }
 
-// WriteFloat32 to encoder
+// WriteFloat32 to encoder.
 func (enc *Encoder) WriteFloat32(f float32) {
 	enc.writeFloat(float64(f), 32)
 }
 
-// WriteFloat64 to encoder
+// WriteFloat64 to encoder.
 func (enc *Encoder) WriteFloat64(f float64) {
 	enc.writeFloat(f, 64)
 }
@@ -147,12 +146,12 @@ func (enc *Encoder) writeComplex(r float64, i float64, bitSize int) {
 	}
 }
 
-// WriteComplex64 to encoder
+// WriteComplex64 to encoder.
 func (enc *Encoder) WriteComplex64(c complex64) {
 	enc.writeComplex(float64(real(c)), float64(imag(c)), 32)
 }
 
-// WriteComplex128 to encoder
+// WriteComplex128 to encoder.
 func (enc *Encoder) WriteComplex128(c complex128) {
 	enc.writeComplex(real(c), imag(c), 64)
 }

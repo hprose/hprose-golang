@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -25,41 +25,41 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// LongType represents the default type for decode long integer
+// LongType represents the default type for decode long integer.
 type LongType int8
 
 const (
-	// LongTypeInt64 represents the default type is int64
+	// LongTypeInt64 represents the default type is int64.
 	LongTypeInt64 LongType = iota
-	// LongTypeUint64 represents the default type is uint64
+	// LongTypeUint64 represents the default type is uint64.
 	LongTypeUint64
-	// LongTypeBigInt represents the default type is *big.Int
+	// LongTypeBigInt represents the default type is *big.Int.
 	LongTypeBigInt
 )
 
-// RealType represents the default type for decode real number
+// RealType represents the default type for decode real number.
 type RealType int8
 
 const (
-	// RealTypeFloat64 represents the default type is float64
+	// RealTypeFloat64 represents the default type is float64.
 	RealTypeFloat64 RealType = iota
-	// RealTypeFloat32 represents the default type is float32
+	// RealTypeFloat32 represents the default type is float32.
 	RealTypeFloat32
-	// RealTypeBigFloat represents the default type is *big.Float
+	// RealTypeBigFloat represents the default type is *big.Float.
 	RealTypeBigFloat
 )
 
-// MapType represents the default type for decode map
+// MapType represents the default type for decode map.
 type MapType int8
 
 const (
-	// MapTypeIIMap represents the default type is map[interface{}]interface{}
+	// MapTypeIIMap represents the default type is map[interface{}]interface{}.
 	MapTypeIIMap MapType = iota
-	// MapTypeSIMap represents the default type is map[string]interface{}
+	// MapTypeSIMap represents the default type is map[string]interface{}.
 	MapTypeSIMap
 )
 
-const defaultBufferSize = 8192
+const defaultBufferSize = 256
 
 // Decoder is a io.Reader like object, with hprose specific read functions.
 // Error is not returned as return value, but stored as Error member on this decoder instance.
@@ -76,7 +76,7 @@ type Decoder struct {
 	MapType
 }
 
-// NewDecoder creates an Decoder instance from byte array
+// NewDecoder creates an Decoder instance from byte array.
 func NewDecoder(input []byte) *Decoder {
 	return &Decoder{
 		reader: nil,
@@ -86,14 +86,15 @@ func NewDecoder(input []byte) *Decoder {
 	}
 }
 
-// NewDecoderFromReader creates an Decoder instance from io.Reader
-func NewDecoderFromReader(reader io.Reader, bufSize int) *Decoder {
-	if bufSize < 32 {
-		bufSize = defaultBufferSize
+// NewDecoderFromReader creates an Decoder instance from io.Reader.
+func NewDecoderFromReader(reader io.Reader, bufSize ...int) *Decoder {
+	size := defaultBufferSize
+	if len(bufSize) > 0 && bufSize[0] >= defaultBufferSize {
+		size = bufSize[0]
 	}
 	return &Decoder{
 		reader: reader,
-		buf:    make([]byte, bufSize),
+		buf:    make([]byte, size),
 		head:   0,
 		tail:   0,
 	}
@@ -134,7 +135,7 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	case *complex128:
 		*pv = dec.decodeComplex128(complex128Type, tag)
 	case *interface{}:
-		*pv = dec.decodeInterface(interfaceType, tag)
+		*pv = dec.decodeInterface(tag)
 	case *[]byte:
 		*pv = dec.decodeBytes(bytesType, tag)
 	case *string:
@@ -190,7 +191,7 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	case **complex128:
 		*pv = dec.decodeComplex128Ptr(complex128PtrType, tag)
 	case **interface{}:
-		*pv = dec.decodeInterfacePtr(interfacePtrType, tag)
+		*pv = dec.decodeInterfacePtr(tag)
 	case **[]byte:
 		*pv = dec.decodeBytesPtr(bytesPtrType, tag)
 	case **string:
@@ -247,7 +248,7 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 	}
 }
 
-// Decode a data from the Decoder
+// Decode a data from the Decoder.
 func (dec *Decoder) Decode(p interface{}, tag ...byte) {
 	if len(tag) > 0 {
 		dec.decode(p, tag[0])
@@ -256,7 +257,7 @@ func (dec *Decoder) Decode(p interface{}, tag ...byte) {
 	}
 }
 
-// Read returns a data of the specified type from the Decoder
+// Read returns a data of the specified type from the Decoder.
 func (dec *Decoder) Read(t reflect.Type, tag ...byte) (result interface{}) {
 	if t == nil {
 		dec.Decode(&result, tag...)
@@ -272,7 +273,7 @@ func (dec *Decoder) Read(t reflect.Type, tag ...byte) (result interface{}) {
 	return t2.Indirect(p)
 }
 
-// Reset the value reference and struct type reference
+// Reset the value reference and struct type reference.
 func (dec *Decoder) Reset() *Decoder {
 	if !dec.IsSimple() {
 		dec.refer.Reset()
@@ -281,7 +282,7 @@ func (dec *Decoder) Reset() *Decoder {
 	return dec
 }
 
-// Simple resets the decoder to simple mode or not
+// Simple resets the decoder to simple mode or not.
 func (dec *Decoder) Simple(simple bool) *Decoder {
 	if simple {
 		dec.refer = nil
@@ -292,26 +293,26 @@ func (dec *Decoder) Simple(simple bool) *Decoder {
 	return dec
 }
 
-// IsSimple returns the decoder is in simple mode or not
+// IsSimple returns the decoder is in simple mode or not.
 func (dec *Decoder) IsSimple() bool {
 	return nil == dec.refer
 }
 
-// AddReference adds o to the reference
+// AddReference adds o to the reference.
 func (dec *Decoder) AddReference(o interface{}) {
 	if !dec.IsSimple() {
 		dec.refer.Add(o)
 	}
 }
 
-// SetReference sets o to the reference at index i
+// SetReference sets o to the reference at index i.
 func (dec *Decoder) SetReference(i int, o interface{}) {
 	if !dec.IsSimple() {
 		dec.refer.Set(i, o)
 	}
 }
 
-// LastReferenceIndex returns the last index of the reference
+// LastReferenceIndex returns the last index of the reference.
 func (dec *Decoder) LastReferenceIndex() int {
 	if !dec.IsSimple() {
 		dec.refer.Last()
@@ -319,7 +320,7 @@ func (dec *Decoder) LastReferenceIndex() int {
 	return -1
 }
 
-// ReadReference to p
+// ReadReference to p.
 func (dec *Decoder) ReadReference(p interface{}) {
 	o := dec.refer.Read(dec.ReadInt())
 	src := reflect.TypeOf(o)
@@ -334,7 +335,7 @@ func (dec *Decoder) ReadReference(p interface{}) {
 	}
 }
 
-// ResetReader reuse decoder instance by specifying another reader
+// ResetReader reuse decoder instance by specifying another reader.
 func (dec *Decoder) ResetReader(reader io.Reader) *Decoder {
 	dec.reader = reader
 	dec.head = 0
@@ -342,7 +343,7 @@ func (dec *Decoder) ResetReader(reader io.Reader) *Decoder {
 	return dec
 }
 
-// ResetBytes reuse decoder instance by specifying another byte array as input
+// ResetBytes reuse decoder instance by specifying another byte array as input.
 func (dec *Decoder) ResetBytes(input []byte) *Decoder {
 	dec.reader = nil
 	dec.buf = input

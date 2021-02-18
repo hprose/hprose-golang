@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bytes_decoder.go                                |
 |                                                          |
-| LastModified: Jun 26, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -31,7 +31,7 @@ func (dec *Decoder) readBytes() []byte {
 	return bytes
 }
 
-// ReadBytes reads bytes and add reference
+// ReadBytes reads bytes and add reference.
 func (dec *Decoder) ReadBytes() []byte {
 	bytes := dec.readBytes()
 	dec.AddReference(bytes)

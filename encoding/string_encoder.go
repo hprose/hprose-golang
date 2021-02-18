@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/string_encoder.go                               |
 |                                                          |
-| LastModified: Mar 19, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -30,7 +30,7 @@ func (stringEncoder) Write(enc *Encoder, v interface{}) {
 	enc.WriteString(*(*string)(reflect2.PtrOf(v)))
 }
 
-// EncodeString to encoder
+// EncodeString to encoder.
 func (enc *Encoder) EncodeString(s string) {
 	length := utf16Length(s)
 	switch length {
@@ -47,7 +47,7 @@ func (enc *Encoder) EncodeString(s string) {
 	}
 }
 
-// WriteString to encoder
+// WriteString to encoder.
 func (enc *Encoder) WriteString(s string) {
 	enc.SetStringReference(s)
 	enc.buf = appendString(enc.buf, s, utf16Length(s))

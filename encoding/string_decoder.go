@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/string_decoder.go                               |
 |                                                          |
-| LastModified: Jun 27, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -19,31 +19,39 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
+func (dec *Decoder) checkUTF8String(buf []byte, off, utf16Length int) (int, int, bool) {
+	b := buf[off]
+	switch b >> 4 {
+	case 0, 1, 2, 3, 4, 5, 6, 7:
+		off++
+	case 12, 13:
+		off += 2
+	case 14:
+		off += 3
+	case 15:
+		if b&8 == 8 {
+			if dec.Error == nil {
+				dec.Error = ErrInvalidUTF8
+			}
+			return off, utf16Length, false
+		}
+		off += 4
+		utf16Length--
+	default:
+		if dec.Error == nil {
+			dec.Error = ErrInvalidUTF8
+		}
+		return off, utf16Length, false
+	}
+	return off, utf16Length, true
+}
+
 func (dec *Decoder) fastReadStringAsBytes(utf16Length int) (data []byte) {
 	buf := dec.buf[dec.head:dec.tail]
 	off := 0
 	for ; utf16Length > 0; utf16Length-- {
-		b := buf[off]
-		switch b >> 4 {
-		case 0, 1, 2, 3, 4, 5, 6, 7:
-			off++
-		case 12, 13:
-			off += 2
-		case 14:
-			off += 3
-		case 15:
-			if b&8 == 8 {
-				if dec.Error == nil {
-					dec.Error = ErrInvalidUTF8
-				}
-				return
-			}
-			off += 4
-			utf16Length--
-		default:
-			if dec.Error == nil {
-				dec.Error = ErrInvalidUTF8
-			}
+		var ok bool
+		if off, utf16Length, ok = dec.checkUTF8String(buf, off, utf16Length); !ok {
 			return
 		}
 	}
@@ -63,27 +71,8 @@ func (dec *Decoder) readStringAsBytes(utf16Length int) (data []byte, safe bool) 
 		buf := dec.buf[dec.head:dec.tail]
 		off := 0
 		for ; utf16Length > 0 && off < length; utf16Length-- {
-			b := buf[off]
-			switch b >> 4 {
-			case 0, 1, 2, 3, 4, 5, 6, 7:
-				off++
-			case 12, 13:
-				off += 2
-			case 14:
-				off += 3
-			case 15:
-				if b&8 == 8 {
-					if dec.Error == nil {
-						dec.Error = ErrInvalidUTF8
-					}
-					return
-				}
-				off += 4
-				utf16Length--
-			default:
-				if dec.Error == nil {
-					dec.Error = ErrInvalidUTF8
-				}
+			var ok bool
+			if off, utf16Length, ok = dec.checkUTF8String(buf, off, utf16Length); !ok {
 				return
 			}
 		}
@@ -120,7 +109,7 @@ func (dec *Decoder) readStringAsSafeBytes(utf16Length int) []byte {
 	return append(([]byte)(nil), data...)
 }
 
-// ReadStringAsBytes reads string as bytes
+// ReadStringAsBytes reads string as bytes.
 func (dec *Decoder) ReadStringAsBytes() (data []byte) {
 	data = dec.readStringAsSafeBytes(dec.ReadInt())
 	dec.Skip()
@@ -143,21 +132,21 @@ func (dec *Decoder) readSafeString(utf16Length int) (s string) {
 	return unsafeString(data)
 }
 
-// ReadUnsafeString reads unsafe string
+// ReadUnsafeString reads unsafe string.
 func (dec *Decoder) ReadUnsafeString() (s string) {
 	s = dec.readUnsafeString(dec.ReadInt())
 	dec.Skip()
 	return
 }
 
-// ReadSafeString reads safe string
+// ReadSafeString reads safe string.
 func (dec *Decoder) ReadSafeString() (s string) {
 	s = dec.readSafeString(dec.ReadInt())
 	dec.Skip()
 	return
 }
 
-// ReadString reads safe string and add reference
+// ReadString reads safe string and add reference.
 func (dec *Decoder) ReadString() (s string) {
 	s = dec.ReadSafeString()
 	dec.AddReference(s)

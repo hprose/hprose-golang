@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encode.go                                       |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -106,7 +106,7 @@ func toBytes(i uint64, buf []byte) (off int) {
 	return
 }
 
-// AppendInt64 i to buf
+// AppendInt64 i to buf.
 func AppendInt64(buf []byte, i int64) []byte {
 	if i >= 0 {
 		return AppendUint64(buf, uint64(i))
@@ -121,9 +121,9 @@ func AppendInt64(buf []byte, i int64) []byte {
 	return append(buf, buffer[off:]...)
 }
 
-// AppendUint64 i to buf
+// AppendUint64 i to buf.
 func AppendUint64(buf []byte, i uint64) []byte {
-	if (i >= 0) && (i <= 9) {
+	if i <= 9 {
 		return append(buf, digits[i])
 	}
 	var buffer [20]byte

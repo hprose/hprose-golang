@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/slice_encoder.go                                |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -35,13 +35,11 @@ func (sliceEncoder) Write(enc *Encoder, v interface{}) {
 	enc.writeSlice(reflect.ValueOf(v).Elem().Interface())
 }
 
-// WriteSlice to encoder
+// WriteSlice to encoder.
 func (enc *Encoder) WriteSlice(v interface{}) {
 	enc.AddReferenceCount(1)
 	enc.writeSlice(v)
 }
-
-var emptySlice = []byte{TagList, TagOpenbrace, TagClosebrace}
 
 func (enc *Encoder) writeSlice(v interface{}) {
 	if bytes, ok := v.([]byte); ok {
@@ -58,40 +56,8 @@ func (enc *Encoder) writeSlice(v interface{}) {
 	enc.WriteFoot()
 }
 
-func (enc *Encoder) writeSliceBody(v interface{}, n int) {
+func (enc *Encoder) write2dSliceBody(v interface{}, n int) {
 	switch v := v.(type) {
-	case []uint16:
-		enc.writeUint16SliceBody(v, n)
-	case []uint32:
-		enc.writeUint32SliceBody(v, n)
-	case []uint64:
-		enc.writeUint64SliceBody(v, n)
-	case []uint:
-		enc.writeUintSliceBody(v, n)
-	case []int8:
-		enc.writeInt8SliceBody(v, n)
-	case []int16:
-		enc.writeInt16SliceBody(v, n)
-	case []int32:
-		enc.writeInt32SliceBody(v, n)
-	case []int64:
-		enc.writeInt64SliceBody(v, n)
-	case []int:
-		enc.writeIntSliceBody(v, n)
-	case []bool:
-		enc.writeBoolSliceBody(v, n)
-	case []float32:
-		enc.writeFloat32SliceBody(v, n)
-	case []float64:
-		enc.writeFloat64SliceBody(v, n)
-	case []complex64:
-		enc.writeComplex64SliceBody(v, n)
-	case []complex128:
-		enc.writeComplex128SliceBody(v, n)
-	case []string:
-		enc.writeStringSliceBody(v, n)
-	case []interface{}:
-		enc.writeInterfaceSliceBody(v, n)
 	case [][]uint16:
 		enc.write2dUint16SliceBody(v, n)
 	case [][]uint32:
@@ -128,6 +94,45 @@ func (enc *Encoder) writeSliceBody(v interface{}, n int) {
 		enc.writeBytesSliceBody(v, n)
 	default:
 		enc.writeOtherSliceBody(v, n)
+	}
+}
+
+func (enc *Encoder) writeSliceBody(v interface{}, n int) {
+	switch v := v.(type) {
+	case []uint16:
+		enc.writeUint16SliceBody(v, n)
+	case []uint32:
+		enc.writeUint32SliceBody(v, n)
+	case []uint64:
+		enc.writeUint64SliceBody(v, n)
+	case []uint:
+		enc.writeUintSliceBody(v, n)
+	case []int8:
+		enc.writeInt8SliceBody(v, n)
+	case []int16:
+		enc.writeInt16SliceBody(v, n)
+	case []int32:
+		enc.writeInt32SliceBody(v, n)
+	case []int64:
+		enc.writeInt64SliceBody(v, n)
+	case []int:
+		enc.writeIntSliceBody(v, n)
+	case []bool:
+		enc.writeBoolSliceBody(v, n)
+	case []float32:
+		enc.writeFloat32SliceBody(v, n)
+	case []float64:
+		enc.writeFloat64SliceBody(v, n)
+	case []complex64:
+		enc.writeComplex64SliceBody(v, n)
+	case []complex128:
+		enc.writeComplex128SliceBody(v, n)
+	case []string:
+		enc.writeStringSliceBody(v, n)
+	case []interface{}:
+		enc.writeInterfaceSliceBody(v, n)
+	default:
+		enc.write2dSliceBody(v, n)
 	}
 }
 

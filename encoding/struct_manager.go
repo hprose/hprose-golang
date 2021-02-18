@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_manager.go                               |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,7 +24,7 @@ import (
 
 var defaultTags = []string{"hprose", "json"}
 
-// FieldAccessor _
+// FieldAccessor .
 type FieldAccessor struct {
 	Type   reflect2.Type
 	Alias  string
@@ -38,7 +38,7 @@ func stripOptions(tag string) string {
 	if i < 0 {
 		return tag
 	}
-	return string(tag[:i])
+	return tag[:i]
 }
 
 func _fieldAlias(tag reflect.StructTag, tagname string) string {
@@ -149,11 +149,11 @@ func makeStructInfo(name string, names []string) (info structInfo) {
 	return
 }
 
-// ReadStruct reads struct type
+// ReadStruct reads struct type.
 func (dec *Decoder) ReadStruct() {
 	name := dec.ReadSafeString()
 	count := dec.ReadInt()
-	names := make([]string, count, count)
+	names := make([]string, count)
 	for i := 0; i < count; i++ {
 		names[i] = dec.decodeString(stringType, dec.NextByte())
 	}
@@ -186,7 +186,7 @@ func Register(proto interface{}, alias string, tag ...string) {
 	newStructDecoder(t)
 }
 
-// GetStructType by alias
+// GetStructType by alias.
 func GetStructType(alias string) reflect.Type {
 	if t, ok := structTypeMap.Load(alias); ok {
 		return t.(reflect.Type)

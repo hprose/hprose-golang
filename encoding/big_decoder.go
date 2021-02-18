@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 27, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -70,12 +70,12 @@ func (dec *Decoder) readBigFloat(t reflect.Type) *big.Float {
 	return dec.stringToBigFloat(unsafeString(dec.UnsafeUntil(TagSemicolon)), t)
 }
 
-// ReadBigInt reads *big.Int
+// ReadBigInt reads *big.Int.
 func (dec *Decoder) ReadBigInt() *big.Int {
 	return dec.readBigInt(nil)
 }
 
-// ReadBigFloat reads *big.Float
+// ReadBigFloat reads *big.Float.
 func (dec *Decoder) ReadBigFloat() *big.Float {
 	return dec.readBigFloat(nil)
 }

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/array_encoder.go                                |
 |                                                          |
-| LastModified: Jan 23, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -33,7 +33,7 @@ func (arrayEncoder) Write(enc *Encoder, v interface{}) {
 	enc.writeArray(reflect.ValueOf(v).Elem().Interface())
 }
 
-// WriteArray to encoder
+// WriteArray to encoder.
 func (enc *Encoder) WriteArray(v interface{}) {
 	enc.AddReferenceCount(1)
 	enc.writeArray(v)

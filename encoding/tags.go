@@ -6,16 +6,16 @@
 |                                                          |
 | encoding/tags.go                                         |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package encoding
 
-// Hprose Tags
+// Hprose Tags.
 const (
-	// Serialize Type
+	// Serialize Type.
 	TagInteger  byte = 'i'
 	TagLong     byte = 'l'
 	TagDouble   byte = 'd'
@@ -38,7 +38,7 @@ const (
 	TagObject   byte = 'o'
 	TagRef      byte = 'r'
 
-	// Serialize Marks
+	// Serialize Marks.
 	TagPos        byte = '+'
 	TagNeg        byte = '-'
 	TagSemicolon  byte = ';'
@@ -47,7 +47,7 @@ const (
 	TagQuote      byte = '"'
 	TagPoint      byte = '.'
 
-	// Protocol Tags
+	// Protocol Tags.
 	TagHeader byte = 'H'
 	TagCall   byte = 'C'
 	TagResult byte = 'R'

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_encoder.go                                  |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -52,21 +52,21 @@ func (bigRatEncoder) Write(enc *Encoder, v interface{}) {
 	enc.WriteBigRat((*big.Rat)(reflect2.PtrOf(v)))
 }
 
-// WriteBigFloat to encoder
+// WriteBigFloat to encoder.
 func (enc *Encoder) WriteBigFloat(f *big.Float) {
 	enc.buf = append(enc.buf, TagDouble)
 	enc.buf = f.Append(enc.buf, 'g', -1)
 	enc.buf = append(enc.buf, TagSemicolon)
 }
 
-// WriteBigInt to encoder
+// WriteBigInt to encoder.
 func (enc *Encoder) WriteBigInt(i *big.Int) {
 	enc.buf = append(enc.buf, TagLong)
 	enc.buf = append(enc.buf, i.String()...)
 	enc.buf = append(enc.buf, TagSemicolon)
 }
 
-// WriteBigRat to encoder
+// WriteBigRat to encoder.
 func (enc *Encoder) WriteBigRat(r *big.Rat) {
 	if r.IsInt() {
 		enc.WriteBigInt(r.Num())

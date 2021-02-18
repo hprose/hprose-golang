@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/error_encoder.go                                |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -29,7 +29,7 @@ func (errorEncoder) Write(enc *Encoder, v interface{}) {
 	}
 }
 
-// WriteError to encoder
+// WriteError to encoder.
 func (enc *Encoder) WriteError(e error) {
 	enc.AddReferenceCount(1)
 	s := e.Error()

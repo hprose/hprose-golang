@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/value_decoder.go                                |
 |                                                          |
-| LastModified: Jun 21, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -33,12 +33,12 @@ func getValueDecoder(t reflect.Type) (valdec ValueDecoder) {
 	return nil
 }
 
-// RegisterValueDecoder valdec
+// RegisterValueDecoder valdec.
 func RegisterValueDecoder(valdec ValueDecoder) {
 	decoderMap.Store(valdec.Type(), valdec)
 }
 
-// GetValueDecoder of Type t
+// GetValueDecoder of Type t.
 func GetValueDecoder(t reflect.Type) (valdec ValueDecoder) {
 	valdec = getValueDecoder(t)
 	if valdec == nil {
@@ -54,6 +54,7 @@ func invalidDecoder(t reflect.Type) ValueDecoder {
 	panic(UnsupportedTypeError{t})
 }
 
+//nolint
 func init() {
 	valueDecoderFactories = []func(t reflect.Type) ValueDecoder{
 		reflect.Invalid:       invalidDecoder,
@@ -76,7 +77,7 @@ func init() {
 		reflect.Array:         getArrayDecoder,
 		reflect.Chan:          invalidDecoder,
 		reflect.Func:          invalidDecoder,
-		reflect.Interface:     func(t reflect.Type) ValueDecoder { return interfaceDecoder{t} },
+		reflect.Interface:     func(t reflect.Type) ValueDecoder { return interfaceDecoder{} },
 		reflect.Map:           getMapDecoder,
 		reflect.Ptr:           getPtrDecoder,
 		reflect.Slice:         getSliceDecoder,

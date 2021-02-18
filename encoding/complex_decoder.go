@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/complex_decoder.go                              |
 |                                                          |
-| LastModified: Jun 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -85,13 +85,13 @@ func (dec *Decoder) decodeComplex128(t reflect.Type, tag byte) complex128 {
 	case TagTrue:
 		return 1
 	case TagNaN:
-		return complex(float64(math.NaN()), 0)
+		return complex(math.NaN(), 0)
 	case TagInteger:
 		return complex(float64(dec.ReadInt32()), 0)
 	case TagLong, TagDouble:
 		return complex(dec.ReadFloat64(), 0)
 	case TagInfinity:
-		return complex(float64(dec.readInf()), 0)
+		return complex(dec.readInf(), 0)
 	case TagUTF8Char:
 		return dec.stringToComplex128(dec.readUnsafeString(1))
 	case TagString:

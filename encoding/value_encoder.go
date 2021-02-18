@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/value_encoder.go                                |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -61,12 +61,12 @@ func checkType(v interface{}) reflect.Type {
 	return t
 }
 
-// RegisterValueEncoder of type(v)
+// RegisterValueEncoder of type(v).
 func RegisterValueEncoder(v interface{}, valenc ValueEncoder) {
 	registerValueEncoder(checkType(v), valenc)
 }
 
-// GetValueEncoder of type(v)
+// GetValueEncoder of type(v).
 func GetValueEncoder(v interface{}) ValueEncoder {
 	t := checkType(v)
 	if t.Kind() == reflect.Struct {

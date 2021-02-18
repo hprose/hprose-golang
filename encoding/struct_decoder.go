@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_decoder.go                               |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -27,7 +27,7 @@ func (dec *Decoder) readObjectAsMap(structInfo structInfo) map[string]interface{
 	dec.AddReference(m)
 	ptr := reflect2.PtrOf(&m)
 	for _, name := range structInfo.names {
-		v := dec.decodeInterface(interfaceType, dec.NextByte())
+		v := dec.decodeInterface(dec.NextByte())
 		t.UnsafeSetIndex(ptr, reflect2.PtrOf(name), reflect2.PtrOf(&v))
 	}
 	dec.Skip()
@@ -42,14 +42,14 @@ func (dec *Decoder) readObject(structInfo structInfo) interface{} {
 		if field, ok := structInfo.fields[name]; ok {
 			field.Decode(dec, field.Type.Type1(), field.Field.UnsafeGet(ptr))
 		} else {
-			dec.decodeInterface(interfaceType, dec.NextByte())
+			dec.decodeInterface(dec.NextByte())
 		}
 	}
 	dec.Skip()
 	return obj
 }
 
-// ReadObject reads object and add reference
+// ReadObject reads object and add reference.
 func (dec *Decoder) ReadObject() interface{} {
 	index := dec.ReadInt()
 	structInfo := dec.getStructInfo(index)
@@ -70,7 +70,7 @@ func (valdec *structDecoder) decodeField(dec *Decoder, ptr unsafe.Pointer, name 
 	if field, ok := valdec.fields[name]; ok {
 		field.Decode(dec, field.Type.Type1(), field.Field.UnsafeGet(ptr))
 	} else {
-		dec.decodeInterface(interfaceType, dec.NextByte())
+		dec.decodeInterface(dec.NextByte())
 	}
 }
 

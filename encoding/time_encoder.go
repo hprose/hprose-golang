@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/time_encoder.go                                 |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -58,21 +58,20 @@ func (enc *Encoder) writeTimePart(hour int, min int, sec int, nsec int) {
 	enc.buf = append(enc.buf, TagPoint)
 	q := nsec / 1000000
 	p = q * 3
-	nsec = nsec - q*1000000
+	nsec -= q * 1000000
 	enc.buf = append(enc.buf, digit3[p:p+3]...)
 	if nsec == 0 {
 		return
 	}
 	q = nsec / 1000
 	p = q * 3
-	nsec = nsec - q*1000
+	nsec -= q * 1000
 	enc.buf = append(enc.buf, digit3[p:p+3]...)
 	if nsec == 0 {
 		return
 	}
 	p = nsec * 3
 	enc.buf = append(enc.buf, digit3[p:p+3]...)
-	return
 }
 
 func (enc *Encoder) writeTime(t time.Time) {

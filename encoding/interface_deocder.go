@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/interface_decoder.go                            |
 |                                                          |
-| LastModified: Jun 27, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -22,7 +22,71 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-func (dec *Decoder) decodeInterface(t reflect.Type, tag byte) interface{} {
+func (dec *Decoder) decodeLongAsInterface() interface{} {
+	switch dec.LongType {
+	case LongTypeInt64:
+		return dec.ReadInt64()
+	case LongTypeUint64:
+		return dec.ReadUint64()
+	}
+	return dec.ReadBigInt()
+}
+
+func (dec *Decoder) decodeNaNAsInterface() interface{} {
+	switch dec.RealType {
+	case RealTypeFloat32:
+		return float32(math.NaN())
+	case RealTypeFloat64:
+		return math.NaN()
+	}
+	dec.Error = DecodeError("hprose/encoding: can not parse NaN to *big.Float")
+	return nil
+}
+
+func (dec *Decoder) decodeInfinityAsInterface() interface{} {
+	var f float64
+	if dec.NextByte() == TagNeg {
+		f = math.Inf(-1)
+	} else {
+		f = math.Inf(1)
+	}
+	switch dec.RealType {
+	case RealTypeFloat32:
+		return float32(f)
+	case RealTypeFloat64:
+		return f
+	}
+	return big.NewFloat(f)
+}
+
+func (dec *Decoder) decodeDoubleAsInterface() interface{} {
+	switch dec.RealType {
+	case RealTypeFloat32:
+		return dec.ReadFloat32()
+	case RealTypeFloat64:
+		return dec.ReadFloat64()
+	}
+	return dec.ReadBigFloat()
+}
+
+func (dec *Decoder) decodeListAsInterface(tag byte) interface{} {
+	var result []interface{}
+	ifsdec.Decode(dec, &result, tag)
+	return result
+}
+
+func (dec *Decoder) decodeMapAsInterface(tag byte) interface{} {
+	if dec.MapType == MapTypeIIMap {
+		var result map[interface{}]interface{}
+		ififmdec.Decode(dec, &result, tag)
+		return result
+	}
+	var result map[string]interface{}
+	sifmdec.Decode(dec, &result, tag)
+	return result
+}
+
+func (dec *Decoder) decodeInterface(tag byte) interface{} {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int(i)
 	}
@@ -38,47 +102,13 @@ func (dec *Decoder) decodeInterface(t reflect.Type, tag byte) interface{} {
 	case TagInteger:
 		return dec.ReadInt()
 	case TagLong:
-		switch dec.LongType {
-		case LongTypeInt64:
-			return dec.ReadInt64()
-		case LongTypeUint64:
-			return dec.ReadUint64()
-		default:
-			return dec.ReadBigInt()
-		}
+		return dec.decodeLongAsInterface()
 	case TagNaN:
-		switch dec.RealType {
-		case RealTypeFloat32:
-			return float32(math.NaN())
-		case RealTypeFloat64:
-			return math.NaN()
-		default:
-			dec.Error = DecodeError("hprose/encoding: can not parse NaN to *big.Float")
-		}
+		return dec.decodeNaNAsInterface()
 	case TagInfinity:
-		var f float64
-		if dec.NextByte() == TagNeg {
-			f = math.Inf(-1)
-		} else {
-			f = math.Inf(1)
-		}
-		switch dec.RealType {
-		case RealTypeFloat32:
-			return float32(f)
-		case RealTypeFloat64:
-			return f
-		default:
-			return big.NewFloat(f)
-		}
+		return dec.decodeInfinityAsInterface()
 	case TagDouble:
-		switch dec.RealType {
-		case RealTypeFloat32:
-			return dec.ReadFloat32()
-		case RealTypeFloat64:
-			return dec.ReadFloat64()
-		default:
-			return dec.ReadBigFloat()
-		}
+		return dec.decodeDoubleAsInterface()
 	case TagTime:
 		return dec.ReadTime()
 	case TagDate:
@@ -92,20 +122,9 @@ func (dec *Decoder) decodeInterface(t reflect.Type, tag byte) interface{} {
 	case TagBytes:
 		return dec.ReadBytes()
 	case TagList:
-		var result []interface{}
-		ifsdec.Decode(dec, &result, tag)
-		return result
+		return dec.decodeListAsInterface(tag)
 	case TagMap:
-		switch dec.MapType {
-		case MapTypeIIMap:
-			var result map[interface{}]interface{}
-			ififmdec.Decode(dec, &result, tag)
-			return result
-		default:
-			var result map[string]interface{}
-			sifmdec.Decode(dec, &result, tag)
-			return result
-		}
+		return dec.decodeMapAsInterface(tag)
 	case TagObject:
 		return dec.ReadObject()
 	}
@@ -115,36 +134,32 @@ func (dec *Decoder) decodeInterface(t reflect.Type, tag byte) interface{} {
 	return nil
 }
 
-func (dec *Decoder) decodeInterfacePtr(t reflect.Type, tag byte) *interface{} {
+func (dec *Decoder) decodeInterfacePtr(tag byte) *interface{} {
 	if tag == TagNull {
 		return nil
 	}
-	i := dec.decodeInterface(t, tag)
+	i := dec.decodeInterface(tag)
 	return &i
 }
 
 // interfaceDecoder is the implementation of ValueDecoder for interface{}.
-type interfaceDecoder struct {
-	t reflect.Type
-}
+type interfaceDecoder struct{}
 
 func (valdec interfaceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*interface{})(reflect2.PtrOf(p)) = dec.decodeInterface(valdec.t, tag)
+	*(*interface{})(reflect2.PtrOf(p)) = dec.decodeInterface(tag)
 }
 
 func (valdec interfaceDecoder) Type() reflect.Type {
-	return valdec.t
+	return interfaceType
 }
 
 // interfacePtrDecoder is the implementation of ValueDecoder for *interface{}.
-type interfacePtrDecoder struct {
-	t reflect.Type
-}
+type interfacePtrDecoder struct{}
 
 func (valdec interfacePtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**interface{})(reflect2.PtrOf(p)) = dec.decodeInterfacePtr(valdec.t, tag)
+	*(**interface{})(reflect2.PtrOf(p)) = dec.decodeInterfacePtr(tag)
 }
 
 func (valdec interfacePtrDecoder) Type() reflect.Type {
-	return valdec.t
+	return interfacePtrType
 }

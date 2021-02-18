@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/time_decoder.go                                 |
 |                                                          |
-| LastModified: Jun 27, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -97,7 +97,7 @@ func (dec *Decoder) readNsec() (nsec int, tag byte) {
 	return
 }
 
-// ReadTime reads time.Time and add reference
+// ReadTime reads time.Time and add reference.
 func (dec *Decoder) ReadTime() (t time.Time) {
 	hour := dec.read2Digit()
 	min := dec.read2Digit()
@@ -116,7 +116,7 @@ func (dec *Decoder) ReadTime() (t time.Time) {
 	return
 }
 
-// ReadDateTime reads time.Time and add reference
+// ReadDateTime reads time.Time and add reference.
 func (dec *Decoder) ReadDateTime() (t time.Time) {
 	year := dec.read4Digit()
 	month := dec.read2Digit()

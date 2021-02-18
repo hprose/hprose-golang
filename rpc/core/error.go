@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/error.go                                        |
 |                                                          |
-| LastModified: Jan 24, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -55,7 +55,7 @@ func (e UnsupportedServerTypeError) Error() string {
 	return "hprose/rpc/core: unsupported server type: " + e.ServerType.String()
 }
 
-// PanicError represents a panic error
+// PanicError represents a panic error.
 type PanicError struct {
 	Panic interface{}
 	Stack []byte
@@ -72,7 +72,7 @@ func stack() []byte {
 	}
 }
 
-// NewPanicError return a panic error
+// NewPanicError return a panic error.
 func NewPanicError(v interface{}) *PanicError {
 	return &PanicError{v, stack()}
 }

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/uuid_decoder.go                                 |
 |                                                          |
-| LastModified: Jun 27, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -41,7 +41,7 @@ func (dec *Decoder) bytesToUUID(value []byte) (id uuid.UUID) {
 	return
 }
 
-// ReadUUID reads uuid.UUID and add reference
+// ReadUUID reads uuid.UUID and add reference.
 func (dec *Decoder) ReadUUID() uuid.UUID {
 	uuid, err := uuid.ParseBytes(dec.UnsafeNext(38))
 	dec.AddReference(uuid)

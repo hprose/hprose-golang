@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder_test.go                                 |
 |                                                          |
-| LastModified: Jan 23, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -305,10 +305,9 @@ func BenchmarkHproseDecodeStruct(b *testing.B) {
 	enc.Encode(ts)
 	enc.Encode(ts)
 	data := ([]byte)(sb.String())
-	dec := &Decoder{}
 	var obj TestStruct
 	for i := 0; i < b.N; i++ {
-		dec.ResetBytes(data)
+		dec := NewDecoderFromReader(bytes.NewReader(data))
 		dec.Decode(&obj)
 		dec.Decode(&obj)
 		dec.Decode(&obj)

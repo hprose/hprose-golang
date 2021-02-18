@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/ptr_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -115,6 +115,7 @@ func getStructPtrDecoder(t reflect.Type) ValueDecoder {
 
 var ptrDecoderFactories []func(t reflect.Type) ValueDecoder
 
+//nolint
 func init() {
 	ptrDecoderFactories = []func(t reflect.Type) ValueDecoder{
 		reflect.Invalid:       invalidDecoder,
@@ -137,7 +138,7 @@ func init() {
 		reflect.Array:         getArrayPtrDecoder,
 		reflect.Chan:          invalidDecoder,
 		reflect.Func:          invalidDecoder,
-		reflect.Interface:     func(t reflect.Type) ValueDecoder { return interfacePtrDecoder{t} },
+		reflect.Interface:     func(t reflect.Type) ValueDecoder { return interfacePtrDecoder{} },
 		reflect.Map:           getMapPtrDecoder,
 		reflect.Ptr:           getPtrPtrDecoder,
 		reflect.Slice:         getSlicePtrDecoder,

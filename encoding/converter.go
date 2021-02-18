@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/converter.go                                    |
 |                                                          |
-| LastModified: Feb 17, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -96,12 +96,12 @@ var converterMap sync.Map
 
 // RegisterConverter for converting src to dest.
 func RegisterConverter(src, dest reflect.Type, converter func(dec *Decoder, o interface{}, p interface{})) {
-	structTypeMap.Store(converterMapKey{src, dest}, converter)
+	converterMap.Store(converterMapKey{src, dest}, converter)
 }
 
 // GetConverter returns the converter for converting src to dest.
 func GetConverter(src, dest reflect.Type) func(dec *Decoder, o interface{}, p interface{}) {
-	if converter, ok := structTypeMap.Load(converterMapKey{src, dest}); ok {
+	if converter, ok := converterMap.Load(converterMapKey{src, dest}); ok {
 		return converter.(func(dec *Decoder, o interface{}, p interface{}))
 	}
 	switch dest.Kind() {
@@ -113,25 +113,21 @@ func GetConverter(src, dest reflect.Type) func(dec *Decoder, o interface{}, p in
 			return ptrCopy
 		}
 		return ptrConverter
-	case reflect.Array:
-		if src == dest || (src.Kind() == reflect.Ptr && src.Elem() == dest) {
-			return arrayCopy
-		}
-	case reflect.Slice:
-		if src == dest || (src.Kind() == reflect.Ptr && src.Elem() == dest) {
-			return sliceCopy
-		}
-	case reflect.Map:
-		if src == dest || (src.Kind() == reflect.Ptr && src.Elem() == dest) {
-			return mapCopy
-		}
 	default:
 		if src == dest || (src.Kind() == reflect.Ptr && src.Elem() == dest) {
-			return dataCopy
+			switch dest.Kind() {
+			case reflect.Array:
+				return arrayCopy
+			case reflect.Slice:
+				return sliceCopy
+			case reflect.Map:
+				return mapCopy
+			default:
+				return dataCopy
+			}
 		}
 		return fastConverterMap[fastConverterMapKey{src.Kind(), dest.Kind()}]
 	}
-	return nil
 }
 
 func init() {

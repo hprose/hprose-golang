@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service_codec.go                                |
 |                                                          |
-| LastModified: Feb 17, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -41,7 +41,7 @@ func (c serviceCodec) Encode(result interface{}, context *ServiceContext) (respo
 	}
 	if context.HasRequestHeaders() {
 		encoder.WriteTag(encoding.TagHeader)
-		encoder.Write((map[string]interface{})(context.RequestHeaders().(dict)))
+		_ = encoder.Write((map[string]interface{})(context.RequestHeaders().(dict)))
 		encoder.Reset()
 	}
 	encoder.WriteTag(encoding.TagCall)
@@ -56,7 +56,7 @@ func (c serviceCodec) Encode(result interface{}, context *ServiceContext) (respo
 		encoder.WriteString(msg)
 	} else {
 		encoder.WriteTag(encoding.TagResult)
-		encoder.Write(result)
+		_ = encoder.Write(result)
 	}
 	encoder.WriteTag(encoding.TagEnd)
 	return encoder.Bytes(), encoder.Error
@@ -88,7 +88,7 @@ func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name stri
 		decoder.Decode(&name)
 		var method Method
 		if method, err = c.decodeMethod(name, context); err == nil {
-			args, err = c.decodeArguments(method, decoder, context)
+			args, err = c.decodeArguments(method, decoder)
 		}
 	case encoding.TagEnd:
 		name = "~"
@@ -110,7 +110,7 @@ func (c serviceCodec) decodeMethod(name string, context *ServiceContext) (method
 	return method, err
 }
 
-func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder, context *ServiceContext) (args []interface{}, err error) {
+func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder) (args []interface{}, err error) {
 	tag := decoder.NextByte()
 	if tag != encoding.TagList {
 		return
@@ -130,7 +130,7 @@ func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder, 
 			paramTypes[i] = parameters[n-1].Elem()
 		}
 	} else {
-		copy(paramTypes, parameters[:])
+		copy(paramTypes, parameters)
 	}
 	args = make([]interface{}, count)
 	decoder.AddReference(&args)

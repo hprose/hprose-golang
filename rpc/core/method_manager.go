@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/method_manager.go                               |
 |                                                          |
-| LastModified: Feb 16, 2021                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -39,7 +39,7 @@ type methodManager struct {
 	methods sync.Map
 }
 
-// NewMethodManager returns a MethodManager
+// NewMethodManager returns a MethodManager.
 func NewMethodManager() MethodManager {
 	return &methodManager{}
 }
@@ -187,25 +187,17 @@ func (mm *methodManager) recursiveAddFuncFields(v reflect.Value, t reflect.Type,
 			return
 		}
 	}
-	if !f.CanInterface() {
-		return
-	}
-	if f.Kind() == reflect.Func {
+	switch {
+	case !f.CanInterface():
+	case f.Kind() == reflect.Func:
 		mm.addFunction(f, name, namespace...)
-		return
+	case fs.Anonymous:
+		mm.AddAllMethods(f.Interface(), namespace...)
+	case len(namespace) == 0 || namespace[0] == "":
+		mm.AddAllMethods(f.Interface(), name)
+	default:
+		mm.AddAllMethods(f.Interface(), namespace[0]+"_"+name)
 	}
-	if !fs.Anonymous {
-		if len(namespace) > 0 {
-			if namespace[0] == "" {
-				namespace[0] = name
-			} else {
-				namespace[0] += "_" + name
-			}
-		} else {
-			namespace = append(namespace, name)
-		}
-	}
-	mm.AddAllMethods(f.Interface(), namespace...)
 }
 
 type addFuncFunc func(v reflect.Value, t reflect.Type, i int, namespace ...string)

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encode_handler.go                               |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -19,10 +19,10 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-// EncodeHandler is an encode handler
+// EncodeHandler is an encode handler.
 type EncodeHandler func(enc *Encoder, v interface{})
 
-// GetEncodeHandler for specified type
+// GetEncodeHandler for specified type.
 func GetEncodeHandler(t reflect.Type) (handler EncodeHandler) {
 	if handler = getOtherEncodeHandler(t); handler == nil {
 		switch t.Kind() {

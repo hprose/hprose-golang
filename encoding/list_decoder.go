@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/list_decoder.go                                 |
 |                                                          |
-| LastModified: Jun 26, 2020                               |
+| LastModified: Feb 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -36,7 +36,7 @@ func (valdec listDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		*plist = l
 		dec.AddReference(l)
 		for i := 0; i < count; i++ {
-			l.PushBack(dec.decodeInterface(interfaceType, dec.NextByte()))
+			l.PushBack(dec.decodeInterface(dec.NextByte()))
 		}
 		dec.Skip()
 	default:

@@ -8,6 +8,7 @@ linters:
     - funlen
     - lll
     - gochecknoglobals
+    - gochecknoinits
     - goerr113
     - godox
     - gomnd
@@ -22,7 +23,6 @@ linters:
     - dogsled
     - dupl
     - errcheck
-    - gochecknoinits
     - gocognit
     - goconst
     - gocritic
@@ -53,3 +53,19 @@ linters:
     - unused
     - varcheck
     - whitespace
+
+issues:
+  # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        - dupl
+        - errcheck
+        - goconst
+        - gocyclo
+        - gosec
+        - maligned
+        - structcheck
+        - stylecheck
+        - unused

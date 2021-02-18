@@ -40,14 +40,14 @@ func (c clientCodec) Encode(name string, args []interface{}, context *ClientCont
 	}
 	if context.HasRequestHeaders() {
 		encoder.WriteTag(encoding.TagHeader)
-		encoder.Write((map[string]interface{})(context.RequestHeaders().(dict)))
+		_ = encoder.Write((map[string]interface{})(context.RequestHeaders().(dict)))
 		encoder.Reset()
 	}
 	encoder.WriteTag(encoding.TagCall)
-	encoder.Write(name)
+	_ = encoder.Write(name)
 	if len(args) > 0 {
 		encoder.Reset()
-		encoder.Write(args)
+		_ = encoder.Write(args)
 	}
 	encoder.WriteTag(encoding.TagEnd)
 	return encoder.Bytes(), encoder.Error

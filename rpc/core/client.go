@@ -94,7 +94,7 @@ func (c *Client) ShuffleURLs() *Client {
 	return c
 }
 
-// UseService build a remote service proxy object with namespace
+// UseService build a remote service proxy object with namespace.
 func (c *Client) UseService(remoteService interface{}, namespace ...string) {
 
 }
