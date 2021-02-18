@@ -8,7 +8,6 @@ repos:
     - id: check-json
     - id: check-merge-conflict
     - id: check-yaml
-      exclude: charts/whatever-server-go/templates/.*$
     - id: detect-private-key
     - id: end-of-file-fixer
     - id: trailing-whitespace
