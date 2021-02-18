@@ -1,0 +1,55 @@
+linters-settings:
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+
+linters:
+  disable:
+    - funlen
+    - lll
+    - gochecknoglobals
+    - goerr113
+    - godox
+    - gomnd
+    - gosec
+    - nakedret
+    - wsl
+  enable:
+    - asciicheck
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - gofmt
+    - goimports
+    - golint
+    - gomodguard
+    - goprintffuncname
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - maligned
+    - misspell
+    - nestif
+    - nolintlint
+    - prealloc
+    - rowserrcheck
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
