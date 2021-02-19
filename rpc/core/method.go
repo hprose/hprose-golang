@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/method.go                                       |
 |                                                          |
-| LastModified: Feb 8, 2021                                |
+| LastModified: Feb 20, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -133,6 +133,7 @@ func makeMethod(f reflect.Value, name string) method {
 	if f.Kind() != reflect.Func {
 		panic("f " + name + " is not a function.")
 	}
+	f = setAccessible(f)
 	m := method{f: f, name: name, options: NewSafeDict()}
 	if name == "" {
 		m.name = runtime.FuncForPC(f.Pointer()).Name()

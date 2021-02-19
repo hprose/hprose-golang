@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/method_manager.go                               |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Feb 20, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,6 +17,8 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/modern-go/reflect2"
 )
 
 // MethodManager for RPC.
@@ -121,12 +123,10 @@ func (mm *methodManager) AddMethod(name string, target interface{}, alias ...str
 			}
 		}
 	}
-	if f.CanInterface() {
-		if len(alias) > 0 && alias[0] != "" {
-			name = alias[0]
-		}
-		mm.Add(NewMethod(f, name))
+	if len(alias) > 0 && alias[0] != "" {
+		name = alias[0]
 	}
+	mm.Add(NewMethod(f, name))
 }
 
 func (mm *methodManager) addMethod(name string, target interface{}, namespace ...string) {
@@ -155,17 +155,15 @@ func (mm *methodManager) addMethods(v reflect.Value, t reflect.Type, namespace .
 }
 
 func getPtrTo(v reflect.Value, t reflect.Type, kind reflect.Kind) (reflect.Value, reflect.Type) {
-	for t.Kind() == reflect.Ptr && !v.IsNil() && t.Elem().Kind() == kind {
-		v = v.Elem()
-		t = t.Elem()
+	if t.Kind() == reflect.Ptr && !v.IsNil() && t.Elem().Kind() == kind {
+		return v.Elem(), t.Elem()
 	}
 	return v, t
 }
 
 func (mm *methodManager) addFuncField(v reflect.Value, t reflect.Type, i int, namespace ...string) {
-	f := v.Field(i)
-	name := t.Field(i).Name
-	if f.IsValid() {
+	if f := v.Field(i); f.IsValid() {
+		name := t.Field(i).Name
 		f, _ = getPtrTo(f, f.Type(), reflect.Func)
 		if f.Kind() == reflect.Func && !f.IsNil() && f.CanInterface() {
 			mm.addFunction(f, name, namespace...)
@@ -175,28 +173,25 @@ func (mm *methodManager) addFuncField(v reflect.Value, t reflect.Type, i int, na
 
 func (mm *methodManager) recursiveAddFuncFields(v reflect.Value, t reflect.Type, i int, namespace ...string) {
 	f := v.Field(i)
-	fs := t.Field(i)
-	name := fs.Name
-	if f.IsValid() {
+	if !f.IsValid() {
 		return
 	}
-	f, _ = getPtrTo(f, f.Type(), reflect.Func)
-	switch f.Kind() {
-	case reflect.Func, reflect.Ptr, reflect.Interface, reflect.Slice, reflect.Map, reflect.Chan:
-		if f.IsNil() {
-			return
-		}
+	fs := t.Field(i)
+	name := fs.Name
+	f, t = getPtrTo(f, f.Type(), reflect.Func)
+	if (reflect2.IsNullable(f.Kind()) && f.IsNil()) ||
+		(t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Ptr) {
+		return
 	}
 	switch {
-	case !f.CanInterface():
-	case f.Kind() == reflect.Func:
+	case f.Kind() == reflect.Func && f.CanInterface():
 		mm.addFunction(f, name, namespace...)
 	case fs.Anonymous:
-		mm.AddAllMethods(f.Interface(), namespace...)
+		mm.AddAllMethods(setAccessible(f).Interface(), namespace...)
 	case len(namespace) == 0 || namespace[0] == "":
-		mm.AddAllMethods(f.Interface(), name)
+		mm.AddAllMethods(setAccessible(f).Interface(), name)
 	default:
-		mm.AddAllMethods(f.Interface(), namespace[0]+"_"+name)
+		mm.AddAllMethods(setAccessible(f).Interface(), namespace[0]+"_"+name)
 	}
 }
 
