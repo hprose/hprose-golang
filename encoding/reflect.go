@@ -4,7 +4,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| encoding/relect.go                                       |
+| encoding/reflect.go                                      |
 |                                                          |
 | LastModified: Jan 23, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
