@@ -94,7 +94,7 @@ func (b proxyBuilder) in(ft reflect.Type, in []reflect.Value) (args []interface{
 func (b proxyBuilder) out(ft reflect.Type, results []interface{}, err error) (out []reflect.Value) {
 	n := ft.NumOut()
 	out = make([]reflect.Value, n)
-	if ft.Out(n-1) == errorType {
+	if n > 0 && ft.Out(n-1) == errorType {
 		n--
 		out[n] = reflect.ValueOf(&err).Elem()
 	}

@@ -96,7 +96,11 @@ func (c *Client) ShuffleURLs() *Client {
 
 // UseService build a remote service proxy object with namespace.
 func (c *Client) UseService(remoteService interface{}, namespace ...string) {
-
+	ns := ""
+	if len(namespace) > 0 {
+		ns = namespace[0]
+	}
+	Proxy.Build(remoteService, invocation{client: c, namespace: ns}.Invoke)
 }
 
 // RequestHeaders returns the global request headers.
