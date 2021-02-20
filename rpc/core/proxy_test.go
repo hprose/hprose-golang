@@ -37,7 +37,8 @@ func TestProxy(t *testing.T) {
 		*int
 		b bool
 	}
-	testInvocationHandler := func(proxy interface{}, method reflect.StructField, namespace string, args []interface{}) (results []interface{}, err error) {
+	testInvocationHandler := func(proxy interface{}, method reflect.StructField, name string, args []interface{}) (results []interface{}, err error) {
+		println(name)
 		switch method.Name {
 		case "Test":
 			return []interface{}{"Hello World!"}, nil
@@ -63,7 +64,7 @@ func TestProxy(t *testing.T) {
 		return nil, nil
 	}
 	var testp **testStruct
-	Proxy.Build(&testp, testInvocationHandler, "")
+	Proxy.Build(&testp, testInvocationHandler)
 	test := *testp
 	assert.Equal(t, `Hello World!`, test.Test())
 	a, b := test.Test2(123, 456)

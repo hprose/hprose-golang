@@ -18,11 +18,11 @@ import (
 )
 
 // InvocationHandler for the proxy instance.
-type InvocationHandler func(proxy interface{}, method reflect.StructField, namespace string, args []interface{}) (results []interface{}, err error)
+type InvocationHandler func(proxy interface{}, method reflect.StructField, name string, args []interface{}) (results []interface{}, err error)
 
 // ProxyBuilder .
 type ProxyBuilder interface {
-	Build(proxy interface{}, handler InvocationHandler, namespace string)
+	Build(proxy interface{}, handler InvocationHandler)
 }
 
 // Proxy is a global ProxyBuilder.
@@ -30,8 +30,8 @@ var Proxy ProxyBuilder = proxyBuilder{}
 
 type proxyBuilder struct{}
 
-func (b proxyBuilder) Build(proxy interface{}, handler InvocationHandler, namespace string) {
-	b.build(proxy, handler, namespace, reflect.ValueOf(proxy).Elem())
+func (b proxyBuilder) Build(proxy interface{}, handler InvocationHandler) {
+	b.build(proxy, handler, "", reflect.ValueOf(proxy).Elem())
 }
 
 func (b proxyBuilder) build(proxy interface{}, handler InvocationHandler, namespace string, p reflect.Value) {
@@ -51,18 +51,18 @@ func (b proxyBuilder) build(proxy interface{}, handler InvocationHandler, namesp
 		f := p.Field(i)
 		ft := f.Type()
 		sf := t.Field(i)
+		name := namespace
+		if !sf.Anonymous {
+			name = sf.Name
+			if namespace != "" {
+				name = namespace + "." + sf.Name
+			}
+		}
 		switch ft.Kind() {
 		case reflect.Struct, reflect.Ptr:
-			ns := namespace
-			if !sf.Anonymous {
-				ns = sf.Name
-				if namespace != "" {
-					ns = namespace + "." + sf.Name
-				}
-			}
-			b.build(proxy, handler, ns, f)
+			b.build(proxy, handler, name, f)
 		case reflect.Func:
-			setAccessible(f).Set(b.method(proxy, handler, namespace, ft, sf))
+			setAccessible(f).Set(b.method(proxy, handler, name, ft, sf))
 		}
 	}
 }
@@ -111,10 +111,10 @@ func (b proxyBuilder) out(ft reflect.Type, results []interface{}, err error) (ou
 	return
 }
 
-func (b proxyBuilder) method(proxy interface{}, h InvocationHandler, namespace string, ft reflect.Type, sf reflect.StructField) reflect.Value {
+func (b proxyBuilder) method(proxy interface{}, h InvocationHandler, name string, ft reflect.Type, sf reflect.StructField) reflect.Value {
 	return reflect.MakeFunc(ft, func(in []reflect.Value) (out []reflect.Value) {
 		args := b.in(ft, in)
-		results, err := h(proxy, sf, namespace, args)
+		results, err := h(proxy, sf, name, args)
 		return b.out(ft, results, err)
 	})
 }
