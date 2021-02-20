@@ -22,15 +22,15 @@ import (
 type tagParser struct {
 	Name    string
 	Context *ClientContext
-	Tag     reflect.StructTag
+	tag     reflect.StructTag
 }
 
 func (tp *tagParser) parseName() {
-	tp.Name = tp.Tag.Get("name")
+	tp.Name = tp.tag.Get("name")
 }
 
 func (tp *tagParser) parseTimeout() {
-	if s, ok := tp.Tag.Lookup("timeout"); ok {
+	if s, ok := tp.tag.Lookup("timeout"); ok {
 		if timeout, err := strconv.Atoi(s); err == nil {
 			tp.Context.Timeout = time.Millisecond * time.Duration(timeout)
 		}
@@ -83,7 +83,7 @@ func (tp *tagParser) parseMapValue(tag string) (string, string) {
 
 func (tp *tagParser) parseMap(key string) map[string]interface{} {
 	m := make(map[string]interface{})
-	tag := tp.Tag.Get(key)
+	tag := tp.tag.Get(key)
 	for tag != "" {
 		var name string
 		var c byte
@@ -139,9 +139,11 @@ func (tp *tagParser) parseContext() {
 	}
 }
 
-func (tp *tagParser) Parse() {
-	tp.parseName()
-	tp.parseTimeout()
-	tp.parseHeader()
-	tp.parseContext()
+func parseTag(ctx *ClientContext, tag reflect.StructTag) *tagParser {
+	parser := &tagParser{Context: ctx, tag: tag}
+	parser.parseName()
+	parser.parseTimeout()
+	parser.parseHeader()
+	parser.parseContext()
+	return parser
 }

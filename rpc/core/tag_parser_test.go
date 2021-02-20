@@ -27,11 +27,7 @@ func TestTagParser(t *testing.T) {
 	}
 	f, ok := reflect.TypeOf(testStruct{}).FieldByName("Test")
 	assert.True(t, ok)
-	parser := tagParser{
-		Context: NewClientContext(),
-		Tag:     f.Tag,
-	}
-	parser.Parse()
+	parser := parseTag(NewClientContext(), f.Tag)
 	assert.Equal(t, "test", parser.Name)
 	assert.Equal(t, time.Second, parser.Context.Timeout)
 	items := parser.Context.Items()
