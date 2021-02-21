@@ -72,7 +72,7 @@ var ErrServerIsStoped = errors.New("hprose/rpc/core: server is stoped")
 // var ErrURIListEmpty = errors.New("uriList must contain at least one uri")
 
 // ErrRequestEntityTooLarge represents a error.
-var ErrRequestEntityTooLarge = errors.New("hprose/rpc/core: request entity too large")
+var ErrRequestEntityTooLarge = errors.New("Request entity too large")
 
 // InvalidRequestError represents a error.
 type InvalidRequestError struct {
@@ -81,6 +81,15 @@ type InvalidRequestError struct {
 
 func (e InvalidRequestError) Error() string {
 	return "hprose/rpc/core: invalid request:\r\n" + string(e.Request)
+}
+
+// InvalidResponseError represents a error.
+type InvalidResponseError struct {
+	Response []byte
+}
+
+func (e InvalidResponseError) Error() string {
+	return "hprose/rpc/core: invalid response:\r\n" + string(e.Response)
 }
 
 // UnsupportedProtocolError represents a error.

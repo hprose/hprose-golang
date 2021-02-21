@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_codec.go                                 |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Feb 22, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,8 +14,6 @@
 package core
 
 import (
-	"unsafe"
-
 	"github.com/hprose/hprose-golang/v3/encoding"
 	"github.com/modern-go/reflect2"
 )
@@ -111,7 +109,7 @@ func (c clientCodec) Decode(response []byte, context *ClientContext) (result []i
 		}
 	case encoding.TagEnd:
 	default:
-		err = encoding.DecodeError("Invalid response\r\n" + *(*string)(unsafe.Pointer(&response)))
+		err = InvalidResponseError{response}
 	}
 	return
 }
