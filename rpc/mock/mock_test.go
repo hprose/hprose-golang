@@ -158,3 +158,25 @@ func TestHeaders(t *testing.T) {
 	assert.True(t, clientContext.ResponseHeaders().GetBool("pong"))
 	server.Close()
 }
+
+func TestMaxRequestLength(t *testing.T) {
+	service := core.NewService()
+	service.MaxRequestLength = 10
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testMaxRequestLength"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testMaxRequestLength")
+	client.Use(log.IOHandler)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	_, err = proxy.Hello("world")
+	if assert.Error(t, err) {
+		assert.Equal(t, core.ErrRequestEntityTooLarge, err)
+	}
+	server.Close()
+}
