@@ -13,7 +13,10 @@
 
 package core
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 // NextPluginHandler must be one of NextInvokeHandler or NextIOHandler.
 type NextPluginHandler interface{}
@@ -23,11 +26,15 @@ type PluginHandler interface{}
 
 func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHandler, ioHandler []PluginHandler) {
 	for _, handler := range handlers {
-		switch handler.(type) {
+		switch handler := handler.(type) {
 		case InvokeHandler:
 			invokeHandlers = append(invokeHandlers, handler)
+		case func(ctx context.Context, name string, args []interface{}, next NextInvokeHandler) (result []interface{}, err error):
+			invokeHandlers = append(invokeHandlers, InvokeHandler(handler))
 		case IOHandler:
 			ioHandler = append(ioHandler, handler)
+		case func(ctx context.Context, request []byte, next NextIOHandler) (response []byte, err error):
+			ioHandler = append(ioHandler, IOHandler(handler))
 		}
 	}
 	return

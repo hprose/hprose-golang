@@ -65,6 +65,7 @@ func NewService() *Service {
 		Codec:            serviceCodec{},
 		MaxRequestLength: 0x7FFFFFFF,
 		Options:          NewSafeDict(),
+		handlers:         make(map[string]Handler),
 	}
 	handlerFactories.Range(func(key, value interface{}) bool {
 		handler := value.(HandlerFactory).New(service)
@@ -85,6 +86,7 @@ func (s *Service) Bind(server Server) error {
 		for _, name := range names {
 			s.handlers[name].Bind(server)
 		}
+		return nil
 	}
 	return UnsupportedServerTypeError{serverType}
 }

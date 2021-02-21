@@ -24,6 +24,7 @@ type ServiceContext struct {
 	Method     Method
 	LocalAddr  net.Addr
 	RemoteAddr net.Addr
+	Handler    Handler
 	service    *Service
 }
 
@@ -47,6 +48,7 @@ func (c *ServiceContext) Clone() Context {
 		c.Method,
 		c.LocalAddr,
 		c.RemoteAddr,
+		c.Handler,
 		c.service,
 	}
 }

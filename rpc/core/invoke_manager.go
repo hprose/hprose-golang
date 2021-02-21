@@ -26,8 +26,8 @@ func NewInvokeManager(handler NextInvokeHandler) PluginManager {
 	return newPluginManager(handler, func(handler PluginHandler, next NextPluginHandler) NextPluginHandler {
 		h := handler.(InvokeHandler)
 		n := next.(NextInvokeHandler)
-		return func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
+		return NextInvokeHandler(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
 			return h(ctx, name, args, n)
-		}
+		})
 	})
 }

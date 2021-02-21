@@ -34,7 +34,7 @@ type serviceCodec struct {
 	encoding.MapType
 }
 
-func (c serviceCodec) Encode(result interface{}, context *ServiceContext) (response []byte, err error) {
+func (c serviceCodec) Encode(result interface{}, context *ServiceContext) ([]byte, error) {
 	encoder := new(encoding.Encoder).Simple(c.Simple)
 	if c.Simple {
 		context.RequestHeaders().Set("simple", true)
@@ -44,14 +44,13 @@ func (c serviceCodec) Encode(result interface{}, context *ServiceContext) (respo
 		_ = encoder.Write((map[string]interface{})(context.RequestHeaders().(dict)))
 		encoder.Reset()
 	}
-	encoder.WriteTag(encoding.TagCall)
 	if e, ok := result.(error); ok {
 		encoder.WriteTag(encoding.TagError)
 		var msg string
 		if pe, ok := e.(*PanicError); ok && c.Debug {
 			msg = pe.String()
 		} else {
-			msg = err.Error()
+			msg = e.Error()
 		}
 		encoder.WriteString(msg)
 	} else {

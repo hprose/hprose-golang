@@ -101,9 +101,12 @@ func (c clientCodec) Decode(response []byte, context *ClientContext) (result []i
 	case encoding.TagError:
 		var errstr string
 		decoder.Decode(&errstr)
-		if decoder.Error != nil {
+		switch {
+		case decoder.Error != nil:
 			err = decoder.Error
-		} else {
+		case errstr == "timeout":
+			err = ErrTimeout
+		default:
 			err = encoding.DecodeError(errstr)
 		}
 	case encoding.TagEnd:

@@ -22,20 +22,57 @@ import (
 
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
 
-// ErrTimeout represents a timeout error.
-var ErrTimeout = errors.New("timeout")
+type timeout interface {
+	Timeout() bool
+}
+
+// IsTimeoutError returns true if err is a timeout error.
+func IsTimeoutError(err error) bool {
+	t, ok := err.(timeout)
+	return ok && t.Timeout()
+}
+
+type temporary interface {
+	Temporary() bool
+}
+
+// IsTemporaryError returns true if err is a temporary error.
+func IsTemporaryError(err error) bool {
+	t, ok := err.(temporary)
+	return ok && t.Temporary()
+}
+
+type timeoutError struct{}
+
+func (e timeoutError) Error() string {
+	return "timeout"
+}
+
+func (e timeoutError) Timeout() bool {
+	return true
+}
+
+func (e timeoutError) Temporary() bool {
+	return true
+}
+
+// ErrTimeout represents a error.
+var ErrTimeout = timeoutError{}
 
 // // ErrServerIsAlreadyStarted represents a error.
 // var ErrServerIsAlreadyStarted = errors.New("The server is already started")
 
-// // ErrServerIsNotStarted represents a error.
-// var ErrServerIsNotStarted = errors.New("The server is not started")
+// ErrServerIsStoped represents a error.
+var ErrServerIsStoped = errors.New("hprose/rpc/core: server is stoped")
 
 // // ErrClientIsAlreadyClosed represents a error.
 // var ErrClientIsAlreadyClosed = errors.New("The Client is already closed")
 
 // // ErrURIListEmpty represents a error.
 // var ErrURIListEmpty = errors.New("uriList must contain at least one uri")
+
+// ErrRequestEntityTooLarge represents a error.
+var ErrRequestEntityTooLarge = errors.New("hprose/rpc/core: request entity too large")
 
 // InvalidRequestError represents a error.
 type InvalidRequestError struct {

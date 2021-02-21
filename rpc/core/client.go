@@ -24,7 +24,7 @@ import (
 
 // Transport is an interface used to represent client transport layer.
 type Transport interface {
-	Transport(context context.Context, request []byte) (response []byte, err error)
+	Transport(ctx context.Context, request []byte) (response []byte, err error)
 	Abort()
 }
 
@@ -63,9 +63,10 @@ func NewClient(uri ...string) *Client {
 		Codec:          clientCodec{},
 		Timeout:        time.Second * 30,
 		requestHeaders: NewSafeDict(),
+		transports:     make(map[string]Transport),
 	})
 	for _, u := range uri {
-		if url, err := url.Parse(u); err != nil {
+		if url, err := url.Parse(u); err == nil {
 			client.URLs = append(client.URLs, url)
 		}
 	}

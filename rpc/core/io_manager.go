@@ -26,8 +26,8 @@ func NewIOManager(handler NextIOHandler) PluginManager {
 	return newPluginManager(handler, func(handler PluginHandler, next NextPluginHandler) NextPluginHandler {
 		h := handler.(IOHandler)
 		n := next.(NextIOHandler)
-		return func(ctx context.Context, request []byte) (response []byte, err error) {
+		return NextIOHandler(func(ctx context.Context, request []byte) (response []byte, err error) {
 			return h(ctx, request, n)
-		}
+		})
 	})
 }
