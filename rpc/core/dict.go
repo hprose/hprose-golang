@@ -6,14 +6,16 @@
 |                                                          |
 | rpc/core/dict.go                                         |
 |                                                          |
-| LastModified: Feb 16, 2021                               |
+| LastModified: Feb 21, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package core
 
-import "sync"
+import (
+	"sync"
+)
 
 // Dict represent the key-value pairs.
 type Dict interface {
@@ -168,7 +170,7 @@ func (d dict) Range(f func(key string, value interface{}) bool) {
 }
 
 func (d dict) Empty() bool {
-	return d == nil || len(d) == 0
+	return len(d) == 0
 }
 
 func (d dict) CopyTo(dict Dict) {

@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/context.go                                      |
 |                                                          |
-| LastModified: Feb 8, 2021                                |
+| LastModified: Feb 21, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -50,7 +50,7 @@ func (c *rpcContext) Items() Dict {
 }
 
 func (c *rpcContext) HasRequestHeaders() bool {
-	return !c.requestHeaders.Empty()
+	return c.requestHeaders != nil && !c.requestHeaders.Empty()
 }
 
 func (c *rpcContext) RequestHeaders() Dict {
@@ -61,7 +61,7 @@ func (c *rpcContext) RequestHeaders() Dict {
 }
 
 func (c *rpcContext) HasResponseHeaders() bool {
-	return !c.responseHeaders.Empty()
+	return c.responseHeaders != nil && !c.responseHeaders.Empty()
 }
 
 func (c *rpcContext) ResponseHeaders() Dict {
