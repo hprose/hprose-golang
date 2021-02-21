@@ -91,5 +91,5 @@ func TestClientCodecDecode(t *testing.T) {
 	response = ([]byte)(`{code:200,msg:"ok"}`)
 	result, err = clientCodec{}.Decode(response, context)
 	assert.Nil(t, result)
-	assert.EqualError(t, err, "Invalid response\r\n"+`{code:200,msg:"ok"}`)
+	assert.EqualError(t, err, "hprose/rpc/core: invalid response:\r\n"+`{code:200,msg:"ok"}`)
 }
