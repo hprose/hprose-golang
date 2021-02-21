@@ -14,6 +14,8 @@
 package mock
 
 import (
+	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -78,5 +80,81 @@ func TestServiceTimeout(t *testing.T) {
 	client.UseService(&proxy)
 	err = proxy.Wait(time.Second * 30)
 	assert.True(t, core.IsTimeoutError(err))
+	server.Close()
+}
+
+func TestMissingMethod(t *testing.T) {
+	service := core.NewService()
+	service.AddMissingMethod(func(name string, args []interface{}) (result []interface{}, err error) {
+		data, err := json.Marshal(args)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{name + string(data)}, nil
+	})
+	server := Server{"testMissingMethod"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testMissingMethod")
+	client.Use(log.IOHandler)
+	var proxy struct {
+		Hello func(name string) string
+	}
+	client.UseService(&proxy)
+	result := proxy.Hello("world")
+	assert.Equal(t, `Hello["world"]`, result)
+	server.Close()
+}
+
+func TestMissingMethod2(t *testing.T) {
+	service := core.NewService()
+	service.AddMissingMethod(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
+		serviceContext := core.GetServiceContext(ctx)
+		data, err := json.Marshal(args)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{name + string(data) + serviceContext.RemoteAddr.String()}, nil
+	})
+	server := Server{"testMissingMethod2"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testMissingMethod2")
+	client.Use(log.IOHandler)
+	var proxy struct {
+		Hello func(name string) string
+	}
+	client.UseService(&proxy)
+	result := proxy.Hello("world")
+	assert.Equal(t, `Hello["world"]testMissingMethod2`, result)
+	server.Close()
+}
+
+func TestHeaders(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	service.Use(func(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
+		serviceContext := core.GetServiceContext(ctx)
+		ping := serviceContext.RequestHeaders().GetBool("ping")
+		assert.True(t, ping)
+		serviceContext.ResponseHeaders().Set("pong", true)
+		return next(ctx, name, args)
+	})
+	server := Server{"testHeaders"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testHeaders")
+	client.Use(log.IOHandler)
+	var proxy struct {
+		Hello func(ctx context.Context, name string) string `header:"ping"`
+	}
+	client.UseService(&proxy)
+	clientContext := core.NewClientContext()
+	ctx := core.WithContext(context.Background(), clientContext)
+	result := proxy.Hello(ctx, "world")
+	assert.Equal(t, `hello world`, result)
+	assert.True(t, clientContext.ResponseHeaders().GetBool("pong"))
 	server.Close()
 }
