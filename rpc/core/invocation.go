@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/invocation.go                                   |
 |                                                          |
-| LastModified: Feb 20, 2021                               |
+| LastModified: Feb 22, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -54,7 +54,7 @@ func (i invocation) Invoke(proxy interface{}, method reflect.StructField, name s
 	if tagParser.Name != "" {
 		name = tagParser.Name
 	}
-	name = strings.ReplaceAll(name, ".", "_")
+	name = strings.Replace(name, ".", "_", -1) //nolint:gocritic
 	if i.namespace != "" {
 		name = i.namespace + "_" + name
 	}
