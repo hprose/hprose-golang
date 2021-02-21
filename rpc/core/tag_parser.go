@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/tag_parser.go                                   |
 |                                                          |
-| LastModified: Feb 20, 2021                               |
+| LastModified: Feb 21, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -53,6 +53,9 @@ func (tp *tagParser) parseMapName(tag string) (remain string, name string, c byt
 	for i < len(tag) && tag[i] != ':' && tag[i] != ',' {
 		i++
 	}
+	if i == len(tag) {
+		return "", tag, ','
+	}
 	c = tag[i]
 	name = tag[:i]
 	remain = tag[i+1:]
@@ -88,7 +91,7 @@ func (tp *tagParser) parseMap(key string) map[string]interface{} {
 		var name string
 		var c byte
 		tag, name, c = tp.parseMapName(tag)
-		if tag == "" {
+		if tag == "" && name == "" {
 			break
 		}
 		if c == ',' {
