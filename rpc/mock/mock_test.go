@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
+	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
 	"github.com/stretchr/testify/assert"
@@ -179,6 +180,88 @@ func TestMaxRequestLength(t *testing.T) {
 	_, err = proxy.Hello("world")
 	if assert.Error(t, err) {
 		assert.Equal(t, core.ErrRequestEntityTooLarge, err)
+	}
+	server.Close()
+}
+
+func TestCircuitBreaker(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testCircuitBreaker"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testCircuitBreaker")
+	client.Use(circuitbreaker.New(circuitbreaker.WithThreshold(3)).IOHandler)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+	server.Close()
+	for i := 0; i < 4; i++ {
+		_, err = proxy.Hello("world")
+		if assert.Error(t, err) {
+			assert.Equal(t, "hprose/rpc/core: server is stoped", err.Error())
+		}
+	}
+	_, err = proxy.Hello("world")
+	if assert.Error(t, err) {
+		assert.Equal(t, "service breaked", err.Error())
+	}
+	_ = service.Bind(server)
+	_, err = proxy.Hello("world")
+	if assert.Error(t, err) {
+		assert.Equal(t, "service breaked", err.Error())
+	}
+	server.Close()
+}
+
+func TestCircuitBreaker2(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testCircuitBreaker2"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testCircuitBreaker2")
+	cb := circuitbreaker.New(
+		circuitbreaker.WithThreshold(1),
+		circuitbreaker.WithMockService(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
+			return []interface{}{name + " breaked"}, nil
+		}),
+	)
+	client.Use(cb.IOHandler, cb.InvokeHandler)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+	server.Close()
+	_, err = proxy.Hello("world")
+	if assert.Error(t, err) {
+		assert.Equal(t, "hprose/rpc/core: server is stoped", err.Error())
+	}
+	_, err = proxy.Hello("world")
+	if assert.Error(t, err) {
+		assert.Equal(t, "hprose/rpc/core: server is stoped", err.Error())
+	}
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "Hello breaked", result)
+	}
+	_ = service.Bind(server)
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "Hello breaked", result)
 	}
 	server.Close()
 }

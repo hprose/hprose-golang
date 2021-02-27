@@ -28,8 +28,8 @@ type Log struct {
 	Enabled bool
 }
 
-// NewLog returns a Log instance.
-func NewLog(f ...func(v ...interface{})) *Log {
+// New returns a Log instance.
+func New(f ...func(v ...interface{})) *Log {
 	p := func(v ...interface{}) { fmt.Println(v...) }
 	if len(f) > 0 {
 		p = f[0]
@@ -59,8 +59,7 @@ func (log *Log) IOHandler(ctx context.Context, request []byte, next core.NextIOH
 	}
 	defer func() {
 		if e := recover(); e != nil {
-			log.Println("panic:", e)
-			panic(e)
+			err = core.NewPanicError(e)
 		}
 		if err != nil {
 			log.Println("error:", err)
@@ -79,8 +78,7 @@ func (log *Log) InvokeHandler(ctx context.Context, name string, args []interface
 	}
 	defer func() {
 		if e := recover(); e != nil {
-			log.Println("panic:", e)
-			panic(e)
+			err = core.NewPanicError(e)
 		}
 		if err != nil {
 			log.Println("error:", err)
@@ -99,7 +97,7 @@ func (log *Log) InvokeHandler(ctx context.Context, name string, args []interface
 	return next(ctx, name, args)
 }
 
-var log = NewLog()
+var log = New()
 
 // IOHandler is the default io handler for log.
 func IOHandler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
