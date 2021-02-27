@@ -20,7 +20,7 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
 
-// ExecuteTimeout .
+// ExecuteTimeout plugin for hprose.
 type ExecuteTimeout struct {
 	Timeout time.Duration
 }
