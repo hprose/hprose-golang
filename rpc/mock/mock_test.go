@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/mock_test.go                                    |
 |                                                          |
-| LastModified: Feb 21, 2021                               |
+| LastModified: Feb 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -54,7 +54,7 @@ func TestClientTimeout(t *testing.T) {
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testClientTimeout")
-	client.Use(log.IOHandler)
+	client.Use(log.IOHandler, log.InvokeHandler)
 	client.Timeout = time.Millisecond
 	var proxy struct {
 		Wait func(d time.Duration) error
@@ -70,7 +70,7 @@ func TestServiceTimeout(t *testing.T) {
 	service.AddFunction(func(d time.Duration) {
 		time.Sleep(d)
 	}, "wait")
-	service.Use(timeout.GetHandler(time.Millisecond), log.IOHandler)
+	service.Use(timeout.GetHandler(time.Millisecond))
 	server := Server{"testServiceTimeout"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
@@ -79,6 +79,7 @@ func TestServiceTimeout(t *testing.T) {
 		Wait func(d time.Duration) error
 	}
 	client.UseService(&proxy)
+	client.Use(log.IOHandler, log.InvokeHandler)
 	err = proxy.Wait(time.Second * 30)
 	assert.True(t, core.IsTimeoutError(err))
 	server.Close()
@@ -97,7 +98,7 @@ func TestMissingMethod(t *testing.T) {
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testMissingMethod")
-	client.Use(log.IOHandler)
+	client.Use(log.IOHandler, log.InvokeHandler)
 	var proxy struct {
 		Hello func(name string) string
 	}
@@ -121,7 +122,7 @@ func TestMissingMethod2(t *testing.T) {
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testMissingMethod2")
-	client.Use(log.IOHandler)
+	client.Use(log.IOHandler, log.InvokeHandler)
 	var proxy struct {
 		Hello func(name string) string
 	}
@@ -147,7 +148,7 @@ func TestHeaders(t *testing.T) {
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testHeaders")
-	client.Use(log.IOHandler)
+	client.Use(log.IOHandler, log.InvokeHandler)
 	var proxy struct {
 		Hello func(ctx context.Context, name string) string `header:"ping"`
 	}
@@ -170,7 +171,7 @@ func TestMaxRequestLength(t *testing.T) {
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testMaxRequestLength")
-	client.Use(log.IOHandler)
+	client.Use(log.IOHandler, log.InvokeHandler)
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
