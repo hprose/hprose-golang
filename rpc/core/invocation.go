@@ -62,7 +62,7 @@ func (i invocation) Invoke(proxy interface{}, method reflect.StructField, name s
 	n := t.NumOut()
 	clientContext.ReturnType = make([]reflect.Type, n)
 	for i := 0; i < n; i++ {
-		clientContext.ReturnType = append(clientContext.ReturnType, t.Out(i))
+		clientContext.ReturnType[i] = t.Out(i)
 	}
 	if n > 0 && clientContext.ReturnType[n-1] == errorType {
 		clientContext.ReturnType = clientContext.ReturnType[:n-1]

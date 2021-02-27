@@ -34,13 +34,14 @@ func TestHelloWorld(t *testing.T) {
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testHelloWorld")
-	client.Use(log.IOHandler)
+	client.Use(log.IOHandler, log.InvokeHandler)
 	var proxy struct {
-		Hello func(name string) string
+		Hello func(name string) (string, error)
 	}
 	client.UseService(&proxy)
-	result := proxy.Hello("world")
+	result, err := proxy.Hello("world")
 	assert.Equal(t, "hello world", result)
+	assert.NoError(t, err)
 	server.Close()
 }
 
