@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/mock_test.go                                    |
 |                                                          |
-| LastModified: Mar 6, 2021                                |
+| LastModified: Mar 7, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,6 +24,7 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/cluster"
+	"github.com/hprose/hprose-golang/v3/rpc/plugins/forward"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
 	"github.com/stretchr/testify/assert"
@@ -649,4 +650,53 @@ func TestClusterBroadcast(t *testing.T) {
 		[]interface{}(nil),
 		[]interface{}(nil),
 	}, result)
+}
+
+func TestForward(t *testing.T) {
+	service1 := core.NewService()
+	service1.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server1 := Server{"testForward.RealServer"}
+	err := service1.Bind(server1)
+	assert.NoError(t, err)
+
+	fw := forward.New("mock://testForward.RealServer")
+	fw.Use(log.Plugin)
+	service2 := core.NewService()
+	service2.AddMissingMethod(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
+		return
+	})
+	service2.Use(fw.InvokeHandler)
+	server2 := Server{"testForward.ForwardServer"}
+	err = service2.Bind(server2)
+	assert.NoError(t, err)
+
+	client := core.NewClient("mock://testForward.ForwardServer")
+	client.Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("invoke forward")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello invoke forward", result)
+	}
+
+	service2.Unuse(fw.InvokeHandler)
+	service2.Use(fw.IOHandler)
+
+	result, err = proxy.Hello("io forward")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello io forward", result)
+	}
+
+	fw.Unuse(log.Plugin)
+	result, err = proxy.Hello("forward")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello forward", result)
+	}
+
+	server1.Close()
+	server2.Close()
 }
