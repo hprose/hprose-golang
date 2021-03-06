@@ -166,24 +166,24 @@ func (c *Client) Abort() {
 
 // Use plugin handlers.
 func (c *Client) Use(handler ...PluginHandler) *Client {
-	invokeHandlers, ioHandler := separatePluginHandlers(handler)
+	invokeHandlers, ioHandlers := separatePluginHandlers(handler)
 	if len(invokeHandlers) > 0 {
 		c.invokeManager.Use(invokeHandlers...)
 	}
-	if len(ioHandler) > 0 {
-		c.ioManager.Use(ioHandler...)
+	if len(ioHandlers) > 0 {
+		c.ioManager.Use(ioHandlers...)
 	}
 	return c
 }
 
 // Unuse plugin handlers.
 func (c *Client) Unuse(handler ...PluginHandler) *Client {
-	invokeHandlers, ioHandler := separatePluginHandlers(handler)
+	invokeHandlers, ioHandlers := separatePluginHandlers(handler)
 	if len(invokeHandlers) > 0 {
 		c.invokeManager.Unuse(invokeHandlers...)
 	}
-	if len(ioHandler) > 0 {
-		c.ioManager.Unuse(ioHandler...)
+	if len(ioHandlers) > 0 {
+		c.ioManager.Unuse(ioHandlers...)
 	}
 	return c
 }

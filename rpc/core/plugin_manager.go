@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/plugin_manager.go                               |
 |                                                          |
-| LastModified: Mar 6, 2021                                |
+| LastModified: Mar 7, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,6 +15,7 @@ package core
 
 import (
 	"context"
+	"reflect"
 	"sync"
 )
 
@@ -110,8 +111,9 @@ func (pm *pluginManager) Unuse(handler ...PluginHandler) {
 	pm.rwlock.Lock()
 	var handlers []PluginHandler
 	for _, h := range pm.handlers {
+		hp := reflect.ValueOf(h).Pointer()
 		for _, h2 := range handler {
-			if h == h2 {
+			if hp == reflect.ValueOf(h2).Pointer() {
 				h = nil
 				rebuild = true
 				break
