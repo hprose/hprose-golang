@@ -26,7 +26,7 @@ type ExecuteTimeout struct {
 }
 
 // Handler for ExecuteTimeout.
-func (et ExecuteTimeout) Handler(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
+func (et *ExecuteTimeout) Handler(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
 	timeout := et.Timeout
 	serviceContext := core.GetServiceContext(ctx)
 	if t, ok := serviceContext.Method.Options().Get("timeout"); ok {
@@ -63,10 +63,10 @@ func (et ExecuteTimeout) Handler(ctx context.Context, name string, args []interf
 	}
 }
 
-// GetHandler returns an execute timeout invoke handler.
-func GetHandler(timeout ...time.Duration) core.InvokeHandler {
+// New returns an ExecuteTimeout instance.
+func New(timeout ...time.Duration) *ExecuteTimeout {
 	if len(timeout) > 0 {
-		return ExecuteTimeout{timeout[0]}.Handler
+		return &ExecuteTimeout{timeout[0]}
 	}
-	return ExecuteTimeout{time.Second * 30}.Handler
+	return &ExecuteTimeout{time.Second * 30}
 }

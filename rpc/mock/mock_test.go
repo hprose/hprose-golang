@@ -74,7 +74,7 @@ func TestServiceTimeout(t *testing.T) {
 	service.AddFunction(func(d time.Duration) {
 		time.Sleep(d)
 	}, "wait")
-	service.Use(timeout.GetHandler(time.Millisecond))
+	service.Use(timeout.New(time.Millisecond))
 	server := Server{"testServiceTimeout"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
@@ -297,7 +297,7 @@ func TestClusterFailover1(t *testing.T) {
 	)
 	client.Use(cluster.New(
 		cluster.FailoverConfig(),
-	).Handler).Use(log.Plugin)
+	)).Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) (string, error) `context:"idempotent,retry:3"`
 	}
@@ -367,7 +367,7 @@ func TestClusterFailover2(t *testing.T) {
 			cluster.WithIdempotent(true),
 			cluster.WithRetry(3),
 		),
-	).Handler).Use(log.Plugin)
+	)).Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
@@ -419,7 +419,7 @@ func TestClusterFailtry(t *testing.T) {
 			cluster.WithIdempotent(true),
 			cluster.WithRetry(3),
 		),
-	).Handler).Use(log.Plugin)
+	)).Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
@@ -463,7 +463,7 @@ func TestClusterFailfast(t *testing.T) {
 				fmt.Println("TestClusterFailfast ok")
 			},
 		),
-	).Handler).Use(log.Plugin)
+	)).Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
@@ -505,7 +505,7 @@ func TestClusterSuccess(t *testing.T) {
 				fmt.Println("TestClusterSuccess ok")
 			},
 		},
-	).Handler).Use(log.Plugin)
+	)).Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}

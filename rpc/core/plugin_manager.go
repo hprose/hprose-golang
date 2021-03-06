@@ -29,6 +29,14 @@ type plugin interface {
 	InvokeHandler(ctx context.Context, name string, args []interface{}, next NextInvokeHandler) (result []interface{}, err error)
 }
 
+type invokePlugin interface {
+	Handler(ctx context.Context, name string, args []interface{}, next NextInvokeHandler) (result []interface{}, err error)
+}
+
+type ioPlugin interface {
+	Handler(ctx context.Context, request []byte, next NextIOHandler) (response []byte, err error)
+}
+
 func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHandler, ioHandlers []PluginHandler) {
 	for _, handler := range handlers {
 		switch handler := handler.(type) {
@@ -43,6 +51,10 @@ func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHa
 		case plugin:
 			invokeHandlers = append(invokeHandlers, InvokeHandler(handler.InvokeHandler))
 			ioHandlers = append(ioHandlers, IOHandler(handler.IOHandler))
+		case invokePlugin:
+			invokeHandlers = append(invokeHandlers, InvokeHandler(handler.Handler))
+		case ioPlugin:
+			ioHandlers = append(ioHandlers, IOHandler(handler.Handler))
 		}
 	}
 	return
