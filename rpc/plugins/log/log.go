@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/log/log.go                                   |
 |                                                          |
-| LastModified: Feb 27, 2021                               |
+| LastModified: Mar 6, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -97,14 +97,15 @@ func (log *Log) InvokeHandler(ctx context.Context, name string, args []interface
 	return next(ctx, name, args)
 }
 
-var log = New()
+// Plugin is the default log plugin.
+var Plugin = New()
 
 // IOHandler is the default io handler for log.
 func IOHandler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
-	return log.IOHandler(ctx, request, next)
+	return Plugin.IOHandler(ctx, request, next)
 }
 
 // InvokeHandler is the default io handler for log.
 func InvokeHandler(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
-	return log.InvokeHandler(ctx, name, args, next)
+	return Plugin.InvokeHandler(ctx, name, args, next)
 }

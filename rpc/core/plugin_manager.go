@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/plugin_manager.go                               |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Mar 6, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,7 +24,12 @@ type NextPluginHandler interface{}
 // PluginHandler must be one of InvokeHandler or IOHandler.
 type PluginHandler interface{}
 
-func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHandler, ioHandler []PluginHandler) {
+type plugin interface {
+	IOHandler(ctx context.Context, request []byte, next NextIOHandler) (response []byte, err error)
+	InvokeHandler(ctx context.Context, name string, args []interface{}, next NextInvokeHandler) (result []interface{}, err error)
+}
+
+func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHandler, ioHandlers []PluginHandler) {
 	for _, handler := range handlers {
 		switch handler := handler.(type) {
 		case InvokeHandler:
@@ -32,9 +37,12 @@ func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHa
 		case func(ctx context.Context, name string, args []interface{}, next NextInvokeHandler) (result []interface{}, err error):
 			invokeHandlers = append(invokeHandlers, InvokeHandler(handler))
 		case IOHandler:
-			ioHandler = append(ioHandler, handler)
+			ioHandlers = append(ioHandlers, handler)
 		case func(ctx context.Context, request []byte, next NextIOHandler) (response []byte, err error):
-			ioHandler = append(ioHandler, IOHandler(handler))
+			ioHandlers = append(ioHandlers, IOHandler(handler))
+		case plugin:
+			invokeHandlers = append(invokeHandlers, InvokeHandler(handler.InvokeHandler))
+			ioHandlers = append(ioHandlers, IOHandler(handler.IOHandler))
 		}
 	}
 	return
