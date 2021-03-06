@@ -16,11 +16,14 @@ package mock
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
+	"github.com/hprose/hprose-golang/v3/rpc/plugins/cluster"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
 	"github.com/stretchr/testify/assert"
@@ -263,4 +266,387 @@ func TestCircuitBreaker2(t *testing.T) {
 		assert.Equal(t, "Hello breaked", result)
 	}
 	server.Close()
+}
+
+func TestClusterFailover1(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server1 := Server{"testClusterFailover1"}
+	err := service.Bind(server1)
+	assert.NoError(t, err)
+
+	server2 := Server{"testClusterFailover2"}
+	err = service.Bind(server2)
+	assert.NoError(t, err)
+
+	server3 := Server{"testClusterFailover3"}
+	err = service.Bind(server3)
+	assert.NoError(t, err)
+
+	server4 := Server{"testClusterFailover4"}
+	err = service.Bind(server4)
+	assert.NoError(t, err)
+
+	client := core.NewClient(
+		"mock://testClusterFailover1",
+		"mock://testClusterFailover2",
+		"mock://testClusterFailover3",
+		"mock://testClusterFailover4",
+	)
+	client.Use(cluster.New(
+		cluster.FailoverConfig(),
+	).Handler).Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) (string, error) `context:"idempotent,retry:3"`
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server1.Close()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server2.Close()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server3.Close()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server4.Close()
+
+	client.UseService(&proxy)
+	_, err = proxy.Hello("world")
+	assert.Error(t, err)
+}
+
+func TestClusterFailover2(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server1 := Server{"testClusterFailover1"}
+	err := service.Bind(server1)
+	assert.NoError(t, err)
+
+	server2 := Server{"testClusterFailover2"}
+	err = service.Bind(server2)
+	assert.NoError(t, err)
+
+	server3 := Server{"testClusterFailover3"}
+	err = service.Bind(server3)
+	assert.NoError(t, err)
+
+	server4 := Server{"testClusterFailover4"}
+	err = service.Bind(server4)
+	assert.NoError(t, err)
+
+	client := core.NewClient(
+		"mock://testClusterFailover1",
+		"mock://testClusterFailover2",
+		"mock://testClusterFailover3",
+		"mock://testClusterFailover4",
+	)
+	client.Use(cluster.New(
+		cluster.FailoverConfig(
+			cluster.WithIdempotent(true),
+			cluster.WithRetry(3),
+		),
+	).Handler).Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server1.Close()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server2.Close()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server3.Close()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server4.Close()
+
+	_, err = proxy.Hello("world")
+	assert.Error(t, err)
+}
+
+func TestClusterFailtry(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testClusterFailtry"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+
+	client := core.NewClient("mock://testClusterFailtry")
+	client.Use(cluster.New(
+		cluster.FailtryConfig(
+			cluster.WithIdempotent(true),
+			cluster.WithRetry(3),
+		),
+	).Handler).Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server.Close()
+
+	go func() {
+		time.Sleep(time.Second)
+		service.Bind(server)
+	}()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server.Close()
+
+	_, err = proxy.Hello("world")
+	assert.Error(t, err)
+}
+
+func TestClusterFailfast(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testClusterFailfast"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+
+	client := core.NewClient("mock://testClusterFailfast")
+	client.Use(cluster.New(
+		cluster.FailfastConfig(
+			func(c context.Context) {
+				fmt.Println("TestClusterFailfast ok")
+			},
+		),
+	).Handler).Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server.Close()
+
+	go func() {
+		time.Sleep(time.Second)
+		service.Bind(server)
+	}()
+
+	_, err = proxy.Hello("world")
+	assert.Error(t, err)
+
+	server.Close()
+
+	_, err = proxy.Hello("world")
+	assert.Error(t, err)
+}
+
+func TestClusterSuccess(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testClusterSuccess"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+
+	client := core.NewClient("mock://testClusterSuccess")
+	client.Use(cluster.New(
+		cluster.Config{
+			OnSuccess: func(ctx context.Context) {
+				fmt.Println("TestClusterSuccess ok")
+			},
+		},
+	).Handler).Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+}
+
+func TestClusterForking(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server1 := Server{"testClusterForking1"}
+	err := service.Bind(server1)
+	assert.NoError(t, err)
+	server2 := Server{"testClusterForking2"}
+	err = service.Bind(server2)
+	assert.NoError(t, err)
+	server3 := Server{"testClusterForking3"}
+	err = service.Bind(server3)
+	assert.NoError(t, err)
+	server4 := Server{"testClusterForking4"}
+	err = service.Bind(server4)
+	assert.NoError(t, err)
+
+	client := core.NewClient(
+		"mock://testClusterForking1",
+		"mock://testClusterForking2",
+		"mock://testClusterForking3",
+		"mock://testClusterForking4",
+	)
+	client.Use(cluster.Forking).Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server1.Close()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server2.Close()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server3.Close()
+
+	result, err = proxy.Hello("world")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "hello world", result)
+	}
+
+	server4.Close()
+
+	_, err = proxy.Hello("world")
+	assert.Error(t, err)
+}
+
+func TestClusterBroadcast(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server1 := Server{"testClusterBroadcast1"}
+	err := service.Bind(server1)
+	assert.NoError(t, err)
+	server2 := Server{"testClusterBroadcast2"}
+	err = service.Bind(server2)
+	assert.NoError(t, err)
+	server3 := Server{"testClusterBroadcast3"}
+	err = service.Bind(server3)
+	assert.NoError(t, err)
+	server4 := Server{"testClusterBroadcast4"}
+	err = service.Bind(server4)
+	assert.NoError(t, err)
+
+	client := core.NewClient(
+		"mock://testClusterBroadcast1",
+		"mock://testClusterBroadcast2",
+		"mock://testClusterBroadcast3",
+		"mock://testClusterBroadcast4",
+	)
+	client.Use(cluster.Broadcast).Use(log.Plugin)
+	clientContext := core.NewClientContext()
+	clientContext.ReturnType = append(clientContext.ReturnType, reflect.TypeOf(""))
+	result, err := client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
+	if assert.NoError(t, err) {
+		assert.Equal(t, []interface{}{
+			[]interface{}{"hello world"},
+			[]interface{}{"hello world"},
+			[]interface{}{"hello world"},
+			[]interface{}{"hello world"},
+		}, result)
+	}
+	server1.Close()
+	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
+	assert.Error(t, err)
+	assert.Equal(t, []interface{}{
+		[]interface{}(nil),
+		[]interface{}{"hello world"},
+		[]interface{}{"hello world"},
+		[]interface{}{"hello world"},
+	}, result)
+	server2.Close()
+	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
+	assert.Error(t, err)
+	assert.Equal(t, []interface{}{
+		[]interface{}(nil),
+		[]interface{}(nil),
+		[]interface{}{"hello world"},
+		[]interface{}{"hello world"},
+	}, result)
+	server3.Close()
+	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
+	assert.Error(t, err)
+	assert.Equal(t, []interface{}{
+		[]interface{}(nil),
+		[]interface{}(nil),
+		[]interface{}(nil),
+		[]interface{}{"hello world"},
+	}, result)
+	server4.Close()
+	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
+	assert.Error(t, err)
+	assert.Equal(t, []interface{}{
+		[]interface{}(nil),
+		[]interface{}(nil),
+		[]interface{}(nil),
+		[]interface{}(nil),
+	}, result)
 }
