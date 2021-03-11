@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/cluster"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/forward"
+	"github.com/hprose/hprose-golang/v3/rpc/plugins/limiter"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
 	"github.com/stretchr/testify/assert"
@@ -699,4 +701,73 @@ func TestForward(t *testing.T) {
 
 	server1.Close()
 	server2.Close()
+}
+
+func TestConcurrentLimiter(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testConcurrentLimiter"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testConcurrentLimiter")
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	cl := limiter.NewConcurrentLimiter(3, time.Nanosecond)
+	client.Use(cl)
+	client.UseService(&proxy)
+	fmt.Printf("MaxConcurrentRequests: %d\r\n", cl.MaxConcurrentRequests())
+	fmt.Printf("Timeout: %d\r\n", cl.Timeout())
+	var wg sync.WaitGroup
+	wg.Add(1000)
+	for i := 0; i < 1000; i++ {
+		go func(i int) {
+			defer wg.Done()
+			fmt.Printf("in: %d\r\n", cl.ConcurrentRequests())
+			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			fmt.Printf("out: %d\r\n", cl.ConcurrentRequests())
+			if err == nil {
+				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+			} else {
+				assert.Equal(t, core.ErrTimeout, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+	server.Close()
+}
+
+func TestConcurrentLimiterWithoutTimeout(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testConcurrentLimiterWithoutTimeout"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testConcurrentLimiterWithoutTimeout")
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	cl := limiter.NewConcurrentLimiter(3)
+	client.Use(cl)
+	client.UseService(&proxy)
+	fmt.Printf("MaxConcurrentRequests: %d\r\n", cl.MaxConcurrentRequests())
+	var wg sync.WaitGroup
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
+		go func(i int) {
+			defer wg.Done()
+			fmt.Printf("in: %d\r\n", cl.ConcurrentRequests())
+			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			fmt.Printf("out: %d\r\n", cl.ConcurrentRequests())
+			if assert.NoError(t, err) {
+				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+			}
+		}(i)
+	}
+	wg.Wait()
+	server.Close()
 }
