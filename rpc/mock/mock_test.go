@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"reflect"
 	"sync"
 	"testing"
@@ -718,16 +719,16 @@ func TestConcurrentLimiter(t *testing.T) {
 	cl := limiter.NewConcurrentLimiter(3, time.Nanosecond)
 	client.Use(cl)
 	client.UseService(&proxy)
-	fmt.Printf("MaxConcurrentRequests: %d\r\n", cl.MaxConcurrentRequests())
-	fmt.Printf("Timeout: %d\r\n", cl.Timeout())
+	assert.Equal(t, 3, cl.MaxConcurrentRequests())
+	assert.Equal(t, time.Nanosecond, cl.Timeout())
 	var wg sync.WaitGroup
 	wg.Add(1000)
 	for i := 0; i < 1000; i++ {
 		go func(i int) {
 			defer wg.Done()
-			fmt.Printf("in: %d\r\n", cl.ConcurrentRequests())
+			assert.GreaterOrEqual(t, cl.ConcurrentRequests(), 0)
 			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
-			fmt.Printf("out: %d\r\n", cl.ConcurrentRequests())
+			assert.LessOrEqual(t, cl.ConcurrentRequests(), 3)
 			if err == nil {
 				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
 			} else {
@@ -754,17 +755,87 @@ func TestConcurrentLimiterWithoutTimeout(t *testing.T) {
 	cl := limiter.NewConcurrentLimiter(3)
 	client.Use(cl)
 	client.UseService(&proxy)
-	fmt.Printf("MaxConcurrentRequests: %d\r\n", cl.MaxConcurrentRequests())
+	assert.Equal(t, 3, cl.MaxConcurrentRequests())
 	var wg sync.WaitGroup
 	wg.Add(100)
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			fmt.Printf("in: %d\r\n", cl.ConcurrentRequests())
+			assert.GreaterOrEqual(t, cl.ConcurrentRequests(), 0)
 			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
-			fmt.Printf("out: %d\r\n", cl.ConcurrentRequests())
+			assert.LessOrEqual(t, cl.ConcurrentRequests(), 3)
 			if assert.NoError(t, err) {
 				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+			}
+		}(i)
+	}
+	wg.Wait()
+	server.Close()
+}
+
+func TestRateLimiterIOHandler(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testRateLimiterIOHandler"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testRateLimiterIOHandler")
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	rl := limiter.NewRateLimiter(10000, limiter.WithTimeout(time.Millisecond*250))
+	client.Use(rl.IOHandler)
+	client.UseService(&proxy)
+	assert.Equal(t, int64(10000), rl.PermitsPerSecond())
+	assert.Equal(t, math.Inf(0), rl.MaxPermits())
+	assert.Equal(t, time.Millisecond*250, rl.Timeout())
+	var wg sync.WaitGroup
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
+		go func(i int) {
+			defer wg.Done()
+			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			if err == nil {
+				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+			} else {
+				assert.Equal(t, core.ErrTimeout, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+	server.Close()
+}
+
+func TestRateLimiterInvokeHandler(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testRateLimiterInvokeHandler"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testRateLimiterInvokeHandler")
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	rl := limiter.NewRateLimiter(1000, limiter.WithMaxPermits(1), limiter.WithTimeout(time.Millisecond*80))
+	client.Use(rl.InvokeHandler)
+	client.UseService(&proxy)
+	assert.Equal(t, int64(1000), rl.PermitsPerSecond())
+	assert.Equal(t, float64(1), rl.MaxPermits())
+	assert.Equal(t, time.Millisecond*80, rl.Timeout())
+	var wg sync.WaitGroup
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
+		go func(i int) {
+			defer wg.Done()
+			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			if err == nil {
+				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+			} else {
+				assert.Equal(t, core.ErrTimeout, err)
 			}
 		}(i)
 	}
