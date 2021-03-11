@@ -90,12 +90,12 @@ func (cb *CircuitBreaker) MockService() MockService {
 
 // IOHandler for CircuitBreaker.
 func (cb *CircuitBreaker) IOHandler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
-	if cb.failCount > cb.threshold {
+	if atomic.LoadUint64(&cb.failCount) > cb.threshold {
 		interval := time.Since(cb.lastFailTime)
 		if interval < cb.recoverTime {
 			return nil, ErrBreaker
 		}
-		cb.failCount = cb.threshold >> 1
+		atomic.StoreUint64(&cb.failCount, cb.threshold>>1)
 	}
 	defer func() {
 		if e := recover(); e != nil {
