@@ -82,15 +82,11 @@ func NewClient(uri ...string) *Client {
 
 // ShuffleURLs sorts the URLs in random order.
 func (c *Client) ShuffleURLs() *Client {
-	src := c.URLs
-	if n := len(src); n > 0 {
-		dest := make([]*url.URL, n)
+	if n := len(c.URLs); n > 0 {
 		rand.Seed(time.Now().UTC().UnixNano())
-		perm := rand.Perm(n)
-		for i, v := range perm {
-			dest[v] = src[i]
-		}
-		c.URLs = dest
+		rand.Shuffle(n, func(i, j int) {
+			c.URLs[i], c.URLs[j] = c.URLs[j], c.URLs[i]
+		})
 	}
 	return c
 }
