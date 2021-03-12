@@ -72,16 +72,16 @@ func FailoverConfig(options ...Option) (config Config) {
 	for _, option := range options {
 		option(&config)
 	}
-	var index uint64
+	var index int64
 	config.OnFailure = func(ctx context.Context) {
 		clientContext := core.GetClientContext(ctx)
 		urls := clientContext.Client().URLs
-		n := uint64(len(urls))
+		n := int64(len(urls))
 		if n > 1 {
-			if atomic.AddUint64(&index, 1) >= n {
-				index = 0
+			if atomic.AddInt64(&index, 1) >= n {
+				atomic.StoreInt64(&index, 0)
 			}
-			clientContext.URL = urls[index]
+			clientContext.URL = urls[atomic.LoadInt64(&index)]
 		}
 	}
 	config.OnRetry = func(ctx context.Context) time.Duration {
