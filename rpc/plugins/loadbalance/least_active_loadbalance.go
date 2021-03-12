@@ -42,16 +42,19 @@ func (lb *LeastActiveLoadBalance) Handler(ctx context.Context, request []byte, n
 	urls := clientContext.Client().URLs
 	n := len(urls)
 	leastActiveIndexes := make([]int, 0, n)
+
 	lb.rwlock.RLock()
-	if len(lb.actives) < n {
-		lb.rwlock.RUnlock()
+	condition := len(lb.actives) < n
+	lb.rwlock.RUnlock()
+	if condition {
 		lb.rwlock.Lock()
 		if len(lb.actives) < n {
 			lb.actives = make([]int, n)
 		}
 		lb.rwlock.Unlock()
-		lb.rwlock.RLock()
 	}
+
+	lb.rwlock.RLock()
 	var leastActive int
 	if len(lb.actives) > n {
 		leastActive = min(lb.actives[:n])
@@ -64,20 +67,24 @@ func (lb *LeastActiveLoadBalance) Handler(ctx context.Context, request []byte, n
 		}
 	}
 	lb.rwlock.RUnlock()
+
 	index := leastActiveIndexes[0]
 	count := len(leastActiveIndexes)
 	if count > 1 {
 		index = leastActiveIndexes[lb.random.Intn(count)]
 	}
 	clientContext.URL = urls[index]
+
 	lb.rwlock.Lock()
 	lb.actives[index]++
 	lb.rwlock.Unlock()
+
 	defer func() {
 		lb.rwlock.Lock()
 		lb.actives[index]--
 		lb.rwlock.Unlock()
 	}()
+
 	return next(ctx, request)
 }
 
