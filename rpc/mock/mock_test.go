@@ -28,6 +28,7 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/cluster"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/forward"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/limiter"
+	"github.com/hprose/hprose-golang/v3/rpc/plugins/loadbalance"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
 	"github.com/stretchr/testify/assert"
@@ -841,4 +842,46 @@ func TestRateLimiterInvokeHandler(t *testing.T) {
 	}
 	wg.Wait()
 	server.Close()
+}
+
+func TestRandomLoadBalance(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server1 := Server{"testRandomLoadBalance1"}
+	err := service.Bind(server1)
+	assert.NoError(t, err)
+	server2 := Server{"testRandomLoadBalance2"}
+	err = service.Bind(server2)
+	assert.NoError(t, err)
+	server3 := Server{"testRandomLoadBalance3"}
+	err = service.Bind(server3)
+	assert.NoError(t, err)
+	server4 := Server{"testRandomLoadBalance4"}
+	err = service.Bind(server4)
+	assert.NoError(t, err)
+	client := core.NewClient(
+		"mock://testRandomLoadBalance1",
+		"mock://testRandomLoadBalance2",
+		"mock://testRandomLoadBalance3",
+		"mock://testRandomLoadBalance4",
+	)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.Use(loadbalance.NewRandomLoadBalance())
+	client.UseService(&proxy)
+	for i := 0; i < 100; i++ {
+		result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+		if err == nil {
+			assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+		} else {
+			assert.Equal(t, core.ErrTimeout, err)
+		}
+	}
+	server1.Close()
+	server2.Close()
+	server3.Close()
+	server4.Close()
 }
