@@ -30,16 +30,20 @@ func NewRoundRobinLoadBalance() *RoundRobinLoadBalance {
 	return &RoundRobinLoadBalance{index: -1}
 }
 
+func (lb *RoundRobinLoadBalance) getIndex(n int64) int64 {
+	if n > 1 {
+		if i := atomic.AddInt64(&lb.index, 1); i < n {
+			return i
+		}
+		atomic.StoreInt64(&lb.index, 0)
+	}
+	return 0
+}
+
 // Handler for RoundRobinLoadBalance.
 func (lb *RoundRobinLoadBalance) Handler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
 	clientContext := core.GetClientContext(ctx)
 	urls := clientContext.Client().URLs
-	n := int64(len(urls))
-	if n > 1 {
-		if atomic.AddInt64(&lb.index, 1) >= n {
-			atomic.StoreInt64(&lb.index, 0)
-		}
-	}
-	clientContext.URL = urls[atomic.LoadInt64(&lb.index)]
+	clientContext.URL = urls[lb.getIndex(int64(len(urls)))]
 	return next(ctx, request)
 }
