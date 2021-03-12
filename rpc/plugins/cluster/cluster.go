@@ -64,6 +64,16 @@ func WithMaxInterval(maxInterval time.Duration) Option {
 	}
 }
 
+func getIndex(index *int64, n int64) int64 {
+	if n > 1 {
+		if i := atomic.AddInt64(index, 1); i < n {
+			return i
+		}
+		atomic.StoreInt64(index, 0)
+	}
+	return 0
+}
+
 // FailoverConfig for cluster.
 func FailoverConfig(options ...Option) (config Config) {
 	config.Retry = 10
@@ -76,13 +86,7 @@ func FailoverConfig(options ...Option) (config Config) {
 	config.OnFailure = func(ctx context.Context) {
 		clientContext := core.GetClientContext(ctx)
 		urls := clientContext.Client().URLs
-		n := int64(len(urls))
-		if n > 1 {
-			if atomic.AddInt64(&index, 1) >= n {
-				atomic.StoreInt64(&index, 0)
-			}
-			clientContext.URL = urls[atomic.LoadInt64(&index)]
-		}
+		clientContext.URL = urls[getIndex(&index, int64(len(urls)))]
 	}
 	config.OnRetry = func(ctx context.Context) time.Duration {
 		clientContext := core.GetClientContext(ctx)
