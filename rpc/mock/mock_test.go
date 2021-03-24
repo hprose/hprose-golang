@@ -1093,6 +1093,54 @@ func TestWeightedRoundRobinLoadBalance(t *testing.T) {
 	server4.Close()
 }
 
+func TestNginxRoundRobinLoadBalance(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server1 := Server{"testNginxRoundRobinLoadBalance1"}
+	err := service.Bind(server1)
+	assert.NoError(t, err)
+	server2 := Server{"testNginxRoundRobinLoadBalance2"}
+	err = service.Bind(server2)
+	assert.NoError(t, err)
+	server3 := Server{"testNginxRoundRobinLoadBalance3"}
+	err = service.Bind(server3)
+	assert.NoError(t, err)
+	server4 := Server{"testNginxRoundRobinLoadBalance4"}
+	err = service.Bind(server4)
+	assert.NoError(t, err)
+	client := core.NewClient()
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.Use(loadbalance.NewNginxRoundRobinLoadBalance(map[string]int{
+		"mock://testNginxRoundRobinLoadBalance1": 1,
+		"mock://testNginxRoundRobinLoadBalance2": 2,
+		"mock://testNginxRoundRobinLoadBalance3": 3,
+		"mock://testNginxRoundRobinLoadBalance4": 4,
+	}))
+	client.UseService(&proxy)
+	var wg sync.WaitGroup
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
+		go func(i int) {
+			defer wg.Done()
+			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			if err == nil {
+				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+			} else {
+				assert.Equal(t, core.ErrTimeout, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+	server1.Close()
+	server2.Close()
+	server3.Close()
+	server4.Close()
+}
+
 func TestWeightedLeastActiveLoadBalance(t *testing.T) {
 	service := core.NewService()
 	service.AddFunction(func(name string) string {
