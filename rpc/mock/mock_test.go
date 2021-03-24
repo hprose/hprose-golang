@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/mock_test.go                                    |
 |                                                          |
-| LastModified: Mar 7, 2021                                |
+| LastModified: Mar 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -1023,6 +1023,54 @@ func TestWeightedRandomLoadBalance(t *testing.T) {
 		"mock://testWeightedRandomLoadBalance2": 2,
 		"mock://testWeightedRandomLoadBalance3": 3,
 		"mock://testWeightedRandomLoadBalance4": 4,
+	}))
+	client.UseService(&proxy)
+	var wg sync.WaitGroup
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
+		go func(i int) {
+			defer wg.Done()
+			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			if err == nil {
+				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+			} else {
+				assert.Equal(t, core.ErrTimeout, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+	server1.Close()
+	server2.Close()
+	server3.Close()
+	server4.Close()
+}
+
+func TestWeightedRoundRobinLoadBalance(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server1 := Server{"testWeightedRoundRobinLoadBalance1"}
+	err := service.Bind(server1)
+	assert.NoError(t, err)
+	server2 := Server{"testWeightedRoundRobinLoadBalance2"}
+	err = service.Bind(server2)
+	assert.NoError(t, err)
+	server3 := Server{"testWeightedRoundRobinLoadBalance3"}
+	err = service.Bind(server3)
+	assert.NoError(t, err)
+	server4 := Server{"testWeightedRoundRobinLoadBalance4"}
+	err = service.Bind(server4)
+	assert.NoError(t, err)
+	client := core.NewClient()
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.Use(loadbalance.NewWeightedRoundRobinLoadBalance(map[string]int{
+		"mock://testWeightedRoundRobinLoadBalance1": 1,
+		"mock://testWeightedRoundRobinLoadBalance2": 2,
+		"mock://testWeightedRoundRobinLoadBalance3": 3,
+		"mock://testWeightedRoundRobinLoadBalance4": 4,
 	}))
 	client.UseService(&proxy)
 	var wg sync.WaitGroup
