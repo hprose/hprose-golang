@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/loadbalance/least_active_loadbalance.go      |
 |                                                          |
-| LastModified: Mar 12, 2021                               |
+| LastModified: Mar 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -25,7 +25,7 @@ import (
 // LeastActiveLoadBalance plugin for hprose.
 type LeastActiveLoadBalance struct {
 	random  *rand.Rand
-	actives []int
+	actives intSlice
 	rwlock  sync.RWMutex
 }
 
@@ -57,9 +57,9 @@ func (lb *LeastActiveLoadBalance) Handler(ctx context.Context, request []byte, n
 	lb.rwlock.RLock()
 	var leastActive int
 	if len(lb.actives) > n {
-		leastActive = min(lb.actives[:n])
+		leastActive = lb.actives[:n].Min()
 	} else {
-		leastActive = min(lb.actives)
+		leastActive = lb.actives.Min()
 	}
 	for i := 0; i < n; i++ {
 		if lb.actives[i] == leastActive {
@@ -86,14 +86,4 @@ func (lb *LeastActiveLoadBalance) Handler(ctx context.Context, request []byte, n
 	}()
 
 	return next(ctx, request)
-}
-
-func min(nums []int) int {
-	minVal := nums[0]
-	for i := 1; i < len(nums); i++ {
-		if minVal > nums[i] {
-			minVal = nums[i]
-		}
-	}
-	return minVal
 }

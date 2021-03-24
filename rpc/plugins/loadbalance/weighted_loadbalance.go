@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/loadbalance/weighted_loadbalance.go          |
 |                                                          |
-| LastModified: Mar 12, 2021                               |
+| LastModified: Mar 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -20,7 +20,7 @@ import (
 // WeightedLoadBalance plugin for hprose.
 type WeightedLoadBalance struct {
 	URLs    []*url.URL
-	Weights []int
+	Weights intSlice
 }
 
 // MakeWeightedLoadBalance returns a WeightedLoadBalance instance.

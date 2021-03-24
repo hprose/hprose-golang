@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/loadbalance/weighted_random_loadbalance.go   |
 |                                                          |
-| LastModified: Mar 12, 2021                               |
+| LastModified: Mar 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -26,7 +26,7 @@ import (
 type WeightedRandomLoadBalance struct {
 	WeightedLoadBalance
 	random           *rand.Rand
-	effectiveWeights []int
+	effectiveWeights intSlice
 	rwlock           sync.RWMutex
 }
 
@@ -46,7 +46,7 @@ func (lb *WeightedRandomLoadBalance) Handler(ctx context.Context, request []byte
 	n := len(lb.URLs)
 	index := n - 1
 	lb.rwlock.RLock()
-	totalWeight := sum(lb.effectiveWeights)
+	totalWeight := lb.effectiveWeights.Sum()
 	if totalWeight > 0 {
 		currentWeight := lb.random.Intn(totalWeight)
 		for i := 0; i < n; i++ {
@@ -93,12 +93,4 @@ func (lb *WeightedRandomLoadBalance) Handler(ctx context.Context, request []byte
 		lb.rwlock.Unlock()
 	}
 	return
-}
-
-func sum(nums []int) int {
-	total := 0
-	for _, num := range nums {
-		total += num
-	}
-	return total
 }
