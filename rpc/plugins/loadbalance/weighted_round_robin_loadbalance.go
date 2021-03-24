@@ -42,7 +42,7 @@ func NewWeightedRoundRobinLoadBalance(uris map[string]int) *WeightedRoundRobinLo
 	return lb
 }
 
-func (lb *WeightedRoundRobinLoadBalance) prepare(ctx context.Context) {
+func (lb *WeightedRoundRobinLoadBalance) getIndex() int {
 	n := len(lb.URLs)
 	lb.lock.Lock()
 	defer lb.lock.Unlock()
@@ -53,16 +53,16 @@ func (lb *WeightedRoundRobinLoadBalance) prepare(ctx context.Context) {
 			if lb.currentWeight <= 0 {
 				lb.currentWeight = lb.maxWeight
 			}
-			if lb.Weights[lb.index] >= lb.currentWeight {
-				core.GetClientContext(ctx).URL = lb.URLs[lb.index]
-				break
-			}
+		}
+		if lb.Weights[lb.index] >= lb.currentWeight {
+			return lb.index
 		}
 	}
 }
 
 // Handler for WeightedRoundRobinLoadBalance.
 func (lb *WeightedRoundRobinLoadBalance) Handler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
-	lb.prepare(ctx)
+	index := lb.getIndex()
+	core.GetClientContext(ctx).URL = lb.URLs[index]
 	return next(ctx, request)
 }
