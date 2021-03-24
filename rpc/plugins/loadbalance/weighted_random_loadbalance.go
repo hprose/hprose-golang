@@ -17,7 +17,6 @@ import (
 	"context"
 	"math/rand"
 	"sync"
-	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
@@ -25,7 +24,6 @@ import (
 // WeightedRandomLoadBalance plugin for hprose.
 type WeightedRandomLoadBalance struct {
 	WeightedLoadBalance
-	random           *rand.Rand
 	effectiveWeights intSlice
 	rwlock           sync.RWMutex
 }
@@ -34,7 +32,6 @@ type WeightedRandomLoadBalance struct {
 func NewWeightedRandomLoadBalance(uris map[string]int) *WeightedRandomLoadBalance {
 	lb := &WeightedRandomLoadBalance{
 		WeightedLoadBalance: MakeWeightedLoadBalance(uris),
-		random:              rand.New(rand.NewSource(time.Now().UTC().UnixNano())),
 	}
 	lb.effectiveWeights = make([]int, len(uris))
 	copy(lb.effectiveWeights, lb.Weights)
@@ -48,7 +45,7 @@ func (lb *WeightedRandomLoadBalance) Handler(ctx context.Context, request []byte
 	lb.rwlock.RLock()
 	totalWeight := lb.effectiveWeights.Sum()
 	if totalWeight > 0 {
-		currentWeight := lb.random.Intn(totalWeight)
+		currentWeight := rand.Intn(totalWeight)
 		for i := 0; i < n; i++ {
 			currentWeight -= lb.effectiveWeights[i]
 			if currentWeight < 0 {
@@ -57,7 +54,7 @@ func (lb *WeightedRandomLoadBalance) Handler(ctx context.Context, request []byte
 			}
 		}
 	} else {
-		index = lb.random.Intn(n)
+		index = rand.Intn(n)
 	}
 	lb.rwlock.RUnlock()
 	core.GetClientContext(ctx).URL = lb.URLs[index]

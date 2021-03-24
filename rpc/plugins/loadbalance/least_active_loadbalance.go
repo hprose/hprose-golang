@@ -17,23 +17,19 @@ import (
 	"context"
 	"math/rand"
 	"sync"
-	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
 
 // LeastActiveLoadBalance plugin for hprose.
 type LeastActiveLoadBalance struct {
-	random  *rand.Rand
 	actives intSlice
 	rwlock  sync.RWMutex
 }
 
 // NewLeastActiveLoadBalance returns a LeastActiveLoadBalance instance.
 func NewLeastActiveLoadBalance() *LeastActiveLoadBalance {
-	return &LeastActiveLoadBalance{
-		random: rand.New(rand.NewSource(time.Now().UTC().UnixNano())),
-	}
+	return &LeastActiveLoadBalance{}
 }
 
 // Handler for LeastActiveLoadBalance.
@@ -71,7 +67,7 @@ func (lb *LeastActiveLoadBalance) Handler(ctx context.Context, request []byte, n
 	index := leastActiveIndexes[0]
 	count := len(leastActiveIndexes)
 	if count > 1 {
-		index = leastActiveIndexes[lb.random.Intn(count)]
+		index = leastActiveIndexes[rand.Intn(count)]
 	}
 	clientContext.URL = urls[index]
 

@@ -17,7 +17,6 @@ import (
 	"context"
 	"math/rand"
 	"sync"
-	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
@@ -25,7 +24,6 @@ import (
 // WeightedLeastActiveLoadBalance plugin for hprose.
 type WeightedLeastActiveLoadBalance struct {
 	WeightedLoadBalance
-	random           *rand.Rand
 	actives          intSlice
 	effectiveWeights intSlice
 	rwlock           sync.RWMutex
@@ -35,7 +33,6 @@ type WeightedLeastActiveLoadBalance struct {
 func NewWeightedLeastActiveLoadBalance(uris map[string]int) *WeightedLeastActiveLoadBalance {
 	lb := &WeightedLeastActiveLoadBalance{
 		WeightedLoadBalance: MakeWeightedLoadBalance(uris),
-		random:              rand.New(rand.NewSource(time.Now().UTC().UnixNano())),
 	}
 	n := len(uris)
 	lb.actives = make([]int, n)
@@ -64,7 +61,7 @@ func (lb *WeightedLeastActiveLoadBalance) Handler(ctx context.Context, request [
 	count := len(leastActiveIndexes)
 	if count > 1 {
 		if totalWeight > 0 {
-			currentWeight := lb.random.Intn(totalWeight)
+			currentWeight := rand.Intn(totalWeight)
 			lb.rwlock.RLock()
 			for i := 0; i < count; i++ {
 				currentWeight -= lb.effectiveWeights[leastActiveIndexes[i]]
@@ -75,7 +72,7 @@ func (lb *WeightedLeastActiveLoadBalance) Handler(ctx context.Context, request [
 			}
 			lb.rwlock.RUnlock()
 		} else {
-			index = leastActiveIndexes[lb.random.Intn(count)]
+			index = leastActiveIndexes[rand.Intn(count)]
 		}
 	}
 	core.GetClientContext(ctx).URL = lb.URLs[index]
