@@ -38,56 +38,43 @@ func NewWeightedRandomLoadBalance(uris map[string]int) *WeightedRandomLoadBalanc
 	return lb
 }
 
-// Handler for WeightedRandomLoadBalance.
-func (lb *WeightedRandomLoadBalance) Handler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
+func (lb *WeightedRandomLoadBalance) getIndex() int {
 	n := len(lb.URLs)
 	index := n - 1
 	lb.rwlock.RLock()
+	defer lb.rwlock.RUnlock()
 	totalWeight := lb.effectiveWeights.Sum()
-	if totalWeight > 0 {
-		currentWeight := rand.Intn(totalWeight)
-		for i := 0; i < n; i++ {
-			currentWeight -= lb.effectiveWeights[i]
-			if currentWeight < 0 {
-				index = i
-				break
-			}
-		}
-	} else {
-		index = rand.Intn(n)
+	if totalWeight <= 0 {
+		return rand.Intn(n)
 	}
-	lb.rwlock.RUnlock()
+	currentWeight := rand.Intn(totalWeight)
+	for i := 0; i < n; i++ {
+		currentWeight -= lb.effectiveWeights[i]
+		if currentWeight < 0 {
+			index = i
+			break
+		}
+	}
+	return index
+}
+
+// Handler for WeightedRandomLoadBalance.
+func (lb *WeightedRandomLoadBalance) Handler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
+	index := lb.getIndex()
 	core.GetClientContext(ctx).URL = lb.URLs[index]
 	defer func() {
 		if e := recover(); e != nil {
 			err = core.NewPanicError(e)
 		}
-		if err == nil {
-			return
-		}
-		lb.rwlock.RLock()
-		condition := lb.effectiveWeights[index] > 0
-		lb.rwlock.RUnlock()
-		if condition {
-			lb.rwlock.Lock()
-			if lb.effectiveWeights[index] > 0 {
-				lb.effectiveWeights[index]--
-			}
-			lb.rwlock.Unlock()
-		}
-	}()
-	if response, err = next(ctx, request); err != nil {
-		return
-	}
-	lb.rwlock.RLock()
-	condition := lb.effectiveWeights[index] < lb.Weights[index]
-	lb.rwlock.RUnlock()
-	if condition {
 		lb.rwlock.Lock()
-		if lb.effectiveWeights[index] < lb.Weights[index] {
-			lb.effectiveWeights[index]++
+		if err == nil {
+			if lb.effectiveWeights[index] < lb.Weights[index] {
+				lb.effectiveWeights[index]++
+			}
+		} else if lb.effectiveWeights[index] > 0 {
+			lb.effectiveWeights[index]--
 		}
 		lb.rwlock.Unlock()
-	}
-	return
+	}()
+	return next(ctx, request)
 }

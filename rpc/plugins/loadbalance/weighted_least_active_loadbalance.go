@@ -15,6 +15,7 @@ package loadbalance
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"sync"
 
@@ -41,8 +42,7 @@ func NewWeightedLeastActiveLoadBalance(uris map[string]int) *WeightedLeastActive
 	return lb
 }
 
-// Handler for WeightedLeastActiveLoadBalance.
-func (lb *WeightedLeastActiveLoadBalance) Handler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
+func (lb *WeightedLeastActiveLoadBalance) getIndex() int {
 	n := len(lb.URLs)
 	leastActiveIndexes := make([]int, 0, n)
 
@@ -59,23 +59,30 @@ func (lb *WeightedLeastActiveLoadBalance) Handler(ctx context.Context, request [
 
 	index := leastActiveIndexes[0]
 	count := len(leastActiveIndexes)
-	if count > 1 {
-		if totalWeight > 0 {
-			currentWeight := rand.Intn(totalWeight)
-			lb.rwlock.RLock()
-			for i := 0; i < count; i++ {
-				currentWeight -= lb.effectiveWeights[leastActiveIndexes[i]]
-				if currentWeight < 0 {
-					index = leastActiveIndexes[i]
-					break
-				}
-			}
-			lb.rwlock.RUnlock()
-		} else {
-			index = leastActiveIndexes[rand.Intn(count)]
+	if count <= 1 {
+		return index
+	}
+	if totalWeight <= 0 {
+		return leastActiveIndexes[rand.Intn(count)]
+	}
+	currentWeight := rand.Intn(totalWeight)
+	lb.rwlock.RLock()
+	for i := 0; i < count; i++ {
+		currentWeight -= lb.effectiveWeights[leastActiveIndexes[i]]
+		if currentWeight < 0 {
+			index = leastActiveIndexes[i]
+			break
 		}
 	}
+	lb.rwlock.RUnlock()
+	return index
+}
+
+// Handler for WeightedLeastActiveLoadBalance.
+func (lb *WeightedLeastActiveLoadBalance) Handler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
+	index := lb.getIndex()
 	core.GetClientContext(ctx).URL = lb.URLs[index]
+	fmt.Println(lb.URLs[index])
 	lb.rwlock.Lock()
 	lb.actives[index]++
 	lb.rwlock.Unlock()
@@ -90,10 +97,8 @@ func (lb *WeightedLeastActiveLoadBalance) Handler(ctx context.Context, request [
 			if lb.effectiveWeights[index] < lb.Weights[index] {
 				lb.effectiveWeights[index]++
 			}
-		} else {
-			if lb.effectiveWeights[index] > 0 {
-				lb.effectiveWeights[index]--
-			}
+		} else if lb.effectiveWeights[index] > 0 {
+			lb.effectiveWeights[index]--
 		}
 		lb.rwlock.Unlock()
 	}()

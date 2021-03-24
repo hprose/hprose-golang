@@ -77,10 +77,8 @@ func (lb *NginxRoundRobinLoadBalance) Handler(ctx context.Context, request []byt
 			if lb.effectiveWeights[index] < lb.Weights[index] {
 				lb.effectiveWeights[index]++
 			}
-		} else {
-			if lb.effectiveWeights[index] > 0 {
-				lb.effectiveWeights[index]--
-			}
+		} else if lb.effectiveWeights[index] > 0 {
+			lb.effectiveWeights[index]--
 		}
 		lb.lock.Unlock()
 	}()
