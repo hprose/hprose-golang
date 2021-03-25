@@ -30,6 +30,7 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/limiter"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/loadbalance"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
+	"github.com/hprose/hprose-golang/v3/rpc/plugins/oneway"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
 	"github.com/stretchr/testify/assert"
 )
@@ -1187,4 +1188,31 @@ func TestWeightedLeastActiveLoadBalance(t *testing.T) {
 	server2.Close()
 	server3.Close()
 	server4.Close()
+}
+
+func TestOneway(t *testing.T) {
+	service := core.NewService()
+	service.Codec = core.NewServiceCodec(core.WithDebug(true))
+	service.AddFunction(func() {
+		time.Sleep(time.Millisecond * 10)
+	}, "sleep")
+	server := Server{"testOneway"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testOneway")
+	client.Use(log.Plugin)
+	var proxy struct {
+		Sleep func() `context:"oneway"`
+	}
+	client.UseService(&proxy)
+	start := time.Now()
+	proxy.Sleep()
+	duration := time.Since(start)
+	assert.True(t, duration > time.Millisecond*9 && duration < time.Millisecond*11)
+	client.Use(oneway.Oneway{})
+	start = time.Now()
+	proxy.Sleep()
+	duration = time.Since(start)
+	assert.True(t, duration < time.Millisecond*1)
+	server.Close()
 }
