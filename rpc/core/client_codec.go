@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_codec.go                                 |
 |                                                          |
-| LastModified: Feb 22, 2021                               |
+| LastModified: Mar 25, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -115,6 +115,10 @@ func (c clientCodec) Decode(response []byte, context *ClientContext) (result []i
 }
 
 // NewClientCodec returns the ClientCodec.
-func NewClientCodec(simple bool, longType encoding.LongType, realType encoding.RealType, mapType encoding.MapType) ClientCodec {
-	return clientCodec{simple, longType, realType, mapType}
+func NewClientCodec(options ...CodecOption) ClientCodec {
+	c := clientCodec{}
+	for _, option := range options {
+		option(&c)
+	}
+	return c
 }

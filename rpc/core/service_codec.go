@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service_codec.go                                |
 |                                                          |
-| LastModified: Feb 21, 2021                               |
+| LastModified: Mar 25, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -141,6 +141,10 @@ func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder) 
 }
 
 // NewServiceCodec returns the ServiceCodec.
-func NewServiceCodec(debug bool, simple bool, longType encoding.LongType, realType encoding.RealType, mapType encoding.MapType) ServiceCodec {
-	return serviceCodec{debug, simple, longType, realType, mapType}
+func NewServiceCodec(options ...CodecOption) ServiceCodec {
+	c := serviceCodec{}
+	for _, option := range options {
+		option(&c)
+	}
+	return c
 }

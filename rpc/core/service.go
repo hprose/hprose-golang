@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service.go                                      |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Mar 25, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -159,7 +159,7 @@ func (s *Service) Execute(ctx context.Context, name string, args []interface{}) 
 	f := method.Func()
 	out := f.Call(in)
 	n = len(out)
-	if f.Type().Out(n - 1).Implements(errorType) {
+	if n > 0 && f.Type().Out(n-1).Implements(errorType) {
 		if !out[n-1].IsNil() {
 			err = out[n-1].Interface().(error)
 		}
