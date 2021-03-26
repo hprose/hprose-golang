@@ -44,7 +44,16 @@ func (trans *Transport) addHeader(req *http.Request, header http.Header) {
 
 func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, error) {
 	clientContext := core.GetClientContext(ctx)
-	req, err := http.NewRequest("POST", clientContext.URL.String(), bytes.NewReader(request))
+	timeoutContext, cancel := context.WithTimeout(ctx, clientContext.Timeout)
+	trans.lock.Lock()
+	cancelFunc := trans.cancelFuncs.PushBack(cancel)
+	trans.lock.Unlock()
+	defer func() {
+		trans.lock.Lock()
+		trans.cancelFuncs.Remove(cancelFunc)
+		trans.lock.Unlock()
+	}()
+	req, err := newRequestWithContext(timeoutContext, "POST", clientContext.URL.String(), bytes.NewReader(request))
 	if err != nil {
 		return nil, err
 	}
@@ -56,17 +65,8 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, 
 			trans.addHeader(req, header)
 		}
 	}
-	timeoutContext, cancel := context.WithTimeout(ctx, clientContext.Timeout)
-	trans.lock.Lock()
-	cancelFunc := trans.cancelFuncs.PushBack(cancel)
-	trans.lock.Unlock()
-	defer func() {
-		trans.lock.Lock()
-		trans.cancelFuncs.Remove(cancelFunc)
-		trans.lock.Unlock()
-	}()
 	var resp *http.Response
-	resp, err = trans.HTTPClient.Do(req.WithContext(timeoutContext))
+	resp, err = trans.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
