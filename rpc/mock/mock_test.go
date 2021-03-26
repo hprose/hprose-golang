@@ -1209,7 +1209,7 @@ func TestOneway(t *testing.T) {
 	service := core.NewService()
 	service.Codec = core.NewServiceCodec(core.WithDebug(true))
 	service.AddFunction(func() {
-		time.Sleep(time.Millisecond * 10)
+		time.Sleep(time.Millisecond * 100)
 	}, "sleep")
 	server := Server{"testOneway"}
 	err := service.Bind(server)
@@ -1223,7 +1223,7 @@ func TestOneway(t *testing.T) {
 	start := time.Now()
 	proxy.Sleep()
 	duration := time.Since(start)
-	assert.True(t, duration > time.Millisecond*9 && duration < time.Millisecond*11)
+	assert.True(t, duration > time.Millisecond*90 && duration < time.Millisecond*110)
 	client.Use(oneway.Oneway{})
 	start = time.Now()
 	proxy.Sleep()
