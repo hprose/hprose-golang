@@ -22,7 +22,7 @@ import (
 )
 
 func newRequestWithContext(ctx context.Context, method, url string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, uri, body)
+	req, err := http.NewRequest(method, url, body)
 	req = req.WithContext(ctx)
 	return req, err
 }
