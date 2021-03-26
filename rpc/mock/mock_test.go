@@ -875,17 +875,22 @@ func TestRandomLoadBalance(t *testing.T) {
 	client.UseService(&proxy)
 	var wg sync.WaitGroup
 	wg.Add(100)
+	var rwlock sync.RWMutex
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
+			rwlock.RLock()
 			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			rwlock.RUnlock()
 			if err == nil {
 				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
 			} else {
 				assert.Equal(t, core.ErrTimeout, err)
 			}
 			if i == 50 {
+				rwlock.Lock()
 				client.URLs = client.URLs[:3]
+				rwlock.Unlock()
 			}
 		}(i)
 	}
@@ -926,17 +931,22 @@ func TestRoundRobinLoadBalance(t *testing.T) {
 	client.UseService(&proxy)
 	var wg sync.WaitGroup
 	wg.Add(100)
+	var rwlock sync.RWMutex
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
+			rwlock.RLock()
 			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			rwlock.RUnlock()
 			if err == nil {
 				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
 			} else {
 				assert.Equal(t, core.ErrTimeout, err)
 			}
 			if i == 50 {
+				rwlock.Lock()
 				client.URLs = client.URLs[:3]
+				rwlock.Unlock()
 			}
 		}(i)
 	}
@@ -977,17 +987,22 @@ func TestLeastActiveLoadBalance(t *testing.T) {
 	client.UseService(&proxy)
 	var wg sync.WaitGroup
 	wg.Add(100)
+	var rwlock sync.RWMutex
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
+			rwlock.RLock()
 			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			rwlock.RUnlock()
 			if err == nil {
 				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
 			} else {
 				assert.Equal(t, core.ErrTimeout, err)
 			}
 			if i == 50 {
+				rwlock.Lock()
 				client.URLs = client.URLs[:3]
+				rwlock.Unlock()
 			}
 		}(i)
 	}

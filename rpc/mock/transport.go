@@ -31,17 +31,26 @@ func (transport) Transport(ctx context.Context, request []byte) (response []byte
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
-	ch := make(chan struct{}, 1)
+	ch := make(chan struct {
+		response []byte
+		err      error
+	}, 1)
 	go func() {
-		response, err = Agent.Handler(url.Host, request)
-		ch <- struct{}{}
+		response, err := Agent.Handler(url.Host, request)
+		ch <- struct {
+			response []byte
+			err      error
+		}{
+			response: response,
+			err:      err,
+		}
 		close(ch)
 	}()
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
-	case <-ch:
-		return response, err
+	case result := <-ch:
+		return result.response, result.err
 	}
 }
 
