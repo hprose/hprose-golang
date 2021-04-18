@@ -23,6 +23,7 @@ linters:
     - dogsled
     - dupl
     - errcheck
+    - exportloopref
     - gocognit
     - goconst
     - gocritic
@@ -36,14 +37,11 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - interfacer
-    - maligned
     - misspell
     - nestif
     - nolintlint
     - prealloc
     - rowserrcheck
-    - scopelint
     - staticcheck
     - structcheck
     - stylecheck
@@ -65,7 +63,6 @@ issues:
         - goconst
         - gocyclo
         - gosec
-        - maligned
         - structcheck
         - stylecheck
         - unused
