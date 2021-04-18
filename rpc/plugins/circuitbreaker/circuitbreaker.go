@@ -30,7 +30,7 @@ type MockService func(ctx context.Context, name string, args []interface{}) (res
 
 // CircuitBreaker plugin for hprose.
 type CircuitBreaker struct {
-	lastFailTime time.Time
+	lastFailTime int64
 	failCount    uint64
 	threshold    uint64
 	recoverTime  time.Duration
@@ -91,7 +91,7 @@ func (cb *CircuitBreaker) MockService() MockService {
 // IOHandler for CircuitBreaker.
 func (cb *CircuitBreaker) IOHandler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
 	if atomic.LoadUint64(&cb.failCount) > cb.threshold {
-		interval := time.Since(cb.lastFailTime)
+		interval := time.Duration(time.Now().UnixNano() - atomic.LoadInt64(&cb.lastFailTime))
 		if interval < cb.recoverTime {
 			return nil, ErrBreaker
 		}
@@ -103,12 +103,12 @@ func (cb *CircuitBreaker) IOHandler(ctx context.Context, request []byte, next co
 		}
 		if err != nil {
 			atomic.AddUint64(&cb.failCount, 1)
-			cb.lastFailTime = time.Now()
+			atomic.StoreInt64(&cb.lastFailTime, time.Now().UnixNano())
 		}
 	}()
 	response, err = next(ctx, request)
 	if err == nil {
-		cb.failCount = 0
+		atomic.StoreUint64(&cb.failCount, 0)
 	}
 	return
 }

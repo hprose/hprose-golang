@@ -14,10 +14,12 @@
 package mock
 
 import (
+	"errors"
 	"sync"
-
-	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
+
+// ErrServerIsStoped represents a error.
+var ErrServerIsStoped = errors.New("server is stoped")
 
 type agent struct {
 	handlers map[string]func(address string, request []byte) (response []byte, err error)
@@ -42,7 +44,7 @@ func (a *agent) Handler(address string, request []byte) ([]byte, error) {
 	if handler, ok := a.handlers[address]; ok {
 		return handler(address, request)
 	}
-	return nil, core.ErrServerIsStoped
+	return nil, ErrServerIsStoped
 }
 
 // Agent for mock.

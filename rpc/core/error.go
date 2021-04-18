@@ -14,7 +14,6 @@
 package core
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -58,21 +57,6 @@ func (e timeoutError) Temporary() bool {
 
 // ErrTimeout represents a error.
 var ErrTimeout = timeoutError{}
-
-// // ErrServerIsAlreadyStarted represents a error.
-// var ErrServerIsAlreadyStarted = errors.New("The server is already started")
-
-// ErrServerIsStoped represents a error.
-var ErrServerIsStoped = errors.New("hprose/rpc/core: server is stoped")
-
-// // ErrClientIsAlreadyClosed represents a error.
-// var ErrClientIsAlreadyClosed = errors.New("The Client is already closed")
-
-// // ErrURIListEmpty represents a error.
-// var ErrURIListEmpty = errors.New("uriList must contain at least one uri")
-
-// ErrRequestEntityTooLarge represents a error.
-var ErrRequestEntityTooLarge = errors.New("Request entity too large")
 
 // InvalidRequestError represents a error.
 type InvalidRequestError struct {

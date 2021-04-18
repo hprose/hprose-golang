@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service.go                                      |
 |                                                          |
-| LastModified: Mar 25, 2021                               |
+| LastModified: Apr 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -91,8 +91,8 @@ func (s *Service) Bind(server Server) error {
 	return UnsupportedServerTypeError{serverType}
 }
 
-// Handler returns the handler by the specified name.
-func (s *Service) Handler(name string) Handler {
+// GetHandler returns the handler by the specified name.
+func (s *Service) GetHandler(name string) Handler {
 	return s.handlers[name]
 }
 
@@ -194,6 +194,11 @@ func (s *Service) Unuse(handler ...PluginHandler) *Service {
 		s.ioManager.Unuse(ioHandler...)
 	}
 	return s
+}
+
+// Get returns the published method by name.
+func (s *Service) Get(name string) Method {
+	return s.methodManager.Get(name)
 }
 
 // Remove is used for unpublishing method by the specified name.

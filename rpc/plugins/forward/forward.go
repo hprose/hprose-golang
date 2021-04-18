@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/forward/forward.go                           |
 |                                                          |
-| LastModified: Mar 7, 2021                                |
+| LastModified: Apr 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -39,8 +39,8 @@ func (f *Forward) IOHandler(ctx context.Context, request []byte, next core.NextI
 	return f.client.Request(core.WithContext(ctx, clientContext), request)
 }
 
-// InvokeHandler for Forward.
-func (f *Forward) InvokeHandler(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
+// Forward can be used as MissingMethod.
+func (f *Forward) Forward(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
 	serviceContext := core.GetServiceContext(ctx)
 	clientContext := core.NewClientContext()
 	clientContext.Timeout = f.Timeout
@@ -52,6 +52,11 @@ func (f *Forward) InvokeHandler(ctx context.Context, name string, args []interfa
 		clientContext.ResponseHeaders().CopyTo(serviceContext.ResponseHeaders())
 	}
 	return
+}
+
+// InvokeHandler for Forward.
+func (f *Forward) InvokeHandler(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
+	return f.Forward(ctx, name, args)
 }
 
 // Use plugin handlers.

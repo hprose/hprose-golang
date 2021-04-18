@@ -4,27 +4,28 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| rpc/mock/mock_test.go                                    |
+| rpc/http/http_test.go                                    |
 |                                                          |
 | LastModified: Apr 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package mock_test
+package http_test
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
 	"reflect"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
-	"github.com/hprose/hprose-golang/v3/rpc/mock"
+	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/cluster"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/forward"
@@ -41,10 +42,14 @@ func TestHelloWorld(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testHelloWorld"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testHelloWorld")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) (string, error)
@@ -61,10 +66,14 @@ func TestClientTimeout(t *testing.T) {
 	service.AddFunction(func(d time.Duration) {
 		time.Sleep(d)
 	}, "wait")
-	server := mock.Server{"testClientTimeout"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testClientTimeout")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(log.Plugin)
 	client.Timeout = time.Millisecond
 	var proxy struct {
@@ -82,10 +91,14 @@ func TestServiceTimeout(t *testing.T) {
 		time.Sleep(d)
 	}, "wait")
 	service.Use(timeout.New(time.Millisecond))
-	server := mock.Server{"testServiceTimeout"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testServiceTimeout")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	var proxy struct {
 		Wait func(d time.Duration) error
 	}
@@ -105,10 +118,14 @@ func TestMissingMethod(t *testing.T) {
 		}
 		return []interface{}{name + string(data)}, nil
 	})
-	server := mock.Server{"testMissingMethod"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testMissingMethod")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(log.IOHandler, log.InvokeHandler)
 	var proxy struct {
 		Hello func(name string) string
@@ -127,19 +144,23 @@ func TestMissingMethod2(t *testing.T) {
 		if err != nil {
 			return nil, err
 		}
-		return []interface{}{name + string(data) + serviceContext.RemoteAddr.String()}, nil
+		return []interface{}{name + string(data) + serviceContext.LocalAddr.String()}, nil
 	})
-	server := mock.Server{"testMissingMethod2"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testMissingMethod2")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) string
 	}
 	client.UseService(&proxy)
 	result := proxy.Hello("world")
-	assert.Equal(t, `Hello["world"]testMissingMethod2`, result)
+	assert.Equal(t, `Hello["world"]127.0.0.1:8000`, result)
 	server.Close()
 }
 
@@ -155,10 +176,14 @@ func TestHeaders(t *testing.T) {
 		serviceContext.ResponseHeaders().Set("pong", true)
 		return next(ctx, name, args)
 	})
-	server := mock.Server{"testHeaders"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testHeaders")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(log.Plugin)
 	var proxy struct {
 		Hello func(ctx context.Context, name string) string `header:"ping"`
@@ -178,10 +203,14 @@ func TestMaxRequestLength(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testMaxRequestLength"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testMaxRequestLength")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) (string, error)
@@ -189,7 +218,7 @@ func TestMaxRequestLength(t *testing.T) {
 	client.UseService(&proxy)
 	_, err = proxy.Hello("world")
 	if assert.Error(t, err) {
-		assert.Equal(t, mock.ErrRequestEntityTooLarge, err)
+		assert.Equal(t, "413 Request Entity Too Large", err.Error())
 	}
 	server.Close()
 }
@@ -199,10 +228,14 @@ func TestCircuitBreaker(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testCircuitBreaker"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testCircuitBreaker")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(circuitbreaker.New(
 		circuitbreaker.WithThreshold(3),
 		circuitbreaker.WithRecoverTime(time.Millisecond*10),
@@ -218,15 +251,15 @@ func TestCircuitBreaker(t *testing.T) {
 	server.Close()
 	for i := 0; i < 4; i++ {
 		_, err = proxy.Hello("world")
-		if assert.Error(t, err) {
-			assert.Equal(t, "server is stoped", err.Error())
-		}
+		assert.Error(t, err)
 	}
 	_, err = proxy.Hello("world")
 	if assert.Error(t, err) {
 		assert.Equal(t, "service breaked", err.Error())
 	}
+	server = &http.Server{Addr: ":8000"}
 	_ = service.Bind(server)
+	go server.ListenAndServe()
 	_, err = proxy.Hello("world")
 	if assert.Error(t, err) {
 		assert.Equal(t, "service breaked", err.Error())
@@ -244,10 +277,14 @@ func TestCircuitBreaker2(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testCircuitBreaker2"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testCircuitBreaker2")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(circuitbreaker.New(
 		circuitbreaker.WithThreshold(1),
 		circuitbreaker.WithRecoverTime(time.Millisecond*10),
@@ -265,18 +302,16 @@ func TestCircuitBreaker2(t *testing.T) {
 	}
 	server.Close()
 	_, err = proxy.Hello("world")
-	if assert.Error(t, err) {
-		assert.Equal(t, "server is stoped", err.Error())
-	}
+	assert.Error(t, err)
 	_, err = proxy.Hello("world")
-	if assert.Error(t, err) {
-		assert.Equal(t, "server is stoped", err.Error())
-	}
+	assert.Error(t, err)
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
 		assert.Equal(t, "Hello breaked", result)
 	}
+	server = &http.Server{Addr: ":8000"}
 	_ = service.Bind(server)
+	go server.ListenAndServe()
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
 		assert.Equal(t, "Hello breaked", result)
@@ -294,27 +329,33 @@ func TestClusterFailover1(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testClusterFailover1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
-	server2 := mock.Server{"testClusterFailover2"}
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
-	server3 := mock.Server{"testClusterFailover3"}
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
-	server4 := mock.Server{"testClusterFailover4"}
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
 
 	client := core.NewClient(
-		"mock://testClusterFailover1",
-		"mock://testClusterFailover2",
-		"mock://testClusterFailover3",
-		"mock://testClusterFailover4",
+		"http://127.0.0.1:8001/",
+		"http://127.0.0.1:8002/",
+		"http://127.0.0.1:8003/",
+		"http://127.0.0.1:8004/",
 	)
 	client.Use(cluster.New(
 		cluster.FailoverConfig(),
@@ -361,27 +402,33 @@ func TestClusterFailover2(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testClusterFailover1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
-	server2 := mock.Server{"testClusterFailover2"}
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
-	server3 := mock.Server{"testClusterFailover3"}
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
-	server4 := mock.Server{"testClusterFailover4"}
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
 
 	client := core.NewClient(
-		"mock://testClusterFailover1",
-		"mock://testClusterFailover2",
-		"mock://testClusterFailover3",
-		"mock://testClusterFailover4",
+		"http://127.0.0.1:8001/",
+		"http://127.0.0.1:8002/",
+		"http://127.0.0.1:8003/",
+		"http://127.0.0.1:8004/",
 	)
 	client.Use(cluster.New(
 		cluster.FailoverConfig(
@@ -430,11 +477,14 @@ func TestClusterFailtry(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testClusterFailtry"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
-	client := core.NewClient("mock://testClusterFailtry")
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(cluster.New(
 		cluster.FailtryConfig(
 			cluster.WithIdempotent(true),
@@ -454,7 +504,9 @@ func TestClusterFailtry(t *testing.T) {
 
 	go func() {
 		time.Sleep(time.Second)
+		server = &http.Server{Addr: ":8000"}
 		service.Bind(server)
+		go server.ListenAndServe()
 	}()
 
 	result, err = proxy.Hello("world")
@@ -473,11 +525,14 @@ func TestClusterFailfast(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testClusterFailfast"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
-	client := core.NewClient("mock://testClusterFailfast")
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(cluster.New(
 		cluster.FailfastConfig(
 			func(c context.Context) {
@@ -496,16 +551,6 @@ func TestClusterFailfast(t *testing.T) {
 
 	server.Close()
 
-	go func() {
-		time.Sleep(time.Second)
-		service.Bind(server)
-	}()
-
-	_, err = proxy.Hello("world")
-	assert.Error(t, err)
-
-	server.Close()
-
 	_, err = proxy.Hello("world")
 	assert.Error(t, err)
 }
@@ -515,11 +560,14 @@ func TestClusterSuccess(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testClusterSuccess"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
-	client := core.NewClient("mock://testClusterSuccess")
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	client.Use(cluster.New(
 		cluster.Config{
 			OnSuccess: func(ctx context.Context) {
@@ -542,24 +590,33 @@ func TestClusterForking(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testClusterForking1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := mock.Server{"testClusterForking2"}
+	go server1.ListenAndServe()
+
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := mock.Server{"testClusterForking3"}
+	go server2.ListenAndServe()
+
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := mock.Server{"testClusterForking4"}
+	go server3.ListenAndServe()
+
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
 
 	client := core.NewClient(
-		"mock://testClusterForking1",
-		"mock://testClusterForking2",
-		"mock://testClusterForking3",
-		"mock://testClusterForking4",
+		"http://127.0.0.1:8001/",
+		"http://127.0.0.1:8002/",
+		"http://127.0.0.1:8003/",
+		"http://127.0.0.1:8004/",
 	)
 	client.Use(cluster.Forking).Use(log.Plugin)
 	var proxy struct {
@@ -603,24 +660,33 @@ func TestClusterBroadcast(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testClusterBroadcast1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := mock.Server{"testClusterBroadcast2"}
+	go server1.ListenAndServe()
+
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := mock.Server{"testClusterBroadcast3"}
+	go server2.ListenAndServe()
+
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := mock.Server{"testClusterBroadcast4"}
+	go server3.ListenAndServe()
+
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
 
 	client := core.NewClient(
-		"mock://testClusterBroadcast1",
-		"mock://testClusterBroadcast2",
-		"mock://testClusterBroadcast3",
-		"mock://testClusterBroadcast4",
+		"http://127.0.0.1:8001/",
+		"http://127.0.0.1:8002/",
+		"http://127.0.0.1:8003/",
+		"http://127.0.0.1:8004/",
 	)
 	client.Use(cluster.Broadcast).Use(log.Plugin)
 	clientContext := core.NewClientContext()
@@ -677,22 +743,27 @@ func TestForward(t *testing.T) {
 	service1.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testForward.RealServer"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service1.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
-	fw := forward.New("mock://testForward.RealServer")
+	fw := forward.New("http://127.0.0.1:8001/")
 	fw.Use(log.Plugin)
 	service2 := core.NewService()
-	service2.AddMissingMethod(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
-		return
-	})
-	service2.Use(fw.InvokeHandler)
-	server2 := mock.Server{"testForward.ForwardServer"}
+	service2.AddMissingMethod(fw.Forward)
+	// service2.AddMissingMethod(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
+	// 	return
+	// })
+	// service2.Use(fw.InvokeHandler)
+	server2 := &http.Server{Addr: ":8002"}
 	err = service2.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
-	client := core.NewClient("mock://testForward.ForwardServer")
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8002/")
 	client.Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) (string, error)
@@ -703,7 +774,7 @@ func TestForward(t *testing.T) {
 		assert.Equal(t, "hello invoke forward", result)
 	}
 
-	service2.Unuse(fw.InvokeHandler)
+	service2.Remove("*")
 	service2.Use(fw.IOHandler)
 
 	result, err = proxy.Hello("io forward")
@@ -726,10 +797,14 @@ func TestConcurrentLimiter(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testConcurrentLimiter"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testConcurrentLimiter")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
@@ -762,10 +837,14 @@ func TestConcurrentLimiterWithoutTimeout(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testConcurrentLimiterWithoutTimeout"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testConcurrentLimiterWithoutTimeout")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
@@ -795,10 +874,14 @@ func TestRateLimiterIOHandler(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testRateLimiterIOHandler"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testRateLimiterIOHandler")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
@@ -830,10 +913,14 @@ func TestRateLimiterInvokeHandler(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := mock.Server{"testRateLimiterInvokeHandler"}
+	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testRateLimiterInvokeHandler")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
@@ -865,23 +952,33 @@ func TestRandomLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testRandomLoadBalance1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := mock.Server{"testRandomLoadBalance2"}
+	go server1.ListenAndServe()
+
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := mock.Server{"testRandomLoadBalance3"}
+	go server2.ListenAndServe()
+
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := mock.Server{"testRandomLoadBalance4"}
+	go server3.ListenAndServe()
+
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
 	client := core.NewClient(
-		"mock://testRandomLoadBalance1",
-		"mock://testRandomLoadBalance2",
-		"mock://testRandomLoadBalance3",
-		"mock://testRandomLoadBalance4",
+		"http://127.0.0.1:8001/",
+		"http://127.0.0.1:8002/",
+		"http://127.0.0.1:8003/",
+		"http://127.0.0.1:8004/",
 	)
 	var proxy struct {
 		Hello func(name string) (string, error)
@@ -921,23 +1018,33 @@ func TestRoundRobinLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testRoundRobinLoadBalance1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := mock.Server{"testRoundRobinLoadBalance2"}
+	go server1.ListenAndServe()
+
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := mock.Server{"testRoundRobinLoadBalance3"}
+	go server2.ListenAndServe()
+
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := mock.Server{"testRoundRobinLoadBalance4"}
+	go server3.ListenAndServe()
+
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
 	client := core.NewClient(
-		"mock://testRoundRobinLoadBalance1",
-		"mock://testRoundRobinLoadBalance2",
-		"mock://testRoundRobinLoadBalance3",
-		"mock://testRoundRobinLoadBalance4",
+		"http://127.0.0.1:8001/",
+		"http://127.0.0.1:8002/",
+		"http://127.0.0.1:8003/",
+		"http://127.0.0.1:8004/",
 	)
 	var proxy struct {
 		Hello func(name string) (string, error)
@@ -977,23 +1084,33 @@ func TestLeastActiveLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testLeastActiveLoadBalance1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := mock.Server{"testLeastActiveLoadBalance2"}
+	go server1.ListenAndServe()
+
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := mock.Server{"testLeastActiveLoadBalance3"}
+	go server2.ListenAndServe()
+
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := mock.Server{"testLeastActiveLoadBalance4"}
+	go server3.ListenAndServe()
+
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
 	client := core.NewClient(
-		"mock://testLeastActiveLoadBalance1",
-		"mock://testLeastActiveLoadBalance2",
-		"mock://testLeastActiveLoadBalance3",
-		"mock://testLeastActiveLoadBalance4",
+		"http://127.0.0.1:8001/",
+		"http://127.0.0.1:8002/",
+		"http://127.0.0.1:8003/",
+		"http://127.0.0.1:8004/",
 	)
 	var proxy struct {
 		Hello func(name string) (string, error)
@@ -1033,27 +1150,37 @@ func TestWeightedRandomLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testWeightedRandomLoadBalance1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := mock.Server{"testWeightedRandomLoadBalance2"}
+	go server1.ListenAndServe()
+
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := mock.Server{"testWeightedRandomLoadBalance3"}
+	go server2.ListenAndServe()
+
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := mock.Server{"testWeightedRandomLoadBalance4"}
+	go server3.ListenAndServe()
+
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
 	client := core.NewClient()
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
 	client.Use(loadbalance.NewWeightedRandomLoadBalance(map[string]int{
-		"mock://testWeightedRandomLoadBalance1": 1,
-		"mock://testWeightedRandomLoadBalance2": 2,
-		"mock://testWeightedRandomLoadBalance3": 3,
-		"mock://testWeightedRandomLoadBalance4": 4,
+		"http://127.0.0.1:8001/": 1,
+		"http://127.0.0.1:8002/": 2,
+		"http://127.0.0.1:8003/": 3,
+		"http://127.0.0.1:8004/": 4,
 	}))
 	client.UseService(&proxy)
 	var wg sync.WaitGroup
@@ -1081,27 +1208,37 @@ func TestWeightedRoundRobinLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testWeightedRoundRobinLoadBalance1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := mock.Server{"testWeightedRoundRobinLoadBalance2"}
+	go server1.ListenAndServe()
+
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := mock.Server{"testWeightedRoundRobinLoadBalance3"}
+	go server2.ListenAndServe()
+
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := mock.Server{"testWeightedRoundRobinLoadBalance4"}
+	go server3.ListenAndServe()
+
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
 	client := core.NewClient()
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
 	client.Use(loadbalance.NewWeightedRoundRobinLoadBalance(map[string]int{
-		"mock://testWeightedRoundRobinLoadBalance1": 1,
-		"mock://testWeightedRoundRobinLoadBalance2": 2,
-		"mock://testWeightedRoundRobinLoadBalance3": 3,
-		"mock://testWeightedRoundRobinLoadBalance4": 4,
+		"http://127.0.0.1:8001/": 1,
+		"http://127.0.0.1:8002/": 2,
+		"http://127.0.0.1:8003/": 3,
+		"http://127.0.0.1:8004/": 4,
 	}))
 	client.UseService(&proxy)
 	var wg sync.WaitGroup
@@ -1129,27 +1266,37 @@ func TestNginxRoundRobinLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testNginxRoundRobinLoadBalance1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := mock.Server{"testNginxRoundRobinLoadBalance2"}
+	go server1.ListenAndServe()
+
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := mock.Server{"testNginxRoundRobinLoadBalance3"}
+	go server2.ListenAndServe()
+
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := mock.Server{"testNginxRoundRobinLoadBalance4"}
+	go server3.ListenAndServe()
+
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
 	client := core.NewClient()
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
 	client.Use(loadbalance.NewNginxRoundRobinLoadBalance(map[string]int{
-		"mock://testNginxRoundRobinLoadBalance1": 1,
-		"mock://testNginxRoundRobinLoadBalance2": 2,
-		"mock://testNginxRoundRobinLoadBalance3": 3,
-		"mock://testNginxRoundRobinLoadBalance4": 4,
+		"http://127.0.0.1:8001/": 1,
+		"http://127.0.0.1:8002/": 2,
+		"http://127.0.0.1:8003/": 3,
+		"http://127.0.0.1:8004/": 4,
 	}))
 	client.UseService(&proxy)
 	var wg sync.WaitGroup
@@ -1177,27 +1324,37 @@ func TestWeightedLeastActiveLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := mock.Server{"testWeightedLeastActiveLoadBalance1"}
+	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := mock.Server{"testWeightedLeastActiveLoadBalance2"}
+	go server1.ListenAndServe()
+
+	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := mock.Server{"testWeightedLeastActiveLoadBalance3"}
+	go server2.ListenAndServe()
+
+	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := mock.Server{"testWeightedLeastActiveLoadBalance4"}
+	go server3.ListenAndServe()
+
+	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
 	client := core.NewClient()
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
 	client.Use(loadbalance.NewWeightedLeastActiveLoadBalance(map[string]int{
-		"mock://testWeightedLeastActiveLoadBalance1": 1,
-		"mock://testWeightedLeastActiveLoadBalance2": 2,
-		"mock://testWeightedLeastActiveLoadBalance3": 3,
-		"mock://testWeightedLeastActiveLoadBalance4": 4,
+		"http://127.0.0.1:8001/": 1,
+		"http://127.0.0.1:8002/": 2,
+		"http://127.0.0.1:8003/": 3,
+		"http://127.0.0.1:8004/": 4,
 	}))
 	client.UseService(&proxy)
 	var wg sync.WaitGroup
@@ -1224,12 +1381,16 @@ func TestOneway(t *testing.T) {
 	service := core.NewService()
 	service.Codec = core.NewServiceCodec(core.WithDebug(true))
 	service.AddFunction(func() {
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Millisecond * 50)
 	}, "sleep")
-	server := mock.Server{"testOneway"}
+	server := &http.Server{Addr: ":8005"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	client := core.NewClient("mock://testOneway")
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8005/")
 	client.Use(log.Plugin)
 	var proxy struct {
 		Sleep func() `context:"oneway"`
@@ -1238,11 +1399,141 @@ func TestOneway(t *testing.T) {
 	start := time.Now()
 	proxy.Sleep()
 	duration := time.Since(start)
-	assert.True(t, duration > time.Millisecond*90 && duration < time.Millisecond*110)
+	assert.True(t, duration > time.Millisecond*40 && duration < time.Millisecond*60)
 	client.Use(oneway.Oneway{})
 	start = time.Now()
 	proxy.Sleep()
 	duration = time.Since(start)
 	assert.True(t, duration < time.Millisecond*1)
+	time.Sleep(time.Millisecond * 60)
+	server.Close()
+}
+
+func TestClientAbort(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := &http.Server{Addr: ":8000"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8000/")
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	client.Use(limiter.NewRateLimiter(5000).InvokeHandler)
+	var wg sync.WaitGroup
+	wg.Add(1000)
+	for i := 0; i < 1000; i++ {
+		go func(i int) {
+			defer wg.Done()
+			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			if err == nil {
+				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+			}
+		}(i)
+	}
+	client.Abort()
+	wg.Wait()
+	server.Close()
+}
+
+func TestHttpHeaders(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	service.Use(func(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
+		serviceContext := core.GetServiceContext(ctx)
+		if header, ok := serviceContext.Items().Get("httpRequestHeaders"); assert.True(t, ok) {
+			if header, ok := header.(http.Header); assert.True(t, ok) {
+				ping := header.Get("Ping")
+				assert.Equal(t, "true", ping)
+				header = make(http.Header)
+				header.Set("Pong", "true")
+				serviceContext.Items().Set("httpResponseHeaders", header)
+			}
+		}
+		return next(ctx, name, args)
+	})
+	server := &http.Server{Addr: ":8006"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8006/")
+	client.Use(log.Plugin)
+	var proxy struct {
+		Hello func(ctx context.Context, name string) string
+	}
+	client.UseService(&proxy)
+	clientContext := core.NewClientContext()
+	header := make(http.Header)
+	header.Set("Ping", "true")
+	clientContext.Items().Set("httpRequestHeaders", header)
+	ctx := core.WithContext(context.Background(), clientContext)
+	result := proxy.Hello(ctx, "world")
+	assert.Equal(t, `hello world`, result)
+	if header, ok := clientContext.Items().Get("httpResponseHeaders"); assert.True(t, ok) {
+		if header, ok := header.(http.Header); assert.True(t, ok) {
+			pong := header.Get("Pong")
+			assert.Equal(t, "true", pong)
+		}
+	}
+	server.Close()
+}
+
+func TestHttpHeaders2(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	header := make(http.Header)
+	header.Set("Pong", "true")
+	service.GetHandler("http").(*rpchttp.Handler).Header = header
+	service.Use(func(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
+		serviceContext := core.GetServiceContext(ctx)
+		if header, ok := serviceContext.Items().Get("httpRequestHeaders"); assert.True(t, ok) {
+			if header, ok := header.(http.Header); assert.True(t, ok) {
+				ping := header.Get("Ping")
+				assert.Equal(t, "true", ping)
+				serviceContext.Items().Set("httpStatusCode", 200)
+			}
+		}
+		return next(ctx, name, args)
+	})
+	server := &http.Server{Addr: ":8007"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("http://127.0.0.1:8007/")
+	client.Use(log.Plugin)
+	var proxy struct {
+		Hello func(ctx context.Context, name string) string
+	}
+	client.UseService(&proxy)
+	clientContext := core.NewClientContext()
+	header = make(http.Header)
+	header.Set("Ping", "true")
+	client.GetTransport("http").(*rpchttp.Transport).Header = header
+	ctx := core.WithContext(context.Background(), clientContext)
+	result := proxy.Hello(ctx, "world")
+	assert.Equal(t, `hello world`, result)
+	if header, ok := clientContext.Items().Get("httpResponseHeaders"); assert.True(t, ok) {
+		if header, ok := header.(http.Header); assert.True(t, ok) {
+			pong := header.Get("Pong")
+			assert.Equal(t, "true", pong)
+		}
+	}
 	server.Close()
 }

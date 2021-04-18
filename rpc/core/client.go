@@ -80,6 +80,11 @@ func NewClient(uri ...string) *Client {
 	return client
 }
 
+// GetTransport returns the transport by the specified name.
+func (c *Client) GetTransport(name string) Transport {
+	return c.transports[name]
+}
+
 // ShuffleURLs sorts the URLs in random order.
 func (c *Client) ShuffleURLs() *Client {
 	if n := len(c.URLs); n > 0 {

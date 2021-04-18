@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/transport.go                                    |
 |                                                          |
-| LastModified: Mar 25, 2021                               |
+| LastModified: Apr 18, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,7 +17,7 @@ import (
 	"bytes"
 	"container/list"
 	"context"
-	"io/ioutil"
+	"errors"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -32,14 +32,6 @@ type Transport struct {
 	HTTPClient  http.Client
 	cancelFuncs *list.List
 	lock        sync.Mutex
-}
-
-func (trans *Transport) addHeader(req *http.Request, header http.Header) {
-	for key, values := range header {
-		for _, value := range values {
-			req.Header.Add(key, value)
-		}
-	}
 }
 
 func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, error) {
@@ -58,11 +50,11 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, 
 		return nil, err
 	}
 	if trans.Header != nil {
-		trans.addHeader(req, trans.Header)
+		addHeader(req.Header, trans.Header)
 	}
 	if header, ok := clientContext.Items().Get("httpRequestHeaders"); ok {
 		if header, ok := header.(http.Header); ok {
-			trans.addHeader(req, header)
+			addHeader(req.Header, header)
 		}
 	}
 	var resp *http.Response
@@ -71,8 +63,13 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, 
 		return nil, err
 	}
 	defer resp.Body.Close()
-	clientContext.Items().Set("httpResponseHeaders", resp.Header)
-	return ioutil.ReadAll(resp.Body)
+	clientContext.Items().Set("httpStatusCode", resp.StatusCode)
+	clientContext.Items().Set("httpStatusText", http.StatusText(resp.StatusCode))
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		clientContext.Items().Set("httpResponseHeaders", resp.Header)
+		return readAll(resp.Body, resp.ContentLength)
+	}
+	return nil, errors.New(resp.Status)
 }
 
 func (trans *Transport) Abort() {
