@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/error.go                                        |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Apr 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,6 +14,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -58,12 +59,18 @@ func (e timeoutError) Temporary() bool {
 // ErrTimeout represents a error.
 var ErrTimeout = timeoutError{}
 
+// ErrRequestEntityTooLarge represents a error.
+var ErrRequestEntityTooLarge = errors.New("hprose/rpc/core: request entity too large")
+
 // InvalidRequestError represents a error.
 type InvalidRequestError struct {
 	Request []byte
 }
 
 func (e InvalidRequestError) Error() string {
+	if e.Request == nil {
+		return "hprose/rpc/core: invalid request"
+	}
 	return "hprose/rpc/core: invalid request:\r\n" + string(e.Request)
 }
 
@@ -73,6 +80,9 @@ type InvalidResponseError struct {
 }
 
 func (e InvalidResponseError) Error() string {
+	if e.Response == nil {
+		return "hprose/rpc/core: invalid response"
+	}
 	return "hprose/rpc/core: invalid response:\r\n" + string(e.Response)
 }
 

@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/mock_test.go                                    |
 |                                                          |
-| LastModified: Apr 18, 2021                               |
+| LastModified: Apr 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -189,7 +189,7 @@ func TestMaxRequestLength(t *testing.T) {
 	client.UseService(&proxy)
 	_, err = proxy.Hello("world")
 	if assert.Error(t, err) {
-		assert.Equal(t, mock.ErrRequestEntityTooLarge, err)
+		assert.Equal(t, core.ErrRequestEntityTooLarge, err)
 	}
 	server.Close()
 }

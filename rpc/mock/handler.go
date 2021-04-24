@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/handler.go                                      |
 |                                                          |
-| LastModified: Apr 18, 2021                               |
+| LastModified: Apr 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,15 +15,11 @@ package mock
 
 import (
 	"context"
-	"errors"
 	"net/url"
 	"reflect"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
-
-// ErrRequestEntityTooLarge represents a error.
-var ErrRequestEntityTooLarge = errors.New("request entity too large")
 
 // Server for mock.
 type Server struct {
@@ -48,7 +44,7 @@ func (h Handler) Bind(server core.Server) {
 // Handler for mock.
 func (h Handler) Handler(address string, request []byte) (response []byte, err error) {
 	if len(request) > h.Service.MaxRequestLength {
-		return nil, ErrRequestEntityTooLarge
+		return nil, core.ErrRequestEntityTooLarge
 	}
 	serviceContext := core.NewServiceContext(h.Service)
 	ctx := core.WithContext(context.Background(), serviceContext)

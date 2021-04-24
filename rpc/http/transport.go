@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/transport.go                                    |
 |                                                          |
-| LastModified: Apr 18, 2021                               |
+| LastModified: Apr 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -65,11 +65,15 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, 
 	defer resp.Body.Close()
 	clientContext.Items().Set("httpStatusCode", resp.StatusCode)
 	clientContext.Items().Set("httpStatusText", http.StatusText(resp.StatusCode))
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+	switch resp.StatusCode {
+	case http.StatusOK:
 		clientContext.Items().Set("httpResponseHeaders", resp.Header)
 		return readAll(resp.Body, resp.ContentLength)
+	case http.StatusRequestEntityTooLarge:
+		return nil, core.ErrRequestEntityTooLarge
+	default:
+		return nil, errors.New(resp.Status)
 	}
-	return nil, errors.New(resp.Status)
 }
 
 func (trans *Transport) Abort() {
