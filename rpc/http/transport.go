@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/transport.go                                    |
 |                                                          |
-| LastModified: Apr 24, 2021                               |
+| LastModified: Apr 28, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,37 +15,24 @@ package http
 
 import (
 	"bytes"
-	"container/list"
 	"context"
 	"errors"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
-	"sync"
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
 
 type Transport struct {
-	Header      http.Header
-	HTTPClient  http.Client
-	cancelFuncs *list.List
-	lock        sync.Mutex
+	Header     http.Header
+	HTTPClient http.Client
 }
 
 func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, error) {
 	clientContext := core.GetClientContext(ctx)
-	timeoutContext, cancel := context.WithTimeout(ctx, clientContext.Timeout)
-	trans.lock.Lock()
-	cancelFunc := trans.cancelFuncs.PushBack(cancel)
-	trans.lock.Unlock()
-	defer func() {
-		trans.lock.Lock()
-		trans.cancelFuncs.Remove(cancelFunc)
-		trans.lock.Unlock()
-	}()
-	req, err := newRequestWithContext(timeoutContext, "POST", clientContext.URL.String(), bytes.NewReader(request))
+	req, err := newRequestWithContext(ctx, "POST", clientContext.URL.String(), bytes.NewReader(request))
 	if err != nil {
 		return nil, err
 	}
@@ -77,15 +64,6 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, 
 }
 
 func (trans *Transport) Abort() {
-	trans.lock.Lock()
-	defer trans.lock.Unlock()
-	var next *list.Element
-	for e := trans.cancelFuncs.Front(); e != nil; e = next {
-		next = e.Next()
-		if cancelFunc := trans.cancelFuncs.Remove(e); cancelFunc != nil {
-			cancelFunc.(context.CancelFunc)()
-		}
-	}
 }
 
 var globalCookieJar, _ = cookiejar.New(nil)
@@ -112,7 +90,6 @@ func (factory transportFactory) New() core.Transport {
 		ExpectContinueTimeout: time.Millisecond * 500,
 	}
 	transport.HTTPClient.Jar = globalCookieJar
-	transport.cancelFuncs = list.New()
 	return transport
 }
 

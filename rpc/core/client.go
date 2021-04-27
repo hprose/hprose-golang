@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client.go                                       |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Apr 28, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,6 +14,7 @@
 package core
 
 import (
+	"container/list"
 	"context"
 	"math/rand"
 	"net/url"
@@ -55,6 +56,8 @@ type Client struct {
 	invokeManager  PluginManager
 	ioManager      PluginManager
 	transports     map[string]Transport
+	cancelFuncs    *list.List
+	cancelLock     sync.Mutex
 }
 
 // NewClient returns an instance of Client.
@@ -64,6 +67,7 @@ func NewClient(uri ...string) *Client {
 		Timeout:        time.Second * 30,
 		requestHeaders: NewSafeDict(),
 		transports:     make(map[string]Transport),
+		cancelFuncs:    list.New(),
 	})
 	for _, u := range uri {
 		if url, err := url.Parse(u); err == nil {
@@ -145,8 +149,24 @@ func (c *Client) Request(ctx context.Context, request []byte) (response []byte, 
 
 // Transport the request data to the server and returns the response data.
 func (c *Client) Transport(ctx context.Context, request []byte) (response []byte, err error) {
-	url := GetClientContext(ctx).URL
+	clientContext := GetClientContext(ctx)
+	url := clientContext.URL
 	if name, ok := protocols.Load(url.Scheme); ok {
+		var cancel context.CancelFunc
+		if clientContext.Timeout > 0 {
+			ctx, cancel = context.WithTimeout(ctx, clientContext.Timeout)
+		} else {
+			ctx, cancel = context.WithCancel(ctx)
+		}
+		c.cancelLock.Lock()
+		cancelFunc := c.cancelFuncs.PushBack(cancel)
+		c.cancelLock.Unlock()
+		defer func() {
+			c.cancelLock.Lock()
+			c.cancelFuncs.Remove(cancelFunc)
+			c.cancelLock.Unlock()
+			cancel()
+		}()
 		return c.transports[name.(string)].Transport(ctx, request)
 	}
 	return nil, UnsupportedProtocolError{url.Scheme}
@@ -154,6 +174,15 @@ func (c *Client) Transport(ctx context.Context, request []byte) (response []byte
 
 // Abort the remote call.
 func (c *Client) Abort() {
+	c.cancelLock.Lock()
+	var next *list.Element
+	for e := c.cancelFuncs.Front(); e != nil; e = next {
+		next = e.Next()
+		if cancelFunc := c.cancelFuncs.Remove(e); cancelFunc != nil {
+			cancelFunc.(context.CancelFunc)()
+		}
+	}
+	c.cancelLock.Unlock()
 	var wg sync.WaitGroup
 	for _, transport := range c.transports {
 		wg.Add(1)

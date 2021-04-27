@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/transport.go                                    |
 |                                                          |
-| LastModified: Feb 21, 2021                               |
+| LastModified: Feb 28, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,13 +24,6 @@ type transport struct{}
 func (transport) Transport(ctx context.Context, request []byte) (response []byte, err error) {
 	clientContext := core.GetClientContext(ctx)
 	url := clientContext.URL
-	timeout := clientContext.Timeout
-	if timeout <= 0 {
-		return Agent.Handler(url.Host, request)
-	}
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, timeout)
-	defer cancel()
 	ch := make(chan struct {
 		response []byte
 		err      error
