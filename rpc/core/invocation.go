@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/invocation.go                                   |
 |                                                          |
-| LastModified: Feb 22, 2021                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -50,7 +50,7 @@ func (i invocation) Invoke(proxy interface{}, method reflect.StructField, name s
 	if GetClientContext(ctx) == nil {
 		ctx = WithContext(ctx, clientContext)
 	}
-	tagParser := parseTag(clientContext, method.Tag)
+	tagParser := ParseTag(clientContext, method.Tag)
 	if tagParser.Name != "" {
 		name = tagParser.Name
 	}

@@ -6,12 +6,12 @@
 |                                                          |
 | encoding/encoder_test.go                                 |
 |                                                          |
-| LastModified: Apr 12, 2020                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoding
+package encoding_test
 
 import (
 	"errors"
@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/hprose/hprose-golang/v3/encoding"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
@@ -519,7 +520,7 @@ func TestEncodeCustomType(t *testing.T) {
 	type StringType string
 	type BigIntType big.Int
 
-	RegisterValueEncoder((*BigIntType)(nil), bigIntEncoder{})
+	RegisterValueEncoder((*BigIntType)(nil), GetValueEncoder((*big.Int)(nil)))
 
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb).Simple(false)
@@ -580,11 +581,6 @@ func TestEncodeCustomType(t *testing.T) {
 	assert.NoError(t, enc.Encode(&bi))
 	assert.Equal(t, `0123456789i10;td3.14159;d2.17828;a2{d1;d2;}a2{d3;d4;}s5"hello"l100;`+
 		`0123456789i10;td3.14159;d2.17828;a2{d1;d2;}a2{d3;d4;}r2;l100;`, sb.String())
-}
-
-func TestGetEncoder(t *testing.T) {
-	assert.Equal(t, bigIntEncoder{}, GetValueEncoder((*big.Int)(nil)))
-	assert.Equal(t, errorEncoder{}, GetValueEncoder((*error)(nil)))
 }
 
 func TestUnsupportedTypeError(t *testing.T) {

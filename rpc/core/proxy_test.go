@@ -6,18 +6,19 @@
 |                                                          |
 | rpc/core/proxy_test.go                                   |
 |                                                          |
-| LastModified: Feb 20, 2021                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package core
+package core_test
 
 import (
 	"errors"
 	"reflect"
 	"testing"
 
+	. "github.com/hprose/hprose-golang/v3/rpc/core"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,18 +6,19 @@
 |                                                          |
 | encoding/list_encoder_test.go                            |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoding
+package encoding_test
 
 import (
 	"container/list"
 	"strings"
 	"testing"
 
+	. "github.com/hprose/hprose-golang/v3/encoding"
 	"github.com/stretchr/testify/assert"
 )
 

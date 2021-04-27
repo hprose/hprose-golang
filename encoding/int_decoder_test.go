@@ -6,12 +6,12 @@
 |                                                          |
 | encoding/int_decoder_test.go                             |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoding
+package encoding_test
 
 import (
 	"bytes"
@@ -19,6 +19,7 @@ import (
 	"strings"
 	"testing"
 
+	. "github.com/hprose/hprose-golang/v3/encoding"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )

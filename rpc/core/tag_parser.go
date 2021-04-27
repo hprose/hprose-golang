@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/tag_parser.go                                   |
 |                                                          |
-| LastModified: Feb 21, 2021                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -19,17 +19,17 @@ import (
 	"time"
 )
 
-type tagParser struct {
+type TagParser struct {
 	Name    string
 	Context *ClientContext
 	tag     reflect.StructTag
 }
 
-func (tp *tagParser) parseName() {
+func (tp *TagParser) parseName() {
 	tp.Name = tp.tag.Get("name")
 }
 
-func (tp *tagParser) parseTimeout() {
+func (tp *TagParser) parseTimeout() {
 	if s, ok := tp.tag.Lookup("timeout"); ok {
 		if timeout, err := strconv.Atoi(s); err == nil {
 			tp.Context.Timeout = time.Millisecond * time.Duration(timeout)
@@ -37,7 +37,7 @@ func (tp *tagParser) parseTimeout() {
 	}
 }
 
-func (tp *tagParser) parseMapName(tag string) (remain string, name string, c byte) {
+func (tp *TagParser) parseMapName(tag string) (remain string, name string, c byte) {
 	// Skip leading space.
 	i := 0
 	for i < len(tag) && tag[i] == ' ' {
@@ -62,7 +62,7 @@ func (tp *tagParser) parseMapName(tag string) (remain string, name string, c byt
 	return
 }
 
-func (tp *tagParser) parseMapValue(tag string) (string, string) {
+func (tp *TagParser) parseMapValue(tag string) (string, string) {
 	// Scan to find value.
 	i := 0
 	c := byte(',')
@@ -84,7 +84,7 @@ func (tp *tagParser) parseMapValue(tag string) (string, string) {
 	return tag, value
 }
 
-func (tp *tagParser) parseMap(key string) map[string]interface{} {
+func (tp *TagParser) parseMap(key string) map[string]interface{} {
 	m := make(map[string]interface{})
 	tag := tp.tag.Get(key)
 	for tag != "" {
@@ -126,7 +126,7 @@ func (tp *tagParser) parseMap(key string) map[string]interface{} {
 	return m
 }
 
-func (tp *tagParser) parseHeader() {
+func (tp *TagParser) parseHeader() {
 	m := tp.parseMap("header")
 	header := tp.Context.RequestHeaders()
 	for key, value := range m {
@@ -134,7 +134,7 @@ func (tp *tagParser) parseHeader() {
 	}
 }
 
-func (tp *tagParser) parseContext() {
+func (tp *TagParser) parseContext() {
 	m := tp.parseMap("context")
 	items := tp.Context.Items()
 	for key, value := range m {
@@ -142,8 +142,8 @@ func (tp *tagParser) parseContext() {
 	}
 }
 
-func parseTag(ctx *ClientContext, tag reflect.StructTag) *tagParser {
-	parser := &tagParser{Context: ctx, tag: tag}
+func ParseTag(ctx *ClientContext, tag reflect.StructTag) *TagParser {
+	parser := &TagParser{Context: ctx, tag: tag}
 	parser.parseName()
 	parser.parseTimeout()
 	parser.parseHeader()

@@ -6,18 +6,19 @@
 |                                                          |
 | encoding/array_decoder_test.go                           |
 |                                                          |
-| LastModified: Jan 23, 2021                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoding
+package encoding_test
 
 import (
 	"bytes"
 	"strings"
 	"testing"
 
+	. "github.com/hprose/hprose-golang/v3/encoding"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
@@ -86,7 +87,7 @@ func TestDecodeCustomIntArray(t *testing.T) {
 	dec.Decode(&array)
 	assert.Equal(t, [5]Int{}, array) // ""
 	dec.Decode(&array)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to [5]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to [5]encoding_test.Int`) // 1
 }
 
 func TestDecodeByteArray(t *testing.T) {

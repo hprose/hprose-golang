@@ -6,22 +6,22 @@
 |                                                          |
 | encoding/struct_encoder_test.go                          |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoding
+package encoding_test
 
 import (
 	"errors"
 	"math/big"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
 	"unsafe"
 
+	. "github.com/hprose/hprose-golang/v3/encoding"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -313,7 +313,7 @@ func TestInvalidStructName(t *testing.T) {
 			A int
 			B int
 		}
-		newStructEncoder(reflect.TypeOf((*TestStruct)(nil)).Elem(), "\xFE")
+		RegisterAlias((*TestStruct)(nil), "\xFE")
 		sb := &strings.Builder{}
 		enc := NewEncoder(sb).Simple(false)
 		enc.Encode(TestStruct{})

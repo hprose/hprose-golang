@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
-	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
+	. "github.com/hprose/hprose-golang/v3/rpc/http"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/cluster"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/forward"
@@ -1497,7 +1497,7 @@ func TestHttpHeaders2(t *testing.T) {
 	}, "hello")
 	header := make(http.Header)
 	header.Set("Pong", "true")
-	service.GetHandler("http").(*rpchttp.Handler).Header = header
+	service.GetHandler("http").(*Handler).Header = header
 	service.Use(func(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
 		serviceContext := core.GetServiceContext(ctx)
 		if header, ok := serviceContext.Items().Get("httpRequestHeaders"); assert.True(t, ok) {
@@ -1525,7 +1525,7 @@ func TestHttpHeaders2(t *testing.T) {
 	clientContext := core.NewClientContext()
 	header = make(http.Header)
 	header.Set("Ping", "true")
-	client.GetTransport("http").(*rpchttp.Transport).Header = header
+	client.GetTransport("http").(*Transport).Header = header
 	ctx := core.WithContext(context.Background(), clientContext)
 	result := proxy.Hello(ctx, "world")
 	assert.Equal(t, `hello world`, result)

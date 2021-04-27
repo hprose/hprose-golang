@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_manager.go                               |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -167,8 +167,13 @@ func (dec *Decoder) getStructInfo(index int) structInfo {
 
 var structTypeMap sync.Map
 
-// Register the type of the proto with alias & tag.
-func Register(proto interface{}, alias string, tag ...string) {
+// Register the type of the proto with tag.
+func Register(proto interface{}, tag ...string) {
+	RegisterAlias(proto, "", tag...)
+}
+
+// RegisterAlias the type of the proto with alias & tag.
+func RegisterAlias(proto interface{}, alias string, tag ...string) {
 	t := reflect.TypeOf(proto)
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -176,8 +181,11 @@ func Register(proto interface{}, alias string, tag ...string) {
 	if t.Kind() != reflect.Struct {
 		panic(fmt.Sprintf("hprose/encoding: invalid type: %s", t.String()))
 	}
-	structTypeMap.Store(alias, t)
 	name := t.Name()
+	if alias != "" {
+		name = alias
+	}
+	structTypeMap.Store(name, t)
 	if name == "" {
 		newAnonymousStructEncoder(t, tag...)
 	} else {

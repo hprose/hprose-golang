@@ -6,12 +6,12 @@
 |                                                          |
 | encoding/map_decoder_test.go                             |
 |                                                          |
-| LastModified: Jun 27, 2020                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoding
+package encoding_test
 
 import (
 	"bytes"
@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/hprose/hprose-golang/v3/encoding"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
@@ -482,7 +483,7 @@ func TestDecodeIntCustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[int]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int]encoding_test.Int`) // 1
 }
 
 func TestDecodeInt8IntMap(t *testing.T) {
@@ -944,7 +945,7 @@ func TestDecodeInt8CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[int8]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int8]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int8]encoding_test.Int`) // 1
 }
 
 func TestDecodeInt16IntMap(t *testing.T) {
@@ -1406,7 +1407,7 @@ func TestDecodeInt16CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[int16]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int16]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int16]encoding_test.Int`) // 1
 }
 
 func TestDecodeInt32IntMap(t *testing.T) {
@@ -1868,7 +1869,7 @@ func TestDecodeInt32CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[int32]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int32]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int32]encoding_test.Int`) // 1
 }
 
 func TestDecodeInt64IntMap(t *testing.T) {
@@ -2330,7 +2331,7 @@ func TestDecodeInt64CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[int64]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int64]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[int64]encoding_test.Int`) // 1
 }
 
 func TestDecodeUintIntMap(t *testing.T) {
@@ -2792,7 +2793,7 @@ func TestDecodeUintCustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[uint]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint]encoding_test.Int`) // 1
 }
 
 func TestDecodeUint8IntMap(t *testing.T) {
@@ -3254,7 +3255,7 @@ func TestDecodeUint8CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[uint8]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint8]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint8]encoding_test.Int`) // 1
 }
 
 func TestDecodeUint16IntMap(t *testing.T) {
@@ -3716,7 +3717,7 @@ func TestDecodeUint16CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[uint16]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint16]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint16]encoding_test.Int`) // 1
 }
 
 func TestDecodeUint32IntMap(t *testing.T) {
@@ -4178,7 +4179,7 @@ func TestDecodeUint32CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[uint32]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint32]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint32]encoding_test.Int`) // 1
 }
 
 func TestDecodeUint64IntMap(t *testing.T) {
@@ -4640,7 +4641,7 @@ func TestDecodeUint64CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[uint64]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint64]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uint64]encoding_test.Int`) // 1
 }
 
 func TestDecodeFloat32IntMap(t *testing.T) {
@@ -5102,7 +5103,7 @@ func TestDecodeFloat32CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[float32]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[float32]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[float32]encoding_test.Int`) // 1
 }
 
 func TestDecodeFloat64IntMap(t *testing.T) {
@@ -5564,7 +5565,7 @@ func TestDecodeFloat64CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[float64]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[float64]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[float64]encoding_test.Int`) // 1
 }
 
 func TestDecodeStringIntMap(t *testing.T) {
@@ -6026,7 +6027,7 @@ func TestDecodeStringCustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[string]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[string]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[string]encoding_test.Int`) // 1
 }
 
 func TestDecodeInterfaceIntMap(t *testing.T) {
@@ -6488,7 +6489,7 @@ func TestDecodeInterfaceCustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[interface{}]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[interface {}]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[interface {}]encoding_test.Int`) // 1
 }
 
 func TestDecodeUintptrIntMap(t *testing.T) {
@@ -6950,7 +6951,7 @@ func TestDecodeUintptrCustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[uintptr]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uintptr]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[uintptr]encoding_test.Int`) // 1
 }
 
 func TestDecodeComplex64CustomIntMap(t *testing.T) {
@@ -6980,7 +6981,7 @@ func TestDecodeComplex64CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[complex64]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[complex64]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[complex64]encoding_test.Int`) // 1
 }
 
 func TestDecodeComplex128CustomIntMap(t *testing.T) {
@@ -7010,7 +7011,7 @@ func TestDecodeComplex128CustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[complex128]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[complex128]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[complex128]encoding_test.Int`) // 1
 }
 
 func TestDecodeCustomIntCustomIntMap(t *testing.T) {
@@ -7040,7 +7041,7 @@ func TestDecodeCustomIntCustomIntMap(t *testing.T) {
 	dec.Decode(&m)
 	assert.Equal(t, map[Int]Int{}, m) // ""
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[encoding.Int]encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to map[encoding_test.Int]encoding_test.Int`) // 1
 }
 
 func TestDecodeMapError(t *testing.T) {
@@ -7090,7 +7091,7 @@ func TestHproseDecodeObjectAsMap2(t *testing.T) {
 		Birthday *time.Time
 		Male     bool
 	}
-	Register((*TestStruct2)(nil), "TestStruct2")
+	Register((*TestStruct2)(nil))
 	birthday := time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local)
 	ts := &TestStruct2{
 		Name:     "Tom",
@@ -7137,7 +7138,7 @@ func TestHproseDecodeObjectAsMapError2(t *testing.T) {
 		Birthday *time.Time
 		Male     bool
 	}
-	Register((*TestStruct4)(nil), "TestStruct4")
+	Register((*TestStruct4)(nil))
 	birthday := time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local)
 	ts := &TestStruct4{
 		Name:     "Tom",
@@ -7149,7 +7150,7 @@ func TestHproseDecodeObjectAsMapError2(t *testing.T) {
 	dec := NewDecoder(([]byte)(sb.String()))
 	var m map[string]string
 	dec.Decode(&m)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast *encoding.TestStruct4 to map[string]string`)
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast *encoding_test.TestStruct4 to map[string]string`)
 }
 
 func BenchmarkDecodeIntIntMap(b *testing.B) {

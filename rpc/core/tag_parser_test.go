@@ -6,18 +6,19 @@
 |                                                          |
 | rpc/core/proxy_test.go                                   |
 |                                                          |
-| LastModified: Feb 20, 2021                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package core
+package core_test
 
 import (
 	"reflect"
 	"testing"
 	"time"
 
+	. "github.com/hprose/hprose-golang/v3/rpc/core"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +28,7 @@ func TestTagParser(t *testing.T) {
 	}
 	f, ok := reflect.TypeOf(testStruct{}).FieldByName("Test")
 	assert.True(t, ok)
-	parser := parseTag(NewClientContext(), f.Tag)
+	parser := ParseTag(NewClientContext(), f.Tag)
 	assert.Equal(t, "test", parser.Name)
 	assert.Equal(t, time.Second, parser.Context.Timeout)
 	items := parser.Context.Items()

@@ -6,12 +6,12 @@
 |                                                          |
 | encoding/slice_decoder_test.go                           |
 |                                                          |
-| LastModified: Jun 13, 2020                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoding
+package encoding_test
 
 import (
 	"bytes"
@@ -19,6 +19,7 @@ import (
 	"strings"
 	"testing"
 
+	. "github.com/hprose/hprose-golang/v3/encoding"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
@@ -73,7 +74,7 @@ func TestDecodeCustomIntSlice(t *testing.T) {
 	dec.Decode(&slice)
 	assert.Equal(t, []Int{}, slice) // ""
 	dec.Decode(&slice)
-	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to []encoding.Int`) // 1
+	assert.EqualError(t, dec.Error, `hprose/encoding: can not cast int to []encoding_test.Int`) // 1
 }
 
 func TestDecodeBigIntSlice(t *testing.T) {

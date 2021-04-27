@@ -6,12 +6,12 @@
 |                                                          |
 | encoding/decoder_refer_test.go                           |
 |                                                          |
-| LastModified: Feb 17, 2020                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoding
+package encoding_test
 
 import (
 	"container/list"
@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	. "github.com/hprose/hprose-golang/v3/encoding"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,18 +6,19 @@
 |                                                          |
 | encoding/map_encoder_test.go                             |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Apr 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package encoding
+package encoding_test
 
 import (
 	"math/big"
 	"strings"
 	"testing"
 
+	. "github.com/hprose/hprose-golang/v3/encoding"
 	"github.com/stretchr/testify/assert"
 )
 
