@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/handler.go                                      |
 |                                                          |
-| LastModified: Apr 18, 2021                               |
+| LastModified: Apr 28, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -101,7 +101,11 @@ func (h *Handler) SetClientAccessPolicyXMLContent(content []byte) {
 
 // Bind to the http server.
 func (h *Handler) Bind(server core.Server) {
-	server.(*http.Server).Handler = h
+	s := server.(*http.Server)
+	s.Handler = h
+	go func() {
+		_ = s.ListenAndServe()
+	}()
 }
 
 // ServeHTTP implements the http.Handler interface.
