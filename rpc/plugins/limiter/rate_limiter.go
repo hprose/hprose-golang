@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/limiter/rate_limiter.go                      |
 |                                                          |
-| LastModified: Mar 12, 2021                               |
+| LastModified: Apr 29, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -64,7 +64,7 @@ func NewRateLimiter(permitsPerSecond int64, options ...Option) *RateLimiter {
 }
 
 // Acquire is the core algorithm of RateLimiter.
-func (l *RateLimiter) Acquire(tokens int) (err error) {
+func (l *RateLimiter) Acquire(ctx context.Context, tokens int) (err error) {
 	now := time.Now().UnixNano()
 	last := atomic.LoadInt64(&l.next)
 	permits := float64(now-last)/l.interval - float64(tokens)
@@ -79,13 +79,15 @@ func (l *RateLimiter) Acquire(tokens int) (err error) {
 	if l.timeout > 0 && delay > l.timeout {
 		return core.ErrTimeout
 	}
-	time.Sleep(delay)
+	ctx, cancel := context.WithTimeout(ctx, delay)
+	<-ctx.Done()
+	cancel()
 	return
 }
 
 // IOHandler for RateLimiter.
 func (l *RateLimiter) IOHandler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
-	if err = l.Acquire(len(request)); err != nil {
+	if err = l.Acquire(ctx, len(request)); err != nil {
 		return
 	}
 	return next(ctx, request)
@@ -93,7 +95,7 @@ func (l *RateLimiter) IOHandler(ctx context.Context, request []byte, next core.N
 
 // InvokeHandler for RateLimiter.
 func (l *RateLimiter) InvokeHandler(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
-	if err = l.Acquire(1); err != nil {
+	if err = l.Acquire(ctx, 1); err != nil {
 		return
 	}
 	return next(ctx, name, args)

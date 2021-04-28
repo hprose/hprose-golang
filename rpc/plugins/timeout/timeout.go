@@ -25,6 +25,11 @@ type ExecuteTimeout struct {
 	Timeout time.Duration
 }
 
+type returnValue struct {
+	result []interface{}
+	err    error
+}
+
 // Handler for ExecuteTimeout.
 func (et *ExecuteTimeout) Handler(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
 	timeout := et.Timeout
@@ -49,17 +54,16 @@ func (et *ExecuteTimeout) Handler(ctx context.Context, name string, args []inter
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
-	ch := make(chan struct{}, 1)
+	c := make(chan returnValue, 1)
 	go func() {
-		result, err = next(ctx, name, args)
-		ch <- struct{}{}
-		close(ch)
+		result, err := next(ctx, name, args)
+		c <- returnValue{result, err}
 	}()
 	select {
 	case <-ctx.Done():
 		return nil, core.ErrTimeout
-	case <-ch:
-		return result, err
+	case r := <-c:
+		return r.result, r.err
 	}
 }
 

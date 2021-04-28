@@ -20,6 +20,7 @@ import (
 	"math"
 	"reflect"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -81,7 +82,7 @@ func TestServiceTimeout(t *testing.T) {
 	service.AddFunction(func(d time.Duration) {
 		time.Sleep(d)
 	}, "wait")
-	service.Use(timeout.New(time.Millisecond))
+	service.Use(timeout.New(5 * time.Millisecond))
 	server := Server{"testServiceTimeout"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
@@ -91,6 +92,8 @@ func TestServiceTimeout(t *testing.T) {
 	}
 	client.UseService(&proxy)
 	client.Use(log.IOHandler, log.InvokeHandler)
+	err = proxy.Wait(time.Millisecond)
+	assert.False(t, core.IsTimeoutError(err))
 	err = proxy.Wait(time.Millisecond * 30)
 	assert.True(t, core.IsTimeoutError(err))
 	server.Close()
@@ -1264,7 +1267,7 @@ func TestClientAbort(t *testing.T) {
 	}
 	client.UseService(&proxy)
 	client.Use(limiter.NewRateLimiter(5000).InvokeHandler)
-	n := 0
+	n := int32(0)
 	var wg sync.WaitGroup
 	wg.Add(1000)
 	for i := 0; i < 1000; i++ {
@@ -1272,13 +1275,13 @@ func TestClientAbort(t *testing.T) {
 			defer wg.Done()
 			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
 			if err == nil {
-				n++
+				atomic.AddInt32(&n, 1)
 				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
 			}
 		}(i)
 	}
 	client.Abort()
 	wg.Wait()
-	assert.Greater(t, n, 0)
+	assert.Greater(t, n, int32(0))
 	server.Close()
 }

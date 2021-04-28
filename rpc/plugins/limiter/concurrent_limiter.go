@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/limiter/concurrent_limiter.go                |
 |                                                          |
-| LastModified: Mar 11, 2021                               |
+| LastModified: Apr 29, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -42,16 +42,16 @@ func NewConcurrentLimiter(maxConcurrentRequests int, timeout ...time.Duration) *
 
 // Acquire returns immediately when the concurrentRequests is less than or equal to maxConcurrentRequests,
 // otherwise it will block until timeout or any request are completed.
-func (l *ConcurrentLimiter) Acquire() (err error) {
+func (l *ConcurrentLimiter) Acquire(ctx context.Context) (err error) {
 	if l.timeout > 0 {
-		timer := time.NewTimer(l.timeout)
+		ctx, cancel := context.WithTimeout(ctx, l.timeout)
 		select {
-		case <-timer.C:
-			return core.ErrTimeout
+		case <-ctx.Done():
+			err = core.ErrTimeout
 		case l.tasks <- struct{}{}:
-			timer.Stop()
-			return
 		}
+		cancel()
+		return
 	}
 	l.tasks <- struct{}{}
 	return
@@ -64,7 +64,7 @@ func (l *ConcurrentLimiter) Release() {
 
 // Handler for ConcurrentLimiter.
 func (l *ConcurrentLimiter) Handler(ctx context.Context, request []byte, next core.NextIOHandler) (response []byte, err error) {
-	if err = l.Acquire(); err != nil {
+	if err = l.Acquire(ctx); err != nil {
 		return
 	}
 	defer l.Release()
