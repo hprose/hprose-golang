@@ -560,6 +560,7 @@ func TestClusterSuccess(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.Equal(t, "hello world", result)
 	}
+	server.Close()
 }
 
 func TestClusterForking(t *testing.T) {
@@ -1360,6 +1361,7 @@ func TestClientAbort(t *testing.T) {
 	}
 	client.UseService(&proxy)
 	client.Use(limiter.NewRateLimiter(5000).InvokeHandler)
+	n := 0
 	var wg sync.WaitGroup
 	wg.Add(1000)
 	for i := 0; i < 1000; i++ {
@@ -1367,12 +1369,14 @@ func TestClientAbort(t *testing.T) {
 			defer wg.Done()
 			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
 			if err == nil {
+				n++
 				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
 			}
 		}(i)
 	}
 	client.Abort()
 	wg.Wait()
+	assert.Greater(t, n, 0)
 	server.Close()
 }
 
