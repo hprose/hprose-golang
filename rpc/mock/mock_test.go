@@ -1246,3 +1246,39 @@ func TestOneway(t *testing.T) {
 	assert.True(t, duration < time.Millisecond*1)
 	server.Close()
 }
+
+func TestClientAbort(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := Server{"testClientAbort"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("mock://testClientAbort/")
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	client.Use(limiter.NewRateLimiter(5000).InvokeHandler)
+	n := 0
+	var wg sync.WaitGroup
+	wg.Add(1000)
+	for i := 0; i < 1000; i++ {
+		go func(i int) {
+			defer wg.Done()
+			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
+			if err == nil {
+				n++
+				assert.Equal(t, fmt.Sprintf("hello world %d", i), result)
+			}
+		}(i)
+	}
+	client.Abort()
+	wg.Wait()
+	assert.Greater(t, n, 0)
+	server.Close()
+}
