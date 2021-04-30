@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/transport.go                                  |
 |                                                          |
-| LastModified: Apr 29, 2021                               |
+| LastModified: Apr 30, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -123,16 +123,20 @@ func (c *conn) Transport(ctx context.Context, request []byte) (response []byte, 
 	}
 }
 
+func (c *conn) Exit(onExit func(), err error) {
+	onExit()
+	if e := recover(); e != nil {
+		err = core.NewPanicError(e)
+	}
+	if err != nil {
+		c.Close(err)
+	}
+}
+
 func (c *conn) Send(onExit func()) {
 	var err error
 	defer func() {
-		onExit()
-		if e := recover(); e != nil {
-			err = core.NewPanicError(e)
-		}
-		if err != nil {
-			c.Close(err)
-		}
+		c.Exit(onExit, err)
 	}()
 	for request := range c.requests {
 		header := makeHeader(len(request.Body), request.Index)
@@ -148,11 +152,7 @@ func (c *conn) Send(onExit func()) {
 func (c *conn) Receive(onExit func()) {
 	var err error
 	defer func() {
-		onExit()
-		if e := recover(); e != nil {
-			err = core.NewPanicError(e)
-		}
-		c.Close(err)
+		c.Exit(onExit, err)
 	}()
 	var header [12]byte
 	for {
