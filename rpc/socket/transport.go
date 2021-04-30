@@ -34,19 +34,24 @@ type conn struct {
 	once     sync.Once
 }
 
-func dial(ctx context.Context, scheme string, address string) (net.Conn, error) {
+func dial(ctx context.Context) (net.Conn, error) {
+	u := core.GetClientContext(ctx).URL
 	var d net.Dialer
-	switch scheme {
+	switch u.Scheme {
 	case "tcp", "tcp4", "tcp6", "tls", "tls4", "tls6", "ssl", "ssl4", "ssl6":
+		address := u.Host
+		if u.Port() == "" {
+			address += ":8412"
+		}
 		return d.DialContext(ctx, "tcp", address)
-	case "unix":
-		return d.DialContext(ctx, "unix", address)
+	case "unix", "unixpacket":
+		return d.DialContext(ctx, "unix", u.Path)
 	}
-	return nil, core.UnsupportedProtocolError{Scheme: scheme}
+	return nil, core.UnsupportedProtocolError{Scheme: u.Scheme}
 }
 
-func newConn(ctx context.Context, scheme string, address string) (*conn, error) {
-	c, err := dial(ctx, scheme, address)
+func newConn(ctx context.Context) (*conn, error) {
+	c, err := dial(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -214,11 +219,7 @@ func (trans *Transport) getConn(ctx context.Context) (conn *conn, err error) {
 	if conn = trans.conns[key]; conn != nil {
 		return
 	}
-	address := u.Host
-	if u.Port() == "" {
-		address += ":8412"
-	}
-	conn, err = newConn(ctx, u.Scheme, address)
+	conn, err = newConn(ctx)
 	if err != nil {
 		return
 	}
@@ -283,5 +284,5 @@ func (factory transportFactory) New() core.Transport {
 }
 
 func init() {
-	core.RegisterTransport("socket", transportFactory{[]string{"tcp", "tcp4", "tcp6", "tls", "tls4", "tls6", "ssl", "ssl4", "ssl6", "unix"}})
+	core.RegisterTransport("socket", transportFactory{[]string{"tcp", "tcp4", "tcp6", "tls", "tls4", "tls6", "ssl", "ssl4", "ssl6", "unix", "unixpacket"}})
 }

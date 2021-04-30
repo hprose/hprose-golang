@@ -1491,3 +1491,27 @@ func TestRobustness(t *testing.T) {
 	}
 	server.Close()
 }
+
+func TestUnixSocket(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server, err := net.Listen("unix", "/tmp/hprose_test.sock")
+	assert.NoError(t, err)
+	err = service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("unix:///tmp/hprose_test.sock")
+	client.Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	assert.Equal(t, "hello world", result)
+	assert.NoError(t, err)
+	server.Close()
+}
