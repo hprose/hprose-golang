@@ -1279,7 +1279,7 @@ func TestOneway(t *testing.T) {
 	start = time.Now()
 	proxy.Sleep()
 	duration = time.Since(start)
-	assert.True(t, duration < time.Millisecond*1)
+	assert.True(t, duration < time.Millisecond*10)
 	server.Close()
 }
 
