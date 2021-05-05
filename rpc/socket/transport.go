@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/transport.go                                  |
 |                                                          |
-| LastModified: Apr 30, 2021                               |
+| LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -169,7 +169,7 @@ func (c *conn) Receive(onExit func()) {
 			return
 		}
 		if !ok {
-			if string(body) == requestEntityTooLarge {
+			if string(body) == core.RequestEntityTooLarge {
 				err = core.ErrRequestEntityTooLarge
 			} else {
 				err = core.InvalidResponseError{Response: body}

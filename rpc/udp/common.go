@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/udp/common.go                                        |
 |                                                          |
-| LastModified: May 2, 2021                                |
+| LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,8 +17,6 @@ import (
 	"hash/crc32"
 	"net"
 )
-
-const requestEntityTooLarge = "Request entity too large"
 
 type data struct {
 	Index int

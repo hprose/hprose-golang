@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/udp/handler.go                                       |
 |                                                          |
-| LastModified: May 4, 2021                                |
+| LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -135,7 +135,7 @@ func (h *Handler) send(ctx context.Context, conn *net.UDPConn, queue chan data, 
 			if err != nil {
 				index |= 0x8000
 				if err == core.ErrRequestEntityTooLarge {
-					body = []byte(requestEntityTooLarge)
+					body = []byte(core.RequestEntityTooLarge)
 				} else {
 					body = []byte(err.Error())
 				}

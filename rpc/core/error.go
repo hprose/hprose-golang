@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/error.go                                        |
 |                                                          |
-| LastModified: Apr 24, 2021                               |
+| LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -61,6 +61,9 @@ var ErrTimeout = timeoutError{}
 
 // ErrRequestEntityTooLarge represents a error.
 var ErrRequestEntityTooLarge = errors.New("hprose/rpc/core: request entity too large")
+
+// RequestEntityTooLarge represents the error message of ErrRequestEntityTooLarge.
+const RequestEntityTooLarge = "Request entity too large"
 
 // InvalidRequestError represents a error.
 type InvalidRequestError struct {

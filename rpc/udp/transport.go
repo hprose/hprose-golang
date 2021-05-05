@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/udp/transport.go                                     |
 |                                                          |
-| LastModified: May 3, 2021                                |
+| LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -172,7 +172,7 @@ func (c *conn) Receive(onExit func()) {
 				body := make([]byte, length)
 				copy(body, buffer[8:])
 				if !ok {
-					if string(body) == requestEntityTooLarge {
+					if string(body) == core.RequestEntityTooLarge {
 						err = core.ErrRequestEntityTooLarge
 					} else {
 						err = core.InvalidResponseError{Response: body}

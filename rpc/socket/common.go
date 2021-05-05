@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/common.go                                     |
 |                                                          |
-| LastModified: Apr 24, 2021                               |
+| LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -19,8 +19,6 @@ import (
 	"net"
 	"time"
 )
-
-const requestEntityTooLarge = "Request entity too large"
 
 // ErrClosed represents a error.
 var ErrClosed = errors.New("connection closed")
