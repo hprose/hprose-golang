@@ -46,6 +46,7 @@ func TestHelloWorld(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -69,6 +70,7 @@ func TestClientTimeout(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -93,6 +95,7 @@ func TestServiceTimeout(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -121,6 +124,7 @@ func TestMissingMethod(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -148,6 +152,7 @@ func TestMissingMethod2(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -177,6 +182,7 @@ func TestHeaders(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -203,6 +209,7 @@ func TestMaxRequestLength(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -227,6 +234,7 @@ func TestCircuitBreaker(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -256,6 +264,8 @@ func TestCircuitBreaker(t *testing.T) {
 	}
 	server = &http.Server{Addr: ":8000"}
 	_ = service.Bind(server)
+	go server.ListenAndServe()
+
 	_, err = proxy.Hello("world")
 	if assert.Error(t, err) {
 		assert.Equal(t, "service breaked", err.Error())
@@ -276,6 +286,7 @@ func TestCircuitBreaker2(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -308,6 +319,8 @@ func TestCircuitBreaker2(t *testing.T) {
 	}
 	server = &http.Server{Addr: ":8000"}
 	_ = service.Bind(server)
+	go server.ListenAndServe()
+
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
 		assert.Equal(t, "Hello breaked", result)
@@ -328,18 +341,22 @@ func TestClusterFailover1(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -401,18 +418,22 @@ func TestClusterFailover2(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -476,6 +497,7 @@ func TestClusterFailtry(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -502,6 +524,7 @@ func TestClusterFailtry(t *testing.T) {
 		time.Sleep(time.Second)
 		server = &http.Server{Addr: ":8000"}
 		service.Bind(server)
+		go server.ListenAndServe()
 	}()
 
 	result, err = proxy.Hello("world")
@@ -524,6 +547,7 @@ func TestClusterFailfast(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -559,6 +583,7 @@ func TestClusterSuccess(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -589,18 +614,22 @@ func TestClusterForking(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -659,18 +688,22 @@ func TestClusterBroadcast(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -750,6 +783,7 @@ func TestForward(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service1.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	fw := forward.New("http://127.0.0.1:8001/")
 	fw.Use(log.Plugin)
@@ -762,6 +796,7 @@ func TestForward(t *testing.T) {
 	server2 := &http.Server{Addr: ":8002"}
 	err = service2.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -802,6 +837,7 @@ func TestConcurrentLimiter(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -841,6 +877,7 @@ func TestConcurrentLimiterWithoutTimeout(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -877,6 +914,7 @@ func TestRateLimiterIOHandler(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -915,6 +953,7 @@ func TestRateLimiterInvokeHandler(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -953,18 +992,22 @@ func TestRandomLoadBalance(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1015,18 +1058,22 @@ func TestRoundRobinLoadBalance(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1077,18 +1124,22 @@ func TestLeastActiveLoadBalance(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1139,18 +1190,22 @@ func TestWeightedRandomLoadBalance(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1193,18 +1248,22 @@ func TestWeightedRoundRobinLoadBalance(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1247,18 +1306,22 @@ func TestNginxRoundRobinLoadBalance(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1301,18 +1364,22 @@ func TestWeightedLeastActiveLoadBalance(t *testing.T) {
 	server1 := &http.Server{Addr: ":8001"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
+	go server1.ListenAndServe()
 
 	server2 := &http.Server{Addr: ":8002"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
+	go server2.ListenAndServe()
 
 	server3 := &http.Server{Addr: ":8003"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
+	go server3.ListenAndServe()
 
 	server4 := &http.Server{Addr: ":8004"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
+	go server4.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1356,6 +1423,7 @@ func TestOneway(t *testing.T) {
 	server := &http.Server{Addr: ":8005"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1386,6 +1454,7 @@ func TestClientAbort(t *testing.T) {
 	server := &http.Server{Addr: ":8000"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1435,6 +1504,7 @@ func TestHttpHeaders(t *testing.T) {
 	server := &http.Server{Addr: ":8006"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1482,6 +1552,7 @@ func TestHttpHeaders2(t *testing.T) {
 	server := &http.Server{Addr: ":8007"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
+	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 

@@ -22,7 +22,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
@@ -42,7 +41,6 @@ type Handler struct {
 	crossDomainXMLContent        []byte
 	clientAccessPolicyXMLFile    string
 	clientAccessPolicyXMLContent []byte
-	sync.Mutex
 }
 
 func (h *Handler) onError(err error) {
@@ -112,15 +110,10 @@ func (h *Handler) SetClientAccessPolicyXMLContent(content []byte) {
 // BindContext to the http server.
 func (h *Handler) BindContext(ctx context.Context, server core.Server) {
 	s := server.(*http.Server)
-	h.Lock()
-	defer h.Unlock()
 	s.Handler = h
 	s.BaseContext = func(l net.Listener) context.Context {
 		return ctx
 	}
-	go func() {
-		_ = s.ListenAndServe()
-	}()
 }
 
 // ServeHTTP implements the http.Handler interface.

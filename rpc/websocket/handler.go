@@ -55,15 +55,10 @@ func (h *Handler) onError(err error) {
 // BindContext to the websocket server.
 func (h *Handler) BindContext(ctx context.Context, server core.Server) {
 	s := server.(*http.Server)
-	h.Lock()
-	defer h.Unlock()
 	s.Handler = h
 	s.BaseContext = func(l net.Listener) context.Context {
 		return ctx
 	}
-	go func() {
-		_ = s.ListenAndServe()
-	}()
 }
 
 // ServeHTTP implements the http.Handler interface.
