@@ -244,6 +244,8 @@ func TestCircuitBreaker(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 	server.Close()
+	time.Sleep(time.Millisecond)
+
 	for i := 0; i < 4; i++ {
 		_, err = proxy.Hello("world")
 		assert.Error(t, err)
@@ -294,6 +296,8 @@ func TestCircuitBreaker2(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 	server.Close()
+	time.Sleep(time.Millisecond)
+
 	_, err = proxy.Hello("world")
 	assert.Error(t, err)
 	_, err = proxy.Hello("world")
@@ -358,6 +362,7 @@ func TestClusterFailover1(t *testing.T) {
 	}
 
 	server1.Close()
+	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -365,6 +370,7 @@ func TestClusterFailover1(t *testing.T) {
 	}
 
 	server2.Close()
+	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -372,6 +378,7 @@ func TestClusterFailover1(t *testing.T) {
 	}
 
 	server3.Close()
+	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -379,6 +386,7 @@ func TestClusterFailover1(t *testing.T) {
 	}
 
 	server4.Close()
+	time.Sleep(time.Millisecond)
 
 	client.UseService(&proxy)
 	_, err = proxy.Hello("world")
@@ -430,6 +438,7 @@ func TestClusterFailover2(t *testing.T) {
 	}
 
 	server1.Close()
+	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -437,6 +446,7 @@ func TestClusterFailover2(t *testing.T) {
 	}
 
 	server2.Close()
+	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -444,6 +454,7 @@ func TestClusterFailover2(t *testing.T) {
 	}
 
 	server3.Close()
+	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -451,6 +462,7 @@ func TestClusterFailover2(t *testing.T) {
 	}
 
 	server4.Close()
+	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")
 	assert.Error(t, err)
@@ -484,6 +496,7 @@ func TestClusterFailtry(t *testing.T) {
 	}
 
 	server.Close()
+	time.Sleep(time.Millisecond)
 
 	go func() {
 		time.Sleep(time.Second)
@@ -497,6 +510,7 @@ func TestClusterFailtry(t *testing.T) {
 	}
 
 	server.Close()
+	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")
 	assert.Error(t, err)
@@ -531,6 +545,7 @@ func TestClusterFailfast(t *testing.T) {
 	}
 
 	server.Close()
+	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")
 	assert.Error(t, err)
@@ -606,6 +621,7 @@ func TestClusterForking(t *testing.T) {
 	}
 
 	server1.Close()
+	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -613,6 +629,7 @@ func TestClusterForking(t *testing.T) {
 	}
 
 	server2.Close()
+	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -620,6 +637,7 @@ func TestClusterForking(t *testing.T) {
 	}
 
 	server3.Close()
+	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -627,6 +645,7 @@ func TestClusterForking(t *testing.T) {
 	}
 
 	server4.Close()
+	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")
 	assert.Error(t, err)
@@ -673,7 +692,10 @@ func TestClusterBroadcast(t *testing.T) {
 			[]interface{}{"hello world"},
 		}, result)
 	}
+
 	server1.Close()
+	time.Sleep(time.Millisecond)
+
 	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
 	assert.Error(t, err)
 	assert.Equal(t, []interface{}{
@@ -682,7 +704,10 @@ func TestClusterBroadcast(t *testing.T) {
 		[]interface{}{"hello world"},
 		[]interface{}{"hello world"},
 	}, result)
+
 	server2.Close()
+	time.Sleep(time.Millisecond)
+
 	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
 	assert.Error(t, err)
 	assert.Equal(t, []interface{}{
@@ -691,7 +716,10 @@ func TestClusterBroadcast(t *testing.T) {
 		[]interface{}{"hello world"},
 		[]interface{}{"hello world"},
 	}, result)
+
 	server3.Close()
+	time.Sleep(time.Millisecond)
+
 	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
 	assert.Error(t, err)
 	assert.Equal(t, []interface{}{
@@ -700,7 +728,10 @@ func TestClusterBroadcast(t *testing.T) {
 		[]interface{}(nil),
 		[]interface{}{"hello world"},
 	}, result)
+
 	server4.Close()
+	time.Sleep(time.Millisecond)
+
 	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
 	assert.Error(t, err)
 	assert.Equal(t, []interface{}{
