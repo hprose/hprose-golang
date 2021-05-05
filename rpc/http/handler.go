@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/handler.go                                      |
 |                                                          |
-| LastModified: Apr 28, 2021                               |
+| LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -29,6 +29,7 @@ import (
 
 type Handler struct {
 	Service                      *core.Service
+	OnError                      func(error)
 	P3P                          bool
 	GET                          bool
 	CrossDomain                  bool
@@ -40,6 +41,12 @@ type Handler struct {
 	crossDomainXMLContent        []byte
 	clientAccessPolicyXMLFile    string
 	clientAccessPolicyXMLContent []byte
+}
+
+func (h *Handler) onError(err error) {
+	if h.OnError != nil {
+		h.OnError(err)
+	}
 }
 
 // AddAccessControlAllowOrigin add access control allow origin.
@@ -125,14 +132,25 @@ func (h *Handler) ServeHTTP(response http.ResponseWriter, request *http.Request)
 			return
 		}
 	}
-	data, _ := readAll(request.Body, request.ContentLength)
-	request.Body.Close()
+	data, err := readAll(request.Body, request.ContentLength)
+	if err != nil {
+		h.onError(err)
+	}
+	if err = request.Body.Close(); err != nil {
+		h.onError(err)
+	}
 	serviceContext := h.getServiceContext(response, request)
 	ctx := core.WithContext(request.Context(), serviceContext)
-	result, _ := h.Service.Handle(ctx, data)
+	result, err := h.Service.Handle(ctx, data)
+	if err != nil {
+		h.onError(err)
+	}
 	response.Header().Set("Content-Length", strconv.Itoa(len(result)))
 	h.sendHeader(serviceContext, response, request)
-	_, _ = response.Write(result)
+	_, err = response.Write(result)
+	if err != nil {
+		h.onError(err)
+	}
 }
 
 func (h *Handler) xmlFileHandler(response http.ResponseWriter, request *http.Request, path string, content []byte) bool {
