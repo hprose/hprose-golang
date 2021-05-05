@@ -1496,14 +1496,14 @@ func TestRobustness(t *testing.T) {
 	time.Sleep(time.Millisecond * 5)
 
 	httpClient := core.NewClient("http://127.0.0.1:8412/")
-	tcpClient1 := core.NewClient("tcp://127.0.0.1/")
-	tcpClient2 := core.NewClient("tcp://127.0.0.1/")
+	tcpClient := core.NewClient("tcp://127.0.0.1/")
+	udpClient := core.NewClient("udp://127.0.0.1/")
 	var proxy1, proxy2, proxy3 struct {
 		Hello func(name string) (string, error)
 	}
 	httpClient.UseService(&proxy1)
-	tcpClient1.UseService(&proxy2)
-	tcpClient2.UseService(&proxy3)
+	tcpClient.UseService(&proxy2)
+	udpClient.UseService(&proxy3)
 	for i := 0; i < 100; i++ {
 		result, err := proxy1.Hello("world")
 		assert.Equal(t, "", result)
@@ -1512,8 +1512,8 @@ func TestRobustness(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 		assert.NoError(t, err)
 		result, err = proxy3.Hello("world")
-		assert.Equal(t, "hello world", result)
-		assert.NoError(t, err)
+		assert.Equal(t, "", result)
+		assert.Error(t, err)
 	}
 	server.Close()
 }
