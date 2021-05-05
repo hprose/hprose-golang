@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/handler.go                                    |
 |                                                          |
-| LastModified: Apr 29, 2021                               |
+| LastModified: May 4, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -30,13 +30,13 @@ type Handler struct {
 	OnError  func(error)
 }
 
-// Bind to the http server.
-func (h *Handler) Bind(server core.Server) {
-	go h.bind(server.(net.Listener))
+// BindContext to the http server.
+func (h *Handler) BindContext(ctx context.Context, server core.Server) {
+	go h.bind(ctx, server.(net.Listener))
 }
 
-func (h *Handler) bind(listener net.Listener) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (h *Handler) bind(ctx context.Context, listener net.Listener) {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	var tempDelay time.Duration // how long to sleep on accept failure
 	for {
@@ -46,7 +46,7 @@ func (h *Handler) bind(listener net.Listener) {
 			if tempDelay > 0 {
 				continue
 			}
-			break
+			return
 		}
 		tempDelay = 0
 		go h.Serve(ctx, conn)

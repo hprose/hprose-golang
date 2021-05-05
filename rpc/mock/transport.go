@@ -29,7 +29,7 @@ func (transport) Transport(ctx context.Context, request []byte) (response []byte
 		err      error
 	}, 1)
 	go func() {
-		response, err := Agent.Handler(url.Host, request)
+		response, err := Agent.Handler(ctx, url.Host, request)
 		ch <- struct {
 			response []byte
 			err      error

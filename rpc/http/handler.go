@@ -14,6 +14,7 @@
 package http
 
 import (
+	"context"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -99,9 +100,12 @@ func (h *Handler) SetClientAccessPolicyXMLContent(content []byte) {
 	h.clientAccessPolicyXMLContent = content
 }
 
-// Bind to the http server.
-func (h *Handler) Bind(server core.Server) {
+// BindContext to the http server.
+func (h *Handler) BindContext(ctx context.Context, server core.Server) {
 	s := server.(*http.Server)
+	s.BaseContext = func(l net.Listener) context.Context {
+		return ctx
+	}
 	s.Handler = h
 	go func() {
 		_ = s.ListenAndServe()

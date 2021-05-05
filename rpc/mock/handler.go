@@ -36,18 +36,18 @@ type Handler struct {
 	Service *core.Service
 }
 
-// Bind to the mock server.
-func (h Handler) Bind(server core.Server) {
+// BindContext to the mock server.
+func (h Handler) BindContext(ctx context.Context, server core.Server) {
 	Agent.Register(server.(Server).Address, h.Handler)
 }
 
 // Handler for mock.
-func (h Handler) Handler(address string, request []byte) (response []byte, err error) {
+func (h Handler) Handler(ctx context.Context, address string, request []byte) (response []byte, err error) {
 	if len(request) > h.Service.MaxRequestLength {
 		return nil, core.ErrRequestEntityTooLarge
 	}
 	serviceContext := core.NewServiceContext(h.Service)
-	ctx := core.WithContext(context.Background(), serviceContext)
+	ctx = core.WithContext(ctx, serviceContext)
 	url, err := url.Parse("mock://" + address)
 	if err != nil {
 		return nil, err

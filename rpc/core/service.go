@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service.go                                      |
 |                                                          |
-| LastModified: Apr 18, 2021                               |
+| LastModified: May 4, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,7 +24,7 @@ type Server interface{}
 
 // Handler is an interface used to bind service to any server.
 type Handler interface {
-	Bind(server Server)
+	BindContext(ctx context.Context, server Server)
 }
 
 // HandlerFactory is a constructor for Handler.
@@ -80,11 +80,16 @@ func NewService() *Service {
 
 // Bind to server.
 func (s *Service) Bind(server Server) error {
+	return s.BindContext(context.Background(), server)
+}
+
+// BindContext to server with context.Context.
+func (s *Service) BindContext(ctx context.Context, server Server) error {
 	serverType := reflect.TypeOf(server)
 	if value, ok := serverTypes.Load(serverType); ok {
 		names := value.([]string)
 		for _, name := range names {
-			s.handlers[name].Bind(server)
+			s.handlers[name].BindContext(ctx, server)
 		}
 		return nil
 	}
