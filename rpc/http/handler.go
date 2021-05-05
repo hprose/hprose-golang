@@ -35,8 +35,8 @@ type Handler struct {
 	CrossDomain                  bool
 	Header                       http.Header
 	AccessControlAllowOrigins    map[string]bool
-	lastModified                 string
-	etag                         string
+	LastModified                 string
+	Etag                         string
 	crossDomainXMLFile           string
 	crossDomainXMLContent        []byte
 	clientAccessPolicyXMLFile    string
@@ -157,14 +157,14 @@ func (h *Handler) xmlFileHandler(response http.ResponseWriter, request *http.Req
 	if content == nil || strings.ToLower(request.URL.Path) != path {
 		return false
 	}
-	if request.Header.Get("if-modified-since") == h.lastModified &&
-		request.Header.Get("if-none-match") == h.etag {
+	if request.Header.Get("if-modified-since") == h.LastModified &&
+		request.Header.Get("if-none-match") == h.Etag {
 		response.WriteHeader(304)
 	} else {
 		contentLength := len(content)
 		header := response.Header()
-		header.Set("Last-Modified", h.lastModified)
-		header.Set("Etag", h.etag)
+		header.Set("Last-Modified", h.LastModified)
+		header.Set("Etag", h.Etag)
 		header.Set("Content-Type", "text/xml")
 		header.Set("Content-Length", strconv.Itoa(contentLength))
 		_, _ = response.Write(content)
@@ -240,8 +240,8 @@ func (factory handlerFactory) New(service *core.Service) core.Handler {
 		GET:                       true,
 		CrossDomain:               true,
 		AccessControlAllowOrigins: make(map[string]bool),
-		lastModified:              time.Now().UTC().Format(time.RFC1123),
-		etag:                      `"` + strconv.FormatInt(rand.Int63(), 16) + `"`,
+		LastModified:              time.Now().UTC().Format(time.RFC1123),
+		Etag:                      `"` + strconv.FormatInt(rand.Int63(), 16) + `"`,
 	}
 }
 
