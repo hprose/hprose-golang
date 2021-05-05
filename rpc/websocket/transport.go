@@ -4,53 +4,50 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| rpc/socket/transport.go                                  |
+| rpc/websocket/transport.go                               |
 |                                                          |
 | LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package socket
+package websocket
 
 import (
 	"context"
-	"io"
-	"net"
+	"net/http"
 	"runtime"
 	"sync"
 	"sync/atomic"
 
+	"github.com/gorilla/websocket"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
 
 type conn struct {
-	net.Conn
+	*websocket.Conn
 	requests chan data
 	results  map[int]chan data
 	lock     sync.Mutex
 	counter  int32
-	onClose  func(net.Conn)
+	onClose  func(*websocket.Conn)
 	once     sync.Once
 }
 
-func dial(ctx context.Context) (net.Conn, error) {
+func dial(ctx context.Context) (*websocket.Conn, error) {
 	u := core.GetClientContext(ctx).URL
-	var d net.Dialer
+	var d websocket.Dialer
 	switch u.Scheme {
-	case "tcp", "tcp4", "tcp6", "tls", "tls4", "tls6", "ssl", "ssl4", "ssl6":
-		address := u.Host
-		if u.Port() == "" {
-			address += ":8412"
-		}
-		return d.DialContext(ctx, "tcp", address)
-	case "unix", "unixpacket":
-		return d.DialContext(ctx, "unix", u.Path)
+	case "ws", "wss":
+		header := http.Header{"Sec-WebSocket-Protocol": []string{"hprose"}}
+		conn, response, err := d.DialContext(ctx, u.String(), header)
+		response.Body.Close()
+		return conn, err
 	}
 	return nil, core.UnsupportedProtocolError{Scheme: u.Scheme}
 }
 
-func newConn(ctx context.Context, onConnect func(net.Conn) net.Conn, onClose func(net.Conn)) (*conn, error) {
+func newConn(ctx context.Context, onConnect func(*websocket.Conn) *websocket.Conn, onClose func(*websocket.Conn)) (*conn, error) {
 	c, err := dial(ctx)
 	if err != nil {
 		return nil, err
@@ -139,35 +136,51 @@ func (c *conn) Send(onExit func()) {
 		c.Exit(onExit, err)
 	}()
 	for request := range c.requests {
-		header := makeHeader(len(request.Body), request.Index)
-		if _, err = c.Write(header[:]); err != nil {
-			return
+		header := makeHeader(request.Index)
+		writer, err := c.NextWriter(websocket.BinaryMessage)
+		if err == nil {
+			_, err = writer.Write(header[:])
+			if err == nil {
+				_, err = writer.Write(request.Body)
+				if err == nil {
+					err = writer.Close()
+				}
+			}
 		}
-		if _, err = c.Write(request.Body); err != nil {
+		if err != nil {
 			return
 		}
 	}
 }
 
 func (c *conn) Receive(onExit func()) {
-	var err error
+	var (
+		messageType int
+		body        []byte
+		err         error
+	)
 	defer func() {
 		c.Exit(onExit, err)
 	}()
-	var header [12]byte
 	for {
-		if _, err = io.ReadAtLeast(c.Conn, header[:], 12); err != nil {
+		messageType, body, err = c.ReadMessage()
+		if err != nil {
 			return
 		}
-		length, index, ok := parseHeader(header)
-		if length == 0 && index == -1 && !ok {
+		switch messageType {
+		case websocket.CloseMessage:
+			err = core.ErrClosed
+			return
+		case websocket.BinaryMessage:
+		default:
+			continue
+		}
+		index, ok := parseHeader(body[:4])
+		if !ok {
 			err = core.InvalidResponseError{}
 			return
 		}
-		body := make([]byte, length)
-		if _, err = io.ReadAtLeast(c.Conn, body, length); err != nil {
-			return
-		}
+		body := body[4:]
 		if !ok {
 			if string(body) == core.RequestEntityTooLarge {
 				err = core.ErrRequestEntityTooLarge
@@ -199,8 +212,8 @@ func (c *conn) Close(err error) {
 }
 
 type Transport struct {
-	OnConnect func(net.Conn) net.Conn
-	OnClose   func(net.Conn)
+	OnConnect func(*websocket.Conn) *websocket.Conn
+	OnClose   func(*websocket.Conn)
 	conns     map[string]*conn
 	lock      sync.RWMutex
 }
@@ -236,14 +249,14 @@ func (trans *Transport) getConn(ctx context.Context) (conn *conn, err error) {
 	return
 }
 
-func (trans *Transport) onConnect(conn net.Conn) net.Conn {
+func (trans *Transport) onConnect(conn *websocket.Conn) *websocket.Conn {
 	if trans.OnConnect != nil {
 		return trans.OnConnect(conn)
 	}
 	return conn
 }
 
-func (trans *Transport) onClose(conn net.Conn) {
+func (trans *Transport) onClose(conn *websocket.Conn) {
 	if trans.OnClose != nil {
 		trans.OnClose(conn)
 	}
@@ -283,5 +296,5 @@ func (factory transportFactory) New() core.Transport {
 }
 
 func init() {
-	core.RegisterTransport("socket", transportFactory{[]string{"tcp", "tcp4", "tcp6", "tls", "tls4", "tls6", "ssl", "ssl4", "ssl6", "unix", "unixpacket"}})
+	core.RegisterTransport("websocket", transportFactory{[]string{"ws", "wss"}})
 }

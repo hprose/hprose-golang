@@ -65,6 +65,9 @@ var ErrRequestEntityTooLarge = errors.New("hprose/rpc/core: request entity too l
 // RequestEntityTooLarge represents the error message of ErrRequestEntityTooLarge.
 const RequestEntityTooLarge = "Request entity too large"
 
+// ErrClosed represents a error.
+var ErrClosed = errors.New("hprose/rpc/core: connection closed")
+
 // InvalidRequestError represents a error.
 type InvalidRequestError struct {
 	Request []byte

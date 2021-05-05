@@ -131,14 +131,15 @@ func (h *Handler) send(ctx context.Context, conn *net.UDPConn, queue chan data, 
 		case <-ctx.Done():
 			return
 		case response := <-queue:
-			index, body, err, addr := response.Index, response.Body, response.Error, response.Addr
-			if err != nil {
+			index, body, e, addr := response.Index, response.Body, response.Error, response.Addr
+			if e != nil {
 				index |= 0x8000
-				if err == core.ErrRequestEntityTooLarge {
+				if e == core.ErrRequestEntityTooLarge {
 					body = []byte(core.RequestEntityTooLarge)
 				} else {
-					body = []byte(err.Error())
+					body = []byte(e.Error())
 				}
+				h.onError(e)
 			}
 			header := makeHeader(len(body), index)
 			copy(buffer[:], header[:])

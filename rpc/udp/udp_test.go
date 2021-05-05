@@ -35,6 +35,8 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/oneway"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
+	_ "github.com/hprose/hprose-golang/v3/rpc/socket"
+	_ "github.com/hprose/hprose-golang/v3/rpc/udp"
 
 	"github.com/stretchr/testify/assert"
 )

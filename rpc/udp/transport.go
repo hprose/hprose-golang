@@ -51,17 +51,17 @@ func dial(ctx context.Context) (net.Conn, error) {
 	return nil, core.UnsupportedProtocolError{Scheme: u.Scheme}
 }
 
-func newConn(ctx context.Context) (*conn, error) {
+func newConn(ctx context.Context, onConnect func(net.Conn) net.Conn, onClose func(net.Conn)) (*conn, error) {
 	c, err := dial(ctx)
 	if err != nil {
 		return nil, err
 	}
-	conn := &conn{
-		Conn:     c,
+	return &conn{
+		Conn:     onConnect(c),
 		requests: make(chan data),
-	}
-	conn.results = make(map[int]chan data)
-	return conn, nil
+		onClose:  onClose,
+		results:  make(map[int]chan data),
+	}, nil
 }
 
 func (c *conn) store(index int, resultChan chan data) {
@@ -204,7 +204,7 @@ func (c *conn) Close(err error) {
 }
 
 type Transport struct {
-	OnConnect func(net.Conn)
+	OnConnect func(net.Conn) net.Conn
 	OnClose   func(net.Conn)
 	conns     map[string]*conn
 	lock      sync.RWMutex
@@ -224,12 +224,10 @@ func (trans *Transport) getConn(ctx context.Context) (conn *conn, err error) {
 	if conn = trans.conns[key]; conn != nil {
 		return
 	}
-	conn, err = newConn(ctx)
+	conn, err = newConn(ctx, trans.onConnect, trans.onClose)
 	if err != nil {
 		return
 	}
-	conn.onClose = trans.onClose
-	trans.onConnect(conn.Conn)
 	trans.conns[key] = conn
 	onExit := func() {
 		trans.lock.Lock()
@@ -243,10 +241,11 @@ func (trans *Transport) getConn(ctx context.Context) (conn *conn, err error) {
 	return
 }
 
-func (trans *Transport) onConnect(conn net.Conn) {
+func (trans *Transport) onConnect(conn net.Conn) net.Conn {
 	if trans.OnConnect != nil {
-		trans.OnConnect(conn)
+		return trans.OnConnect(conn)
 	}
+	return conn
 }
 
 func (trans *Transport) onClose(conn net.Conn) {

@@ -4,63 +4,42 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| rpc/socket/handler.go                                    |
+| rpc/websocket/handler.go                                 |
 |                                                          |
 | LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package socket
+package websocket
 
 import (
 	"context"
-	"io"
-	"net"
+	"math/rand"
+	"net/http"
 	"reflect"
+	"strconv"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
+	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
 )
 
 type Handler struct {
-	Service  *core.Service
-	OnAccept func(net.Conn) net.Conn
-	OnClose  func(net.Conn)
-	OnError  func(error)
+	rpchttp.Handler
+	OnAccept func(*websocket.Conn) *websocket.Conn
+	OnClose  func(*websocket.Conn)
 }
 
-// BindContext to the http server.
-func (h *Handler) BindContext(ctx context.Context, server core.Server) {
-	go h.bind(ctx, server.(net.Listener))
-}
-
-func (h *Handler) bind(ctx context.Context, listener net.Listener) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	var tempDelay time.Duration // how long to sleep on accept failure
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			tempDelay = nextTempDelay(err, h.onError, tempDelay)
-			if tempDelay > 0 {
-				continue
-			}
-			return
-		}
-		tempDelay = 0
-		go h.Serve(ctx, conn)
-	}
-}
-
-func (h *Handler) onAccept(conn net.Conn) net.Conn {
+func (h *Handler) onAccept(conn *websocket.Conn) *websocket.Conn {
 	if h.OnAccept != nil {
 		return h.OnAccept(conn)
 	}
 	return conn
 }
 
-func (h *Handler) onClose(conn net.Conn) {
+func (h *Handler) onClose(conn *websocket.Conn) {
 	if h.OnClose != nil {
 		h.OnClose(conn)
 	}
@@ -70,6 +49,43 @@ func (h *Handler) onError(err error) {
 	if h.OnError != nil {
 		h.OnError(err)
 	}
+}
+
+// BindContext to the websocket server.
+func (h *Handler) BindContext(_ context.Context, server core.Server) {
+	s := server.(*http.Server)
+	s.Handler = h
+	go func() {
+		_ = s.ListenAndServe()
+	}()
+}
+
+// ServeHTTP implements the http.Handler interface.
+func (h *Handler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+	if !websocket.IsWebSocketUpgrade(request) {
+		h.Handler.ServeHTTP(response, request)
+		return
+	}
+	upgrader := websocket.Upgrader{
+		Subprotocols: []string{"hprose"},
+		CheckOrigin: func(r *http.Request) bool {
+			origin := r.Header.Get("origin")
+			if origin != "" && origin != "null" {
+				if len(h.AccessControlAllowOrigins) == 0 ||
+					h.AccessControlAllowOrigins[origin] {
+					return true
+				}
+				return false
+			}
+			return true
+		},
+	}
+	conn, err := upgrader.Upgrade(response, request, nil)
+	if err != nil {
+		h.onError(err)
+		return
+	}
+	h.Serve(request.Context(), conn)
 }
 
 func (h *Handler) reportError(ctx context.Context, errChan chan error, err error) {
@@ -91,7 +107,7 @@ func (h *Handler) sendResponse(ctx context.Context, queue chan data, index int, 
 	}
 }
 
-func (h *Handler) getServiceContext(conn net.Conn) *core.ServiceContext {
+func (h *Handler) getServiceContext(conn *websocket.Conn) *core.ServiceContext {
 	serviceContext := core.NewServiceContext(h.Service)
 	serviceContext.Items().Set("conn", conn)
 	serviceContext.LocalAddr = conn.LocalAddr()
@@ -117,33 +133,37 @@ func (h *Handler) catch(ctx context.Context, errChan chan error) {
 	}
 }
 
-func (h *Handler) receive(ctx context.Context, conn net.Conn, queue chan data, errChan chan error) {
+func (h *Handler) receive(ctx context.Context, conn *websocket.Conn, queue chan data, errChan chan error) {
 	defer h.catch(ctx, errChan)
-	var header [12]byte
 	for {
-		if _, err := io.ReadAtLeast(conn, header[:], 12); err != nil {
+		messageType, data, err := conn.ReadMessage()
+		if err != nil {
 			h.reportError(ctx, errChan, err)
 			return
 		}
-		length, index, ok := parseHeader(header)
-		if length == 0 && index == -1 && !ok {
+		switch messageType {
+		case websocket.CloseMessage:
+			h.reportError(ctx, errChan, core.ErrClosed)
+			return
+		case websocket.BinaryMessage:
+		default:
+			continue
+		}
+		index, ok := parseHeader(data[:4])
+		if !ok {
 			h.reportError(ctx, errChan, core.InvalidRequestError{})
 			return
 		}
-		if length > h.Service.MaxRequestLength {
+		body := data[4:]
+		if len(body) > h.Service.MaxRequestLength {
 			h.sendResponse(ctx, queue, index, nil, core.ErrRequestEntityTooLarge)
-			return
-		}
-		body := make([]byte, length)
-		if _, err := io.ReadAtLeast(conn, body, length); err != nil {
-			h.reportError(ctx, errChan, err)
 			return
 		}
 		go h.run(core.WithContext(ctx, h.getServiceContext(conn)), queue, index, body)
 	}
 }
 
-func (h *Handler) send(ctx context.Context, conn net.Conn, queue chan data, errChan chan error) {
+func (h *Handler) send(ctx context.Context, conn *websocket.Conn, queue chan data, errChan chan error) {
 	defer h.catch(ctx, errChan)
 	for {
 		select {
@@ -159,10 +179,16 @@ func (h *Handler) send(ctx context.Context, conn net.Conn, queue chan data, errC
 					body = []byte(e.Error())
 				}
 			}
-			header := makeHeader(len(body), index)
-			_, err := conn.Write(header[:])
+			header := makeHeader(index)
+			writer, err := conn.NextWriter(websocket.BinaryMessage)
 			if err == nil {
-				_, err = conn.Write(body)
+				_, err = writer.Write(header[:])
+				if err == nil {
+					_, err = writer.Write(body)
+					if err == nil {
+						err = writer.Close()
+					}
+				}
 			}
 			if err != nil {
 				h.reportError(ctx, errChan, err)
@@ -176,7 +202,7 @@ func (h *Handler) send(ctx context.Context, conn net.Conn, queue chan data, errC
 	}
 }
 
-func (h *Handler) Serve(ctx context.Context, conn net.Conn) {
+func (h *Handler) Serve(ctx context.Context, conn *websocket.Conn) {
 	ctx, cancel := context.WithCancel(ctx)
 	var err error
 	defer func() {
@@ -212,15 +238,22 @@ func (factory handlerFactory) ServerTypes() []reflect.Type {
 
 func (factory handlerFactory) New(service *core.Service) core.Handler {
 	return &Handler{
-		Service: service,
+		Handler: rpchttp.Handler{
+			Service:                   service,
+			P3P:                       true,
+			GET:                       true,
+			CrossDomain:               true,
+			AccessControlAllowOrigins: make(map[string]bool),
+			LastModified:              time.Now().UTC().Format(time.RFC1123),
+			Etag:                      `"` + strconv.FormatInt(rand.Int63(), 16) + `"`,
+		},
 	}
 }
 
 func init() {
-	core.RegisterHandler("socket", handlerFactory{
+	core.RegisterHandler("websocket", handlerFactory{
 		[]reflect.Type{
-			reflect.TypeOf((*net.TCPListener)(nil)),
-			reflect.TypeOf((*net.UnixListener)(nil)),
+			reflect.TypeOf((*http.Server)(nil)),
 		},
 	})
 }

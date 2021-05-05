@@ -14,14 +14,10 @@
 package socket
 
 import (
-	"errors"
 	"hash/crc32"
 	"net"
 	"time"
 )
-
-// ErrClosed represents a error.
-var ErrClosed = errors.New("connection closed")
 
 type data struct {
 	Index int
