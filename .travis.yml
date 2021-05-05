@@ -3,7 +3,6 @@ language: go
 sudo: false
 
 go:
-  - "1.11"
   - "1.12"
   - "1.13"
   - "1.14"
@@ -12,7 +11,6 @@ go:
 
 before_install:
   - export GO111MODULE="on"
-  - go get golang.org/x/tools/cover@release-branch.go1.11
   - go get github.com/mattn/goveralls
 
 script:

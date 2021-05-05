@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/websocket/websocket_test.go                          |
 |                                                          |
-| LastModified: Apr 29, 2021                               |
+| LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -20,9 +20,7 @@ import (
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
-
 	_ "github.com/hprose/hprose-golang/v3/rpc/websocket"
-
 	"github.com/stretchr/testify/assert"
 )
 
