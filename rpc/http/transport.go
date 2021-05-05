@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/transport.go                                    |
 |                                                          |
-| LastModified: Apr 28, 2021                               |
+| LastModified: May 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -32,7 +32,7 @@ type Transport struct {
 
 func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, error) {
 	clientContext := core.GetClientContext(ctx)
-	req, err := newRequestWithContext(ctx, "POST", clientContext.URL.String(), bytes.NewReader(request))
+	req, err := http.NewRequestWithContext(ctx, "POST", clientContext.URL.String(), bytes.NewReader(request))
 	if err != nil {
 		return nil, err
 	}

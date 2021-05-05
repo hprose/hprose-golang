@@ -16,6 +16,7 @@ package websocket
 import (
 	"context"
 	"math/rand"
+	"net"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -52,9 +53,12 @@ func (h *Handler) onError(err error) {
 }
 
 // BindContext to the websocket server.
-func (h *Handler) BindContext(_ context.Context, server core.Server) {
+func (h *Handler) BindContext(ctx context.Context, server core.Server) {
 	s := server.(*http.Server)
 	s.Handler = h
+	s.BaseContext = func(l net.Listener) context.Context {
+		return ctx
+	}
 	go func() {
 		_ = s.ListenAndServe()
 	}()
@@ -218,7 +222,7 @@ func (h *Handler) Serve(ctx context.Context, conn *websocket.Conn) {
 	}()
 	conn = h.onAccept(conn)
 	queue := make(chan data)
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 	go h.receive(ctx, conn, queue, errChan)
 	go h.send(ctx, conn, queue, errChan)
 	select {

@@ -170,7 +170,7 @@ func (h *Handler) Serve(ctx context.Context, conn *net.UDPConn) {
 		conn.Close()
 	}()
 	queue := make(chan data)
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 	go h.receive(ctx, conn, queue, errChan)
 	go h.send(ctx, conn, queue, errChan)
 	select {

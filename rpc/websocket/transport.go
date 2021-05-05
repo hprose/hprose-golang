@@ -41,7 +41,9 @@ func dial(ctx context.Context) (*websocket.Conn, error) {
 	case "ws", "wss":
 		header := http.Header{"Sec-WebSocket-Protocol": []string{"hprose"}}
 		conn, response, err := d.DialContext(ctx, u.String(), header)
-		response.Body.Close()
+		if response != nil {
+			response.Body.Close()
+		}
 		return conn, err
 	}
 	return nil, core.UnsupportedProtocolError{Scheme: u.Scheme}
@@ -176,11 +178,7 @@ func (c *conn) Receive(onExit func()) {
 			continue
 		}
 		index, ok := parseHeader(body[:4])
-		if !ok {
-			err = core.InvalidResponseError{}
-			return
-		}
-		body := body[4:]
+		body = body[4:]
 		if !ok {
 			if string(body) == core.RequestEntityTooLarge {
 				err = core.ErrRequestEntityTooLarge
