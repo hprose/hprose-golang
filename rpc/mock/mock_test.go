@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/mock_test.go                                    |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: May 7, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -37,12 +37,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	RegisterHandler()
+	RegisterTransport()
+}
+
 func TestHelloWorld(t *testing.T) {
 	service := core.NewService()
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testHelloWorld"}
+	server := Server{Address: "testHelloWorld"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testHelloWorld")
@@ -62,7 +67,7 @@ func TestClientTimeout(t *testing.T) {
 	service.AddFunction(func(d time.Duration) {
 		time.Sleep(d)
 	}, "wait")
-	server := Server{"testClientTimeout"}
+	server := Server{Address: "testClientTimeout"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testClientTimeout")
@@ -83,7 +88,7 @@ func TestServiceTimeout(t *testing.T) {
 		time.Sleep(d)
 	}, "wait")
 	service.Use(timeout.New(5 * time.Millisecond))
-	server := Server{"testServiceTimeout"}
+	server := Server{Address: "testServiceTimeout"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testServiceTimeout")
@@ -108,7 +113,7 @@ func TestMissingMethod(t *testing.T) {
 		}
 		return []interface{}{name + string(data)}, nil
 	})
-	server := Server{"testMissingMethod"}
+	server := Server{Address: "testMissingMethod"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testMissingMethod")
@@ -132,7 +137,7 @@ func TestMissingMethod2(t *testing.T) {
 		}
 		return []interface{}{name + string(data) + serviceContext.RemoteAddr.String()}, nil
 	})
-	server := Server{"testMissingMethod2"}
+	server := Server{Address: "testMissingMethod2"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testMissingMethod2")
@@ -158,7 +163,7 @@ func TestHeaders(t *testing.T) {
 		serviceContext.ResponseHeaders().Set("pong", true)
 		return next(ctx, name, args)
 	})
-	server := Server{"testHeaders"}
+	server := Server{Address: "testHeaders"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testHeaders")
@@ -181,7 +186,7 @@ func TestMaxRequestLength(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testMaxRequestLength"}
+	server := Server{Address: "testMaxRequestLength"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testMaxRequestLength")
@@ -202,7 +207,7 @@ func TestCircuitBreaker(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testCircuitBreaker"}
+	server := Server{Address: "testCircuitBreaker"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testCircuitBreaker")
@@ -250,7 +255,7 @@ func TestCircuitBreaker2(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testCircuitBreaker2"}
+	server := Server{Address: "testCircuitBreaker2"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testCircuitBreaker2")
@@ -302,19 +307,19 @@ func TestClusterFailover1(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testClusterFailover1"}
+	server1 := Server{Address: "testClusterFailover1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
 
-	server2 := Server{"testClusterFailover2"}
+	server2 := Server{Address: "testClusterFailover2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
 
-	server3 := Server{"testClusterFailover3"}
+	server3 := Server{Address: "testClusterFailover3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
 
-	server4 := Server{"testClusterFailover4"}
+	server4 := Server{Address: "testClusterFailover4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 
@@ -373,19 +378,19 @@ func TestClusterFailover2(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testClusterFailover1"}
+	server1 := Server{Address: "testClusterFailover1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
 
-	server2 := Server{"testClusterFailover2"}
+	server2 := Server{Address: "testClusterFailover2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
 
-	server3 := Server{"testClusterFailover3"}
+	server3 := Server{Address: "testClusterFailover3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
 
-	server4 := Server{"testClusterFailover4"}
+	server4 := Server{Address: "testClusterFailover4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 
@@ -446,7 +451,7 @@ func TestClusterFailtry(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testClusterFailtry"}
+	server := Server{Address: "testClusterFailtry"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 
@@ -491,7 +496,7 @@ func TestClusterFailfast(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testClusterFailfast"}
+	server := Server{Address: "testClusterFailfast"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 
@@ -535,7 +540,7 @@ func TestClusterSuccess(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testClusterSuccess"}
+	server := Server{Address: "testClusterSuccess"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 
@@ -562,16 +567,16 @@ func TestClusterForking(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testClusterForking1"}
+	server1 := Server{Address: "testClusterForking1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := Server{"testClusterForking2"}
+	server2 := Server{Address: "testClusterForking2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := Server{"testClusterForking3"}
+	server3 := Server{Address: "testClusterForking3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := Server{"testClusterForking4"}
+	server4 := Server{Address: "testClusterForking4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 
@@ -627,16 +632,16 @@ func TestClusterBroadcast(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testClusterBroadcast1"}
+	server1 := Server{Address: "testClusterBroadcast1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := Server{"testClusterBroadcast2"}
+	server2 := Server{Address: "testClusterBroadcast2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := Server{"testClusterBroadcast3"}
+	server3 := Server{Address: "testClusterBroadcast3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := Server{"testClusterBroadcast4"}
+	server4 := Server{Address: "testClusterBroadcast4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 
@@ -713,7 +718,7 @@ func TestForward(t *testing.T) {
 	service1.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testForward.RealServer"}
+	server1 := Server{Address: "testForward.RealServer"}
 	err := service1.Bind(server1)
 	assert.NoError(t, err)
 
@@ -724,7 +729,7 @@ func TestForward(t *testing.T) {
 		return
 	})
 	service2.Use(fw.InvokeHandler)
-	server2 := Server{"testForward.ForwardServer"}
+	server2 := Server{Address: "testForward.ForwardServer"}
 	err = service2.Bind(server2)
 	assert.NoError(t, err)
 
@@ -762,7 +767,7 @@ func TestConcurrentLimiter(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testConcurrentLimiter"}
+	server := Server{Address: "testConcurrentLimiter"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testConcurrentLimiter")
@@ -798,7 +803,7 @@ func TestConcurrentLimiterWithoutTimeout(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testConcurrentLimiterWithoutTimeout"}
+	server := Server{Address: "testConcurrentLimiterWithoutTimeout"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testConcurrentLimiterWithoutTimeout")
@@ -831,7 +836,7 @@ func TestRateLimiterIOHandler(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testRateLimiterIOHandler"}
+	server := Server{Address: "testRateLimiterIOHandler"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testRateLimiterIOHandler")
@@ -866,7 +871,7 @@ func TestRateLimiterInvokeHandler(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testRateLimiterInvokeHandler"}
+	server := Server{Address: "testRateLimiterInvokeHandler"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testRateLimiterInvokeHandler")
@@ -901,16 +906,16 @@ func TestRandomLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testRandomLoadBalance1"}
+	server1 := Server{Address: "testRandomLoadBalance1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := Server{"testRandomLoadBalance2"}
+	server2 := Server{Address: "testRandomLoadBalance2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := Server{"testRandomLoadBalance3"}
+	server3 := Server{Address: "testRandomLoadBalance3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := Server{"testRandomLoadBalance4"}
+	server4 := Server{Address: "testRandomLoadBalance4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 	client := core.NewClient(
@@ -957,16 +962,16 @@ func TestRoundRobinLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testRoundRobinLoadBalance1"}
+	server1 := Server{Address: "testRoundRobinLoadBalance1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := Server{"testRoundRobinLoadBalance2"}
+	server2 := Server{Address: "testRoundRobinLoadBalance2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := Server{"testRoundRobinLoadBalance3"}
+	server3 := Server{Address: "testRoundRobinLoadBalance3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := Server{"testRoundRobinLoadBalance4"}
+	server4 := Server{Address: "testRoundRobinLoadBalance4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 	client := core.NewClient(
@@ -1013,16 +1018,16 @@ func TestLeastActiveLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testLeastActiveLoadBalance1"}
+	server1 := Server{Address: "testLeastActiveLoadBalance1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := Server{"testLeastActiveLoadBalance2"}
+	server2 := Server{Address: "testLeastActiveLoadBalance2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := Server{"testLeastActiveLoadBalance3"}
+	server3 := Server{Address: "testLeastActiveLoadBalance3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := Server{"testLeastActiveLoadBalance4"}
+	server4 := Server{Address: "testLeastActiveLoadBalance4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 	client := core.NewClient(
@@ -1069,16 +1074,16 @@ func TestWeightedRandomLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testWeightedRandomLoadBalance1"}
+	server1 := Server{Address: "testWeightedRandomLoadBalance1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := Server{"testWeightedRandomLoadBalance2"}
+	server2 := Server{Address: "testWeightedRandomLoadBalance2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := Server{"testWeightedRandomLoadBalance3"}
+	server3 := Server{Address: "testWeightedRandomLoadBalance3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := Server{"testWeightedRandomLoadBalance4"}
+	server4 := Server{Address: "testWeightedRandomLoadBalance4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 	client := core.NewClient()
@@ -1117,16 +1122,16 @@ func TestWeightedRoundRobinLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testWeightedRoundRobinLoadBalance1"}
+	server1 := Server{Address: "testWeightedRoundRobinLoadBalance1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := Server{"testWeightedRoundRobinLoadBalance2"}
+	server2 := Server{Address: "testWeightedRoundRobinLoadBalance2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := Server{"testWeightedRoundRobinLoadBalance3"}
+	server3 := Server{Address: "testWeightedRoundRobinLoadBalance3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := Server{"testWeightedRoundRobinLoadBalance4"}
+	server4 := Server{Address: "testWeightedRoundRobinLoadBalance4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 	client := core.NewClient()
@@ -1165,16 +1170,16 @@ func TestNginxRoundRobinLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testNginxRoundRobinLoadBalance1"}
+	server1 := Server{Address: "testNginxRoundRobinLoadBalance1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := Server{"testNginxRoundRobinLoadBalance2"}
+	server2 := Server{Address: "testNginxRoundRobinLoadBalance2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := Server{"testNginxRoundRobinLoadBalance3"}
+	server3 := Server{Address: "testNginxRoundRobinLoadBalance3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := Server{"testNginxRoundRobinLoadBalance4"}
+	server4 := Server{Address: "testNginxRoundRobinLoadBalance4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 	client := core.NewClient()
@@ -1213,16 +1218,16 @@ func TestWeightedLeastActiveLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := Server{"testWeightedLeastActiveLoadBalance1"}
+	server1 := Server{Address: "testWeightedLeastActiveLoadBalance1"}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	server2 := Server{"testWeightedLeastActiveLoadBalance2"}
+	server2 := Server{Address: "testWeightedLeastActiveLoadBalance2"}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	server3 := Server{"testWeightedLeastActiveLoadBalance3"}
+	server3 := Server{Address: "testWeightedLeastActiveLoadBalance3"}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	server4 := Server{"testWeightedLeastActiveLoadBalance4"}
+	server4 := Server{Address: "testWeightedLeastActiveLoadBalance4"}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
 	client := core.NewClient()
@@ -1262,7 +1267,7 @@ func TestOneway(t *testing.T) {
 	service.AddFunction(func() {
 		time.Sleep(time.Millisecond * 100)
 	}, "sleep")
-	server := Server{"testOneway"}
+	server := Server{Address: "testOneway"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testOneway")
@@ -1288,7 +1293,7 @@ func TestClientAbort(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := Server{"testClientAbort"}
+	server := Server{Address: "testClientAbort"}
 	err := service.Bind(server)
 	assert.NoError(t, err)
 

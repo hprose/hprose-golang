@@ -194,7 +194,7 @@ func (factory handlerFactory) New(service *core.Service) core.Handler {
 	}
 }
 
-func init() {
+func RegisterHandler() {
 	core.RegisterHandler("udp", handlerFactory{
 		[]reflect.Type{
 			reflect.TypeOf((*net.UDPConn)(nil)),

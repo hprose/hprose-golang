@@ -282,6 +282,6 @@ func (factory transportFactory) New() core.Transport {
 	return transport
 }
 
-func init() {
+func RegisterTransport() {
 	core.RegisterTransport("socket", transportFactory{[]string{"tcp", "tcp4", "tcp6", "tls", "tls4", "tls6", "ssl", "ssl4", "ssl6", "unix", "unixpacket"}})
 }

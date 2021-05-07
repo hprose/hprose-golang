@@ -293,6 +293,6 @@ func (factory transportFactory) New() core.Transport {
 	return transport
 }
 
-func init() {
+func RegisterTransport() {
 	core.RegisterTransport("websocket", transportFactory{[]string{"ws", "wss"}})
 }

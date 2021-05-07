@@ -71,7 +71,7 @@ func (factory handlerFactory) New(service *core.Service) core.Handler {
 	return Handler{service}
 }
 
-func init() {
+func RegisterHandler() {
 	core.RegisterHandler("mock", handlerFactory{
 		[]reflect.Type{
 			reflect.TypeOf((*Server)(nil)),

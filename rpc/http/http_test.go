@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/http_test.go                                    |
 |                                                          |
-| LastModified: Apr 28, 2021                               |
+| LastModified: May 7, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -37,6 +37,11 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	RegisterHandler()
+	RegisterTransport()
+}
 
 func TestHelloWorld(t *testing.T) {
 	service := core.NewService()

@@ -216,7 +216,7 @@ func (factory handlerFactory) New(service *core.Service) core.Handler {
 	}
 }
 
-func init() {
+func RegisterHandler() {
 	core.RegisterHandler("socket", handlerFactory{
 		[]reflect.Type{
 			reflect.TypeOf((*net.TCPListener)(nil)),

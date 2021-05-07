@@ -287,6 +287,6 @@ func (factory transportFactory) New() core.Transport {
 	return transport
 }
 
-func init() {
+func RegisterTransport() {
 	core.RegisterTransport("udp", transportFactory{[]string{"udp", "udp4", "udp6"}})
 }

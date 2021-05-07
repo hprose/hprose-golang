@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/udp/udp_test.go                                      |
 |                                                          |
-| LastModified: May 5, 2021                                |
+| LastModified: May 7, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -26,7 +26,7 @@ import (
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
-	_ "github.com/hprose/hprose-golang/v3/rpc/http"
+	http "github.com/hprose/hprose-golang/v3/rpc/http"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/cluster"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/forward"
@@ -35,10 +35,19 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/oneway"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
-	_ "github.com/hprose/hprose-golang/v3/rpc/socket"
-	_ "github.com/hprose/hprose-golang/v3/rpc/udp"
+	socket "github.com/hprose/hprose-golang/v3/rpc/socket"
+	udp "github.com/hprose/hprose-golang/v3/rpc/udp"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	http.RegisterHandler()
+	http.RegisterTransport()
+	socket.RegisterHandler()
+	socket.RegisterTransport()
+	udp.RegisterHandler()
+	udp.RegisterTransport()
+}
 
 func TestHelloWorld(t *testing.T) {
 	service := core.NewService()
@@ -562,10 +571,13 @@ func TestClusterFailtry(t *testing.T) {
 	server.Close()
 	time.Sleep(time.Millisecond)
 
+	lock := &sync.Mutex{}
 	go func() {
 		time.Sleep(time.Second)
+		lock.Lock()
 		server, _ = net.ListenUDP("udp", addr)
 		_ = service.Bind(server)
+		lock.Unlock()
 	}()
 
 	result, err = proxy.Hello("world")
@@ -573,7 +585,9 @@ func TestClusterFailtry(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
+	lock.Lock()
 	server.Close()
+	lock.Unlock()
 	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")

@@ -245,7 +245,7 @@ func (factory handlerFactory) New(service *core.Service) core.Handler {
 	}
 }
 
-func init() {
+func RegisterHandler() {
 	core.RegisterHandler("http", handlerFactory{
 		[]reflect.Type{
 			reflect.TypeOf((*http.Server)(nil)),
