@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/handler.go                                      |
 |                                                          |
-| LastModified: Apr 24, 2021                               |
+| LastModified: May 7, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -37,12 +37,12 @@ type Handler struct {
 }
 
 // BindContext to the mock server.
-func (h Handler) BindContext(ctx context.Context, server core.Server) {
+func (h *Handler) BindContext(ctx context.Context, server core.Server) {
 	Agent.Register(server.(Server).Address, h.Handler)
 }
 
 // Handler for mock.
-func (h Handler) Handler(ctx context.Context, address string, request []byte) (response []byte, err error) {
+func (h *Handler) Handler(ctx context.Context, address string, request []byte) (response []byte, err error) {
 	if len(request) > h.Service.MaxRequestLength {
 		return nil, core.ErrRequestEntityTooLarge
 	}
@@ -68,7 +68,7 @@ func (factory handlerFactory) ServerTypes() []reflect.Type {
 }
 
 func (factory handlerFactory) New(service *core.Service) core.Handler {
-	return Handler{service}
+	return &Handler{service}
 }
 
 func RegisterHandler() {

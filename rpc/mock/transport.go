@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/transport.go                                    |
 |                                                          |
-| LastModified: Feb 28, 2021                               |
+| LastModified: May 7, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -19,9 +19,9 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
 
-type transport struct{}
+type Transport struct{}
 
-func (transport) Transport(ctx context.Context, request []byte) (response []byte, err error) {
+func (*Transport) Transport(ctx context.Context, request []byte) (response []byte, err error) {
 	clientContext := core.GetClientContext(ctx)
 	url := clientContext.URL
 	ch := make(chan struct {
@@ -47,7 +47,7 @@ func (transport) Transport(ctx context.Context, request []byte) (response []byte
 	}
 }
 
-func (transport) Abort() {}
+func (*Transport) Abort() {}
 
 type transportFactory struct {
 	schemes []string
@@ -58,7 +58,7 @@ func (factory transportFactory) Schemes() []string {
 }
 
 func (factory transportFactory) New() core.Transport {
-	return transport{}
+	return &Transport{}
 }
 
 func RegisterTransport() {
