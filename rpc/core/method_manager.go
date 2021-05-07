@@ -14,6 +14,7 @@
 package core
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"sync"
@@ -113,9 +114,13 @@ func (mm *methodManager) addFunction(f interface{}, name string, namespace ...st
 func (mm *methodManager) AddMethod(name string, target interface{}, alias ...string) {
 	obj := reflect.ValueOf(target)
 	f := obj.MethodByName(name)
+	if obj.Kind() == reflect.Ptr {
+		obj = obj.Elem()
+	}
 	if f.Kind() != reflect.Func && obj.Kind() == reflect.Struct {
 		f = obj.FieldByName(name)
 	}
+	fmt.Println(f.Kind(), name)
 	if f.Kind() != reflect.Func {
 		if t, ok := target.(reflect.Type); ok {
 			if m, ok := t.MethodByName(name); ok {
@@ -245,13 +250,9 @@ func (mm *methodManager) AddNetRPCMethods(rcvr interface{}, namespace ...string)
 
 func (mm *methodManager) addNetRPCMethod(name string, method reflect.Value) {
 	ft := method.Type()
-	if ft.NumIn() != 2 || ft.IsVariadic() {
-		return
-	}
-	if ft.In(1).Kind() != reflect.Ptr {
-		return
-	}
-	if ft.NumOut() != 1 || ft.Out(0) != errorType {
+	if ft.NumIn() != 2 || ft.IsVariadic() ||
+		ft.In(1).Kind() != reflect.Ptr ||
+		ft.NumOut() != 1 || ft.Out(0) != errorType {
 		return
 	}
 	argsType := ft.In(0)

@@ -16,6 +16,7 @@ package rpc_test
 import (
 	"errors"
 	"net"
+	"reflect"
 	"sync"
 	"testing"
 	"time"
@@ -195,20 +196,25 @@ func (s innerService) Sum(n ...int) (sum int) {
 type outerService struct {
 	innerService
 	Inner innerService
+	Sub   func(x int, n ...int) int
 }
 
-func (s outerService) Sub(x int, n ...int) int {
-	for _, i := range n {
-		x -= i
+func newOuterService() *outerService {
+	return &outerService{
+		Sub: func(x int, n ...int) int {
+			for _, i := range n {
+				x -= i
+			}
+			return x
+		},
 	}
-	return x
 }
 
 func TestAddAllMethods(t *testing.T) {
 	service := rpc.NewService()
 	service.Codec = core.NewServiceCodec(core.WithDebug(true))
-	service.AddInstanceMethods(new(outerService), "s1")
-	service.AddAllMethods(new(outerService), "s2")
+	service.AddInstanceMethods(newOuterService(), "s1")
+	service.AddAllMethods(newOuterService(), "s2")
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
 	assert.NoError(t, err)
 	err = service.Bind(server)
@@ -263,8 +269,8 @@ func TestAddAllMethods(t *testing.T) {
 func TestAddMethods(t *testing.T) {
 	service := rpc.NewService()
 	service.Codec = core.NewServiceCodec(core.WithDebug(true))
-	service.AddMethods([]string{"Sum", "Sub"}, new(outerService), "s1")
-	service.AddMethod("Sum", new(outerService), "add")
+	service.AddMethods([]string{"Sum", "Sub"}, newOuterService(), "s1")
+	service.AddMethod("Sum", newOuterService(), "add")
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
 	assert.NoError(t, err)
 	err = service.Bind(server)
@@ -310,6 +316,56 @@ func TestAddMethods(t *testing.T) {
 		result, err := proxy2.Sub(15, 1, 2, 3, 4)
 		assert.Equal(t, 0, result)
 		assert.Error(t, err)
+	}
+	server.Close()
+}
+
+func TestAddFunction(t *testing.T) {
+	service := rpc.NewService()
+	service.Codec = core.NewServiceCodec(core.WithDebug(true))
+	value := reflect.ValueOf(newOuterService()).Elem()
+	sub := value.FieldByName("Sub")
+	sum, _ := value.Type().MethodByName("Sum")
+	service.AddFunction(sub, "Sub")
+	service.AddFunction(&sub, "ptr_sub")
+	service.AddFunction(sum, "Sum")
+	service.AddFunction(&sum, "ptr_sum")
+	assert.Equal(t, 5, len(service.Names()))
+	assert.Equal(t, 5, len(service.Methods()))
+	server, err := net.Listen("tcp", "127.0.0.1:8412")
+	assert.NoError(t, err)
+	err = service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := rpc.NewClient("tcp://127.0.0.1/")
+	client.Use(log.Plugin)
+	var proxy1, proxy2 struct {
+		Sum func(_ interface{}, n ...int) (int, error)
+		Sub func(x int, n ...int) (int, error)
+	}
+	client.UseService(&proxy1)
+	client.UseService(&proxy2, "ptr")
+	{
+		result, err := proxy1.Sum(newOuterService(), 1, 2, 3, 4, 5)
+		assert.Equal(t, 15, result)
+		assert.NoError(t, err)
+	}
+	{
+		result, err := proxy2.Sum(newOuterService(), 1, 2, 3, 4, 5)
+		assert.Equal(t, 15, result)
+		assert.NoError(t, err)
+	}
+	{
+		result, err := proxy1.Sub(15, 1, 2, 3, 4)
+		assert.Equal(t, 5, result)
+		assert.NoError(t, err)
+	}
+	{
+		result, err := proxy2.Sub(15, 1, 2, 3, 4)
+		assert.Equal(t, 5, result)
+		assert.NoError(t, err)
 	}
 	server.Close()
 }
