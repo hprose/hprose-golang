@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service_codec.go                                |
 |                                                          |
-| LastModified: Mar 25, 2021                               |
+| LastModified: May 7, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -125,7 +125,7 @@ func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder) 
 	if method.Func().Type().IsVariadic() {
 		n := len(parameters)
 		copy(paramTypes, parameters[:n-1])
-		for i := n; i < count; i++ {
+		for i := n - 1; i < count; i++ {
 			paramTypes[i] = parameters[n-1].Elem()
 		}
 	} else {
