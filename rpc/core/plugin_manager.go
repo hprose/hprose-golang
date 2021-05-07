@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/plugin_manager.go                               |
 |                                                          |
-| LastModified: Mar 7, 2021                                |
+| LastModified: May 7, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -69,8 +69,8 @@ type PluginManager interface {
 }
 
 type pluginManager struct {
+	sync.Mutex
 	handlers       []PluginHandler
-	rwlock         sync.RWMutex
 	defaultHandler NextPluginHandler
 	handler        NextPluginHandler
 	getNextHandler func(handler PluginHandler, next NextPluginHandler) NextPluginHandler
@@ -86,29 +86,30 @@ func newPluginManager(handler NextPluginHandler, getNextHandler func(handler Plu
 
 func (pm *pluginManager) rebuildHandler() {
 	next := pm.defaultHandler
-	pm.rwlock.RLock()
 	n := len(pm.handlers)
 	for i := n - 1; i >= 0; i-- {
 		next = pm.getNextHandler(pm.handlers[i], next)
 	}
-	pm.rwlock.RUnlock()
 	pm.handler = next
 }
 
 func (pm *pluginManager) Handler() NextPluginHandler {
+	pm.Lock()
+	defer pm.Unlock()
 	return pm.handler
 }
 
 func (pm *pluginManager) Use(handler ...PluginHandler) {
-	pm.rwlock.Lock()
+	pm.Lock()
+	defer pm.Unlock()
 	pm.handlers = append(pm.handlers, handler...)
-	pm.rwlock.Unlock()
 	pm.rebuildHandler()
 }
 
 func (pm *pluginManager) Unuse(handler ...PluginHandler) {
+	pm.Lock()
+	defer pm.Unlock()
 	rebuild := false
-	pm.rwlock.Lock()
 	var handlers []PluginHandler
 	for _, h := range pm.handlers {
 		hp := reflect.ValueOf(h).Pointer()
@@ -124,7 +125,6 @@ func (pm *pluginManager) Unuse(handler ...PluginHandler) {
 		}
 	}
 	pm.handlers = handlers
-	pm.rwlock.Unlock()
 	if rebuild {
 		pm.rebuildHandler()
 	}
