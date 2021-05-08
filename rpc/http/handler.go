@@ -159,7 +159,7 @@ func (h *Handler) xmlFileHandler(response http.ResponseWriter, request *http.Req
 	}
 	if request.Header.Get("if-modified-since") == h.LastModified &&
 		request.Header.Get("if-none-match") == h.Etag {
-		response.WriteHeader(304)
+		response.WriteHeader(http.StatusNotModified)
 	} else {
 		contentLength := len(content)
 		header := response.Header()
