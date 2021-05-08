@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/common.go                                       |
 |                                                          |
-| LastModified: Apr 18, 2021                               |
+| LastModified: May 8, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -25,7 +25,7 @@ func readAll(body io.Reader, length int64) ([]byte, error) {
 		_, err := io.ReadFull(body, data)
 		return data, err
 	}
-	if length < 0 {
+	if body != nil {
 		return ioutil.ReadAll(body)
 	}
 	return nil, nil
