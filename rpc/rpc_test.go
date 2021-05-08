@@ -423,14 +423,17 @@ func TestHTTP(t *testing.T) {
 	}, "hello")
 	assert.True(t, service.Get("hello").PassContext())
 	serverMux := http.NewServeMux()
-	serverMux.Handle("/test", service.HTTP())
-	serverMux.Handle("/", service.HTTP())
+	serverMux.Handle("/test1", service.HTTP())
+	serverMux.Handle("/test2", service.HTTP())
+	serverMux.Handle("/crossdomain.xml", service.HTTP())
+	serverMux.Handle("/clientaccesspolicy.xml", service.HTTP())
 	server := &http.Server{Addr: ":8000", Handler: serverMux}
 	go server.ListenAndServe()
 
 	time.Sleep(time.Millisecond * 5)
 
-	client := rpc.NewClient("http://127.0.0.1:8000/test")
+	client := rpc.NewClient("http://127.0.0.1:8000/test1", "http://127.0.0.1:8000/test2")
+	client.ShuffleURLs()
 	client.Use(log.Plugin)
 	client.HTTP().Header = http.Header{
 		"test":   []string{"test"},
@@ -457,16 +460,15 @@ func TestHTTP(t *testing.T) {
 	assert.Equal(t, http.StatusNotModified, resp.StatusCode)
 	resp.Body.Close()
 	assert.NoError(t, err)
-	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/")
+	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/test1")
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	resp.Body.Close()
 	assert.NoError(t, err)
 	service.HTTP().GET = false
-	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/")
+	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/test1")
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	resp.Body.Close()
 	assert.NoError(t, err)
-
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
@@ -474,5 +476,8 @@ func TestHTTP(t *testing.T) {
 	result, err := proxy.Hello("world")
 	assert.Equal(t, "test:hello world", result)
 	assert.NoError(t, err)
+	client.SetURI("http://127.0.0.1:8000/")
+	_, err = proxy.Hello("world")
+	assert.Equal(t, errors.New("404 Not Found"), err)
 	server.Close()
 }

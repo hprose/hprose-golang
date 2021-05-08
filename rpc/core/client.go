@@ -69,11 +69,7 @@ func NewClient(uri ...string) *Client {
 		transports:     make(map[string]Transport),
 		cancelFuncs:    list.New(),
 	})
-	for _, u := range uri {
-		if url, err := url.Parse(u); err == nil {
-			client.URLs = append(client.URLs, url)
-		}
-	}
+	client.SetURI(uri...)
 	transportFactories.Range(func(key, value interface{}) bool {
 		transport := value.(TransportFactory).New()
 		client.transports[key.(string)] = transport
@@ -87,6 +83,16 @@ func NewClient(uri ...string) *Client {
 // GetTransport returns the transport by the specified name.
 func (c *Client) GetTransport(name string) Transport {
 	return c.transports[name]
+}
+
+// SetURI for client.
+func (c *Client) SetURI(uri ...string) {
+	c.URLs = nil
+	for _, u := range uri {
+		if url, err := url.Parse(u); err == nil {
+			c.URLs = append(c.URLs, url)
+		}
+	}
 }
 
 // ShuffleURLs sorts the URLs in random order.
