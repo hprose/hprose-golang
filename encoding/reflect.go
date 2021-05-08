@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/reflect.go                                      |
 |                                                          |
-| LastModified: Jan 23, 2021                               |
+| LastModified: May 8, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -84,7 +84,7 @@ var float32Type = reflect.TypeOf((float32)(0))
 var float64Type = reflect.TypeOf((float64)(0))
 var complex64Type = reflect.TypeOf((complex64)(0))
 var complex128Type = reflect.TypeOf((complex128)(0))
-var interfaceType = reflect.TypeOf((interface{})(nil))
+var interfaceType = reflect.TypeOf((*interface{})(nil)).Elem()
 var bytesType = reflect.TypeOf(([]byte)(nil))
 var stringType = reflect.TypeOf("")
 var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()

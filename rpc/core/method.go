@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/method.go                                       |
 |                                                          |
-| LastModified: Feb 20, 2021                               |
+| LastModified: May 8, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -30,7 +30,7 @@ type Method interface {
 	Options() Dict
 }
 
-var contextType = reflect.TypeOf((context.Context)(nil))
+var contextType = reflect.TypeOf((*context.Context)(nil)).Elem()
 var nameType = reflect.TypeOf("")
 var argsType = reflect.TypeOf([]interface{}{})
 

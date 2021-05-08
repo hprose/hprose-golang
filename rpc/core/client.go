@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client.go                                       |
 |                                                          |
-| LastModified: Apr 28, 2021                               |
+| LastModified: May 8, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -35,7 +35,7 @@ type TransportFactory interface {
 	New() Transport
 }
 
-var interfaceType = reflect.TypeOf((interface{})(nil))
+var interfaceType = reflect.TypeOf((*interface{})(nil)).Elem()
 var transportFactories sync.Map
 var protocols sync.Map
 
