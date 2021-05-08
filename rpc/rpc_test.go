@@ -14,8 +14,12 @@
 package rpc_test
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"reflect"
 	"sync"
 	"testing"
@@ -367,5 +371,108 @@ func TestAddFunction(t *testing.T) {
 		assert.Equal(t, 5, result)
 		assert.NoError(t, err)
 	}
+	server.Close()
+}
+
+func TestHTTP(t *testing.T) {
+	crossDomainXMLContent := `<?xml version="1.0"?>
+	<!DOCTYPE cross-domain-policy SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
+	<cross-domain-policy>
+		<site-control permitted-cross-domain-policies="master-only"/>
+		<allow-access-from domain="*.hprose.com"/>
+	</cross-domain-policy>`
+	clientAccessPolicyXMLContent := `<?xml version="1.0" encoding="utf-8" ?>
+	<access-policy>
+	  <cross-domain-access>
+		<policy>
+		  <allow-from http-request-headers="*">
+			<domain uri="*"/>
+		  </allow-from>
+		  <grant-to>
+			<resource path="/" include-subpaths="true"/>
+		  </grant-to>
+		</policy>
+	  </cross-domain-access>
+	</access-policy>`
+	service := rpc.NewService()
+	service.Codec = core.NewServiceCodec(core.WithDebug(true))
+	service.HTTP().OnError = func(err error) {
+		fmt.Println(err)
+	}
+	service.HTTP().AddAccessControlAllowOrigin("www.google.com", "www.baidu.com", "hprose.com")
+	service.HTTP().RemoveAccessControlAllowOrigin("www.baidu.com")
+	assert.True(t, service.HTTP().AccessControlAllowOrigins["www.google.com"])
+	assert.True(t, service.HTTP().AccessControlAllowOrigins["hprose.com"])
+	assert.False(t, service.HTTP().AccessControlAllowOrigins["www.baidu.com"])
+	service.HTTP().SetCrossDomainXMLContent([]byte(crossDomainXMLContent))
+	service.HTTP().SetClientAccessPolicyXMLContent([]byte(clientAccessPolicyXMLContent))
+	assert.Equal(t, crossDomainXMLContent, string(service.HTTP().CrossDomainXMLContent()))
+	assert.Equal(t, clientAccessPolicyXMLContent, string(service.HTTP().ClientAccessPolicyXMLContent()))
+	service.HTTP().SetCrossDomainXMLFile("")
+	assert.Equal(t, "", string(service.HTTP().CrossDomainXMLFile()))
+	assert.Equal(t, "", string(service.HTTP().CrossDomainXMLContent()))
+	service.HTTP().SetClientAccessPolicyXMLFile("")
+	assert.Equal(t, "", string(service.HTTP().ClientAccessPolicyXMLFile()))
+	assert.Equal(t, "", string(service.HTTP().ClientAccessPolicyXMLContent()))
+	service.HTTP().SetCrossDomainXMLContent([]byte(crossDomainXMLContent))
+	service.HTTP().SetClientAccessPolicyXMLContent([]byte(clientAccessPolicyXMLContent))
+	service.AddFunction(func(ctx context.Context, name string) string {
+		serviceContext := core.GetServiceContext(ctx)
+		header, _ := serviceContext.Items().Get("httpRequestHeaders")
+		return header.(http.Header).Get("test") + ":hello " + name
+	}, "hello")
+	assert.True(t, service.Get("hello").PassContext())
+	serverMux := http.NewServeMux()
+	serverMux.Handle("/test", service.HTTP())
+	serverMux.Handle("/", service.HTTP())
+	server := &http.Server{Addr: ":8000", Handler: serverMux}
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := rpc.NewClient("http://127.0.0.1:8000/test")
+	client.Use(log.Plugin)
+	client.HTTP().Header = http.Header{
+		"test":   []string{"test"},
+		"Origin": []string{"hprose.com"},
+	}
+	resp, err := client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/crossdomain.xml")
+	assert.NoError(t, err)
+	content, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	assert.Equal(t, crossDomainXMLContent, string(content))
+	assert.NoError(t, err)
+	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/clientaccesspolicy.xml")
+	lastModified := resp.Header.Get("Last-Modified")
+	etag := resp.Header.Get("Etag")
+	assert.NoError(t, err)
+	content, err = ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	assert.Equal(t, clientAccessPolicyXMLContent, string(content))
+	assert.NoError(t, err)
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:8000/clientaccesspolicy.xml", nil)
+	req.Header.Set("if-modified-since", lastModified)
+	req.Header.Set("if-none-match", etag)
+	resp, err = client.HTTP().HTTPClient.Do(req)
+	assert.Equal(t, http.StatusNotModified, resp.StatusCode)
+	resp.Body.Close()
+	assert.NoError(t, err)
+	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/")
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	resp.Body.Close()
+	assert.NoError(t, err)
+	service.HTTP().GET = false
+	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/")
+	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	resp.Body.Close()
+	assert.NoError(t, err)
+
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	assert.Equal(t, "test:hello world", result)
+	assert.NoError(t, err)
 	server.Close()
 }
