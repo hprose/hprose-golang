@@ -469,9 +469,15 @@ func TestHTTP(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	resp.Body.Close()
 	assert.NoError(t, err)
+	{
+		result, err := client.Invoke("hello", []interface{}{"world"})
+		assert.Equal(t, "test:hello world", result[0])
+		assert.NoError(t, err)
+	}
 	var proxy struct {
 		Hello func(name string) (string, error)
 	}
+	client.Timeout = 0
 	client.UseService(&proxy)
 	result, err := proxy.Hello("world")
 	assert.Equal(t, "test:hello world", result)
