@@ -27,6 +27,7 @@ type Method interface {
 	Name() string
 	Missing() bool
 	PassContext() bool
+	ReturnError() bool
 	Options() Dict
 }
 
@@ -56,6 +57,10 @@ func (m contextMissingMethod) PassContext() bool {
 	return true
 }
 
+func (m contextMissingMethod) ReturnError() bool {
+	return true
+}
+
 func (m contextMissingMethod) Options() Dict {
 	return nil
 }
@@ -82,6 +87,10 @@ func (m missingMethod) PassContext() bool {
 	return false
 }
 
+func (m missingMethod) ReturnError() bool {
+	return true
+}
+
 func (m missingMethod) Options() Dict {
 	return nil
 }
@@ -102,6 +111,7 @@ type method struct {
 	params      []reflect.Type
 	name        string
 	passContext bool
+	returnError bool
 	options     Dict
 }
 
@@ -123,6 +133,10 @@ func (m method) Missing() bool {
 
 func (m method) PassContext() bool {
 	return m.passContext
+}
+
+func (m method) ReturnError() bool {
+	return m.returnError
 }
 
 func (m method) Options() Dict {
@@ -152,6 +166,10 @@ func makeMethod(f reflect.Value, name string) method {
 	m.params = make([]reflect.Type, n)
 	for i := 0; i < n; i++ {
 		m.params[i] = t.In(i + offset)
+	}
+	n = t.NumOut()
+	if n > 0 && t.Out(n-1).Implements(errorType) {
+		m.returnError = true
 	}
 	return m
 }

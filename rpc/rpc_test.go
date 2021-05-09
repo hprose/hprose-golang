@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/rpc_test.go                                          |
 |                                                          |
-| LastModified: May 7, 2021                                |
+| LastModified: May 9, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -184,6 +184,10 @@ func TestAddNetRPCMethods(t *testing.T) {
 		result, err := proxy.Divide(Args{3, 2})
 		assert.Equal(t, Quotient{1, 1}, result)
 		assert.NoError(t, err)
+	}
+	{
+		_, err := proxy.Divide(Args{3, 0})
+		assert.EqualError(t, err, "divide by zero")
 	}
 	server.Close()
 }

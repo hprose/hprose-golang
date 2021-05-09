@@ -164,7 +164,7 @@ func (s *Service) Execute(ctx context.Context, name string, args []interface{}) 
 	f := method.Func()
 	out := f.Call(in)
 	n = len(out)
-	if n > 0 && f.Type().Out(n-1).Implements(errorType) {
+	if method.ReturnError() {
 		if !out[n-1].IsNil() {
 			err = out[n-1].Interface().(error)
 		}
