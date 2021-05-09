@@ -653,3 +653,42 @@ func TestUnix(t *testing.T) {
 	proxy.Hello("world")
 	server.Close()
 }
+
+func TestUDP(t *testing.T) {
+	service := rpc.NewService()
+	service.UDP().OnClose = func(c net.Conn) {
+		fmt.Println(c.LocalAddr().String() + " closed on server")
+	}
+	service.UDP().OnError = func(c net.Conn, e error) {
+		if c != nil {
+			fmt.Println(c.LocalAddr().String(), e)
+		} else {
+			fmt.Println(e)
+		}
+	}
+	addr, err := net.ResolveUDPAddr("udp", "127.0.0.1:8412")
+	assert.NoError(t, err)
+	server, err := net.ListenUDP("udp", addr)
+	assert.NoError(t, err)
+	err = service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := rpc.NewClient("udp://127.0.0.1/")
+	client.UDP().OnConnect = func(c net.Conn) net.Conn {
+		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " connected")
+		return c
+	}
+	client.UDP().OnClose = func(c net.Conn) {
+		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " closed on client")
+	}
+	client.Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) string
+	}
+	client.UseService(&proxy)
+	proxy.Hello("world")
+	client.Abort()
+	server.Close()
+}
