@@ -15,6 +15,7 @@ package rpc_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -418,6 +419,8 @@ func TestAutoTypeConvert(t *testing.T) {
 	client.Codec = core.NewClientCodec(
 		core.WithSimple(true),
 		core.WithLongType(encoding.LongTypeUint64),
+		core.WithRealType(encoding.RealTypeFloat64),
+		core.WithMapType(encoding.MapTypeIIMap),
 	)
 	client.UseService(&proxy)
 	msg, result := proxy.AutoTypeConvert(int64(12345))
@@ -454,7 +457,7 @@ func TestHTTP(t *testing.T) {
 	</access-policy>`
 	service := rpc.NewService()
 	service.Codec = core.NewServiceCodec(core.WithDebug(true))
-	service.HTTP().OnError = func(err error) {
+	service.HTTP().OnError = func(response http.ResponseWriter, request *http.Request, err error) {
 		fmt.Println(err)
 	}
 	service.HTTP().AddAccessControlAllowOrigin("www.google.com", "www.baidu.com", "hprose.com")
@@ -543,5 +546,58 @@ func TestHTTP(t *testing.T) {
 	client.SetURI("http://127.0.0.1:8000/")
 	_, err = proxy.Hello("world")
 	assert.Equal(t, errors.New("404 Not Found"), err)
+	server.Close()
+}
+
+func TestTCP(t *testing.T) {
+	service := rpc.NewService()
+	service.AddMissingMethod(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
+		serviceContext := core.GetServiceContext(ctx)
+		data, err := json.Marshal(args)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{name + string(data) + serviceContext.RemoteAddr.String()}, nil
+	})
+	method := service.Get("*")
+	assert.Equal(t, reflect.Func, method.Func().Kind())
+	assert.Equal(t, []reflect.Type{reflect.TypeOf(""), reflect.TypeOf([]interface{}{})}, method.Parameters())
+	assert.True(t, method.ReturnError())
+	assert.Nil(t, method.Options())
+	service.Socket().OnAccept = func(c net.Conn) net.Conn {
+		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " accepted")
+		return c
+	}
+	service.Socket().OnClose = func(c net.Conn) {
+		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " closed on server")
+	}
+	service.Socket().OnError = func(c net.Conn, e error) {
+		if c != nil {
+			fmt.Println(c.RemoteAddr().String()+"->"+c.LocalAddr().String(), e)
+		} else {
+			fmt.Println(e)
+		}
+	}
+	server, err := net.Listen("tcp", "127.0.0.1:8412")
+	assert.NoError(t, err)
+	err = service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := rpc.NewClient("tcp://127.0.0.1/")
+	client.Socket().OnConnect = func(c net.Conn) net.Conn {
+		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " connected")
+		return c
+	}
+	client.Socket().OnClose = func(c net.Conn) {
+		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " closed on client")
+	}
+	client.Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) string
+	}
+	client.UseService(&proxy)
+	proxy.Hello("world")
 	server.Close()
 }
