@@ -27,6 +27,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/hprose/hprose-golang/v3/encoding"
 	"github.com/hprose/hprose-golang/v3/rpc"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
@@ -690,5 +691,65 @@ func TestUDP(t *testing.T) {
 	client.UseService(&proxy)
 	proxy.Hello("world")
 	client.Abort()
+	server.Close()
+}
+
+func TestWebSocket(t *testing.T) {
+	service := rpc.NewService()
+	service.AddMissingMethod(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
+		serviceContext := core.GetServiceContext(ctx)
+		data, err := json.Marshal(args)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{name + string(data) + serviceContext.RemoteAddr.String()}, nil
+	})
+	method := service.Get("*")
+	assert.Equal(t, reflect.Func, method.Func().Kind())
+	assert.Equal(t, []reflect.Type{reflect.TypeOf(""), reflect.TypeOf([]interface{}{})}, method.Parameters())
+	assert.True(t, method.ReturnError())
+	assert.Nil(t, method.Options())
+	service.WebSocket().OnAccept = func(c *websocket.Conn) *websocket.Conn {
+		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " accepted")
+		return c
+	}
+	service.WebSocket().OnClose = func(c *websocket.Conn) {
+		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " closed on server")
+	}
+	service.WebSocket().OnError = func(c *websocket.Conn, e error) {
+		if c != nil {
+			fmt.Println(c.RemoteAddr().String()+"->"+c.LocalAddr().String(), e)
+		} else {
+			fmt.Println(e)
+		}
+	}
+	server := &http.Server{Addr: ":8005"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	go server.ListenAndServe()
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := rpc.NewClient("ws://127.0.0.1:8005/")
+	client.WebSocket().OnConnect = func(c *websocket.Conn) *websocket.Conn {
+		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " connected")
+		return c
+	}
+	client.WebSocket().OnClose = func(c *websocket.Conn) {
+		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " closed on client")
+	}
+	client.Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) string
+	}
+	client.UseService(&proxy)
+	proxy.Hello("world")
+	client.Abort()
+
+	client = rpc.NewClient("http://127.0.0.1:8005/")
+	client.Use(log.Plugin)
+	client.UseService(&proxy)
+	proxy.Hello("world")
+
 	server.Close()
 }
