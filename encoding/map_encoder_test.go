@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/map_encoder_test.go                             |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: May 9, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -51,7 +51,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[string]int64{"stringint64": 5}))
-	assert.Equal(t, `m1{s11"stringint64"5}`, sb.String())
+	assert.Equal(t, `m1{s11"stringint64"l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -76,7 +76,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[string]uint64{"stringuint64": 10}))
-	assert.Equal(t, `m1{s12"stringuint64"i10;}`, sb.String())
+	assert.Equal(t, `m1{s12"stringuint64"l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -126,7 +126,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{6l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -151,7 +151,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{i11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -201,7 +201,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int8]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{6l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -226,7 +226,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int8]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{i11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -275,7 +275,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int16]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{6l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -300,7 +300,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int16]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{i11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -349,7 +349,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int32]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{6l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -374,7 +374,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int32]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{i11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -399,77 +399,77 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]string{1: "string"}))
-	assert.Equal(t, `m1{1s6"string"}`, sb.String())
+	assert.Equal(t, `m1{l1;s6"string"}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]int{2: 1}))
-	assert.Equal(t, `m1{21}`, sb.String())
+	assert.Equal(t, `m1{l2;1}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]int8{3: 2}))
-	assert.Equal(t, `m1{32}`, sb.String())
+	assert.Equal(t, `m1{l3;2}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]int16{4: 3}))
-	assert.Equal(t, `m1{43}`, sb.String())
+	assert.Equal(t, `m1{l4;3}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]int32{5: 4}))
-	assert.Equal(t, `m1{54}`, sb.String())
+	assert.Equal(t, `m1{l5;4}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{l6;l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]uint{7: 6}))
-	assert.Equal(t, `m1{76}`, sb.String())
+	assert.Equal(t, `m1{l7;6}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]uint8{8: 7}))
-	assert.Equal(t, `m1{87}`, sb.String())
+	assert.Equal(t, `m1{l8;7}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]uint16{9: 8}))
-	assert.Equal(t, `m1{98}`, sb.String())
+	assert.Equal(t, `m1{l9;8}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]uint32{10: 9}))
-	assert.Equal(t, `m1{i10;9}`, sb.String())
+	assert.Equal(t, `m1{l10;9}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{l11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]bool{12: true}))
-	assert.Equal(t, `m1{i12;t}`, sb.String())
+	assert.Equal(t, `m1{l12;t}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]float32{13: 3.14159}))
-	assert.Equal(t, `m1{i13;d3.14159;}`, sb.String())
+	assert.Equal(t, `m1{l13;d3.14159;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]float64{14: 2.71828}))
-	assert.Equal(t, `m1{i14;d2.71828;}`, sb.String())
+	assert.Equal(t, `m1{l14;d2.71828;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[int64]interface{}{15: big.NewInt(0)}))
-	assert.Equal(t, `m1{i15;l0;}`, sb.String())
+	assert.Equal(t, `m1{l15;l0;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -499,7 +499,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{6l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -524,7 +524,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{i11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -573,7 +573,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint8]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{6l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -598,7 +598,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint8]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{i11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -648,7 +648,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint16]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{6l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -673,7 +673,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint16]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{i11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -723,7 +723,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint32]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{6l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -748,7 +748,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint32]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{i11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -773,77 +773,77 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]string{1: "string"}))
-	assert.Equal(t, `m1{1s6"string"}`, sb.String())
+	assert.Equal(t, `m1{l1;s6"string"}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]int{2: 1}))
-	assert.Equal(t, `m1{21}`, sb.String())
+	assert.Equal(t, `m1{l2;1}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]int8{3: 2}))
-	assert.Equal(t, `m1{32}`, sb.String())
+	assert.Equal(t, `m1{l3;2}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]int16{4: 3}))
-	assert.Equal(t, `m1{43}`, sb.String())
+	assert.Equal(t, `m1{l4;3}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]int32{5: 4}))
-	assert.Equal(t, `m1{54}`, sb.String())
+	assert.Equal(t, `m1{l5;4}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{l6;l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]uint{7: 6}))
-	assert.Equal(t, `m1{76}`, sb.String())
+	assert.Equal(t, `m1{l7;6}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]uint8{8: 7}))
-	assert.Equal(t, `m1{87}`, sb.String())
+	assert.Equal(t, `m1{l8;7}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]uint16{9: 8}))
-	assert.Equal(t, `m1{98}`, sb.String())
+	assert.Equal(t, `m1{l9;8}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]uint32{10: 9}))
-	assert.Equal(t, `m1{i10;9}`, sb.String())
+	assert.Equal(t, `m1{l10;9}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{l11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]bool{12: true}))
-	assert.Equal(t, `m1{i12;t}`, sb.String())
+	assert.Equal(t, `m1{l12;t}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]float32{13: 3.14159}))
-	assert.Equal(t, `m1{i13;d3.14159;}`, sb.String())
+	assert.Equal(t, `m1{l13;d3.14159;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]float64{14: 2.71828}))
-	assert.Equal(t, `m1{i14;d2.71828;}`, sb.String())
+	assert.Equal(t, `m1{l14;d2.71828;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[uint64]interface{}{15: big.NewInt(0)}))
-	assert.Equal(t, `m1{i15;l0;}`, sb.String())
+	assert.Equal(t, `m1{l15;l0;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -873,7 +873,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[float32]int64{6: 5}))
-	assert.Equal(t, `m1{d6;5}`, sb.String())
+	assert.Equal(t, `m1{d6;l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -898,7 +898,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[float32]uint64{11: 10}))
-	assert.Equal(t, `m1{d11;i10;}`, sb.String())
+	assert.Equal(t, `m1{d11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -948,7 +948,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[float64]int64{6: 5}))
-	assert.Equal(t, `m1{d6;5}`, sb.String())
+	assert.Equal(t, `m1{d6;l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -973,7 +973,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[float64]uint64{11: 10}))
-	assert.Equal(t, `m1{d11;i10;}`, sb.String())
+	assert.Equal(t, `m1{d11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -1023,7 +1023,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[interface{}]int64{6: 5}))
-	assert.Equal(t, `m1{65}`, sb.String())
+	assert.Equal(t, `m1{6l5;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -1048,7 +1048,7 @@ func TestEncodeMap(t *testing.T) {
 	sb.Reset()
 
 	assert.NoError(t, enc.Encode(map[interface{}]uint64{11: 10}))
-	assert.Equal(t, `m1{i11;i10;}`, sb.String())
+	assert.Equal(t, `m1{i11;l10;}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 

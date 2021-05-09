@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_encoder_test.go                          |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: May 9, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -193,29 +193,31 @@ func TestEncodeStruct(t *testing.T) {
 	assert.NoError(t, enc.Encode(&s))
 	assert.NoError(t, enc.Encode((*TestStruct)(nil)))
 	assert.Equal(t, `c10"TestStruct"`+
-		`85{s1"a"s4"json"s1"d"s4"test"s1"i"s2"i8"s3"i16"s3"i32"s3"i64"s1"u"s2"u8"s3"u16"s3"u32"s3"u64"s2"up"s1"`+
-		`b"s3"f32"s3"f64"s3"c64"s4"c128"s4"iarr"s6"islice"s6"eslice"s6"nslice"s4"imap"s4"emap"s4"nmap"s1"s"s2"es"`+
-		`s5"iface"s8"niliface"s2"st"s4"iptr"s5"i8ptr"s6"i16ptr"s6"i32ptr"s6"i64ptr"s4"uptr"s5"u8ptr"s6"u16ptr"`+
-		`s6"u32ptr"s6"u64ptr"s5"upptr"s4"bptr"s6"f32ptr"s6"f64ptr"s6"c64ptr"s7"c128ptr"s7"iarrptr"s9"isliceptr"`+
-		`s9"esliceptr"s9"nsliceptr"s7"imapptr"s7"emapptr"s7"nmapptr"s4"sptr"s5"esptr"s8"ifaceptr"s11"nilifaceptr"`+
-		`s5"stptr"s5"niptr"s6"ni8ptr"s7"ni16ptr"s7"ni32ptr"s7"ni64ptr"s5"nuptr"s6"nu8ptr"s7"nu16ptr"s7"nu32ptr"`+
-		`s7"nu64ptr"s6"nupptr"s5"nbptr"s7"nf32ptr"s7"nf64ptr"s7"nc64ptr"s8"nc128ptr"s8"niarrptr"s10"nesliceptr"`+
-		`s10"nnsliceptr"s8"nemapptr"s8"nnmapptr"s5"nsptr"s6"nesptr"s12"nnilifaceptr"s6"nstptr"}`+
+		`85{s1"a"s4"json"s1"d"s4"test"s1"i"s2"i8"s3"i16"s3"i32"s3"i64"s1"u"s2"u8"`+
+		`s3"u16"s3"u32"s3"u64"s2"up"s1"b"s3"f32"s3"f64"s3"c64"s4"c128"s4"iarr"`+
+		`s6"islice"s6"eslice"s6"nslice"s4"imap"s4"emap"s4"nmap"s1"s"s2"es"s5"iface"`+
+		`s8"niliface"s2"st"s4"iptr"s5"i8ptr"s6"i16ptr"s6"i32ptr"s6"i64ptr"s4"uptr"`+
+		`s5"u8ptr"s6"u16ptr"s6"u32ptr"s6"u64ptr"s5"upptr"s4"bptr"s6"f32ptr"s6"f64ptr"`+
+		`s6"c64ptr"s7"c128ptr"s7"iarrptr"s9"isliceptr"s9"esliceptr"s9"nsliceptr"`+
+		`s7"imapptr"s7"emapptr"s7"nmapptr"s4"sptr"s5"esptr"s8"ifaceptr"s11"nilifaceptr"`+
+		`s5"stptr"s5"niptr"s6"ni8ptr"s7"ni16ptr"s7"ni32ptr"s7"ni64ptr"s5"nuptr"s6"nu8ptr"`+
+		`s7"nu16ptr"s7"nu32ptr"s7"nu64ptr"s6"nupptr"s5"nbptr"s7"nf32ptr"s7"nf64ptr"`+
+		`s7"nc64ptr"s8"nc128ptr"s8"niarrptr"s10"nesliceptr"s10"nnsliceptr"s8"nemapptr"`+
+		`s8"nnmapptr"s5"nsptr"s6"nesptr"s12"nnilifaceptr"s6"nstptr"}`+
 		`o0{0ed0;c15"TestEmbedStruct"3{s1"a"s4"json"s1"d"}o1{0ed0;}`+
-		`123456789i10;i11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}ns5"hello"eo0{0ed0;o1{0ed0;}`+
-		`123456789i10;i11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;`+
-		`ennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn}no0{0ed0;o1{0ed0;}`+
-		`123456789i10;i11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;eo0{0ed0;o1{0ed0;}`+
-		`123456789i10;i11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;`+
-		`ennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn}nr103;`+
-		`123456789i10;i11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;eo0{0ed0;o1{0ed0;}`+
-		`123456789i10;i11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;`+
-		`ennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn}nr103;`+
-		`nnnnnnnnnnnnnnnnnnnnnnnnn}`+
-		`123456789i10;i11;td12;d13;d14;d15;r117;r118;r119;nr120;r121;nr95;eo0{0ed0;o1{0ed0;}`+
-		`123456789i10;i11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;`+
-		`ennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn}nr103;`+
-		`nnnnnnnnnnnnnnnnnnnnnnnnn}r103;r103;n`, sb.String())
+		`1234l5;6789l10;l11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}`+
+		`ns5"hello"eo0{0ed0;o1{0ed0;}1234l5;6789l10;l11;td12;d13;d14;d15;`+
+		`a3{123}a3{456}a{}nm1{11}m{}nr95;ennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn}`+
+		`no0{0ed0;o1{0ed0;}1234l5;6789l10;l11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;`+
+		`eo0{0ed0;o1{0ed0;}1234l5;6789l10;l11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;`+
+		`ennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn}`+
+		`nr103;1234l5;6789l10;l11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;`+
+		`eo0{0ed0;o1{0ed0;}1234l5;6789l10;l11;td12;d13;d14;d15;a3{123}a3{456}a{}nm1{11}m{}nr95;`+
+		`ennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn}`+
+		`nr103;nnnnnnnnnnnnnnnnnnnnnnnnn}1234l5;6789l10;l11;td12;d13;d14;d15;r117;r118;r119;nr120;`+
+		`r121;nr95;eo0{0ed0;o1{0ed0;}1234l5;6789l10;l11;td12;d13;d14;d15;a3{123}a3{456}a{}`+
+		`nm1{11}m{}nr95;ennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn}`+
+		`nr103;nnnnnnnnnnnnnnnnnnnnnnnnn}r103;r103;n`, sb.String())
 	enc.Reset()
 	sb.Reset()
 }
@@ -267,8 +269,8 @@ func TestEncodeTimeStructField(t *testing.T) {
 	assert.NoError(t, enc.Encode(&s))
 	assert.NoError(t, enc.Encode(&s))
 	assert.Equal(t, `c11"TestStruct3"6{s1"a"s1"b"s1"c"s1"d"s1"e"s1"f"}`+
-		`o0{D19801201T020304.000000005;i1000;D19801201T020304.000000005;i1000;nn}`+
-		`o0{D19801201T020304.000000005;i1000;r8;i1000;nn}r9;`, sb.String())
+		`o0{D19801201T020304.000000005;l1000;D19801201T020304.000000005;l1000;nn}`+
+		`o0{D19801201T020304.000000005;l1000;r8;l1000;nn}r9;`, sb.String())
 	enc.Reset()
 	sb.Reset()
 }

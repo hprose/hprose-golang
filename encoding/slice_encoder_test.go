@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/slice_encoder_test.go                           |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: May 9, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -77,7 +77,7 @@ func TestEncodeUint64Slice(t *testing.T) {
 	assert.NoError(t, enc.Encode(slice))
 	assert.NoError(t, enc.Encode(&slice))
 	assert.NoError(t, enc.Encode(&slice))
-	assert.Equal(t, `na{}a5{12345}a5{12345}a5{12345}r3;`, sb.String())
+	assert.Equal(t, `na{}a5{l1;l2;l3;l4;l5;}a5{l1;l2;l3;l4;l5;}a5{l1;l2;l3;l4;l5;}r3;`, sb.String())
 }
 
 func TestEncodeUintSlice(t *testing.T) {
@@ -147,7 +147,7 @@ func TestEncodeInt64Slice(t *testing.T) {
 	assert.NoError(t, enc.Encode(slice))
 	assert.NoError(t, enc.Encode(&slice))
 	assert.NoError(t, enc.Encode(&slice))
-	assert.Equal(t, `na{}a5{12345}a5{12345}a5{12345}r3;`, sb.String())
+	assert.Equal(t, `na{}a5{l1;l2;l3;l4;l5;}a5{l1;l2;l3;l4;l5;}a5{l1;l2;l3;l4;l5;}r3;`, sb.String())
 }
 
 func TestEncodeIntSlice(t *testing.T) {
@@ -310,7 +310,7 @@ func TestEncode2dSlice(t *testing.T) {
 	assert.NoError(t, enc.Encode([][]int64{
 		{1, 2, 3}, {4, 5, 6},
 	}))
-	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
+	assert.Equal(t, `a2{a3{l1;l2;l3;}a3{l4;l5;l6;}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 
@@ -345,7 +345,7 @@ func TestEncode2dSlice(t *testing.T) {
 	assert.NoError(t, enc.Encode([][]uint64{
 		{1, 2, 3}, {4, 5, 6},
 	}))
-	assert.Equal(t, `a2{a3{123}a3{456}}`, sb.String())
+	assert.Equal(t, `a2{a3{l1;l2;l3;}a3{l4;l5;l6;}}`, sb.String())
 	enc.Reset()
 	sb.Reset()
 

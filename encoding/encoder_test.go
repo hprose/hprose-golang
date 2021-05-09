@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/encoder_test.go                                 |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: May 9, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -225,9 +225,9 @@ func TestEncoderEncode(t *testing.T) {
 	assert.NoError(t, enc.Encode(bf))
 	assert.NoError(t, enc.Encode(br))
 	assert.NoError(t, enc.Encode(bri))
-	assert.Equal(t, `n0123456789i10;td3.1415927;d3.141592653589793;`+
+	assert.Equal(t, `n0123l4;5678l9;l10;td3.1415927;d3.141592653589793;`+
 		`eu我s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`+
-		`n0123456789i10;td3.1415927;d3.141592653589793;`+
+		`n0123l4;5678l9;l10;td3.1415927;d3.141592653589793;`+
 		`eu我r0;a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`, sb.String())
 }
 
@@ -308,9 +308,9 @@ func TestEncoderWrite(t *testing.T) {
 	assert.NoError(t, enc.Write(bf))
 	assert.NoError(t, enc.Write(br))
 	assert.NoError(t, enc.Write(bri))
-	assert.Equal(t, `n0123456789td3.1415927;d3.141592653589793;`+
+	assert.Equal(t, `n0123l4;5678l9;td3.1415927;d3.141592653589793;`+
 		`s""s1"我"s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`+
-		`n0123456789td3.1415927;d3.141592653589793;`+
+		`n0123l4;5678l9;td3.1415927;d3.141592653589793;`+
 		`s""s1"我"s5"Hello"a2{d1;d2;}a2{d3;d4;}d5;d6;l0;d1;s3"2/3"l4;`, sb.String())
 }
 
@@ -438,7 +438,7 @@ func TestWriteDuration(t *testing.T) {
 	d := time.Duration(1000)
 	assert.NoError(t, enc.Write(d))
 	assert.NoError(t, enc.Write(&d))
-	assert.Equal(t, `i1000;i1000;`, sb.String())
+	assert.Equal(t, `l1000;l1000;`, sb.String())
 }
 
 func TestWriteTime(t *testing.T) {
@@ -579,8 +579,8 @@ func TestEncodeCustomType(t *testing.T) {
 	assert.NoError(t, enc.Encode(&c128))
 	assert.NoError(t, enc.Encode(&s))
 	assert.NoError(t, enc.Encode(&bi))
-	assert.Equal(t, `0123456789i10;td3.14159;d2.17828;a2{d1;d2;}a2{d3;d4;}s5"hello"l100;`+
-		`0123456789i10;td3.14159;d2.17828;a2{d1;d2;}a2{d3;d4;}r2;l100;`, sb.String())
+	assert.Equal(t, `0123l4;5678l9;l10;td3.14159;d2.17828;a2{d1;d2;}a2{d3;d4;}`+
+		`s5"hello"l100;0123l4;5678l9;l10;td3.14159;d2.17828;a2{d1;d2;}a2{d3;d4;}r2;l100;`, sb.String())
 }
 
 func TestUnsupportedTypeError(t *testing.T) {
