@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/num_encoder.go                                  |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 9, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -29,32 +29,16 @@ func (enc *Encoder) WriteBool(b bool) {
 
 // WriteInt64 to encoder.
 func (enc *Encoder) WriteInt64(i int64) {
-	if (i >= 0) && (i <= 9) {
-		enc.buf = append(enc.buf, digits[i])
-	} else {
-		var tag = TagInteger
-		if (i < math.MinInt32) || (i > math.MaxInt32) {
-			tag = TagLong
-		}
-		enc.buf = append(enc.buf, tag)
-		enc.buf = AppendInt64(enc.buf, i)
-		enc.buf = append(enc.buf, TagSemicolon)
-	}
+	enc.buf = append(enc.buf, TagLong)
+	enc.buf = AppendInt64(enc.buf, i)
+	enc.buf = append(enc.buf, TagSemicolon)
 }
 
 // WriteUint64 to encoder.
 func (enc *Encoder) WriteUint64(i uint64) {
-	if i <= 9 {
-		enc.buf = append(enc.buf, digits[i])
-	} else {
-		var tag = TagInteger
-		if i > math.MaxInt32 {
-			tag = TagLong
-		}
-		enc.buf = append(enc.buf, tag)
-		enc.buf = AppendUint64(enc.buf, i)
-		enc.buf = append(enc.buf, TagSemicolon)
-	}
+	enc.buf = append(enc.buf, TagLong)
+	enc.buf = AppendUint64(enc.buf, i)
+	enc.buf = append(enc.buf, TagSemicolon)
 }
 
 // WriteInt32 to encoder.
@@ -70,7 +54,11 @@ func (enc *Encoder) WriteInt32(i int32) {
 
 // WriteUint32 to encoder.
 func (enc *Encoder) WriteUint32(i uint32) {
-	enc.WriteUint64(uint64(i))
+	if i > math.MaxInt32 {
+		enc.WriteUint64(uint64(i))
+	} else {
+		enc.WriteInt32(int32(i))
+	}
 }
 
 // WriteInt16 to encoder.
@@ -101,12 +89,20 @@ func (enc *Encoder) WriteUint8(i uint8) {
 
 // WriteInt to encoder.
 func (enc *Encoder) WriteInt(i int) {
-	enc.WriteInt64(int64(i))
+	if i > math.MaxInt32 || i < math.MinInt32 {
+		enc.WriteInt64(int64(i))
+	} else {
+		enc.WriteInt32(int32(i))
+	}
 }
 
 // WriteUint to encoder.
 func (enc *Encoder) WriteUint(i uint) {
-	enc.WriteUint64(uint64(i))
+	if i > math.MaxInt32 {
+		enc.WriteUint64(uint64(i))
+	} else {
+		enc.WriteInt32(int32(i))
+	}
 }
 
 func (enc *Encoder) writeFloat(f float64, bitSize int) {
