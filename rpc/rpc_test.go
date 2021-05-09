@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"net"
 	"net/http"
 	"reflect"
@@ -25,6 +26,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hprose/hprose-golang/v3/encoding"
 	"github.com/hprose/hprose-golang/v3/rpc"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
@@ -375,6 +377,58 @@ func TestAddFunction(t *testing.T) {
 		assert.Equal(t, 5, result)
 		assert.NoError(t, err)
 	}
+	server.Close()
+}
+
+func autoTypeConvert(a interface{}) (string, interface{}) {
+	switch a := a.(type) {
+	case *big.Int:
+		return "auto convert to *big.Int", a.Int64() + 1
+	case *big.Float:
+		return "auto convert to *big.Float", a.String()
+	case map[string]interface{}:
+		return "auto convert to map[string]interface{}", a["test"]
+	default:
+		return "", nil
+	}
+}
+
+func TestAutoTypeConvert(t *testing.T) {
+	service := rpc.NewService()
+	service.Codec = core.NewServiceCodec(
+		core.WithDebug(true),
+		core.WithSimple(true),
+		core.WithLongType(encoding.LongTypeBigInt),
+		core.WithRealType(encoding.RealTypeBigFloat),
+		core.WithMapType(encoding.MapTypeSIMap),
+	)
+	service.AddFunction(autoTypeConvert)
+	server, err := net.Listen("tcp", "127.0.0.1:8412")
+	assert.NoError(t, err)
+	err = service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := rpc.NewClient("tcp://127.0.0.1/")
+	client.Use(log.Plugin)
+	var proxy struct {
+		AutoTypeConvert func(a interface{}) (string, interface{})
+	}
+	client.Codec = core.NewClientCodec(
+		core.WithSimple(true),
+		core.WithLongType(encoding.LongTypeUint64),
+	)
+	client.UseService(&proxy)
+	msg, result := proxy.AutoTypeConvert(int64(12345))
+	assert.Equal(t, "auto convert to *big.Int", msg)
+	assert.Equal(t, uint64(12346), result)
+	msg, result = proxy.AutoTypeConvert(float64(12345))
+	assert.Equal(t, "auto convert to *big.Float", msg)
+	assert.Equal(t, "12345", result)
+	msg, result = proxy.AutoTypeConvert(map[interface{}]interface{}{"test": "test"})
+	assert.Equal(t, "auto convert to map[string]interface{}", msg)
+	assert.Equal(t, "test", result)
 	server.Close()
 }
 

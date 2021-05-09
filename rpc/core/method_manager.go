@@ -29,7 +29,7 @@ type MethodManager interface {
 	Methods() (methods []Method)
 	Remove(name string)
 	Add(method Method)
-	AddFunction(f interface{}, name string)
+	AddFunction(f interface{}, alias ...string)
 	AddMethod(name string, target interface{}, alias ...string)
 	AddMethods(names []string, target interface{}, namespace ...string)
 	AddInstanceMethods(target interface{}, namespace ...string)
@@ -81,34 +81,47 @@ func (mm *methodManager) Add(method Method) {
 	mm.methods.Store(strings.ToLower(method.Name()), method)
 }
 
-func (mm *methodManager) AddFunction(f interface{}, name string) {
-	var method Method
-	switch f := f.(type) {
-	case reflect.Value:
-		method = NewMethod(f, name)
-	case *reflect.Value:
-		method = NewMethod(*f, name)
-	case reflect.Method:
-		if name == "" {
-			name = f.Name
-		}
-		method = NewMethod(f.Func, name)
-	case *reflect.Method:
-		if name == "" {
-			name = f.Name
-		}
-		method = NewMethod(f.Func, name)
-	default:
-		method = NewMethod(reflect.ValueOf(f), name)
+func (mm *methodManager) AddFunction(f interface{}, alias ...string) {
+	if len(alias) == 0 {
+		alias = []string{""}
 	}
-	mm.Add(method)
+	for _, name := range alias {
+		var method Method
+		switch f := f.(type) {
+		case reflect.Value:
+			method = NewMethod(f, name)
+		case *reflect.Value:
+			method = NewMethod(*f, name)
+		case reflect.Method:
+			if name == "" {
+				name = f.Name
+			}
+			method = NewMethod(f.Func, name)
+		case *reflect.Method:
+			if name == "" {
+				name = f.Name
+			}
+			method = NewMethod(f.Func, name)
+		default:
+			method = NewMethod(reflect.ValueOf(f), name)
+		}
+		mm.Add(method)
+	}
 }
 
 func (mm *methodManager) addFunction(f interface{}, name string, namespace ...string) {
-	if len(namespace) > 0 && namespace[0] != "" {
-		name = namespace[0] + "_" + name
+	if len(namespace) == 0 {
+		namespace = []string{""}
 	}
-	mm.AddFunction(f, name)
+	var alias []string
+	for _, ns := range namespace {
+		if ns != "" {
+			alias = append(alias, ns+"_"+name)
+		} else {
+			alias = append(alias, name)
+		}
+	}
+	mm.AddFunction(f, alias...)
 }
 
 func (mm *methodManager) AddMethod(name string, target interface{}, alias ...string) {
@@ -128,18 +141,25 @@ func (mm *methodManager) AddMethod(name string, target interface{}, alias ...str
 			}
 		}
 	}
-	if len(alias) > 0 && alias[0] != "" {
-		name = alias[0]
+	if len(alias) == 0 {
+		alias = []string{name}
 	}
-	mm.Add(NewMethod(f, name))
+	mm.AddFunction(f, alias...)
 }
 
 func (mm *methodManager) addMethod(name string, target interface{}, namespace ...string) {
-	alias := ""
-	if len(namespace) > 0 && namespace[0] != "" {
-		alias = namespace[0] + "_" + name
+	var alias []string
+	if len(namespace) == 0 {
+		namespace = []string{""}
 	}
-	mm.AddMethod(name, target, alias)
+	for _, ns := range namespace {
+		if ns != "" {
+			alias = append(alias, ns+"_"+name)
+		} else {
+			alias = append(alias, name)
+		}
+	}
+	mm.AddMethod(name, target, alias...)
 }
 
 func (mm *methodManager) AddMethods(names []string, target interface{}, namespace ...string) {
@@ -193,10 +213,18 @@ func (mm *methodManager) recursiveAddFuncFields(v reflect.Value, t reflect.Type,
 		mm.addFunction(f, name, namespace...)
 	case fs.Anonymous:
 		mm.AddAllMethods(setAccessible(f).Interface(), namespace...)
-	case len(namespace) == 0 || namespace[0] == "":
+	case len(namespace) == 0:
 		mm.AddAllMethods(setAccessible(f).Interface(), name)
 	default:
-		mm.AddAllMethods(setAccessible(f).Interface(), namespace[0]+"_"+name)
+		var namespaces []string
+		for _, ns := range namespace {
+			if ns == "" {
+				namespaces = append(namespaces, name)
+			} else {
+				namespaces = append(namespaces, ns+"_"+name)
+			}
+		}
+		mm.AddAllMethods(setAccessible(f).Interface(), namespaces...)
 	}
 }
 
@@ -234,21 +262,27 @@ func (mm *methodManager) AddNetRPCMethods(rcvr interface{}, namespace ...string)
 	if rcvr == nil {
 		panic("rcvr can't be nil")
 	}
+	if len(namespace) == 0 {
+		namespace = []string{""}
+	}
 	v := reflect.ValueOf(rcvr)
 	t := v.Type()
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
 		if method := v.Method(i); method.CanInterface() {
-			name := t.Method(i).Name
-			if len(namespace) > 0 && namespace[0] != "" {
-				name = namespace[0] + "_" + name
+			m := t.Method(i)
+			for _, ns := range namespace {
+				if ns != "" {
+					mm.addNetRPCMethod(method, ns+"_"+m.Name)
+				} else {
+					mm.addNetRPCMethod(method, m.Name)
+				}
 			}
-			mm.addNetRPCMethod(name, method)
 		}
 	}
 }
 
-func (mm *methodManager) addNetRPCMethod(name string, method reflect.Value) {
+func (mm *methodManager) addNetRPCMethod(method reflect.Value, name string) {
 	ft := method.Type()
 	if ft.NumIn() != 2 || ft.IsVariadic() ||
 		ft.In(1).Kind() != reflect.Ptr ||

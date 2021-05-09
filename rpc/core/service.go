@@ -218,9 +218,9 @@ func (s *Service) Add(method Method) *Service {
 	return s
 }
 
-// AddFunction is used for publishing function f with name.
-func (s *Service) AddFunction(f interface{}, name string) *Service {
-	s.methodManager.AddFunction(f, name)
+// AddFunction is used for publishing function f with alias.
+func (s *Service) AddFunction(f interface{}, alias ...string) *Service {
+	s.methodManager.AddFunction(f, alias...)
 	return s
 }
 
