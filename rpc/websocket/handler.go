@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/websocket/handler.go                                 |
 |                                                          |
-| LastModified: May 5, 2021                                |
+| LastModified: May 9, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -31,6 +31,7 @@ type Handler struct {
 	rpchttp.Handler
 	OnAccept func(*websocket.Conn) *websocket.Conn
 	OnClose  func(*websocket.Conn)
+	OnError  func(*websocket.Conn, error)
 }
 
 func (h *Handler) onAccept(conn *websocket.Conn) *websocket.Conn {
@@ -46,9 +47,9 @@ func (h *Handler) onClose(conn *websocket.Conn) {
 	}
 }
 
-func (h *Handler) onError(err error) {
+func (h *Handler) onError(conn *websocket.Conn, err error) {
 	if h.OnError != nil {
-		h.OnError(err)
+		h.OnError(conn, err)
 	}
 }
 
@@ -83,7 +84,7 @@ func (h *Handler) ServeHTTP(response http.ResponseWriter, request *http.Request)
 	}
 	conn, err := upgrader.Upgrade(response, request, nil)
 	if err != nil {
-		h.onError(err)
+		h.onError(conn, err)
 		return
 	}
 	h.Serve(request.Context(), conn)
@@ -204,6 +205,9 @@ func (h *Handler) send(ctx context.Context, conn *websocket.Conn, queue chan dat
 }
 
 func (h *Handler) Serve(ctx context.Context, conn *websocket.Conn) {
+	if conn = h.onAccept(conn); conn == nil {
+		return
+	}
 	ctx, cancel := context.WithCancel(ctx)
 	var err error
 	defer func() {
@@ -212,12 +216,11 @@ func (h *Handler) Serve(ctx context.Context, conn *websocket.Conn) {
 			err = core.NewPanicError(e)
 		}
 		if err != nil {
-			h.onError(err)
+			h.onError(conn, err)
 		}
 		h.onClose(conn)
 		conn.Close()
 	}()
-	conn = h.onAccept(conn)
 	queue := make(chan data)
 	errChan := make(chan error, 1)
 	go h.receive(ctx, conn, queue, errChan)

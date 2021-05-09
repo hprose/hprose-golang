@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/udp/handler.go                                       |
 |                                                          |
-| LastModified: May 5, 2021                                |
+| LastModified: May 9, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,7 +24,7 @@ import (
 type Handler struct {
 	Service *core.Service
 	OnClose func(net.Conn)
-	OnError func(error)
+	OnError func(net.Conn, error)
 }
 
 // BindContext to the http server.
@@ -38,9 +38,9 @@ func (h *Handler) onClose(conn net.Conn) {
 	}
 }
 
-func (h *Handler) onError(err error) {
+func (h *Handler) onError(conn net.Conn, err error) {
 	if h.OnError != nil {
-		h.OnError(err)
+		h.OnError(conn, err)
 	}
 }
 
@@ -104,13 +104,13 @@ func (h *Handler) receive(ctx context.Context, conn *net.UDPConn, queue chan dat
 					h.reportError(ctx, errChan, err)
 					return
 				}
-				h.onError(err)
+				h.onError(conn, err)
 			case n < 8:
-				h.onError(core.InvalidRequestError{})
+				h.onError(conn, core.InvalidRequestError{})
 			default:
 				switch length, index, ok := parseHeader(buffer[:8]); {
 				case length == 0 && index == -1 && !ok:
-					h.onError(core.InvalidRequestError{})
+					h.onError(conn, core.InvalidRequestError{})
 				case length > h.Service.MaxRequestLength:
 					h.sendResponse(ctx, queue, index, nil, core.ErrRequestEntityTooLarge, addr)
 				default:
@@ -139,7 +139,7 @@ func (h *Handler) send(ctx context.Context, conn *net.UDPConn, queue chan data, 
 				} else {
 					body = []byte(e.Error())
 				}
-				h.onError(e)
+				h.onError(conn, e)
 			}
 			header := makeHeader(len(body), index)
 			copy(buffer[:], header[:])
@@ -149,7 +149,7 @@ func (h *Handler) send(ctx context.Context, conn *net.UDPConn, queue chan data, 
 					h.reportError(ctx, errChan, err)
 					return
 				}
-				h.onError(err)
+				h.onError(conn, err)
 			}
 		}
 	}
@@ -164,7 +164,7 @@ func (h *Handler) Serve(ctx context.Context, conn *net.UDPConn) {
 			err = core.NewPanicError(e)
 		}
 		if err != nil {
-			h.onError(err)
+			h.onError(conn, err)
 		}
 		h.onClose(conn)
 		conn.Close()

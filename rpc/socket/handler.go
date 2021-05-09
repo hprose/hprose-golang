@@ -15,6 +15,7 @@ package socket
 
 import (
 	"context"
+	"crypto/tls"
 	"io"
 	"net"
 	"reflect"
@@ -27,7 +28,7 @@ type Handler struct {
 	Service  *core.Service
 	OnAccept func(net.Conn) net.Conn
 	OnClose  func(net.Conn)
-	OnError  func(error)
+	OnError  func(net.Conn, error)
 }
 
 // BindContext to the http server.
@@ -66,9 +67,9 @@ func (h *Handler) onClose(conn net.Conn) {
 	}
 }
 
-func (h *Handler) onError(err error) {
+func (h *Handler) onError(conn net.Conn, err error) {
 	if h.OnError != nil {
-		h.OnError(err)
+		h.OnError(conn, err)
 	}
 }
 
@@ -177,6 +178,9 @@ func (h *Handler) send(ctx context.Context, conn net.Conn, queue chan data, errC
 }
 
 func (h *Handler) Serve(ctx context.Context, conn net.Conn) {
+	if conn = h.onAccept(conn); conn == nil {
+		return
+	}
 	ctx, cancel := context.WithCancel(ctx)
 	var err error
 	defer func() {
@@ -185,12 +189,11 @@ func (h *Handler) Serve(ctx context.Context, conn net.Conn) {
 			err = core.NewPanicError(e)
 		}
 		if err != nil {
-			h.onError(err)
+			h.onError(conn, err)
 		}
 		h.onClose(conn)
 		conn.Close()
 	}()
-	conn = h.onAccept(conn)
 	queue := make(chan data)
 	errChan := make(chan error, 1)
 	go h.receive(ctx, conn, queue, errChan)
@@ -221,6 +224,7 @@ func RegisterHandler() {
 		[]reflect.Type{
 			reflect.TypeOf((*net.TCPListener)(nil)),
 			reflect.TypeOf((*net.UnixListener)(nil)),
+			reflect.TypeOf(tls.NewListener(nil, nil)),
 		},
 	})
 }

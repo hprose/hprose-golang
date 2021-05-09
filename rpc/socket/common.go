@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/common.go                                     |
 |                                                          |
-| LastModified: May 5, 2021                                |
+| LastModified: May 9, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -56,7 +56,7 @@ func parseHeader(header [12]byte) (length int, index int, ok bool) {
 	return
 }
 
-func nextTempDelay(err error, onError func(error), tempDelay time.Duration) time.Duration {
+func nextTempDelay(err error, onError func(net.Conn, error), tempDelay time.Duration) time.Duration {
 	if ne, ok := err.(net.Error); ok && ne.Temporary() {
 		if tempDelay == 0 {
 			tempDelay = 5 * time.Millisecond
@@ -66,7 +66,7 @@ func nextTempDelay(err error, onError func(error), tempDelay time.Duration) time
 		if max := 1 * time.Second; tempDelay > max {
 			tempDelay = max
 		}
-		onError(err)
+		onError(nil, err)
 		time.Sleep(tempDelay)
 		return tempDelay
 	}

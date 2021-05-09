@@ -29,7 +29,7 @@ import (
 
 type Handler struct {
 	Service                      *core.Service
-	OnError                      func(error)
+	OnError                      func(http.ResponseWriter, *http.Request, error)
 	P3P                          bool
 	GET                          bool
 	CrossDomain                  bool
@@ -43,9 +43,9 @@ type Handler struct {
 	clientAccessPolicyXMLContent []byte
 }
 
-func (h *Handler) onError(err error) {
+func (h *Handler) onError(response http.ResponseWriter, request *http.Request, err error) {
 	if h.OnError != nil {
-		h.OnError(err)
+		h.OnError(response, request, err)
 	}
 }
 
@@ -134,22 +134,22 @@ func (h *Handler) ServeHTTP(response http.ResponseWriter, request *http.Request)
 	}
 	data, err := readAll(request.Body, request.ContentLength)
 	if err != nil {
-		h.onError(err)
+		h.onError(response, request, err)
 	}
 	if err = request.Body.Close(); err != nil {
-		h.onError(err)
+		h.onError(response, request, err)
 	}
 	serviceContext := h.getServiceContext(response, request)
 	ctx := core.WithContext(request.Context(), serviceContext)
 	result, err := h.Service.Handle(ctx, data)
 	if err != nil {
-		h.onError(err)
+		h.onError(response, request, err)
 	}
 	response.Header().Set("Content-Length", strconv.Itoa(len(result)))
 	h.sendHeader(serviceContext, response, request)
 	_, err = response.Write(result)
 	if err != nil {
-		h.onError(err)
+		h.onError(response, request, err)
 	}
 }
 
