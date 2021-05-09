@@ -601,3 +601,55 @@ func TestTCP(t *testing.T) {
 	proxy.Hello("world")
 	server.Close()
 }
+
+func TestUnix(t *testing.T) {
+	service := rpc.NewService()
+	service.AddMissingMethod(func(name string, args []interface{}) (result []interface{}, err error) {
+		data, err := json.Marshal(args)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{name + string(data)}, nil
+	})
+	method := service.Get("*")
+	assert.Equal(t, reflect.Func, method.Func().Kind())
+	assert.Equal(t, []reflect.Type{reflect.TypeOf(""), reflect.TypeOf([]interface{}{})}, method.Parameters())
+	assert.True(t, method.ReturnError())
+	assert.Nil(t, method.Options())
+	service.Socket().OnAccept = func(c net.Conn) net.Conn {
+		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " accepted")
+		return c
+	}
+	service.Socket().OnClose = func(c net.Conn) {
+		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " closed on server")
+	}
+	service.Socket().OnError = func(c net.Conn, e error) {
+		if c != nil {
+			fmt.Println(c.RemoteAddr().String()+"->"+c.LocalAddr().String(), e)
+		} else {
+			fmt.Println(e)
+		}
+	}
+	server, err := net.Listen("unix", "/tmp/hprose_test.sock")
+	assert.NoError(t, err)
+	err = service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := rpc.NewClient("unix://1/tmp/hprose_test.sock")
+	client.Socket().OnConnect = func(c net.Conn) net.Conn {
+		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " connected")
+		return c
+	}
+	client.Socket().OnClose = func(c net.Conn) {
+		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " closed on client")
+	}
+	client.Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) string
+	}
+	client.UseService(&proxy)
+	proxy.Hello("world")
+	server.Close()
+}
