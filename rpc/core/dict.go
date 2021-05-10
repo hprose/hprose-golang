@@ -32,6 +32,7 @@ type Dict interface {
 	Range(f func(key string, value interface{}) bool)
 	Empty() bool
 	CopyTo(dict Dict)
+	ToMap() map[string]interface{}
 }
 
 func getInt(d Dict, key string, defaultValue ...int) int {
@@ -179,6 +180,10 @@ func (d dict) CopyTo(dict Dict) {
 	}
 }
 
+func (d dict) ToMap() map[string]interface{} {
+	return d
+}
+
 // NewDict returns a thread-unsafe Dict.
 func NewDict() Dict {
 	return dict(make(map[string]interface{}))
@@ -250,7 +255,20 @@ func (d *safeDict) CopyTo(dict Dict) {
 	})
 }
 
+func (d *safeDict) ToMap() map[string]interface{} {
+	m := make(map[string]interface{})
+	d.m.Range(func(key, value interface{}) bool {
+		m[key.(string)] = value
+		return true
+	})
+	return m
+}
+
 // NewSafeDict returns a thread-safe Dict.
 func NewSafeDict() Dict {
 	return &safeDict{}
+}
+
+func ToDict(m map[string]interface{}) Dict {
+	return dict(m)
 }

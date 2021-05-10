@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service_codec.go                                |
 |                                                          |
-| LastModified: May 7, 2021                                |
+| LastModified: May 10, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -41,7 +41,7 @@ func (c serviceCodec) Encode(result interface{}, context *ServiceContext) ([]byt
 	}
 	if context.HasResponseHeaders() {
 		encoder.WriteTag(encoding.TagHeader)
-		_ = encoder.Write((map[string]interface{})(context.ResponseHeaders().(dict)))
+		_ = encoder.Write(context.ResponseHeaders().ToMap())
 		encoder.Reset()
 	}
 	if e, ok := result.(error); ok {
@@ -75,7 +75,7 @@ func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name stri
 	if tag == encoding.TagHeader {
 		var h map[string]interface{}
 		decoder.Decode(&h)
-		((dict)(h)).CopyTo(context.RequestHeaders())
+		ToDict(h).CopyTo(context.RequestHeaders())
 		decoder.Reset()
 		tag = decoder.NextByte()
 	}
