@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/dict.go                                         |
 |                                                          |
-| LastModified: Feb 21, 2021                               |
+| LastModified: May 10, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -192,16 +192,18 @@ func NewDict(m map[string]interface{}) Dict {
 	return dict(m)
 }
 
-type safeDict struct {
-	m sync.Map
+type safeDict sync.Map
+
+func (d *safeDict) unwarp() *sync.Map {
+	return (*sync.Map)(d)
 }
 
 func (d *safeDict) Set(name string, value interface{}) {
-	d.m.Store(name, value)
+	d.unwarp().Store(name, value)
 }
 
 func (d *safeDict) Get(name string) (value interface{}, ok bool) {
-	return d.m.Load(name)
+	return d.unwarp().Load(name)
 }
 
 func (d *safeDict) GetInt(key string, defaultValue ...int) int {
@@ -233,18 +235,18 @@ func (d *safeDict) GetString(key string, defaultValue ...string) string {
 }
 
 func (d *safeDict) Del(name string) {
-	d.m.Delete(name)
+	d.unwarp().Delete(name)
 }
 
 func (d *safeDict) Range(f func(name string, value interface{}) bool) {
-	d.m.Range(func(key, value interface{}) bool {
+	d.unwarp().Range(func(key, value interface{}) bool {
 		return f(key.(string), value)
 	})
 }
 
 func (d *safeDict) Empty() bool {
 	empty := true
-	d.m.Range(func(key, value interface{}) bool {
+	d.unwarp().Range(func(key, value interface{}) bool {
 		empty = false
 		return false
 	})
@@ -252,7 +254,7 @@ func (d *safeDict) Empty() bool {
 }
 
 func (d *safeDict) CopyTo(dict Dict) {
-	d.m.Range(func(key, value interface{}) bool {
+	d.unwarp().Range(func(key, value interface{}) bool {
 		dict.Set(key.(string), value)
 		return true
 	})
@@ -260,7 +262,7 @@ func (d *safeDict) CopyTo(dict Dict) {
 
 func (d *safeDict) ToMap() map[string]interface{} {
 	m := make(map[string]interface{})
-	d.m.Range(func(key, value interface{}) bool {
+	d.unwarp().Range(func(key, value interface{}) bool {
 		m[key.(string)] = value
 		return true
 	})
