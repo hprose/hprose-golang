@@ -64,7 +64,7 @@ func (c serviceCodec) Encode(result interface{}, context *ServiceContext) ([]byt
 func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name string, args []interface{}, err error) {
 	if len(request) == 0 {
 		name = "~"
-		_, err = c.decodeMethod(name, context)
+		err = c.decodeMethod(name, context)
 		return
 	}
 	decoder := encoding.NewDecoder(request).Simple(false)
@@ -85,28 +85,23 @@ func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name stri
 			decoder.Simple(true)
 		}
 		decoder.Decode(&name)
-		var method Method
-		if method, err = c.decodeMethod(name, context); err == nil {
-			args, err = c.decodeArguments(method, decoder)
+		if err = c.decodeMethod(name, context); err == nil {
+			args, err = c.decodeArguments(context.Method, decoder)
 		}
 	case encoding.TagEnd:
 		name = "~"
-		_, err = c.decodeMethod("~", context)
+		err = c.decodeMethod("~", context)
 	default:
 		err = InvalidRequestError{request}
 	}
 	return
 }
 
-func (c serviceCodec) decodeMethod(name string, context *ServiceContext) (method Method, err error) {
-	service := context.Service()
-	method = service.Get(name)
-	if method == nil {
+func (c serviceCodec) decodeMethod(name string, context *ServiceContext) (err error) {
+	if context.Method = context.Service().Get(name); context.Method == nil {
 		err = errors.New("Can't find this method " + name + "().")
-	} else {
-		context.Method = method
 	}
-	return method, err
+	return err
 }
 
 func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder) (args []interface{}, err error) {
