@@ -185,8 +185,11 @@ func (d dict) ToMap() map[string]interface{} {
 }
 
 // NewDict returns a thread-unsafe Dict.
-func NewDict() Dict {
-	return dict(make(map[string]interface{}))
+func NewDict(m map[string]interface{}) Dict {
+	if m == nil {
+		return dict(make(map[string]interface{}))
+	}
+	return dict(m)
 }
 
 type safeDict struct {
@@ -267,8 +270,4 @@ func (d *safeDict) ToMap() map[string]interface{} {
 // NewSafeDict returns a thread-safe Dict.
 func NewSafeDict() Dict {
 	return &safeDict{}
-}
-
-func ToDict(m map[string]interface{}) Dict {
-	return dict(m)
 }

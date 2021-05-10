@@ -44,7 +44,7 @@ func NewContext() Context {
 
 func (c *rpcContext) Items() Dict {
 	if c.items == nil {
-		c.items = NewDict()
+		c.items = NewDict(nil)
 	}
 	return c.items
 }
@@ -55,7 +55,7 @@ func (c *rpcContext) HasRequestHeaders() bool {
 
 func (c *rpcContext) RequestHeaders() Dict {
 	if c.requestHeaders == nil {
-		c.requestHeaders = NewDict()
+		c.requestHeaders = NewDict(nil)
 	}
 	return c.requestHeaders
 }
@@ -66,7 +66,7 @@ func (c *rpcContext) HasResponseHeaders() bool {
 
 func (c *rpcContext) ResponseHeaders() Dict {
 	if c.responseHeaders == nil {
-		c.responseHeaders = NewDict()
+		c.responseHeaders = NewDict(nil)
 	}
 	return c.responseHeaders
 }
@@ -74,15 +74,15 @@ func (c *rpcContext) ResponseHeaders() Dict {
 func (c *rpcContext) Clone() Context {
 	clone := &rpcContext{}
 	if c.items != nil {
-		clone.items = NewDict()
+		clone.items = NewDict(nil)
 		c.items.CopyTo(clone.items)
 	}
 	if c.requestHeaders != nil {
-		clone.requestHeaders = NewDict()
+		clone.requestHeaders = NewDict(nil)
 		c.requestHeaders.CopyTo(clone.requestHeaders)
 	}
 	if c.responseHeaders != nil {
-		clone.responseHeaders = NewDict()
+		clone.responseHeaders = NewDict(nil)
 		c.responseHeaders.CopyTo(clone.responseHeaders)
 	}
 	return clone

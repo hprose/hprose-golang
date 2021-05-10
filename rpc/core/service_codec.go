@@ -75,7 +75,7 @@ func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name stri
 	if tag == encoding.TagHeader {
 		var h map[string]interface{}
 		decoder.Decode(&h)
-		ToDict(h).CopyTo(context.RequestHeaders())
+		NewDict(h).CopyTo(context.RequestHeaders())
 		decoder.Reset()
 		tag = decoder.NextByte()
 	}

@@ -56,7 +56,7 @@ func TestSafeDict(t *testing.T) {
 
 	assert.False(t, dict.Empty())
 
-	dict2 := NewDict()
+	dict2 := NewDict(nil)
 	dict.CopyTo(dict2)
 
 	assert.False(t, dict2.Empty())
