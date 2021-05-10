@@ -17,6 +17,8 @@ import (
 	"hash/crc32"
 	"net"
 	"time"
+
+	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
 
 type data struct {
@@ -57,7 +59,7 @@ func parseHeader(header [12]byte) (length int, index int, ok bool) {
 }
 
 func nextTempDelay(err error, onError func(net.Conn, error), tempDelay time.Duration) time.Duration {
-	if ne, ok := err.(net.Error); ok && ne.Temporary() {
+	if core.IsTemporaryError(err) {
 		if tempDelay == 0 {
 			tempDelay = 5 * time.Millisecond
 		} else {
