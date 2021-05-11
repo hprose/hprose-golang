@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/interface_decoder.go                            |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 11, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -125,6 +125,9 @@ func (dec *Decoder) decodeInterface(tag byte) interface{} {
 		return dec.decodeListAsInterface(tag)
 	case TagMap:
 		return dec.decodeMapAsInterface(tag)
+	case TagClass:
+		dec.ReadStruct()
+		return dec.Read(interfaceType)
 	case TagObject:
 		return dec.ReadObject()
 	}
