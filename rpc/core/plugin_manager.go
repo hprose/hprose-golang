@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/plugin_manager.go                               |
 |                                                          |
-| LastModified: May 8, 2021                                |
+| LastModified: May 11, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -56,6 +56,8 @@ func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHa
 			invokeHandlers = append(invokeHandlers, InvokeHandler(handler.Handler))
 		case ioPlugin:
 			ioHandlers = append(ioHandlers, IOHandler(handler.Handler))
+		default:
+			panic("invalid plugin handler")
 		}
 	}
 	return
