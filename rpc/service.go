@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/service.go                                           |
 |                                                          |
-| LastModified: May 7, 2021                                |
+| LastModified: May 12, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -30,31 +30,22 @@ func init() {
 }
 
 // Service for RPC.
-type Service struct {
-	*core.Service
-}
+type Service = core.Service
 
-func (s Service) Mock() *mock.Handler {
-	return s.GetHandler("mock").(*mock.Handler)
-}
+var NewService = core.NewService
 
-func (s Service) HTTP() *http.Handler {
+func HTTPHandler(s *Service) *http.Handler {
 	return &s.GetHandler("websocket").(*websocket.Handler).Handler
 }
 
-func (s Service) Socket() *socket.Handler {
+func SocketHandler(s *Service) *socket.Handler {
 	return s.GetHandler("socket").(*socket.Handler)
 }
 
-func (s Service) UDP() *udp.Handler {
+func UDPHandler(s *Service) *udp.Handler {
 	return s.GetHandler("udp").(*udp.Handler)
 }
 
-func (s Service) WebSocket() *websocket.Handler {
+func WebSocketHandler(s *Service) *websocket.Handler {
 	return s.GetHandler("websocket").(*websocket.Handler)
-}
-
-// NewService returns an instance of Service.
-func NewService() Service {
-	return Service{Service: core.NewService()}
 }

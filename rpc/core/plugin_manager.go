@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/plugin_manager.go                               |
 |                                                          |
-| LastModified: May 11, 2021                               |
+| LastModified: May 12, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -43,19 +43,15 @@ func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHa
 		switch handler := handler.(type) {
 		case InvokeHandler:
 			invokeHandlers = append(invokeHandlers, handler)
-		case func(ctx context.Context, name string, args []interface{}, next NextInvokeHandler) (result []interface{}, err error):
-			invokeHandlers = append(invokeHandlers, InvokeHandler(handler))
 		case IOHandler:
 			ioHandlers = append(ioHandlers, handler)
-		case func(ctx context.Context, request []byte, next NextIOHandler) (response []byte, err error):
-			ioHandlers = append(ioHandlers, IOHandler(handler))
 		case plugin:
-			invokeHandlers = append(invokeHandlers, InvokeHandler(handler.InvokeHandler))
-			ioHandlers = append(ioHandlers, IOHandler(handler.IOHandler))
+			invokeHandlers = append(invokeHandlers, handler.InvokeHandler)
+			ioHandlers = append(ioHandlers, handler.IOHandler)
 		case invokePlugin:
-			invokeHandlers = append(invokeHandlers, InvokeHandler(handler.Handler))
+			invokeHandlers = append(invokeHandlers, handler.Handler)
 		case ioPlugin:
-			ioHandlers = append(ioHandlers, IOHandler(handler.Handler))
+			ioHandlers = append(ioHandlers, handler.Handler)
 		default:
 			panic("invalid plugin handler")
 		}

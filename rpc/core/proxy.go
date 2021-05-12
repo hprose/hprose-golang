@@ -18,7 +18,7 @@ import (
 )
 
 // InvocationHandler for the proxy instance.
-type InvocationHandler func(proxy interface{}, method reflect.StructField, name string, args []interface{}) (results []interface{}, err error)
+type InvocationHandler = func(proxy interface{}, method reflect.StructField, name string, args []interface{}) (results []interface{}, err error)
 
 // ProxyBuilder .
 type ProxyBuilder interface {

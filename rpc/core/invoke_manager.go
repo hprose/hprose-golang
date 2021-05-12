@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/invoke_manager.go                               |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 12, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,10 +16,10 @@ package core
 import "context"
 
 // NextInvokeHandler for RPC.
-type NextInvokeHandler func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error)
+type NextInvokeHandler = func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error)
 
 // InvokeHandler for RPC.
-type InvokeHandler func(ctx context.Context, name string, args []interface{}, next NextInvokeHandler) (result []interface{}, err error)
+type InvokeHandler = func(ctx context.Context, name string, args []interface{}, next NextInvokeHandler) (result []interface{}, err error)
 
 // NewInvokeManager returns an Invoke PluginManager.
 func NewInvokeManager(handler NextInvokeHandler) PluginManager {

@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/method_manager.go                               |
 |                                                          |
-| LastModified: Feb 20, 2021                               |
+| LastModified: May 12, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -228,7 +228,7 @@ func (mm *methodManager) recursiveAddFuncFields(v reflect.Value, t reflect.Type,
 	}
 }
 
-type addFuncFunc func(v reflect.Value, t reflect.Type, i int, namespace ...string)
+type addFuncFunc = func(v reflect.Value, t reflect.Type, i int, namespace ...string)
 
 func (mm *methodManager) addInstanceMethods(target interface{}, addFunc addFuncFunc, namespace ...string) {
 	if target == nil {

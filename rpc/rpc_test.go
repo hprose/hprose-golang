@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/rpc_test.go                                          |
 |                                                          |
-| LastModified: May 9, 2021                                |
+| LastModified: May 12, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -30,7 +30,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/hprose/hprose-golang/v3/encoding"
 	"github.com/hprose/hprose-golang/v3/rpc"
-	"github.com/hprose/hprose-golang/v3/rpc/core"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/stretchr/testify/assert"
 )
@@ -82,7 +81,7 @@ func (ss *StudentService) Delete(id int) {
 
 func TestAddInstanceMethods(t *testing.T) {
 	service := rpc.NewService()
-	service.Codec = core.NewServiceCodec(core.WithDebug(true))
+	service.Codec = rpc.NewServiceCodec(rpc.WithDebug(true))
 	service.AddInstanceMethods(&StudentService{})
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
 	assert.NoError(t, err)
@@ -163,7 +162,7 @@ func (t *Arith) Divide(args *Args, quo *Quotient) error {
 
 func TestAddNetRPCMethods(t *testing.T) {
 	service := rpc.NewService()
-	service.Codec = core.NewServiceCodec(core.WithDebug(true))
+	service.Codec = rpc.NewServiceCodec(rpc.WithDebug(true))
 	service.AddNetRPCMethods(new(Arith), "Arith")
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
 	assert.NoError(t, err)
@@ -224,7 +223,7 @@ func newOuterService() *outerService {
 
 func TestAddAllMethods(t *testing.T) {
 	service := rpc.NewService()
-	service.Codec = core.NewServiceCodec(core.WithDebug(true))
+	service.Codec = rpc.NewServiceCodec(rpc.WithDebug(true))
 	service.AddInstanceMethods(newOuterService(), "s1")
 	service.AddAllMethods(newOuterService(), "s2")
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
@@ -280,7 +279,7 @@ func TestAddAllMethods(t *testing.T) {
 
 func TestAddMethods(t *testing.T) {
 	service := rpc.NewService()
-	service.Codec = core.NewServiceCodec(core.WithDebug(true))
+	service.Codec = rpc.NewServiceCodec(rpc.WithDebug(true))
 	service.AddMethods([]string{"Sum", "Sub"}, newOuterService(), "s1")
 	service.AddMethod("Sum", newOuterService(), "add")
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
@@ -334,7 +333,7 @@ func TestAddMethods(t *testing.T) {
 
 func TestAddFunction(t *testing.T) {
 	service := rpc.NewService()
-	service.Codec = core.NewServiceCodec(core.WithDebug(true))
+	service.Codec = rpc.NewServiceCodec(rpc.WithDebug(true))
 	value := reflect.ValueOf(newOuterService()).Elem()
 	sub := value.FieldByName("Sub")
 	sum, _ := value.Type().MethodByName("Sum")
@@ -397,12 +396,12 @@ func autoTypeConvert(a interface{}) (string, interface{}) {
 
 func TestAutoTypeConvert(t *testing.T) {
 	service := rpc.NewService()
-	service.Codec = core.NewServiceCodec(
-		core.WithDebug(true),
-		core.WithSimple(true),
-		core.WithLongType(encoding.LongTypeBigInt),
-		core.WithRealType(encoding.RealTypeBigFloat),
-		core.WithMapType(encoding.MapTypeSIMap),
+	service.Codec = rpc.NewServiceCodec(
+		rpc.WithDebug(true),
+		rpc.WithSimple(true),
+		rpc.WithLongType(encoding.LongTypeBigInt),
+		rpc.WithRealType(encoding.RealTypeBigFloat),
+		rpc.WithMapType(encoding.MapTypeSIMap),
 	)
 	service.AddFunction(autoTypeConvert)
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
@@ -417,11 +416,11 @@ func TestAutoTypeConvert(t *testing.T) {
 	var proxy struct {
 		AutoTypeConvert func(a interface{}) (string, interface{})
 	}
-	client.Codec = core.NewClientCodec(
-		core.WithSimple(true),
-		core.WithLongType(encoding.LongTypeUint64),
-		core.WithRealType(encoding.RealTypeFloat64),
-		core.WithMapType(encoding.MapTypeIIMap),
+	client.Codec = rpc.NewClientCodec(
+		rpc.WithSimple(true),
+		rpc.WithLongType(encoding.LongTypeUint64),
+		rpc.WithRealType(encoding.RealTypeFloat64),
+		rpc.WithMapType(encoding.MapTypeIIMap),
 	)
 	client.UseService(&proxy)
 	msg, result := proxy.AutoTypeConvert(int64(12345))
@@ -457,38 +456,39 @@ func TestHTTP(t *testing.T) {
 	  </cross-domain-access>
 	</access-policy>`
 	service := rpc.NewService()
-	service.Codec = core.NewServiceCodec(core.WithDebug(true))
-	service.HTTP().OnError = func(response http.ResponseWriter, request *http.Request, err error) {
+	service.Codec = rpc.NewServiceCodec(rpc.WithDebug(true))
+	httpHandler := rpc.HTTPHandler(service)
+	httpHandler.OnError = func(response http.ResponseWriter, request *http.Request, err error) {
 		fmt.Println(err)
 	}
-	service.HTTP().AddAccessControlAllowOrigin("www.google.com", "www.baidu.com", "hprose.com")
-	service.HTTP().RemoveAccessControlAllowOrigin("www.baidu.com")
-	assert.True(t, service.HTTP().AccessControlAllowOrigins["www.google.com"])
-	assert.True(t, service.HTTP().AccessControlAllowOrigins["hprose.com"])
-	assert.False(t, service.HTTP().AccessControlAllowOrigins["www.baidu.com"])
-	service.HTTP().SetCrossDomainXMLContent([]byte(crossDomainXMLContent))
-	service.HTTP().SetClientAccessPolicyXMLContent([]byte(clientAccessPolicyXMLContent))
-	assert.Equal(t, crossDomainXMLContent, string(service.HTTP().CrossDomainXMLContent()))
-	assert.Equal(t, clientAccessPolicyXMLContent, string(service.HTTP().ClientAccessPolicyXMLContent()))
-	service.HTTP().SetCrossDomainXMLFile("")
-	assert.Equal(t, "", string(service.HTTP().CrossDomainXMLFile()))
-	assert.Equal(t, "", string(service.HTTP().CrossDomainXMLContent()))
-	service.HTTP().SetClientAccessPolicyXMLFile("")
-	assert.Equal(t, "", string(service.HTTP().ClientAccessPolicyXMLFile()))
-	assert.Equal(t, "", string(service.HTTP().ClientAccessPolicyXMLContent()))
-	service.HTTP().SetCrossDomainXMLContent([]byte(crossDomainXMLContent))
-	service.HTTP().SetClientAccessPolicyXMLContent([]byte(clientAccessPolicyXMLContent))
+	httpHandler.AddAccessControlAllowOrigin("www.google.com", "www.baidu.com", "hprose.com")
+	httpHandler.RemoveAccessControlAllowOrigin("www.baidu.com")
+	assert.True(t, httpHandler.AccessControlAllowOrigins["www.google.com"])
+	assert.True(t, httpHandler.AccessControlAllowOrigins["hprose.com"])
+	assert.False(t, httpHandler.AccessControlAllowOrigins["www.baidu.com"])
+	httpHandler.SetCrossDomainXMLContent([]byte(crossDomainXMLContent))
+	httpHandler.SetClientAccessPolicyXMLContent([]byte(clientAccessPolicyXMLContent))
+	assert.Equal(t, crossDomainXMLContent, string(httpHandler.CrossDomainXMLContent()))
+	assert.Equal(t, clientAccessPolicyXMLContent, string(httpHandler.ClientAccessPolicyXMLContent()))
+	httpHandler.SetCrossDomainXMLFile("")
+	assert.Equal(t, "", string(httpHandler.CrossDomainXMLFile()))
+	assert.Equal(t, "", string(httpHandler.CrossDomainXMLContent()))
+	httpHandler.SetClientAccessPolicyXMLFile("")
+	assert.Equal(t, "", string(httpHandler.ClientAccessPolicyXMLFile()))
+	assert.Equal(t, "", string(httpHandler.ClientAccessPolicyXMLContent()))
+	httpHandler.SetCrossDomainXMLContent([]byte(crossDomainXMLContent))
+	httpHandler.SetClientAccessPolicyXMLContent([]byte(clientAccessPolicyXMLContent))
 	service.AddFunction(func(ctx context.Context, name string) string {
-		serviceContext := core.GetServiceContext(ctx)
+		serviceContext := rpc.GetServiceContext(ctx)
 		header, _ := serviceContext.Items().Get("httpRequestHeaders")
 		return header.(http.Header).Get("test") + ":hello " + name
 	}, "hello")
 	assert.True(t, service.Get("hello").PassContext())
 	serverMux := http.NewServeMux()
-	serverMux.Handle("/test1", service.HTTP())
-	serverMux.Handle("/test2", service.HTTP())
-	serverMux.Handle("/crossdomain.xml", service.HTTP())
-	serverMux.Handle("/clientaccesspolicy.xml", service.HTTP())
+	serverMux.Handle("/test1", httpHandler)
+	serverMux.Handle("/test2", httpHandler)
+	serverMux.Handle("/crossdomain.xml", httpHandler)
+	serverMux.Handle("/clientaccesspolicy.xml", httpHandler)
 	server := &http.Server{Addr: ":8000", Handler: serverMux}
 	go server.ListenAndServe()
 
@@ -497,17 +497,18 @@ func TestHTTP(t *testing.T) {
 	client := rpc.NewClient("http://127.0.0.1:8000/test1", "http://127.0.0.1:8000/test2")
 	client.ShuffleURLs()
 	client.Use(log.Plugin)
-	client.HTTP().Header = http.Header{
+	httpTransport := rpc.HTTPTransport(client)
+	httpTransport.Header = http.Header{
 		"test":   []string{"test"},
 		"Origin": []string{"hprose.com"},
 	}
-	resp, err := client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/crossdomain.xml")
+	resp, err := httpTransport.HTTPClient.Get("http://127.0.0.1:8000/crossdomain.xml")
 	assert.NoError(t, err)
 	content, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	assert.Equal(t, crossDomainXMLContent, string(content))
 	assert.NoError(t, err)
-	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/clientaccesspolicy.xml")
+	resp, err = httpTransport.HTTPClient.Get("http://127.0.0.1:8000/clientaccesspolicy.xml")
 	lastModified := resp.Header.Get("Last-Modified")
 	etag := resp.Header.Get("Etag")
 	assert.NoError(t, err)
@@ -518,16 +519,16 @@ func TestHTTP(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://127.0.0.1:8000/clientaccesspolicy.xml", nil)
 	req.Header.Set("if-modified-since", lastModified)
 	req.Header.Set("if-none-match", etag)
-	resp, err = client.HTTP().HTTPClient.Do(req)
+	resp, err = httpTransport.HTTPClient.Do(req)
 	assert.Equal(t, http.StatusNotModified, resp.StatusCode)
 	resp.Body.Close()
 	assert.NoError(t, err)
-	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/test1")
+	resp, err = httpTransport.HTTPClient.Get("http://127.0.0.1:8000/test1")
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	resp.Body.Close()
 	assert.NoError(t, err)
-	service.HTTP().GET = false
-	resp, err = client.HTTP().HTTPClient.Get("http://127.0.0.1:8000/test1")
+	httpHandler.GET = false
+	resp, err = httpTransport.HTTPClient.Get("http://127.0.0.1:8000/test1")
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	resp.Body.Close()
 	assert.NoError(t, err)
@@ -553,7 +554,7 @@ func TestHTTP(t *testing.T) {
 func TestTCP(t *testing.T) {
 	service := rpc.NewService()
 	service.AddMissingMethod(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
-		serviceContext := core.GetServiceContext(ctx)
+		serviceContext := rpc.GetServiceContext(ctx)
 		data, err := json.Marshal(args)
 		if err != nil {
 			return nil, err
@@ -565,14 +566,15 @@ func TestTCP(t *testing.T) {
 	assert.Equal(t, []reflect.Type{reflect.TypeOf(""), reflect.TypeOf([]interface{}{})}, method.Parameters())
 	assert.True(t, method.ReturnError())
 	assert.Nil(t, method.Options())
-	service.Socket().OnAccept = func(c net.Conn) net.Conn {
+	socketHandler := rpc.SocketHandler(service)
+	socketHandler.OnAccept = func(c net.Conn) net.Conn {
 		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " accepted")
 		return c
 	}
-	service.Socket().OnClose = func(c net.Conn) {
+	socketHandler.OnClose = func(c net.Conn) {
 		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " closed on server")
 	}
-	service.Socket().OnError = func(c net.Conn, e error) {
+	socketHandler.OnError = func(c net.Conn, e error) {
 		if c != nil {
 			fmt.Println(c.RemoteAddr().String()+"->"+c.LocalAddr().String(), e)
 		} else {
@@ -587,11 +589,12 @@ func TestTCP(t *testing.T) {
 	time.Sleep(time.Millisecond * 5)
 
 	client := rpc.NewClient("tcp://127.0.0.1/")
-	client.Socket().OnConnect = func(c net.Conn) net.Conn {
+	socketTransport := rpc.SocketTransport(client)
+	socketTransport.OnConnect = func(c net.Conn) net.Conn {
 		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " connected")
 		return c
 	}
-	client.Socket().OnClose = func(c net.Conn) {
+	socketTransport.OnClose = func(c net.Conn) {
 		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " closed on client")
 	}
 	client.Use(log.Plugin)
@@ -617,14 +620,15 @@ func TestUnix(t *testing.T) {
 	assert.Equal(t, []reflect.Type{reflect.TypeOf(""), reflect.TypeOf([]interface{}{})}, method.Parameters())
 	assert.True(t, method.ReturnError())
 	assert.Nil(t, method.Options())
-	service.Socket().OnAccept = func(c net.Conn) net.Conn {
+	socketHandler := rpc.SocketHandler(service)
+	socketHandler.OnAccept = func(c net.Conn) net.Conn {
 		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " accepted")
 		return c
 	}
-	service.Socket().OnClose = func(c net.Conn) {
+	socketHandler.OnClose = func(c net.Conn) {
 		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " closed on server")
 	}
-	service.Socket().OnError = func(c net.Conn, e error) {
+	socketHandler.OnError = func(c net.Conn, e error) {
 		if c != nil {
 			fmt.Println(c.RemoteAddr().String()+"->"+c.LocalAddr().String(), e)
 		} else {
@@ -639,11 +643,12 @@ func TestUnix(t *testing.T) {
 	time.Sleep(time.Millisecond * 5)
 
 	client := rpc.NewClient("unix://1/tmp/hprose_test.sock")
-	client.Socket().OnConnect = func(c net.Conn) net.Conn {
+	socketTransport := rpc.SocketTransport(client)
+	socketTransport.OnConnect = func(c net.Conn) net.Conn {
 		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " connected")
 		return c
 	}
-	client.Socket().OnClose = func(c net.Conn) {
+	socketTransport.OnClose = func(c net.Conn) {
 		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " closed on client")
 	}
 	client.Use(log.Plugin)
@@ -657,10 +662,11 @@ func TestUnix(t *testing.T) {
 
 func TestUDP(t *testing.T) {
 	service := rpc.NewService()
-	service.UDP().OnClose = func(c net.Conn) {
+	udpHandler := rpc.UDPHandler(service)
+	udpHandler.OnClose = func(c net.Conn) {
 		fmt.Println(c.LocalAddr().String() + " closed on server")
 	}
-	service.UDP().OnError = func(c net.Conn, e error) {
+	udpHandler.OnError = func(c net.Conn, e error) {
 		if c != nil {
 			fmt.Println(c.LocalAddr().String(), e)
 		} else {
@@ -677,11 +683,12 @@ func TestUDP(t *testing.T) {
 	time.Sleep(time.Millisecond * 5)
 
 	client := rpc.NewClient("udp://127.0.0.1/")
-	client.UDP().OnConnect = func(c net.Conn) net.Conn {
+	udpTransport := rpc.UDPTransport(client)
+	udpTransport.OnConnect = func(c net.Conn) net.Conn {
 		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " connected")
 		return c
 	}
-	client.UDP().OnClose = func(c net.Conn) {
+	udpTransport.OnClose = func(c net.Conn) {
 		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " closed on client")
 	}
 	client.Use(log.Plugin)
@@ -697,7 +704,7 @@ func TestUDP(t *testing.T) {
 func TestWebSocket(t *testing.T) {
 	service := rpc.NewService()
 	service.AddMissingMethod(func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error) {
-		serviceContext := core.GetServiceContext(ctx)
+		serviceContext := rpc.GetServiceContext(ctx)
 		data, err := json.Marshal(args)
 		if err != nil {
 			return nil, err
@@ -709,14 +716,15 @@ func TestWebSocket(t *testing.T) {
 	assert.Equal(t, []reflect.Type{reflect.TypeOf(""), reflect.TypeOf([]interface{}{})}, method.Parameters())
 	assert.True(t, method.ReturnError())
 	assert.Nil(t, method.Options())
-	service.WebSocket().OnAccept = func(c *websocket.Conn) *websocket.Conn {
+	webSocketHandler := rpc.WebSocketHandler(service)
+	webSocketHandler.OnAccept = func(c *websocket.Conn) *websocket.Conn {
 		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " accepted")
 		return c
 	}
-	service.WebSocket().OnClose = func(c *websocket.Conn) {
+	webSocketHandler.OnClose = func(c *websocket.Conn) {
 		fmt.Println(c.RemoteAddr().String() + "->" + c.LocalAddr().String() + " closed on server")
 	}
-	service.WebSocket().OnError = func(c *websocket.Conn, e error) {
+	webSocketHandler.OnError = func(c *websocket.Conn, e error) {
 		if c != nil {
 			fmt.Println(c.RemoteAddr().String()+"->"+c.LocalAddr().String(), e)
 		} else {
@@ -731,11 +739,12 @@ func TestWebSocket(t *testing.T) {
 	time.Sleep(time.Millisecond * 5)
 
 	client := rpc.NewClient("ws://127.0.0.1:8005/")
-	client.WebSocket().OnConnect = func(c *websocket.Conn) *websocket.Conn {
+	webSocketTransport := rpc.WebSocketTransport(client)
+	webSocketTransport.OnConnect = func(c *websocket.Conn) *websocket.Conn {
 		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " connected")
 		return c
 	}
-	client.WebSocket().OnClose = func(c *websocket.Conn) {
+	webSocketTransport.OnClose = func(c *websocket.Conn) {
 		fmt.Println(c.LocalAddr().String() + "->" + c.RemoteAddr().String() + " closed on client")
 	}
 	client.Use(log.Plugin)

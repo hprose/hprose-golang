@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/client.go                                            |
 |                                                          |
-| LastModified: May 7, 2021                                |
+| LastModified: May 12, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -31,31 +31,22 @@ func init() {
 }
 
 // Client for RPC.
-type Client struct {
-	*core.Client
-}
+type Client = core.Client
 
-func (c Client) Mock() *mock.Transport {
-	return c.GetTransport("mock").(*mock.Transport)
-}
+var NewClient = core.NewClient
 
-func (c Client) HTTP() *http.Transport {
+func HTTPTransport(c *Client) *http.Transport {
 	return c.GetTransport("http").(*http.Transport)
 }
 
-func (c Client) Socket() *socket.Transport {
+func SocketTransport(c *Client) *socket.Transport {
 	return c.GetTransport("socket").(*socket.Transport)
 }
 
-func (c Client) UDP() *udp.Transport {
+func UDPTransport(c *Client) *udp.Transport {
 	return c.GetTransport("udp").(*udp.Transport)
 }
 
-func (c Client) WebSocket() *websocket.Transport {
+func WebSocketTransport(c *Client) *websocket.Transport {
 	return c.GetTransport("websocket").(*websocket.Transport)
-}
-
-// NewClient returns an instance of Client.
-func NewClient(uri ...string) Client {
-	return Client{Client: core.NewClient(uri...)}
 }

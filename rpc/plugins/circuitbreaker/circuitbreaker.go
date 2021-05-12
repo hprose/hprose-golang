@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/circuitbreaker/circuitbreaker.go             |
 |                                                          |
-| LastModified: Feb 27, 2021                               |
+| LastModified: May 12, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -26,7 +26,7 @@ import (
 var ErrBreaker = errors.New("service breaked")
 
 // MockService for circuit breaker.
-type MockService func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error)
+type MockService = func(ctx context.Context, name string, args []interface{}) (result []interface{}, err error)
 
 // CircuitBreaker plugin for hprose.
 type CircuitBreaker struct {
