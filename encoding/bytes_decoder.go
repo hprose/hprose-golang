@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bytes_decoder.go                                |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -49,7 +49,7 @@ func (dec *Decoder) readUint8Slice(et reflect.Type) []byte {
 	return slice
 }
 
-func (dec *Decoder) decodeBytes(t reflect.Type, tag byte) []byte {
+func (dec *Decoder) decodeBytes(t reflect.Type, tag byte) (result []byte) {
 	switch tag {
 	case TagNull:
 		return nil
@@ -70,9 +70,9 @@ func (dec *Decoder) decodeBytes(t reflect.Type, tag byte) []byte {
 		bytes, _ := dec.ReadUUID().MarshalBinary()
 		return bytes
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return nil
+	return
 }
 
 func (dec *Decoder) decodeBytesPtr(t reflect.Type, tag byte) *[]byte {

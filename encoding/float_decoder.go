@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/float_decoder.go                                |
 |                                                          |
-| LastModified: Jun 15, 2020                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -44,7 +44,7 @@ func (dec *Decoder) readInf() float64 {
 	return math.Inf(1)
 }
 
-func (dec *Decoder) decodeFloat32(t reflect.Type, tag byte) float32 {
+func (dec *Decoder) decodeFloat32(t reflect.Type, tag byte) (result float32) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return float32(i)
 	}
@@ -69,9 +69,9 @@ func (dec *Decoder) decodeFloat32(t reflect.Type, tag byte) float32 {
 		}
 		return dec.stringToFloat32(dec.ReadString())
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeFloat32Ptr(t reflect.Type, tag byte) *float32 {
@@ -82,7 +82,7 @@ func (dec *Decoder) decodeFloat32Ptr(t reflect.Type, tag byte) *float32 {
 	return &f
 }
 
-func (dec *Decoder) decodeFloat64(t reflect.Type, tag byte) float64 {
+func (dec *Decoder) decodeFloat64(t reflect.Type, tag byte) (result float64) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return float64(i)
 	}
@@ -107,9 +107,9 @@ func (dec *Decoder) decodeFloat64(t reflect.Type, tag byte) float64 {
 		}
 		return dec.stringToFloat64(dec.ReadString())
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeFloat64Ptr(t reflect.Type, tag byte) *float64 {

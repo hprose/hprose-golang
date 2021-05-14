@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/time_decoder.go                                 |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -141,7 +141,7 @@ func (dec *Decoder) ReadDateTime() (t time.Time) {
 	return
 }
 
-func (dec *Decoder) decodeTime(t reflect.Type, tag byte) time.Time {
+func (dec *Decoder) decodeTime(t reflect.Type, tag byte) (result time.Time) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return time.Unix(0, int64(i))
 	}
@@ -164,9 +164,9 @@ func (dec *Decoder) decodeTime(t reflect.Type, tag byte) time.Time {
 		}
 		return dec.stringToTime(dec.ReadString())
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return time.Unix(0, 0)
+	return
 }
 
 func (dec *Decoder) decodeTimePtr(t reflect.Type, tag byte) *time.Time {

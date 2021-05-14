@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/string_decoder_test.go                          |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/

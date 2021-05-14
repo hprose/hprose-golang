@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/string_decoder.go                               |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -153,7 +153,7 @@ func (dec *Decoder) ReadString() (s string) {
 	return
 }
 
-func (dec *Decoder) decodeString(t reflect.Type, tag byte) string {
+func (dec *Decoder) decodeString(t reflect.Type, tag byte) (result string) {
 	switch tag {
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		return string(tag)
@@ -185,9 +185,9 @@ func (dec *Decoder) decodeString(t reflect.Type, tag byte) string {
 	case TagGUID:
 		return dec.ReadUUID().String()
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return ""
+	return
 }
 
 func (dec *Decoder) decodeStringPtr(t reflect.Type, tag byte) *string {

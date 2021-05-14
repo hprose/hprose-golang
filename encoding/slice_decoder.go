@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/slice_decoder.go                                |
 |                                                          |
-| LastModified: Jun 26, 2020                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -46,7 +46,7 @@ func (valdec sliceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		dec.Skip()
 	default:
-		dec.decodeError(valdec.t.Type1(), tag)
+		dec.defaultDecode(valdec.t.Type1(), p, tag)
 	}
 }
 

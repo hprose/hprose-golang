@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/int_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 15, 2020                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -36,7 +36,7 @@ func (dec *Decoder) stringToUint64(s string, bitSize int) uint64 {
 	return i
 }
 
-func (dec *Decoder) decodeInt(t reflect.Type, tag byte) int {
+func (dec *Decoder) decodeInt(t reflect.Type, tag byte) (result int) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int(i)
 	}
@@ -57,9 +57,9 @@ func (dec *Decoder) decodeInt(t reflect.Type, tag byte) int {
 		}
 		return int(dec.stringToInt64(dec.ReadString(), 0))
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeIntPtr(t reflect.Type, tag byte) *int {
@@ -70,7 +70,7 @@ func (dec *Decoder) decodeIntPtr(t reflect.Type, tag byte) *int {
 	return &i
 }
 
-func (dec *Decoder) decodeInt8(t reflect.Type, tag byte) int8 {
+func (dec *Decoder) decodeInt8(t reflect.Type, tag byte) (result int8) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int8(i)
 	}
@@ -91,9 +91,9 @@ func (dec *Decoder) decodeInt8(t reflect.Type, tag byte) int8 {
 		}
 		return int8(dec.stringToInt64(dec.ReadString(), 8))
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeInt8Ptr(t reflect.Type, tag byte) *int8 {
@@ -104,7 +104,7 @@ func (dec *Decoder) decodeInt8Ptr(t reflect.Type, tag byte) *int8 {
 	return &i
 }
 
-func (dec *Decoder) decodeInt16(t reflect.Type, tag byte) int16 {
+func (dec *Decoder) decodeInt16(t reflect.Type, tag byte) (result int16) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int16(i)
 	}
@@ -125,9 +125,9 @@ func (dec *Decoder) decodeInt16(t reflect.Type, tag byte) int16 {
 		}
 		return int16(dec.stringToInt64(dec.ReadString(), 16))
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeInt16Ptr(t reflect.Type, tag byte) *int16 {
@@ -138,7 +138,7 @@ func (dec *Decoder) decodeInt16Ptr(t reflect.Type, tag byte) *int16 {
 	return &i
 }
 
-func (dec *Decoder) decodeInt32(t reflect.Type, tag byte) int32 {
+func (dec *Decoder) decodeInt32(t reflect.Type, tag byte) (result int32) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int32(i)
 	}
@@ -159,9 +159,9 @@ func (dec *Decoder) decodeInt32(t reflect.Type, tag byte) int32 {
 		}
 		return int32(dec.stringToInt64(dec.ReadString(), 32))
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeInt32Ptr(t reflect.Type, tag byte) *int32 {
@@ -172,7 +172,7 @@ func (dec *Decoder) decodeInt32Ptr(t reflect.Type, tag byte) *int32 {
 	return &i
 }
 
-func (dec *Decoder) decodeInt64(t reflect.Type, tag byte) int64 {
+func (dec *Decoder) decodeInt64(t reflect.Type, tag byte) (result int64) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return int64(i)
 	}
@@ -193,9 +193,9 @@ func (dec *Decoder) decodeInt64(t reflect.Type, tag byte) int64 {
 		}
 		return dec.stringToInt64(dec.ReadString(), 64)
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeInt64Ptr(t reflect.Type, tag byte) *int64 {
@@ -206,7 +206,7 @@ func (dec *Decoder) decodeInt64Ptr(t reflect.Type, tag byte) *int64 {
 	return &i
 }
 
-func (dec *Decoder) decodeUint(t reflect.Type, tag byte) uint {
+func (dec *Decoder) decodeUint(t reflect.Type, tag byte) (result uint) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint(i)
 	}
@@ -227,9 +227,9 @@ func (dec *Decoder) decodeUint(t reflect.Type, tag byte) uint {
 		}
 		return uint(dec.stringToUint64(dec.ReadString(), 0))
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeUintPtr(t reflect.Type, tag byte) *uint {
@@ -240,7 +240,7 @@ func (dec *Decoder) decodeUintPtr(t reflect.Type, tag byte) *uint {
 	return &i
 }
 
-func (dec *Decoder) decodeUint8(t reflect.Type, tag byte) uint8 {
+func (dec *Decoder) decodeUint8(t reflect.Type, tag byte) (result uint8) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint8(i)
 	}
@@ -261,9 +261,9 @@ func (dec *Decoder) decodeUint8(t reflect.Type, tag byte) uint8 {
 		}
 		return uint8(dec.stringToUint64(dec.ReadString(), 8))
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeUint8Ptr(t reflect.Type, tag byte) *uint8 {
@@ -274,7 +274,7 @@ func (dec *Decoder) decodeUint8Ptr(t reflect.Type, tag byte) *uint8 {
 	return &i
 }
 
-func (dec *Decoder) decodeUint16(t reflect.Type, tag byte) uint16 {
+func (dec *Decoder) decodeUint16(t reflect.Type, tag byte) (result uint16) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint16(i)
 	}
@@ -295,9 +295,9 @@ func (dec *Decoder) decodeUint16(t reflect.Type, tag byte) uint16 {
 		}
 		return uint16(dec.stringToUint64(dec.ReadString(), 16))
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeUint16Ptr(t reflect.Type, tag byte) *uint16 {
@@ -308,7 +308,7 @@ func (dec *Decoder) decodeUint16Ptr(t reflect.Type, tag byte) *uint16 {
 	return &i
 }
 
-func (dec *Decoder) decodeUint32(t reflect.Type, tag byte) uint32 {
+func (dec *Decoder) decodeUint32(t reflect.Type, tag byte) (result uint32) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uint32(i)
 	}
@@ -329,9 +329,9 @@ func (dec *Decoder) decodeUint32(t reflect.Type, tag byte) uint32 {
 		}
 		return uint32(dec.stringToUint64(dec.ReadString(), 32))
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeUint32Ptr(t reflect.Type, tag byte) *uint32 {
@@ -342,7 +342,7 @@ func (dec *Decoder) decodeUint32Ptr(t reflect.Type, tag byte) *uint32 {
 	return &i
 }
 
-func (dec *Decoder) decodeUint64(t reflect.Type, tag byte) uint64 {
+func (dec *Decoder) decodeUint64(t reflect.Type, tag byte) (result uint64) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return i
 	}
@@ -363,9 +363,9 @@ func (dec *Decoder) decodeUint64(t reflect.Type, tag byte) uint64 {
 		}
 		return dec.stringToUint64(dec.ReadString(), 64)
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeUint64Ptr(t reflect.Type, tag byte) *uint64 {
@@ -376,7 +376,7 @@ func (dec *Decoder) decodeUint64Ptr(t reflect.Type, tag byte) *uint64 {
 	return &i
 }
 
-func (dec *Decoder) decodeUintptr(t reflect.Type, tag byte) uintptr {
+func (dec *Decoder) decodeUintptr(t reflect.Type, tag byte) (result uintptr) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return uintptr(i)
 	}
@@ -397,9 +397,9 @@ func (dec *Decoder) decodeUintptr(t reflect.Type, tag byte) uintptr {
 		}
 		return uintptr(dec.stringToUint64(dec.ReadString(), 64))
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeUintptrPtr(t reflect.Type, tag byte) *uintptr {

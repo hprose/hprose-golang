@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/array_decoder.go                                |
 |                                                          |
-| LastModified: Jan 23, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -59,7 +59,7 @@ func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		dec.Skip()
 	default:
-		dec.decodeError(valdec.at.Type1(), tag)
+		dec.defaultDecode(valdec.at.Type1(), p, tag)
 	}
 }
 

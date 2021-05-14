@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/list_decoder.go                                 |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -40,7 +40,7 @@ func (valdec listDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		}
 		dec.Skip()
 	default:
-		dec.decodeError(listType, tag)
+		dec.defaultDecode(listType, p, tag)
 	}
 }
 

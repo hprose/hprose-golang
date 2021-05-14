@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/complex_decoder.go                              |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -37,7 +37,7 @@ func (dec *Decoder) stringToComplex128(s string) complex128 {
 	return c
 }
 
-func (dec *Decoder) decodeComplex64(t reflect.Type, tag byte) complex64 {
+func (dec *Decoder) decodeComplex64(t reflect.Type, tag byte) (result complex64) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return complex(float32(i), 0)
 	}
@@ -62,9 +62,9 @@ func (dec *Decoder) decodeComplex64(t reflect.Type, tag byte) complex64 {
 		}
 		return dec.stringToComplex64(dec.ReadString())
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeComplex64Ptr(t reflect.Type, tag byte) *complex64 {
@@ -75,7 +75,7 @@ func (dec *Decoder) decodeComplex64Ptr(t reflect.Type, tag byte) *complex64 {
 	return &c
 }
 
-func (dec *Decoder) decodeComplex128(t reflect.Type, tag byte) complex128 {
+func (dec *Decoder) decodeComplex128(t reflect.Type, tag byte) (result complex128) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return complex(float64(i), 0)
 	}
@@ -100,9 +100,9 @@ func (dec *Decoder) decodeComplex128(t reflect.Type, tag byte) complex128 {
 		}
 		return dec.stringToComplex128(dec.ReadString())
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return 0
+	return
 }
 
 func (dec *Decoder) decodeComplex128Ptr(t reflect.Type, tag byte) *complex128 {

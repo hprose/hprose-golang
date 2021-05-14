@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/bool_decoder.go                                 |
 |                                                          |
-| LastModified: Jun 15, 2020                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -28,7 +28,7 @@ func (dec *Decoder) stringToBool(s string) bool {
 	return b
 }
 
-func (dec *Decoder) decodeBool(t reflect.Type, tag byte) bool {
+func (dec *Decoder) decodeBool(t reflect.Type, tag byte) (result bool) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return i > 0
 	}
@@ -57,9 +57,9 @@ func (dec *Decoder) decodeBool(t reflect.Type, tag byte) bool {
 		}
 		return dec.stringToBool(dec.ReadString())
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return false
+	return
 }
 
 func (dec *Decoder) decodeBoolPtr(t reflect.Type, tag byte) *bool {

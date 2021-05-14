@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/big_decoder.go                                  |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -80,7 +80,7 @@ func (dec *Decoder) ReadBigFloat() *big.Float {
 	return dec.readBigFloat(nil)
 }
 
-func (dec *Decoder) decodeBigInt(t reflect.Type, tag byte) *big.Int {
+func (dec *Decoder) decodeBigInt(t reflect.Type, tag byte) (result *big.Int) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return big.NewInt(int64(i))
 	}
@@ -108,9 +108,9 @@ func (dec *Decoder) decodeBigInt(t reflect.Type, tag byte) *big.Int {
 		}
 		return dec.stringToBigInt(dec.ReadString(), t)
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return nil
+	return
 }
 
 func (dec *Decoder) decodeBigIntValue(t reflect.Type, tag byte) big.Int {
@@ -120,7 +120,7 @@ func (dec *Decoder) decodeBigIntValue(t reflect.Type, tag byte) big.Int {
 	return *bigIntZero
 }
 
-func (dec *Decoder) decodeBigFloat(t reflect.Type, tag byte) *big.Float {
+func (dec *Decoder) decodeBigFloat(t reflect.Type, tag byte) (result *big.Float) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return big.NewFloat(float64(i))
 	}
@@ -148,9 +148,9 @@ func (dec *Decoder) decodeBigFloat(t reflect.Type, tag byte) *big.Float {
 		}
 		return dec.stringToBigFloat(dec.ReadString(), t)
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return nil
+	return
 }
 
 func (dec *Decoder) decodeBigFloatValue(t reflect.Type, tag byte) big.Float {
@@ -160,7 +160,7 @@ func (dec *Decoder) decodeBigFloatValue(t reflect.Type, tag byte) big.Float {
 	return *bigFloatZero
 }
 
-func (dec *Decoder) decodeBigRat(t reflect.Type, tag byte) *big.Rat {
+func (dec *Decoder) decodeBigRat(t reflect.Type, tag byte) (result *big.Rat) {
 	if i := intDigits[tag]; i != invalidDigit {
 		return big.NewRat(int64(i), 1)
 	}
@@ -185,9 +185,9 @@ func (dec *Decoder) decodeBigRat(t reflect.Type, tag byte) *big.Rat {
 		}
 		return dec.stringToBigRat(dec.ReadString(), t)
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
-	return nil
+	return
 }
 
 func (dec *Decoder) decodeBigRatValue(t reflect.Type, tag byte) big.Rat {

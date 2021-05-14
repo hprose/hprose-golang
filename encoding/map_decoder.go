@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/map_decoder.go                                  |
 |                                                          |
-| LastModified: May 11, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -181,13 +181,10 @@ func (valdec mapDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		valdec.t.UnsafeSet(reflect2.PtrOf(p), valdec.t.UnsafeMakeMap(0))
 	case TagList:
 		valdec.decodeListAsMap(dec, p, tag)
-	case TagClass:
-		dec.ReadStruct()
-		dec.Decode(p)
 	case TagObject:
 		valdec.decodeObjectAsMap(dec, p, tag)
 	default:
-		dec.decodeError(valdec.t.Type1(), tag)
+		dec.defaultDecode(valdec.t.Type1(), p, tag)
 	}
 }
 

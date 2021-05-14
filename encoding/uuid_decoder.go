@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/uuid_decoder.go                                 |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -51,7 +51,7 @@ func (dec *Decoder) ReadUUID() uuid.UUID {
 	return uuid
 }
 
-func (dec *Decoder) decodeUUID(t reflect.Type, tag byte) (id uuid.UUID) {
+func (dec *Decoder) decodeUUID(t reflect.Type, tag byte) (result uuid.UUID) {
 	switch tag {
 	case TagEmpty, TagNull:
 		return uuid.Nil
@@ -68,7 +68,7 @@ func (dec *Decoder) decodeUUID(t reflect.Type, tag byte) (id uuid.UUID) {
 		}
 		return dec.stringToUUID(dec.ReadString())
 	default:
-		dec.decodeError(t, tag)
+		dec.defaultDecode(t, &result, tag)
 	}
 	return
 }

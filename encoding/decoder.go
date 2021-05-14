@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/decoder.go                                      |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -213,18 +213,6 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 }
 
 func (dec *Decoder) decode(p interface{}, tag byte) {
-	switch tag {
-	case TagRef:
-		dec.ReadReference(p)
-		return
-	case TagClass:
-		dec.ReadStruct()
-		dec.Decode(p)
-		return
-	case TagError:
-		dec.Error = DecodeError(dec.decodeString(stringType, dec.NextByte()))
-		return
-	}
 	if dec.fastDecode(p, tag) {
 		return
 	}
@@ -510,6 +498,22 @@ func (dec *Decoder) decodeStringError(s string, typeName string) {
 	}
 }
 
+func (dec *Decoder) defaultDecode(t reflect.Type, p interface{}, tag byte) {
+	switch tag {
+	case TagRef:
+		dec.ReadReference(p)
+		return
+	case TagClass:
+		dec.ReadStruct(t)
+		dec.Decode(p)
+		return
+	case TagError:
+		dec.Error = DecodeError(dec.decodeString(stringType, dec.NextByte()))
+		return
+	default:
+		dec.decodeError(t, tag)
+	}
+}
 func (dec *Decoder) decodeError(t reflect.Type, tag byte) {
 	if dec.Error == nil {
 		var iface interface{}

@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_decoder.go                               |
 |                                                          |
-| LastModified: May 11, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -101,9 +101,6 @@ func (valdec *structDecoder) decodeMapAsObject(dec *Decoder, p interface{}) {
 
 func (valdec *structDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	switch tag {
-	case TagClass:
-		dec.ReadStruct()
-		dec.Decode(p)
 	case TagObject:
 		valdec.decodeObject(dec, p)
 	case TagMap:
@@ -111,7 +108,7 @@ func (valdec *structDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	case TagEmpty:
 		valdec.t.UnsafeSet(reflect2.PtrOf(p), valdec.t.UnsafeNew())
 	default:
-		dec.decodeError(valdec.Type(), tag)
+		dec.defaultDecode(valdec.Type(), p, tag)
 	}
 }
 

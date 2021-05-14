@@ -6,7 +6,7 @@
 |                                                          |
 | encoding/struct_manager.go                               |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: May 14, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -139,18 +139,27 @@ type structInfo struct {
 	fields map[string]FieldAccessor
 }
 
-func makeStructInfo(name string, names []string) (info structInfo) {
+func makeStructInfo(name string, names []string, t reflect.Type) (info structInfo) {
 	info.name = name
 	info.names = names
-	if t := GetStructType(name); t != nil {
-		info.t = reflect2.Type2(t).(*reflect2.UnsafeStructType)
-		info.fields = getFieldMap(t)
+	typ := GetStructType(name)
+	if typ == nil {
+		for t.Kind() == reflect.Ptr {
+			t = t.Elem()
+		}
+		if t.Kind() == reflect.Struct {
+			typ = t
+		}
+	}
+	if typ != nil {
+		info.t = reflect2.Type2(typ).(*reflect2.UnsafeStructType)
+		info.fields = getFieldMap(typ)
 	}
 	return
 }
 
 // ReadStruct reads struct type.
-func (dec *Decoder) ReadStruct() {
+func (dec *Decoder) ReadStruct(t reflect.Type) {
 	name := dec.ReadSafeString()
 	count := dec.ReadInt()
 	names := make([]string, count)
@@ -158,7 +167,7 @@ func (dec *Decoder) ReadStruct() {
 		names[i] = dec.decodeString(stringType, dec.NextByte())
 	}
 	dec.Skip()
-	dec.ref = append(dec.ref, makeStructInfo(name, names))
+	dec.ref = append(dec.ref, makeStructInfo(name, names, t))
 }
 
 func (dec *Decoder) getStructInfo(index int) structInfo {
