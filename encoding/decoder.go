@@ -29,8 +29,12 @@ import (
 type LongType int8
 
 const (
+	// LongTypeInt represents the default type is int.
+	LongTypeInt LongType = iota
+	// LongTypeUint represents the default type is uint.
+	LongTypeUint
 	// LongTypeInt64 represents the default type is int64.
-	LongTypeInt64 LongType = iota
+	LongTypeInt64
 	// LongTypeUint64 represents the default type is uint64.
 	LongTypeUint64
 	// LongTypeBigInt represents the default type is *big.Int.

@@ -24,6 +24,10 @@ import (
 
 func (dec *Decoder) decodeLongAsInterface() interface{} {
 	switch dec.LongType {
+	case LongTypeInt:
+		return dec.ReadInt()
+	case LongTypeUint:
+		return dec.ReadUint()
 	case LongTypeInt64:
 		return dec.ReadInt64()
 	case LongTypeUint64:
