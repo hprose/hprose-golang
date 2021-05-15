@@ -31,6 +31,7 @@ import (
 	"github.com/hprose/hprose-golang/v3/encoding"
 	"github.com/hprose/hprose-golang/v3/rpc"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
+	"github.com/hprose/hprose-golang/v3/rpc/plugins/push"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -760,5 +761,51 @@ func TestWebSocket(t *testing.T) {
 	client.UseService(&proxy)
 	proxy.Hello("world")
 
+	server.Close()
+}
+
+func TestPush(t *testing.T) {
+	service := push.NewBroker(rpc.NewService())
+	server, err := net.Listen("tcp", "127.0.0.1:8412")
+	assert.NoError(t, err)
+	err = service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client1 := rpc.NewClient("tcp://127.0.0.1/")
+	client1.Use(log.Plugin.IOHandler)
+	prosumer1 := push.NewProsumer(client1, "1")
+	prosumer1.OnSubscribe = func(topic string) {
+		fmt.Println(topic, "is subscribed.")
+	}
+	prosumer1.OnUnsubscribe = func(topic string) {
+		fmt.Println(topic, "is unsubscribed.")
+	}
+	client2 := rpc.NewClient("tcp://127.0.0.1/")
+	client2.Use(log.Plugin.IOHandler)
+	prosumer2 := push.NewProsumer(client2, "2")
+	prosumer1.Subscribe("test", func(message push.Message) {
+		fmt.Println(message)
+	})
+	prosumer1.Subscribe("test2", func(message push.Message) {
+		fmt.Println(message)
+	})
+	time.Sleep(time.Millisecond * 100)
+	var wg sync.WaitGroup
+	n := 1000
+	wg.Add(n)
+	for i := 0; i < n; i++ {
+		go func(i int) {
+			prosumer2.Push(i, "test", "1")
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	time.Sleep(time.Millisecond * 100)
+	prosumer1.Unsubscribe("test")
+	prosumer1.Unsubscribe("test2")
+
+	assert.NoError(t, err)
 	server.Close()
 }
