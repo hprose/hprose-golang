@@ -119,7 +119,7 @@ func (b *Broker) doHeartBeat(ctx context.Context, id string) {
 	}
 }
 
-func (b *Broker) getID(ctx context.Context) (id string) {
+func (b *Broker) ID(ctx context.Context) (id string) {
 	if id = core.GetServiceContext(ctx).RequestHeaders().GetString("id"); id == "" {
 		panic("client unique id not found")
 	}
@@ -127,7 +127,7 @@ func (b *Broker) getID(ctx context.Context) (id string) {
 }
 
 func (b *Broker) subscribe(ctx context.Context, topic string) bool {
-	id := b.getID(ctx)
+	id := b.ID(ctx)
 	t, ok := b.messages.Load(id)
 	if !ok {
 		t, _ = b.messages.LoadOrStore(id, new(sync.Map))
@@ -168,7 +168,7 @@ func (b *Broker) offline(ctx context.Context, topics *sync.Map, id string, topic
 }
 
 func (b *Broker) unsubscribe(ctx context.Context, topic string) bool {
-	id := b.getID(ctx)
+	id := b.ID(ctx)
 	if topics, ok := b.messages.Load(id); ok {
 		return b.offline(ctx, topics.(*sync.Map), id, topic)
 	}
@@ -176,7 +176,7 @@ func (b *Broker) unsubscribe(ctx context.Context, topic string) bool {
 }
 
 func (b *Broker) message(ctx context.Context) map[string][]Message {
-	id := b.getID(ctx)
+	id := b.ID(ctx)
 	if responder, ok := b.responders.Pop(id); ok {
 		responder.(chan map[string][]Message) <- nil
 	}
