@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/tag_parser.go                                   |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: May 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -145,8 +145,10 @@ func (tp *TagParser) parseContext() {
 func ParseTag(ctx *ClientContext, tag reflect.StructTag) *TagParser {
 	parser := &TagParser{Context: ctx, tag: tag}
 	parser.parseName()
-	parser.parseTimeout()
-	parser.parseHeader()
-	parser.parseContext()
+	if ctx != nil {
+		parser.parseTimeout()
+		parser.parseHeader()
+		parser.parseContext()
+	}
 	return parser
 }
