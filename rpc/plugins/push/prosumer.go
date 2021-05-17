@@ -56,6 +56,24 @@ func NewProsumer(client *core.Client, id ...string) *Prosumer {
 	return p
 }
 
+func (p *Prosumer) onError(err error) {
+	if p.OnError != nil {
+		p.OnError(err)
+	}
+}
+
+func (p *Prosumer) onSubscribe(topic string) {
+	if p.OnSubscribe != nil {
+		p.OnSubscribe(topic)
+	}
+}
+
+func (p *Prosumer) onUnsubscribe(topic string) {
+	if p.OnUnsubscribe != nil {
+		p.OnUnsubscribe(topic)
+	}
+}
+
 func (p *Prosumer) Client() *core.Client {
 	return p.client
 }
@@ -99,14 +117,19 @@ func (p *Prosumer) call(callback Callback, message Message) {
 	default:
 		v := reflect.ValueOf(callback)
 		t := v.Type()
-		switch t.NumIn() {
-		case 1:
-			if data, err := io.Convert(message.Data, t.In(0)); err != nil {
-				v.Call([]reflect.Value{reflect.ValueOf(data)})
+		if n := t.NumIn(); n >= 1 {
+			data, err := io.Convert(message.Data, t.In(0))
+			if err != nil {
+				p.onError(err)
+				return
 			}
-		case 2:
-			if data, err := io.Convert(message.Data, t.In(0)); err != nil {
+			switch n {
+			case 1:
+				v.Call([]reflect.Value{reflect.ValueOf(data)})
+			case 2:
 				v.Call([]reflect.Value{reflect.ValueOf(data), reflect.ValueOf(message.From)})
+			default:
+				panic("invalid callback: " + t.String())
 			}
 		}
 	}
@@ -120,9 +143,7 @@ func (p *Prosumer) message() {
 				if p.RetryInterval != 0 {
 					<-time.After(p.RetryInterval)
 				}
-				if p.OnError != nil {
-					p.OnError(err)
-				}
+				p.onError(err)
 			}
 			continue
 		}
@@ -138,9 +159,7 @@ func (p *Prosumer) Subscribe(topic string, callback Callback) (result bool, err 
 		p.callbacks.Store(topic, callback)
 		result, err = p.proxy.subscribe(topic)
 		go p.message()
-		if p.OnSubscribe != nil {
-			p.OnSubscribe(topic)
-		}
+		p.onSubscribe(topic)
 	}
 	return
 }
@@ -149,9 +168,7 @@ func (p *Prosumer) Unsubscribe(topic string) (result bool, err error) {
 	if p.ID() != "" {
 		result, err = p.proxy.unsubscribe(topic)
 		p.callbacks.Delete(topic)
-		if p.OnUnsubscribe != nil {
-			p.OnUnsubscribe(topic)
-		}
+		p.onUnsubscribe(topic)
 	}
 	return
 }

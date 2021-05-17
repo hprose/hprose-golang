@@ -779,8 +779,11 @@ func TestPush(t *testing.T) {
 	time.Sleep(time.Millisecond * 5)
 
 	client1 := rpc.NewClient("tcp://127.0.0.1/")
-	client1.Use(log.Plugin.IOHandler)
+	//client1.Use(log.Plugin.IOHandler)
 	prosumer1 := push.NewProsumer(client1, "1")
+	prosumer1.OnError = func(e error) {
+		fmt.Println(e.Error())
+	}
 	prosumer1.OnSubscribe = func(topic string) {
 		fmt.Println(topic, "is subscribed.")
 	}
@@ -788,10 +791,10 @@ func TestPush(t *testing.T) {
 		fmt.Println(topic, "is unsubscribed.")
 	}
 	client2 := rpc.NewClient("tcp://127.0.0.1/")
-	client2.Use(log.Plugin.IOHandler)
+	//client2.Use(log.Plugin.IOHandler)
 	prosumer2 := push.NewProsumer(client2, "2")
-	prosumer1.Subscribe("test", func(data string) {
-		fmt.Println(data)
+	prosumer1.Subscribe("test", func(data int, from string) {
+		fmt.Printf("%v from %v\n", data, from)
 	})
 	prosumer1.Subscribe("test2", func(message push.Message) {
 		fmt.Println(message)
