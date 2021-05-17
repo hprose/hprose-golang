@@ -39,10 +39,8 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, 
 	if trans.Header != nil {
 		addHeader(req.Header, trans.Header)
 	}
-	if header, ok := clientContext.Items().Get("httpRequestHeaders"); ok {
-		if header, ok := header.(http.Header); ok {
-			addHeader(req.Header, header)
-		}
+	if header, ok := clientContext.Items().GetInterface("httpRequestHeaders").(http.Header); ok {
+		addHeader(req.Header, header)
 	}
 	var resp *http.Response
 	resp, err = trans.HTTPClient.Do(req)

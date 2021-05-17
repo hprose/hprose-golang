@@ -204,10 +204,8 @@ func (h *Handler) sendHeader(serviceContext *core.ServiceContext, response http.
 	if h.Header != nil {
 		addHeader(responseHeader, h.Header)
 	}
-	if header, ok := serviceContext.Items().Get("httpResponseHeaders"); ok {
-		if header, ok := header.(http.Header); ok {
-			addHeader(responseHeader, header)
-		}
+	if header, ok := serviceContext.Items().GetInterface("httpResponseHeaders").(http.Header); ok {
+		addHeader(responseHeader, header)
 	}
 	if code := serviceContext.Items().GetInt("httpStatusCode"); code != 0 {
 		response.WriteHeader(code)

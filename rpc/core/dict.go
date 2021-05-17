@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/dict.go                                         |
 |                                                          |
-| LastModified: May 10, 2021                               |
+| LastModified: May 17, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -28,6 +28,7 @@ type Dict interface {
 	GetFloat(key string, defaultValue ...float64) float64
 	GetBool(key string, defaultValue ...bool) bool
 	GetString(key string, defaultValue ...string) string
+	GetInterface(key string, defaultValue ...interface{}) interface{}
 	Del(key string)
 	Range(f func(key string, value interface{}) bool)
 	Empty() bool
@@ -119,6 +120,16 @@ func getString(d Dict, key string, defaultValue ...string) string {
 	return ""
 }
 
+func getInterface(d Dict, key string, defaultValue ...interface{}) interface{} {
+	if value, ok := d.Get(key); ok {
+		return value
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return nil
+}
+
 type dict map[string]interface{}
 
 func (d dict) Set(key string, value interface{}) {
@@ -156,6 +167,10 @@ func (d dict) GetBool(key string, defaultValue ...bool) bool {
 
 func (d dict) GetString(key string, defaultValue ...string) string {
 	return getString(d, key, defaultValue...)
+}
+
+func (d dict) GetInterface(key string, defaultValue ...interface{}) interface{} {
+	return getInterface(d, key, defaultValue...)
 }
 
 func (d dict) Del(key string) {
@@ -232,6 +247,10 @@ func (d *safeDict) GetBool(key string, defaultValue ...bool) bool {
 
 func (d *safeDict) GetString(key string, defaultValue ...string) string {
 	return getString(d, key, defaultValue...)
+}
+
+func (d *safeDict) GetInterface(key string, defaultValue ...interface{}) interface{} {
+	return getInterface(d, key, defaultValue...)
 }
 
 func (d *safeDict) Del(name string) {

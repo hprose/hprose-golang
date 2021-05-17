@@ -1495,14 +1495,12 @@ func TestHttpHeaders(t *testing.T) {
 	}, "hello")
 	service.Use(func(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
 		serviceContext := core.GetServiceContext(ctx)
-		if header, ok := serviceContext.Items().Get("httpRequestHeaders"); assert.True(t, ok) {
-			if header, ok := header.(http.Header); assert.True(t, ok) {
-				ping := header.Get("Ping")
-				assert.Equal(t, "true", ping)
-				header = make(http.Header)
-				header.Set("Pong", "true")
-				serviceContext.Items().Set("httpResponseHeaders", header)
-			}
+		if header, ok := serviceContext.Items().GetInterface("httpRequestHeaders").(http.Header); assert.True(t, ok) {
+			ping := header.Get("Ping")
+			assert.Equal(t, "true", ping)
+			header = make(http.Header)
+			header.Set("Pong", "true")
+			serviceContext.Items().Set("httpResponseHeaders", header)
 		}
 		return next(ctx, name, args)
 	})
@@ -1526,11 +1524,9 @@ func TestHttpHeaders(t *testing.T) {
 	ctx := core.WithContext(context.Background(), clientContext)
 	result := proxy.Hello(ctx, "world")
 	assert.Equal(t, `hello world`, result)
-	if header, ok := clientContext.Items().Get("httpResponseHeaders"); assert.True(t, ok) {
-		if header, ok := header.(http.Header); assert.True(t, ok) {
-			pong := header.Get("Pong")
-			assert.Equal(t, "true", pong)
-		}
+	if header, ok := clientContext.Items().GetInterface("httpResponseHeaders").(http.Header); assert.True(t, ok) {
+		pong := header.Get("Pong")
+		assert.Equal(t, "true", pong)
 	}
 	server.Close()
 }
@@ -1545,12 +1541,10 @@ func TestHttpHeaders2(t *testing.T) {
 	service.GetHandler("http").(*Handler).Header = header
 	service.Use(func(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
 		serviceContext := core.GetServiceContext(ctx)
-		if header, ok := serviceContext.Items().Get("httpRequestHeaders"); assert.True(t, ok) {
-			if header, ok := header.(http.Header); assert.True(t, ok) {
-				ping := header.Get("Ping")
-				assert.Equal(t, "true", ping)
-				serviceContext.Items().Set("httpStatusCode", 200)
-			}
+		if header, ok := serviceContext.Items().GetInterface("httpRequestHeaders").(http.Header); assert.True(t, ok) {
+			ping := header.Get("Ping")
+			assert.Equal(t, "true", ping)
+			serviceContext.Items().Set("httpStatusCode", 200)
 		}
 		return next(ctx, name, args)
 	})
@@ -1574,11 +1568,9 @@ func TestHttpHeaders2(t *testing.T) {
 	ctx := core.WithContext(context.Background(), clientContext)
 	result := proxy.Hello(ctx, "world")
 	assert.Equal(t, `hello world`, result)
-	if header, ok := clientContext.Items().Get("httpResponseHeaders"); assert.True(t, ok) {
-		if header, ok := header.(http.Header); assert.True(t, ok) {
-			pong := header.Get("Pong")
-			assert.Equal(t, "true", pong)
-		}
+	if header, ok := clientContext.Items().GetInterface("httpResponseHeaders").(http.Header); assert.True(t, ok) {
+		pong := header.Get("Pong")
+		assert.Equal(t, "true", pong)
 	}
 	server.Close()
 }
