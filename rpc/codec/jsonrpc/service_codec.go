@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/codec/jsonrpc/service_codec.go                       |
 |                                                          |
-| LastModified: May 10, 2021                               |
+| LastModified: May 17, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,6 +17,7 @@ import (
 	"reflect"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
+	"github.com/modern-go/reflect2"
 )
 
 type ServiceCodec struct {
@@ -109,12 +110,13 @@ func (c *ServiceCodec) Decode(request []byte, context *core.ServiceContext) (nam
 	args = make([]interface{}, count)
 	for i, t := range paramTypes {
 		data, _ := c.Codec.Marshal(req.Params[i])
-		a := reflect.New(t)
-		if err = c.Codec.Unmarshal(data, a.Interface()); err != nil {
+		t2 := reflect2.Type2(t)
+		a := t2.New()
+		if err = c.Codec.Unmarshal(data, a); err != nil {
 			err = &jsonrpcError{codeInvalidParams, messageInvalidParams}
 			return
 		}
-		args[i] = a.Elem().Interface()
+		args[i] = t2.Indirect(a)
 	}
 	return
 }

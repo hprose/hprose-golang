@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/codec/jsonrpc/client_codec.go                        |
 |                                                          |
-| LastModified: May 10, 2021                               |
+| LastModified: May 17, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,10 +15,10 @@ package jsonrpc
 
 import (
 	"errors"
-	"reflect"
 	"sync/atomic"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
+	"github.com/modern-go/reflect2"
 )
 
 type ClientCodec struct {
@@ -55,19 +55,21 @@ func (c *ClientCodec) Decode(response []byte, context *core.ClientContext) (resu
 		case 0:
 		case 1:
 			data, _ := c.Codec.Marshal(resp.Result)
-			r := reflect.New(context.ReturnType[0])
-			if err = c.Codec.Unmarshal(data, r.Interface()); err != nil {
+			t := reflect2.Type2(context.ReturnType[0])
+			p := t.New()
+			if err = c.Codec.Unmarshal(data, p); err != nil {
 				return
 			}
-			result = append(result, r.Elem().Interface())
+			result = append(result, t.Indirect(p))
 		default:
 			for i, r := range resp.Result.([]interface{}) {
 				data, _ := c.Codec.Marshal(r)
-				r := reflect.New(context.ReturnType[i])
-				if err = c.Codec.Unmarshal(data, r.Interface()); err != nil {
+				t := reflect2.Type2(context.ReturnType[i])
+				p := t.New()
+				if err = c.Codec.Unmarshal(data, p); err != nil {
 					return
 				}
-				result = append(result, r.Elem().Interface())
+				result = append(result, t.Indirect(p))
 			}
 		}
 	}
