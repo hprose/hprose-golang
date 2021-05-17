@@ -14,11 +14,15 @@
 package push
 
 import (
+	"reflect"
 	"sync"
 	"time"
 
+	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
+
+type Callback interface{}
 
 type Prosumer struct {
 	client        *core.Client
@@ -77,8 +81,32 @@ func (p *Prosumer) dispatch(topics map[string][]Message) {
 				}
 			} else {
 				for _, message := range messages {
-					callback.(func(Message))(message)
+					p.call(callback, message)
 				}
+			}
+		}
+	}
+}
+
+func (p *Prosumer) call(callback Callback, message Message) {
+	switch callback := callback.(type) {
+	case func(Message):
+		callback(message)
+	case func(data interface{}, from string):
+		callback(message.Data, message.From)
+	case func(data interface{}):
+		callback(message.Data)
+	default:
+		v := reflect.ValueOf(callback)
+		t := v.Type()
+		switch t.NumIn() {
+		case 1:
+			if data, err := io.Convert(message.Data, t.In(0)); err != nil {
+				v.Call([]reflect.Value{reflect.ValueOf(data)})
+			}
+		case 2:
+			if data, err := io.Convert(message.Data, t.In(0)); err != nil {
+				v.Call([]reflect.Value{reflect.ValueOf(data), reflect.ValueOf(message.From)})
 			}
 		}
 	}
@@ -105,7 +133,7 @@ func (p *Prosumer) message() {
 	}
 }
 
-func (p *Prosumer) Subscribe(topic string, callback func(Message)) (result bool, err error) {
+func (p *Prosumer) Subscribe(topic string, callback Callback) (result bool, err error) {
 	if p.ID() != "" {
 		p.callbacks.Store(topic, callback)
 		result, err = p.proxy.subscribe(topic)
