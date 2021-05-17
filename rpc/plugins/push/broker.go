@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/push/broker.go                               |
 |                                                          |
-| LastModified: May 16, 2021                               |
+| LastModified: May 17, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -239,6 +239,20 @@ func (b *Broker) Broadcast(ctx context.Context, data interface{}, topic string, 
 		return true
 	})
 	return result
+}
+
+func (b *Broker) Push(data interface{}, topic string, id ...string) map[string]bool {
+	ctx := context.Background()
+	switch len(id) {
+	case 0:
+		return b.Broadcast(ctx, data, topic, "")
+	case 1:
+		return map[string]bool{
+			id[0]: b.Unicast(ctx, data, topic, id[0], ""),
+		}
+	default:
+		return b.Multicast(ctx, data, topic, id, "")
+	}
 }
 
 func (b *Broker) Deny(ctx context.Context, id string, topic string) {

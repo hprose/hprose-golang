@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/push/producer.go                             |
 |                                                          |
-| LastModified: May 11, 2021                               |
+| LastModified: May 17, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -20,7 +20,7 @@ type Producer interface {
 	Unicast(ctx context.Context, data interface{}, topic string, id string) bool
 	Multicast(ctx context.Context, data interface{}, topic string, ids []string) map[string]bool
 	Broadcast(ctx context.Context, data interface{}, topic string) map[string]bool
-	Push(ctx context.Context, data interface{}, topic string, id ...string) map[string]bool
+	Push(data interface{}, topic string, id ...string) map[string]bool
 	Deny(ctx context.Context, id string, topic string)
 	Exists(topic string, id string) bool
 	IdList(topic string) []string
@@ -47,7 +47,8 @@ func (p producer) Broadcast(ctx context.Context, data interface{}, topic string)
 	return p.broker.Broadcast(ctx, data, topic, p.from)
 }
 
-func (p producer) Push(ctx context.Context, data interface{}, topic string, id ...string) map[string]bool {
+func (p producer) Push(data interface{}, topic string, id ...string) map[string]bool {
+	ctx := context.Background()
 	switch len(id) {
 	case 0:
 		return p.broker.Broadcast(ctx, data, topic, p.from)
