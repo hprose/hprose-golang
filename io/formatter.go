@@ -4,45 +4,25 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| rpc/plugins/push/message.go                              |
+| io/formatter.go                                          |
 |                                                          |
 | LastModified: May 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package push
+package io
 
-import (
-	"sync"
-
-	"github.com/hprose/hprose-golang/v3/io"
-)
-
-type Message struct {
-	Data interface{} `json:"data"`
-	From string      `json:"from"`
+func Marshal(v interface{}) ([]byte, error) {
+	encoder := new(Encoder)
+	if err := encoder.Encode(v); err != nil {
+		return nil, err
+	}
+	return encoder.Bytes(), nil
 }
 
-type MessageCache struct {
-	m []Message
-	l sync.Mutex
-}
-
-func (m *MessageCache) Append(message Message) {
-	m.l.Lock()
-	defer m.l.Unlock()
-	m.m = append(m.m, message)
-}
-
-func (m *MessageCache) Take() (result []Message) {
-	m.l.Lock()
-	defer m.l.Unlock()
-	result = m.m
-	m.m = nil
-	return
-}
-
-func init() {
-	io.RegisterName("@", (*Message)(nil))
+func Unmarshal(data []byte, v interface{}) error {
+	decoder := NewDecoder(data)
+	decoder.Decode(v)
+	return decoder.Error
 }

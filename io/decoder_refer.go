@@ -4,45 +4,35 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| rpc/plugins/push/message.go                              |
+| io/decoder_refer.go                                      |
 |                                                          |
-| LastModified: May 16, 2021                               |
+| LastModified: Apr 19, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package push
+package io
 
-import (
-	"sync"
-
-	"github.com/hprose/hprose-golang/v3/io"
-)
-
-type Message struct {
-	Data interface{} `json:"data"`
-	From string      `json:"from"`
+type decoderRefer struct {
+	ref []interface{}
 }
 
-type MessageCache struct {
-	m []Message
-	l sync.Mutex
+func (r *decoderRefer) Add(o interface{}) {
+	r.ref = append(r.ref, o)
 }
 
-func (m *MessageCache) Append(message Message) {
-	m.l.Lock()
-	defer m.l.Unlock()
-	m.m = append(m.m, message)
+func (r *decoderRefer) Last() int {
+	return len(r.ref) - 1
 }
 
-func (m *MessageCache) Take() (result []Message) {
-	m.l.Lock()
-	defer m.l.Unlock()
-	result = m.m
-	m.m = nil
-	return
+func (r *decoderRefer) Set(i int, o interface{}) {
+	r.ref[i] = o
 }
 
-func init() {
-	io.RegisterName("@", (*Message)(nil))
+func (r *decoderRefer) Read(i int) interface{} {
+	return r.ref[i]
+}
+
+func (r *decoderRefer) Reset() {
+	r.ref = r.ref[:0]
 }

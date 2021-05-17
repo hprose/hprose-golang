@@ -17,7 +17,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/hprose/hprose-golang/v3/encoding"
+	"github.com/hprose/hprose-golang/v3/io"
 )
 
 // ServiceCodec for RPC.
@@ -29,23 +29,23 @@ type ServiceCodec interface {
 type serviceCodec struct {
 	Debug  bool
 	Simple bool
-	encoding.LongType
-	encoding.RealType
-	encoding.MapType
+	io.LongType
+	io.RealType
+	io.MapType
 }
 
 func (c serviceCodec) Encode(result interface{}, context *ServiceContext) ([]byte, error) {
-	encoder := new(encoding.Encoder).Simple(c.Simple)
+	encoder := new(io.Encoder).Simple(c.Simple)
 	if c.Simple {
 		context.ResponseHeaders().Set("simple", true)
 	}
 	if context.HasResponseHeaders() {
-		encoder.WriteTag(encoding.TagHeader)
+		encoder.WriteTag(io.TagHeader)
 		_ = encoder.Write(context.ResponseHeaders().ToMap())
 		encoder.Reset()
 	}
 	if e, ok := result.(error); ok {
-		encoder.WriteTag(encoding.TagError)
+		encoder.WriteTag(io.TagError)
 		var msg string
 		if pe, ok := e.(*PanicError); ok && c.Debug {
 			msg = pe.String()
@@ -54,10 +54,10 @@ func (c serviceCodec) Encode(result interface{}, context *ServiceContext) ([]byt
 		}
 		encoder.WriteString(msg)
 	} else {
-		encoder.WriteTag(encoding.TagResult)
+		encoder.WriteTag(io.TagResult)
 		_ = encoder.Write(result)
 	}
-	encoder.WriteTag(encoding.TagEnd)
+	encoder.WriteTag(io.TagEnd)
 	return encoder.Bytes(), encoder.Error
 }
 
@@ -67,12 +67,12 @@ func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name stri
 		err = c.decodeMethod(name, context)
 		return
 	}
-	decoder := encoding.NewDecoder(request).Simple(false)
+	decoder := io.NewDecoder(request).Simple(false)
 	decoder.LongType = c.LongType
 	decoder.RealType = c.RealType
 	decoder.MapType = c.MapType
 	tag := decoder.NextByte()
-	if tag == encoding.TagHeader {
+	if tag == io.TagHeader {
 		var h map[string]interface{}
 		decoder.Decode(&h)
 		NewDict(h).CopyTo(context.RequestHeaders())
@@ -80,7 +80,7 @@ func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name stri
 		tag = decoder.NextByte()
 	}
 	switch tag {
-	case encoding.TagCall:
+	case io.TagCall:
 		if context.RequestHeaders().GetBool("simple") {
 			decoder.Simple(true)
 		}
@@ -88,7 +88,7 @@ func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name stri
 		if err = c.decodeMethod(name, context); err == nil {
 			args, err = c.decodeArguments(context.Method, decoder)
 		}
-	case encoding.TagEnd:
+	case io.TagEnd:
 		name = "~"
 		err = c.decodeMethod("~", context)
 	default:
@@ -104,9 +104,9 @@ func (c serviceCodec) decodeMethod(name string, context *ServiceContext) (err er
 	return err
 }
 
-func (c serviceCodec) decodeArguments(method Method, decoder *encoding.Decoder) (args []interface{}, err error) {
+func (c serviceCodec) decodeArguments(method Method, decoder *io.Decoder) (args []interface{}, err error) {
 	tag := decoder.NextByte()
-	if tag != encoding.TagList {
+	if tag != io.TagList {
 		return
 	}
 	decoder.Reset()

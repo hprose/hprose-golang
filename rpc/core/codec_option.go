@@ -13,7 +13,7 @@
 
 package core
 
-import "github.com/hprose/hprose-golang/v3/encoding"
+import "github.com/hprose/hprose-golang/v3/io"
 
 // CodecOption for clientCodec & serviceCodec.
 type CodecOption func(interface{})
@@ -40,7 +40,7 @@ func WithSimple(simple bool) CodecOption {
 }
 
 // WithDebug returns a longType Option for clientCodec & serviceCodec.
-func WithLongType(longType encoding.LongType) CodecOption {
+func WithLongType(longType io.LongType) CodecOption {
 	return func(c interface{}) {
 		switch c := c.(type) {
 		case *serviceCodec:
@@ -52,7 +52,7 @@ func WithLongType(longType encoding.LongType) CodecOption {
 }
 
 // WithRealType returns a realType Option for clientCodec & serviceCodec.
-func WithRealType(realType encoding.RealType) CodecOption {
+func WithRealType(realType io.RealType) CodecOption {
 	return func(c interface{}) {
 		switch c := c.(type) {
 		case *serviceCodec:
@@ -64,7 +64,7 @@ func WithRealType(realType encoding.RealType) CodecOption {
 }
 
 // WithMapType returns a mapType Option for clientCodec & serviceCodec.
-func WithMapType(mapType encoding.MapType) CodecOption {
+func WithMapType(mapType io.MapType) CodecOption {
 	return func(c interface{}) {
 		switch c := c.(type) {
 		case *serviceCodec:

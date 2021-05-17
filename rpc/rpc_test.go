@@ -28,7 +28,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/hprose/hprose-golang/v3/encoding"
+	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/hprose/hprose-golang/v3/rpc"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/push"
@@ -400,9 +400,9 @@ func TestAutoTypeConvert(t *testing.T) {
 	service.Codec = rpc.NewServiceCodec(
 		rpc.WithDebug(true),
 		rpc.WithSimple(true),
-		rpc.WithLongType(encoding.LongTypeBigInt),
-		rpc.WithRealType(encoding.RealTypeBigFloat),
-		rpc.WithMapType(encoding.MapTypeSIMap),
+		rpc.WithLongType(io.LongTypeBigInt),
+		rpc.WithRealType(io.RealTypeBigFloat),
+		rpc.WithMapType(io.MapTypeSIMap),
 	)
 	service.AddFunction(autoTypeConvert)
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
@@ -419,9 +419,9 @@ func TestAutoTypeConvert(t *testing.T) {
 	}
 	client.Codec = rpc.NewClientCodec(
 		rpc.WithSimple(true),
-		rpc.WithLongType(encoding.LongTypeUint64),
-		rpc.WithRealType(encoding.RealTypeFloat64),
-		rpc.WithMapType(encoding.MapTypeIIMap),
+		rpc.WithLongType(io.LongTypeUint64),
+		rpc.WithRealType(io.RealTypeFloat64),
+		rpc.WithMapType(io.MapTypeIIMap),
 	)
 	client.UseService(&proxy)
 	msg, result := proxy.AutoTypeConvert(int64(12345))
@@ -790,8 +790,8 @@ func TestPush(t *testing.T) {
 	client2 := rpc.NewClient("tcp://127.0.0.1/")
 	client2.Use(log.Plugin.IOHandler)
 	prosumer2 := push.NewProsumer(client2, "2")
-	prosumer1.Subscribe("test", func(message push.Message) {
-		fmt.Println(message)
+	prosumer1.Subscribe("test", func(data string) {
+		fmt.Println(data)
 	})
 	prosumer1.Subscribe("test2", func(message push.Message) {
 		fmt.Println(message)
