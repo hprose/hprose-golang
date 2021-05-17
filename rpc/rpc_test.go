@@ -481,8 +481,8 @@ func TestHTTP(t *testing.T) {
 	httpHandler.SetClientAccessPolicyXMLContent([]byte(clientAccessPolicyXMLContent))
 	service.AddFunction(func(ctx context.Context, name string) string {
 		serviceContext := rpc.GetServiceContext(ctx)
-		header, _ := serviceContext.Items().Get("httpRequestHeaders")
-		return header.(http.Header).Get("test") + ":hello " + name
+		header := serviceContext.Items().GetInterface("httpRequestHeaders").(http.Header)
+		return header.Get("test") + ":hello " + name
 	}, "hello")
 	assert.True(t, service.Get("hello").PassContext())
 	serverMux := http.NewServeMux()
@@ -770,7 +770,12 @@ func TestPush(t *testing.T) {
 	assert.NoError(t, err)
 	err = service.Bind(server)
 	assert.NoError(t, err)
-
+	service.AddFunction(func(ctx context.Context, name string) string {
+		serviceContext := rpc.GetServiceContext(ctx)
+		producer := serviceContext.Items().GetInterface("producer").(push.Producer)
+		producer.Push("ooxx", "test")
+		return "hello " + name
+	}, "hello")
 	time.Sleep(time.Millisecond * 5)
 
 	client1 := rpc.NewClient("tcp://127.0.0.1/")
@@ -792,6 +797,7 @@ func TestPush(t *testing.T) {
 		fmt.Println(message)
 	})
 	time.Sleep(time.Millisecond * 100)
+	client1.Invoke("hello", []interface{}{"world"})
 	var wg sync.WaitGroup
 	n := 1000
 	wg.Add(n)

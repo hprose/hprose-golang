@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/client.go                                            |
 |                                                          |
-| LastModified: May 12, 2021                               |
+| LastModified: May 17, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -31,22 +31,25 @@ func init() {
 }
 
 // Client for RPC.
-type Client = core.Client
+type (
+	Client          = core.Client
+	TransportGetter = core.TransportGetter
+)
 
 var NewClient = core.NewClient
 
-func HTTPTransport(c *Client) *http.Transport {
-	return c.GetTransport("http").(*http.Transport)
+func HTTPTransport(t TransportGetter) *http.Transport {
+	return t.GetTransport("http").(*http.Transport)
 }
 
-func SocketTransport(c *Client) *socket.Transport {
-	return c.GetTransport("socket").(*socket.Transport)
+func SocketTransport(t TransportGetter) *socket.Transport {
+	return t.GetTransport("socket").(*socket.Transport)
 }
 
-func UDPTransport(c *Client) *udp.Transport {
-	return c.GetTransport("udp").(*udp.Transport)
+func UDPTransport(t TransportGetter) *udp.Transport {
+	return t.GetTransport("udp").(*udp.Transport)
 }
 
-func WebSocketTransport(c *Client) *websocket.Transport {
-	return c.GetTransport("websocket").(*websocket.Transport)
+func WebSocketTransport(t TransportGetter) *websocket.Transport {
+	return t.GetTransport("websocket").(*websocket.Transport)
 }

@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/service.go                                           |
 |                                                          |
-| LastModified: May 12, 2021                               |
+| LastModified: May 17, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -30,22 +30,25 @@ func init() {
 }
 
 // Service for RPC.
-type Service = core.Service
+type (
+	Service       = core.Service
+	HandlerGetter = core.HandlerGetter
+)
 
 var NewService = core.NewService
 
-func HTTPHandler(s *Service) *http.Handler {
-	return &s.GetHandler("websocket").(*websocket.Handler).Handler
+func HTTPHandler(h HandlerGetter) *http.Handler {
+	return &h.GetHandler("websocket").(*websocket.Handler).Handler
 }
 
-func SocketHandler(s *Service) *socket.Handler {
-	return s.GetHandler("socket").(*socket.Handler)
+func SocketHandler(h HandlerGetter) *socket.Handler {
+	return h.GetHandler("socket").(*socket.Handler)
 }
 
-func UDPHandler(s *Service) *udp.Handler {
-	return s.GetHandler("udp").(*udp.Handler)
+func UDPHandler(h HandlerGetter) *udp.Handler {
+	return h.GetHandler("udp").(*udp.Handler)
 }
 
-func WebSocketHandler(s *Service) *websocket.Handler {
-	return s.GetHandler("websocket").(*websocket.Handler)
+func WebSocketHandler(h HandlerGetter) *websocket.Handler {
+	return h.GetHandler("websocket").(*websocket.Handler)
 }
