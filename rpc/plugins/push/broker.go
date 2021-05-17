@@ -295,10 +295,7 @@ func (b *Broker) IdList(topic string) (idlist []string) {
 
 func (b *Broker) handler(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
 	serviceContext := core.GetServiceContext(ctx)
-	var from string
-	if id := serviceContext.RequestHeaders().GetString("id"); id != "" {
-		from = id
-	}
+	from := b.ID(ctx)
 	switch name {
 	case ">", ">?", ">*":
 		args = append(args, from)
