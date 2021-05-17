@@ -13,7 +13,11 @@
 
 package push
 
-import "context"
+import (
+	"context"
+
+	"github.com/hprose/hprose-golang/v3/rpc/core"
+)
 
 type Producer interface {
 	From() string
@@ -24,6 +28,10 @@ type Producer interface {
 	Deny(ctx context.Context, id string, topic string)
 	Exists(topic string, id string) bool
 	IdList(topic string) []string
+}
+
+func GetProducer(ctx context.Context) Producer {
+	return core.GetServiceContext(ctx).Items().GetInterface("producer").(Producer)
 }
 
 type producer struct {
