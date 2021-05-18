@@ -47,7 +47,8 @@ type prosumer struct {
 
 func NewProsumer(client *core.Client, id ...string) *Prosumer {
 	p := &Prosumer{
-		client: client,
+		client:        client,
+		RetryInterval: time.Second,
 	}
 	if len(id) > 0 && id[0] != "" {
 		p.SetID(id[0])
@@ -139,12 +140,16 @@ func (p *Prosumer) message() {
 	for {
 		topics, err := p.proxy.message()
 		if err != nil {
-			if err != core.ErrTimeout {
+			if !core.IsTimeoutError(err) {
 				if p.RetryInterval != 0 {
 					<-time.After(p.RetryInterval)
 				}
 				p.onError(err)
 			}
+			p.callbacks.Range(func(key, value interface{}) bool {
+				p.proxy.subscribe(key.(string))
+				return true
+			})
 			continue
 		}
 		if topics == nil {
