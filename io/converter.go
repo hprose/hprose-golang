@@ -67,6 +67,10 @@ func strConverter(dec *Decoder, o interface{}, p interface{}) {
 	}
 }
 
+func assignTo(dec *Decoder, o interface{}, p interface{}) {
+	reflect.ValueOf(p).Elem().Set(reflect.ValueOf(o))
+}
+
 func ptrCopy(dec *Decoder, o interface{}, p interface{}) {
 	*(*unsafe.Pointer)(reflect2.PtrOf(p)) = reflect2.PtrOf(o)
 }
@@ -125,6 +129,9 @@ func RegisterConverter(src, dest reflect.Type, converter func(dec *Decoder, o in
 func GetConverter(src, dest reflect.Type) func(dec *Decoder, o interface{}, p interface{}) {
 	if converter, ok := converterMap.Load(converterMapKey{src, dest}); ok {
 		return converter.(func(dec *Decoder, o interface{}, p interface{}))
+	}
+	if dest == interfaceType {
+		return assignTo
 	}
 	switch dest.Kind() {
 	case reflect.String:
