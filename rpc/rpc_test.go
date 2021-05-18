@@ -779,7 +779,7 @@ func TestPush(t *testing.T) {
 	time.Sleep(time.Millisecond * 5)
 
 	client1 := rpc.NewClient("tcp://127.0.0.1/")
-	//client1.Use(log.Plugin.IOHandler)
+	client1.Use(log.Plugin.IOHandler)
 	prosumer1 := push.NewProsumer(client1, "1")
 	prosumer1.OnError = func(e error) {
 		fmt.Println(e.Error())
@@ -801,17 +801,40 @@ func TestPush(t *testing.T) {
 	})
 	time.Sleep(time.Millisecond * 100)
 	client1.Invoke("hello", []interface{}{"world"})
-	var wg sync.WaitGroup
-	n := 1000
-	wg.Add(n)
-	for i := 0; i < n; i++ {
-		go func(i int) {
-			prosumer2.Push(i, "test", "1")
-			wg.Done()
-		}(i)
-	}
-	wg.Wait()
+	prosumer2.Push(1, "test", "1")
+	// var wg sync.WaitGroup
+	// n := 1000
+	// wg.Add(n)
+	// for i := 0; i < n; i++ {
+	// 	go func(i int) {
+	// 		prosumer2.Push(i, "test", "1")
+	// 		wg.Done()
+	// 	}(i)
+	// }
+	// wg.Wait()
 	time.Sleep(time.Millisecond * 100)
+
+	server.Close()
+
+	time.Sleep(time.Millisecond * 100)
+
+	server, _ = net.Listen("tcp", "127.0.0.1:8412")
+	_ = service.Bind(server)
+
+	time.Sleep(time.Millisecond * 100)
+
+	prosumer2.Push(2, "test", "1")
+
+	// wg.Add(n)
+	// for i := 0; i < n; i++ {
+	// 	go func(i int) {
+	// 		prosumer2.Push(i, "test", "1")
+	// 		wg.Done()
+	// 	}(i)
+	// }
+	// wg.Wait()
+	time.Sleep(time.Millisecond * 1000)
+
 	prosumer1.Unsubscribe("test")
 	prosumer1.Unsubscribe("test2")
 

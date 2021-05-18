@@ -16,6 +16,7 @@ package push
 import (
 	"reflect"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/hprose/hprose-golang/v3/io"
@@ -32,6 +33,7 @@ type Prosumer struct {
 	OnError       func(error)
 	OnSubscribe   func(topic string)
 	OnUnsubscribe func(topic string)
+	loop          int32
 }
 
 type prosumer struct {
@@ -47,7 +49,8 @@ type prosumer struct {
 
 func NewProsumer(client *core.Client, id ...string) *Prosumer {
 	p := &Prosumer{
-		client: client,
+		client:        client,
+		RetryInterval: time.Second,
 	}
 	if len(id) > 0 && id[0] != "" {
 		p.SetID(id[0])
@@ -136,7 +139,11 @@ func (p *Prosumer) call(callback Callback, message Message) {
 }
 
 func (p *Prosumer) message() {
+	if atomic.LoadInt32(&p.loop) == 1 {
+		return
+	}
 	for {
+		atomic.StoreInt32(&p.loop, 1)
 		topics, err := p.proxy.message()
 		if err != nil {
 			if err != core.ErrTimeout {
@@ -144,10 +151,15 @@ func (p *Prosumer) message() {
 					<-time.After(p.RetryInterval)
 				}
 				p.onError(err)
+				p.callbacks.Range(func(key, value interface{}) bool {
+					p.proxy.subscribe(key.(string))
+					return true
+				})
 			}
 			continue
 		}
 		if topics == nil {
+			atomic.StoreInt32(&p.loop, 0)
 			return
 		}
 		go p.dispatch(topics)
