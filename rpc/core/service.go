@@ -183,7 +183,7 @@ func (s *Service) Execute(ctx context.Context, name string, args []interface{}) 
 
 // Use plugin handlers.
 func (s *Service) Use(handler ...PluginHandler) *Service {
-	invokeHandlers, ioHandler := separatePluginHandlers(handler)
+	invokeHandlers, ioHandler := SeparatePluginHandlers(handler)
 	if len(invokeHandlers) > 0 {
 		s.invokeManager.Use(invokeHandlers...)
 	}
@@ -195,7 +195,7 @@ func (s *Service) Use(handler ...PluginHandler) *Service {
 
 // Unuse plugin handlers.
 func (s *Service) Unuse(handler ...PluginHandler) *Service {
-	invokeHandlers, ioHandler := separatePluginHandlers(handler)
+	invokeHandlers, ioHandler := SeparatePluginHandlers(handler)
 	if len(invokeHandlers) > 0 {
 		s.invokeManager.Unuse(invokeHandlers...)
 	}

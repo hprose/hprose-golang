@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/plugin_manager.go                               |
 |                                                          |
-| LastModified: May 12, 2021                               |
+| LastModified: May 19, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -38,7 +38,7 @@ type ioPlugin interface {
 	Handler(ctx context.Context, request []byte, next NextIOHandler) (response []byte, err error)
 }
 
-func separatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHandler, ioHandlers []PluginHandler) {
+func SeparatePluginHandlers(handlers []PluginHandler) (invokeHandlers []PluginHandler, ioHandlers []PluginHandler) {
 	for _, handler := range handlers {
 		switch handler := handler.(type) {
 		case InvokeHandler:
