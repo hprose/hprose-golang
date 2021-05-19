@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/rpc_test.go                                          |
 |                                                          |
-| LastModified: May 12, 2021                               |
+| LastModified: May 19, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -32,6 +32,7 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/push"
+	"github.com/hprose/hprose-golang/v3/rpc/plugins/reverse"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -839,5 +840,37 @@ func TestPush(t *testing.T) {
 	prosumer1.Unsubscribe("test2")
 
 	assert.NoError(t, err)
+	server.Close()
+}
+
+func TestReverseInvoke(t *testing.T) {
+	service := rpc.NewService()
+	caller := reverse.NewCaller(service)
+	server, err := net.Listen("tcp", "127.0.0.1:8412")
+	assert.NoError(t, err)
+	err = service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := rpc.NewClient("tcp://127.0.0.1/")
+	client.Use(log.Plugin)
+	provider := reverse.NewProvider(client, "1")
+	provider.Debug = true
+	provider.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	go provider.Listen()
+
+	time.Sleep(time.Millisecond * 100)
+
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	caller.UseService(&proxy, "1")
+	result, err := proxy.Hello("world")
+	assert.Equal(t, "hello world", result)
+	assert.NoError(t, err)
+	provider.Close()
 	server.Close()
 }
