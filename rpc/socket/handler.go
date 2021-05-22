@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/handler.go                                    |
 |                                                          |
-| LastModified: May 5, 2021                                |
+| LastModified: May 22, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -122,25 +122,30 @@ func (h *Handler) receive(ctx context.Context, conn net.Conn, queue chan data, e
 	defer h.catch(ctx, errChan)
 	var header [12]byte
 	for {
-		if _, err := io.ReadAtLeast(conn, header[:], 12); err != nil {
-			h.reportError(ctx, errChan, err)
+		select {
+		case <-ctx.Done():
 			return
+		default:
+			if _, err := io.ReadAtLeast(conn, header[:], 12); err != nil {
+				h.reportError(ctx, errChan, err)
+				return
+			}
+			length, index, ok := parseHeader(header)
+			if length == 0 && index == -1 && !ok {
+				h.reportError(ctx, errChan, core.InvalidRequestError{})
+				return
+			}
+			if length > h.Service.MaxRequestLength {
+				h.sendResponse(ctx, queue, index, nil, core.ErrRequestEntityTooLarge)
+				return
+			}
+			body := make([]byte, length)
+			if _, err := io.ReadAtLeast(conn, body, length); err != nil {
+				h.reportError(ctx, errChan, err)
+				return
+			}
+			go h.run(core.WithContext(ctx, h.getServiceContext(conn)), queue, index, body)
 		}
-		length, index, ok := parseHeader(header)
-		if length == 0 && index == -1 && !ok {
-			h.reportError(ctx, errChan, core.InvalidRequestError{})
-			return
-		}
-		if length > h.Service.MaxRequestLength {
-			h.sendResponse(ctx, queue, index, nil, core.ErrRequestEntityTooLarge)
-			return
-		}
-		body := make([]byte, length)
-		if _, err := io.ReadAtLeast(conn, body, length); err != nil {
-			h.reportError(ctx, errChan, err)
-			return
-		}
-		go h.run(core.WithContext(ctx, h.getServiceContext(conn)), queue, index, body)
 	}
 }
 

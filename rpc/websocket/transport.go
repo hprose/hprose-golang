@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/websocket/transport.go                               |
 |                                                          |
-| LastModified: May 5, 2021                                |
+| LastModified: May 22, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -132,65 +132,86 @@ func (c *conn) Exit(onExit func(), err error) {
 	}
 }
 
-func (c *conn) Send(onExit func()) {
+func (c *conn) send(request data) error {
+	header := makeHeader(request.Index)
+	writer, err := c.NextWriter(websocket.BinaryMessage)
+	if err == nil {
+		_, err = writer.Write(header[:])
+		if err == nil {
+			_, err = writer.Write(request.Body)
+			if err == nil {
+				err = writer.Close()
+			}
+		}
+	}
+	return err
+}
+
+func (c *conn) Send(ctx context.Context, onExit func()) {
 	var err error
 	defer func() {
 		c.Exit(onExit, err)
 	}()
-	for request := range c.requests {
-		header := makeHeader(request.Index)
-		writer, err := c.NextWriter(websocket.BinaryMessage)
-		if err == nil {
-			_, err = writer.Write(header[:])
-			if err == nil {
-				_, err = writer.Write(request.Body)
-				if err == nil {
-					err = writer.Close()
-				}
-			}
-		}
-		if err != nil {
+	for {
+		select {
+		case <-ctx.Done():
 			return
+		case request := <-c.requests:
+			if err = c.send(request); err != nil {
+				return
+			}
 		}
 	}
 }
 
-func (c *conn) Receive(onExit func()) {
+func (c *conn) receive() (err error) {
 	var (
 		messageType int
 		body        []byte
-		err         error
 	)
+	messageType, body, err = c.ReadMessage()
+	if err != nil {
+		return
+	}
+	switch messageType {
+	case websocket.CloseMessage:
+		err = core.ErrClosed
+		return
+	case websocket.BinaryMessage:
+	default:
+		return
+	}
+	index, ok := parseHeader(body[:4])
+	body = body[4:]
+	if !ok {
+		if string(body) == core.RequestEntityTooLarge {
+			err = core.ErrRequestEntityTooLarge
+		} else {
+			err = core.InvalidResponseError{Response: body}
+		}
+		return
+	}
+	if resultChan, loaded := c.loadAndDelete(index); loaded {
+		resultChan <- data{
+			Index: index,
+			Body:  body,
+		}
+	}
+	return
+}
+
+func (c *conn) Receive(ctx context.Context, onExit func()) {
+	var err error
 	defer func() {
 		c.Exit(onExit, err)
 	}()
 	for {
-		messageType, body, err = c.ReadMessage()
-		if err != nil {
+		select {
+		case <-ctx.Done():
 			return
-		}
-		switch messageType {
-		case websocket.CloseMessage:
-			err = core.ErrClosed
-			return
-		case websocket.BinaryMessage:
 		default:
-			continue
-		}
-		index, ok := parseHeader(body[:4])
-		body = body[4:]
-		if !ok {
-			if string(body) == core.RequestEntityTooLarge {
-				err = core.ErrRequestEntityTooLarge
-			} else {
-				err = core.InvalidResponseError{Response: body}
-			}
-			return
-		}
-		if resultChan, loaded := c.loadAndDelete(index); loaded {
-			resultChan <- data{
-				Index: index,
-				Body:  body,
+			if err = c.receive(); err != nil {
+				return
 			}
 		}
 	}
@@ -235,15 +256,17 @@ func (trans *Transport) getConn(ctx context.Context) (conn *conn, err error) {
 		return
 	}
 	trans.conns[key] = conn
+	ctx, cancel := context.WithCancel(context.Background())
 	onExit := func() {
 		trans.lock.Lock()
 		if trans.conns[key] == conn {
 			delete(trans.conns, key)
+			cancel()
 		}
 		trans.lock.Unlock()
 	}
-	go conn.Send(onExit)
-	go conn.Receive(onExit)
+	go conn.Send(ctx, onExit)
+	go conn.Receive(ctx, onExit)
 	return
 }
 

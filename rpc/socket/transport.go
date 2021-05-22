@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/transport.go                                  |
 |                                                          |
-| LastModified: May 5, 2021                                |
+| LastModified: May 22, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -133,53 +133,75 @@ func (c *conn) Exit(onExit func(), err error) {
 	}
 }
 
-func (c *conn) Send(onExit func()) {
+func (c *conn) send(request data) (err error) {
+	header := makeHeader(len(request.Body), request.Index)
+	if _, err = c.Write(header[:]); err != nil {
+		return
+	}
+	_, err = c.Write(request.Body)
+	return
+}
+
+func (c *conn) Send(ctx context.Context, onExit func()) {
 	var err error
 	defer func() {
 		c.Exit(onExit, err)
 	}()
-	for request := range c.requests {
-		header := makeHeader(len(request.Body), request.Index)
-		if _, err = c.Write(header[:]); err != nil {
+	for {
+		select {
+		case <-ctx.Done():
 			return
-		}
-		if _, err = c.Write(request.Body); err != nil {
-			return
+		case request := <-c.requests:
+			if err = c.send(request); err != nil {
+				return
+			}
 		}
 	}
 }
 
-func (c *conn) Receive(onExit func()) {
+func (c *conn) receive() (err error) {
+	var header [12]byte
+	if _, err = io.ReadAtLeast(c.Conn, header[:], 12); err != nil {
+		return
+	}
+	length, index, ok := parseHeader(header)
+	if length == 0 && index == -1 && !ok {
+		err = core.InvalidResponseError{}
+		return
+	}
+	body := make([]byte, length)
+	if _, err = io.ReadAtLeast(c.Conn, body, length); err != nil {
+		return
+	}
+	if !ok {
+		if string(body) == core.RequestEntityTooLarge {
+			err = core.ErrRequestEntityTooLarge
+		} else {
+			err = core.InvalidResponseError{Response: body}
+		}
+		return
+	}
+	if resultChan, loaded := c.loadAndDelete(index); loaded {
+		resultChan <- data{
+			Index: index,
+			Body:  body,
+		}
+	}
+	return
+}
+
+func (c *conn) Receive(ctx context.Context, onExit func()) {
 	var err error
 	defer func() {
 		c.Exit(onExit, err)
 	}()
-	var header [12]byte
 	for {
-		if _, err = io.ReadAtLeast(c.Conn, header[:], 12); err != nil {
+		select {
+		case <-ctx.Done():
 			return
-		}
-		length, index, ok := parseHeader(header)
-		if length == 0 && index == -1 && !ok {
-			err = core.InvalidResponseError{}
-			return
-		}
-		body := make([]byte, length)
-		if _, err = io.ReadAtLeast(c.Conn, body, length); err != nil {
-			return
-		}
-		if !ok {
-			if string(body) == core.RequestEntityTooLarge {
-				err = core.ErrRequestEntityTooLarge
-			} else {
-				err = core.InvalidResponseError{Response: body}
-			}
-			return
-		}
-		if resultChan, loaded := c.loadAndDelete(index); loaded {
-			resultChan <- data{
-				Index: index,
-				Body:  body,
+		default:
+			if err = c.receive(); err != nil {
+				return
 			}
 		}
 	}
@@ -224,15 +246,17 @@ func (trans *Transport) getConn(ctx context.Context) (conn *conn, err error) {
 		return
 	}
 	trans.conns[key] = conn
+	ctx, cancel := context.WithCancel(context.Background())
 	onExit := func() {
 		trans.lock.Lock()
 		if trans.conns[key] == conn {
 			delete(trans.conns, key)
+			cancel()
 		}
 		trans.lock.Unlock()
 	}
-	go conn.Send(onExit)
-	go conn.Receive(onExit)
+	go conn.Send(ctx, onExit)
+	go conn.Receive(ctx, onExit)
 	return
 }
 

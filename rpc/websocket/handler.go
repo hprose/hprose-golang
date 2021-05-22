@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/websocket/handler.go                                 |
 |                                                          |
-| LastModified: May 9, 2021                                |
+| LastModified: May 22, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -138,30 +138,35 @@ func (h *Handler) catch(ctx context.Context, errChan chan error) {
 func (h *Handler) receive(ctx context.Context, conn *websocket.Conn, queue chan data, errChan chan error) {
 	defer h.catch(ctx, errChan)
 	for {
-		messageType, data, err := conn.ReadMessage()
-		if err != nil {
-			h.reportError(ctx, errChan, err)
+		select {
+		case <-ctx.Done():
 			return
-		}
-		switch messageType {
-		case websocket.CloseMessage:
-			h.reportError(ctx, errChan, core.ErrClosed)
-			return
-		case websocket.BinaryMessage:
 		default:
-			continue
+			messageType, data, err := conn.ReadMessage()
+			if err != nil {
+				h.reportError(ctx, errChan, err)
+				return
+			}
+			switch messageType {
+			case websocket.CloseMessage:
+				h.reportError(ctx, errChan, core.ErrClosed)
+				return
+			case websocket.BinaryMessage:
+			default:
+				continue
+			}
+			index, ok := parseHeader(data[:4])
+			if !ok {
+				h.reportError(ctx, errChan, core.InvalidRequestError{})
+				return
+			}
+			body := data[4:]
+			if len(body) > h.Service.MaxRequestLength {
+				h.sendResponse(ctx, queue, index, nil, core.ErrRequestEntityTooLarge)
+				return
+			}
+			go h.run(core.WithContext(ctx, h.getServiceContext(conn)), queue, index, body)
 		}
-		index, ok := parseHeader(data[:4])
-		if !ok {
-			h.reportError(ctx, errChan, core.InvalidRequestError{})
-			return
-		}
-		body := data[4:]
-		if len(body) > h.Service.MaxRequestLength {
-			h.sendResponse(ctx, queue, index, nil, core.ErrRequestEntityTooLarge)
-			return
-		}
-		go h.run(core.WithContext(ctx, h.getServiceContext(conn)), queue, index, body)
 	}
 }
 

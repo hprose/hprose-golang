@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/udp/transport.go                                     |
 |                                                          |
-| LastModified: May 5, 2021                                |
+| LastModified: May 22, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -134,57 +134,75 @@ func (c *conn) Exit(onExit func(), err error) {
 	}
 }
 
-func (c *conn) Send(onExit func()) {
+func (c *conn) send(request data) (err error) {
+	var buffer [65507]byte
+	header := makeHeader(len(request.Body), request.Index)
+	copy(buffer[:], header[:])
+	copy(buffer[8:], request.Body)
+	_, err = c.Write(buffer[:8+len(request.Body)])
+	return
+}
+
+func (c *conn) Send(ctx context.Context, onExit func()) {
 	var err error
 	defer func() {
 		c.Exit(onExit, err)
 	}()
-	var buffer [65507]byte
-	for request := range c.requests {
-		header := makeHeader(len(request.Body), request.Index)
-		copy(buffer[:], header[:])
-		copy(buffer[8:], request.Body)
-		if _, err = c.Write(buffer[:8+len(request.Body)]); err != nil {
+	for {
+		select {
+		case <-ctx.Done():
 			return
+		case request := <-c.requests:
+			if err = c.send(request); err != nil {
+				return
+			}
 		}
 	}
 }
 
-func (c *conn) Receive(onExit func()) {
+func (c *conn) receive() (err error) {
+	var buffer [65507]byte
+	var n int
+	switch n, err = c.Read(buffer[:]); {
+	case err != nil:
+	case n < 8:
+		err = core.InvalidResponseError{}
+	default:
+		switch length, index, ok := parseHeader(buffer[:8]); {
+		case length == 0 && index == -1 && !ok:
+			err = core.InvalidResponseError{}
+		default:
+			body := make([]byte, length)
+			copy(body, buffer[8:])
+			if !ok {
+				if string(body) == core.RequestEntityTooLarge {
+					err = core.ErrRequestEntityTooLarge
+				} else {
+					err = core.InvalidResponseError{Response: body}
+				}
+			} else if resultChan, loaded := c.loadAndDelete(index); loaded {
+				resultChan <- data{
+					Index: index,
+					Body:  body,
+				}
+			}
+		}
+	}
+	return
+}
+
+func (c *conn) Receive(ctx context.Context, onExit func()) {
 	var err error
 	defer func() {
 		c.Exit(onExit, err)
 	}()
-	var buffer [65507]byte
 	for {
-		var n int
-		switch n, err = c.Read(buffer[:]); {
-		case err != nil:
-			return
-		case n < 8:
-			err = core.InvalidResponseError{}
+		select {
+		case <-ctx.Done():
 			return
 		default:
-			switch length, index, ok := parseHeader(buffer[:8]); {
-			case length == 0 && index == -1 && !ok:
-				err = core.InvalidResponseError{}
-			default:
-				body := make([]byte, length)
-				copy(body, buffer[8:])
-				if !ok {
-					if string(body) == core.RequestEntityTooLarge {
-						err = core.ErrRequestEntityTooLarge
-					} else {
-						err = core.InvalidResponseError{Response: body}
-					}
-					return
-				}
-				if resultChan, loaded := c.loadAndDelete(index); loaded {
-					resultChan <- data{
-						Index: index,
-						Body:  body,
-					}
-				}
+			if err = c.receive(); err != nil {
+				return
 			}
 		}
 	}
@@ -229,15 +247,17 @@ func (trans *Transport) getConn(ctx context.Context) (conn *conn, err error) {
 		return
 	}
 	trans.conns[key] = conn
+	ctx, cancel := context.WithCancel(context.Background())
 	onExit := func() {
 		trans.lock.Lock()
 		if trans.conns[key] == conn {
 			delete(trans.conns, key)
+			cancel()
 		}
 		trans.lock.Unlock()
 	}
-	go conn.Send(onExit)
-	go conn.Receive(onExit)
+	go conn.Send(ctx, onExit)
+	go conn.Receive(ctx, onExit)
 	return
 }
 
