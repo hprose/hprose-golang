@@ -196,7 +196,7 @@ func (b *Broker) message(ctx context.Context) map[string][]Message {
 			defer cancel()
 			select {
 			case <-ctx.Done():
-				go b.doHeartBeat(ctx, id)
+				go b.doHeartBeat(context.Background(), id)
 				return map[string][]Message{}
 			case result := <-responder:
 				return result
