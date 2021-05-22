@@ -157,24 +157,26 @@ var (
 
 type Caller struct {
 	*core.Service
-	HeartBeat  time.Duration
-	Timeout    time.Duration
-	calls      cmap.ConcurrentMap
-	results    cmap.ConcurrentMap
-	responders cmap.ConcurrentMap
-	onlines    cmap.ConcurrentMap
-	counter    int32
+	IdleTimeout time.Duration
+	Timeout     time.Duration
+	HeartBeat   time.Duration
+	calls       cmap.ConcurrentMap
+	results     cmap.ConcurrentMap
+	responders  cmap.ConcurrentMap
+	onlines     cmap.ConcurrentMap
+	counter     int32
 }
 
 func NewCaller(service *core.Service) *Caller {
 	caller := &Caller{
-		Service:    service,
-		HeartBeat:  time.Minute * 2,
-		Timeout:    time.Second * 30,
-		calls:      cmap.New(),
-		results:    cmap.New(),
-		responders: cmap.New(),
-		onlines:    cmap.New(),
+		Service:     service,
+		IdleTimeout: time.Minute * 2,
+		Timeout:     time.Second * 30,
+		HeartBeat:   time.Second * 3,
+		calls:       cmap.New(),
+		results:     cmap.New(),
+		responders:  cmap.New(),
+		onlines:     cmap.New(),
 	}
 	service.Use(caller.handler).
 		AddFunction(caller.close, "!!").
@@ -228,7 +230,28 @@ func (c *Caller) close(ctx context.Context) {
 
 func (c *Caller) begin(ctx context.Context) []call {
 	id := c.stop(ctx)
-	c.onlines.Set(id, true)
+	online := make(chan bool, 1)
+	c.onlines.Upsert(id, online, func(exist bool, valueInMap, newValue interface{}) interface{} {
+		if exist {
+			if online, ok := valueInMap.(chan bool); ok {
+				online <- true
+			}
+		}
+		return newValue
+	})
+	if c.HeartBeat > 0 {
+		defer func() {
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), c.HeartBeat)
+				defer cancel()
+				select {
+				case <-ctx.Done():
+					c.onlines.Remove(id)
+				case <-online:
+				}
+			}()
+		}()
+	}
 	responder := make(chan []call, 1)
 	if !c.send(id, responder) {
 		c.responders.Upsert(id, responder, func(exist bool, valueInMap interface{}, newValue interface{}) interface{} {
@@ -237,8 +260,8 @@ func (c *Caller) begin(ctx context.Context) []call {
 			}
 			return newValue
 		})
-		if c.HeartBeat > 0 {
-			ctx, cancel := context.WithTimeout(ctx, c.HeartBeat)
+		if c.IdleTimeout > 0 {
+			ctx, cancel := context.WithTimeout(ctx, c.IdleTimeout)
 			defer cancel()
 			select {
 			case <-ctx.Done():
@@ -296,7 +319,7 @@ func (c *Caller) InvokeContext(ctx context.Context, id string, name string, args
 	results.Set(index, result)
 	c.response(id)
 	if c.Timeout > 0 {
-		ctx, cancel := context.WithTimeout(ctx, c.HeartBeat)
+		ctx, cancel := context.WithTimeout(ctx, c.Timeout)
 		defer cancel()
 		select {
 		case <-ctx.Done():
