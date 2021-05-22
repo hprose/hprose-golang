@@ -1580,7 +1580,7 @@ func TestOneway(t *testing.T) {
 	start := time.Now()
 	proxy.Sleep()
 	duration := time.Since(start)
-	assert.True(t, duration > time.Millisecond*40 && duration < time.Millisecond*60)
+	assert.True(t, duration > time.Millisecond*30 && duration < time.Millisecond*70)
 	client.Use(oneway.Oneway{})
 	start = time.Now()
 	proxy.Sleep()
