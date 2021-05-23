@@ -139,7 +139,13 @@ func (p *Prosumer) call(callback Callback, message Message) {
 func (p *Prosumer) message() {
 	for {
 		topics, err := p.proxy.message()
-		if err != nil {
+		if err == nil {
+			if topics == nil {
+				return
+			}
+			go p.dispatch(topics)
+		}
+		for err != nil {
 			if !core.IsTimeoutError(err) {
 				if p.RetryInterval != 0 {
 					<-time.After(p.RetryInterval)
@@ -147,15 +153,12 @@ func (p *Prosumer) message() {
 				p.onError(err)
 			}
 			p.callbacks.Range(func(key, value interface{}) bool {
-				p.proxy.subscribe(key.(string))
+				if _, err = p.proxy.subscribe(key.(string)); err != nil {
+					return false
+				}
 				return true
 			})
-			continue
 		}
-		if topics == nil {
-			return
-		}
-		go p.dispatch(topics)
 	}
 }
 
