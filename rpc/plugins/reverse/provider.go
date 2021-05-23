@@ -256,7 +256,6 @@ func (p *Provider) Listen() {
 		}
 		go p.dispatch(calls)
 	}
-	atomic.StoreInt32(&p.closed, 1)
 }
 
 func (p *Provider) Close() error {
