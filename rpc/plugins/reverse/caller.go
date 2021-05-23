@@ -208,7 +208,7 @@ func (c *Caller) response(id string) {
 	if responder, ok := c.responders.Pop(id); ok {
 		responder := responder.(chan []call)
 		if !c.send(id, responder) {
-			if c.responders.SetIfAbsent(id, responder) {
+			if !c.responders.SetIfAbsent(id, responder) {
 				responder <- nil
 			}
 		}
