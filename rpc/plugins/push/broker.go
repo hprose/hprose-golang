@@ -232,8 +232,9 @@ func (b *Broker) Broadcast(ctx context.Context, data interface{}, topic string, 
 			cache.(*MessageCache).Append(Message{Data: data, From: from})
 			b.response(ctx, id)
 			result[id] = true
+		} else {
+			result[id] = false
 		}
-		result[id] = false
 		return true
 	})
 	return result
