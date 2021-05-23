@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/push/broker.go                               |
 |                                                          |
-| LastModified: May 17, 2021                               |
+| LastModified: May 23, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,24 +24,22 @@ import (
 
 type Broker struct {
 	*core.Service
-	messages              sync.Map           // map[string]map[string]messageCache
-	responders            cmap.ConcurrentMap // map[string]chan map[string][]Message
-	signals               cmap.ConcurrentMap // map[string]chan bool
-	MessageQueueMaxLength int
-	Timeout               time.Duration
-	HeartBeat             time.Duration
-	OnSubscribe           func(ctx context.Context, id string, topic string)
-	OnUnsubscribe         func(ctx context.Context, id string, topic string, messages []Message)
+	messages      sync.Map           // map[string]map[string]messageCache
+	responders    cmap.ConcurrentMap // map[string]chan map[string][]Message
+	signals       cmap.ConcurrentMap // map[string]chan bool
+	Timeout       time.Duration
+	HeartBeat     time.Duration
+	OnSubscribe   func(ctx context.Context, id string, topic string)
+	OnUnsubscribe func(ctx context.Context, id string, topic string, messages []Message)
 }
 
 func NewBroker(service *core.Service) *Broker {
 	broker := &Broker{
-		Service:               service,
-		responders:            cmap.New(),
-		signals:               cmap.New(),
-		MessageQueueMaxLength: 10,
-		Timeout:               time.Minute * 2,
-		HeartBeat:             time.Second * 10,
+		Service:    service,
+		responders: cmap.New(),
+		signals:    cmap.New(),
+		Timeout:    time.Minute * 2,
+		HeartBeat:  time.Second * 10,
 	}
 	service.Use(broker.handler).
 		AddFunction(broker.subscribe, "+").
