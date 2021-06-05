@@ -6,7 +6,7 @@
 |                                                          |
 | io/list_decoder.go                                       |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,7 +15,6 @@ package io
 
 import (
 	"container/list"
-	"reflect"
 
 	"github.com/modern-go/reflect2"
 )
@@ -44,10 +43,6 @@ func (valdec listDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	}
 }
 
-func (valdec listDecoder) Type() reflect.Type {
-	return listType
-}
-
 func init() {
-	RegisterValueDecoder(listDecoder{})
+	registerValueDecoder(listType, listDecoder{})
 }

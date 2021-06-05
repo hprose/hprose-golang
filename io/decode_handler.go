@@ -194,7 +194,7 @@ func stringPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func otherDecode(t reflect.Type) DecodeHandler {
-	valdec := GetValueDecoder(t)
+	valdec := getValueDecoder(t)
 	t2 := reflect2.Type2(t)
 	return func(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 		valdec.Decode(dec, t2.PackEFace(p), dec.NextByte())
@@ -203,7 +203,7 @@ func otherDecode(t reflect.Type) DecodeHandler {
 
 // GetDecodeHandler for specified type.
 func GetDecodeHandler(t reflect.Type) DecodeHandler {
-	if getValueDecoder(t) == nil {
+	if getRegisteredValueDecoder(t) == nil {
 		kind := t.Kind()
 		if decode := decodeHandlers[kind]; decode != nil {
 			return decode

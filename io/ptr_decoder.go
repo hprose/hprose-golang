@@ -6,7 +6,7 @@
 |                                                          |
 | io/ptr_decoder.go                                        |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -42,13 +42,9 @@ func (valdec ptrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	}
 }
 
-func (valdec ptrDecoder) Type() reflect.Type {
-	return valdec.t.Type1()
-}
-
 func getPtrDecoder(t reflect.Type) ValueDecoder {
 	et := t.Elem()
-	if elemDecoder := getValueDecoder(et); elemDecoder != nil {
+	if elemDecoder := getRegisteredValueDecoder(et); elemDecoder != nil {
 		return ptrDecoder{
 			reflect2.Type2(t).(*reflect2.UnsafePtrType),
 			reflect2.Type2(et),
@@ -61,7 +57,7 @@ func getPtrDecoder(t reflect.Type) ValueDecoder {
 func getArrayPtrDecoder(t reflect.Type) ValueDecoder {
 	et := t.Elem()
 	elemDecoder := getArrayDecoder(et)
-	RegisterValueDecoder(elemDecoder)
+	registerValueDecoder(et, elemDecoder)
 	return ptrDecoder{
 		reflect2.Type2(t).(*reflect2.UnsafePtrType),
 		reflect2.Type2(et),
@@ -72,7 +68,7 @@ func getArrayPtrDecoder(t reflect.Type) ValueDecoder {
 func getMapPtrDecoder(t reflect.Type) ValueDecoder {
 	et := t.Elem()
 	elemDecoder := getMapDecoder(et)
-	RegisterValueDecoder(elemDecoder)
+	registerValueDecoder(et, elemDecoder)
 	return ptrDecoder{
 		reflect2.Type2(t).(*reflect2.UnsafePtrType),
 		reflect2.Type2(et),
@@ -83,7 +79,7 @@ func getMapPtrDecoder(t reflect.Type) ValueDecoder {
 func getPtrPtrDecoder(t reflect.Type) ValueDecoder {
 	et := t.Elem()
 	elemDecoder := getPtrDecoder(et)
-	RegisterValueDecoder(elemDecoder)
+	registerValueDecoder(et, elemDecoder)
 	return ptrDecoder{
 		reflect2.Type2(t).(*reflect2.UnsafePtrType),
 		reflect2.Type2(et),
@@ -94,7 +90,7 @@ func getPtrPtrDecoder(t reflect.Type) ValueDecoder {
 func getSlicePtrDecoder(t reflect.Type) ValueDecoder {
 	et := t.Elem()
 	elemDecoder := getSliceDecoder(et)
-	RegisterValueDecoder(elemDecoder)
+	registerValueDecoder(et, elemDecoder)
 	return ptrDecoder{
 		reflect2.Type2(t).(*reflect2.UnsafePtrType),
 		reflect2.Type2(et),
@@ -105,7 +101,7 @@ func getSlicePtrDecoder(t reflect.Type) ValueDecoder {
 func getStructPtrDecoder(t reflect.Type) ValueDecoder {
 	et := t.Elem()
 	elemDecoder := getStructDecoder(et)
-	RegisterValueDecoder(elemDecoder)
+	registerValueDecoder(et, elemDecoder)
 	return ptrDecoder{
 		reflect2.Type2(t).(*reflect2.UnsafePtrType),
 		reflect2.Type2(et),

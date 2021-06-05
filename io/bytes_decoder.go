@@ -6,7 +6,7 @@
 |                                                          |
 | io/bytes_decoder.go                                      |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -92,10 +92,6 @@ func (valdec bytesDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*[]byte)(reflect2.PtrOf(p)) = dec.decodeBytes(valdec.t, tag)
 }
 
-func (valdec bytesDecoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // bytesPtrDecoder is the implementation of ValueDecoder for *[]byte.
 type bytesPtrDecoder struct {
 	t reflect.Type
@@ -105,11 +101,7 @@ func (valdec bytesPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**[]byte)(reflect2.PtrOf(p)) = dec.decodeBytesPtr(valdec.t, tag)
 }
 
-func (valdec bytesPtrDecoder) Type() reflect.Type {
-	return valdec.t
-}
-
 func init() {
-	RegisterValueDecoder(bytesDecoder{bytesType})
-	RegisterValueDecoder(bytesPtrDecoder{bytesPtrType})
+	registerValueDecoder(bytesType, bytesDecoder{bytesType})
+	registerValueDecoder(bytesPtrType, bytesPtrDecoder{bytesPtrType})
 }

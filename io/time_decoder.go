@@ -6,7 +6,7 @@
 |                                                          |
 | io/time_decoder.go                                       |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -181,13 +181,9 @@ func (dec *Decoder) decodeTimePtr(t reflect.Type, tag byte) *time.Time {
 type timeDecoder struct{}
 
 func (timeDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*time.Time)(reflect2.PtrOf(p)) = dec.decodeTime(timeType, tag)
-}
-
-func (timeDecoder) Type() reflect.Type {
-	return timeType
+	*(*time.Time)(reflect2.PtrOf(p)) = dec.decodeTime(reflect.TypeOf(p).Elem(), tag)
 }
 
 func init() {
-	RegisterValueDecoder(timeDecoder{})
+	registerValueDecoder(timeType, timeDecoder{})
 }

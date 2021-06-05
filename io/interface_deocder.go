@@ -6,7 +6,7 @@
 |                                                          |
 | io/interface_decoder.go                                  |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"reflect"
 
 	"github.com/modern-go/reflect2"
 )
@@ -163,17 +162,9 @@ func (valdec interfaceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*interface{})(reflect2.PtrOf(p)) = dec.decodeInterface(tag)
 }
 
-func (valdec interfaceDecoder) Type() reflect.Type {
-	return interfaceType
-}
-
 // interfacePtrDecoder is the implementation of ValueDecoder for *interface{}.
 type interfacePtrDecoder struct{}
 
 func (valdec interfacePtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**interface{})(reflect2.PtrOf(p)) = dec.decodeInterfacePtr(tag)
-}
-
-func (valdec interfacePtrDecoder) Type() reflect.Type {
-	return interfacePtrType
 }

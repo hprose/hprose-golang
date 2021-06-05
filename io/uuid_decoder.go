@@ -6,7 +6,7 @@
 |                                                          |
 | io/uuid_decoder.go                                       |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -85,13 +85,9 @@ func (dec *Decoder) decodeUUIDPtr(t reflect.Type, tag byte) *uuid.UUID {
 type uuidDecoder struct{}
 
 func (uuidDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*uuid.UUID)(reflect2.PtrOf(p)) = dec.decodeUUID(uuidType, tag)
-}
-
-func (uuidDecoder) Type() reflect.Type {
-	return uuidType
+	*(*uuid.UUID)(reflect2.PtrOf(p)) = dec.decodeUUID(reflect.TypeOf(p).Elem(), tag)
 }
 
 func init() {
-	RegisterValueDecoder(uuidDecoder{})
+	registerValueDecoder(uuidType, uuidDecoder{})
 }

@@ -6,7 +6,7 @@
 |                                                          |
 | io/string_decoder.go                                     |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -207,10 +207,6 @@ func (valdec stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*string)(reflect2.PtrOf(p)) = dec.decodeString(valdec.t, tag)
 }
 
-func (valdec stringDecoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // stringPtrDecoder is the implementation of ValueDecoder for *string.
 type stringPtrDecoder struct {
 	t reflect.Type
@@ -218,8 +214,4 @@ type stringPtrDecoder struct {
 
 func (valdec stringPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**string)(reflect2.PtrOf(p)) = dec.decodeStringPtr(valdec.t, tag)
-}
-
-func (valdec stringPtrDecoder) Type() reflect.Type {
-	return valdec.t
 }

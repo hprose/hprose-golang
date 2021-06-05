@@ -6,7 +6,7 @@
 |                                                          |
 | io/int_decoder.go                                        |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -419,10 +419,6 @@ func (valdec intDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*int)(reflect2.PtrOf(p)) = dec.decodeInt(valdec.t, tag)
 }
 
-func (valdec intDecoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // intPtrDecoder is the implementation of ValueDecoder for *int.
 type intPtrDecoder struct {
 	t reflect.Type
@@ -430,10 +426,6 @@ type intPtrDecoder struct {
 
 func (valdec intPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**int)(reflect2.PtrOf(p)) = dec.decodeIntPtr(valdec.t, tag)
-}
-
-func (valdec intPtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // int8Decoder is the implementation of ValueDecoder for int8.
@@ -445,10 +437,6 @@ func (valdec int8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*int8)(reflect2.PtrOf(p)) = dec.decodeInt8(valdec.t, tag)
 }
 
-func (valdec int8Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // int8PtrDecoder is the implementation of ValueDecoder for *int8.
 type int8PtrDecoder struct {
 	t reflect.Type
@@ -456,10 +444,6 @@ type int8PtrDecoder struct {
 
 func (valdec int8PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**int8)(reflect2.PtrOf(p)) = dec.decodeInt8Ptr(valdec.t, tag)
-}
-
-func (valdec int8PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // int16Decoder is the implementation of ValueDecoder for int16.
@@ -471,10 +455,6 @@ func (valdec int16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*int16)(reflect2.PtrOf(p)) = dec.decodeInt16(valdec.t, tag)
 }
 
-func (valdec int16Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // int16PtrDecoder is the implementation of ValueDecoder for *int16.
 type int16PtrDecoder struct {
 	t reflect.Type
@@ -482,10 +462,6 @@ type int16PtrDecoder struct {
 
 func (valdec int16PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*int16)(reflect2.PtrOf(p)) = dec.decodeInt16(valdec.t, tag)
-}
-
-func (valdec int16PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // int32Decoder is the implementation of ValueDecoder for int32.
@@ -497,10 +473,6 @@ func (valdec int32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*int32)(reflect2.PtrOf(p)) = dec.decodeInt32(valdec.t, tag)
 }
 
-func (valdec int32Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // int32PtrDecoder is the implementation of ValueDecoder for *int32.
 type int32PtrDecoder struct {
 	t reflect.Type
@@ -508,10 +480,6 @@ type int32PtrDecoder struct {
 
 func (valdec int32PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**int32)(reflect2.PtrOf(p)) = dec.decodeInt32Ptr(valdec.t, tag)
-}
-
-func (valdec int32PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // int64Decoder is the implementation of ValueDecoder for int64.
@@ -523,10 +491,6 @@ func (valdec int64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*int64)(reflect2.PtrOf(p)) = dec.decodeInt64(valdec.t, tag)
 }
 
-func (valdec int64Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // int64PtrDecoder is the implementation of ValueDecoder for *int64.
 type int64PtrDecoder struct {
 	t reflect.Type
@@ -534,10 +498,6 @@ type int64PtrDecoder struct {
 
 func (valdec int64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**int64)(reflect2.PtrOf(p)) = dec.decodeInt64Ptr(valdec.t, tag)
-}
-
-func (valdec int64PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // uintDecoder is the implementation of ValueDecoder for uint.
@@ -549,10 +509,6 @@ func (valdec uintDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*uint)(reflect2.PtrOf(p)) = dec.decodeUint(valdec.t, tag)
 }
 
-func (valdec uintDecoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // uintPtrDecoder is the implementation of ValueDecoder for *uint.
 type uintPtrDecoder struct {
 	t reflect.Type
@@ -560,10 +516,6 @@ type uintPtrDecoder struct {
 
 func (valdec uintPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**uint)(reflect2.PtrOf(p)) = dec.decodeUintPtr(valdec.t, tag)
-}
-
-func (valdec uintPtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // uint8Decoder is the implementation of ValueDecoder for uint8.
@@ -575,10 +527,6 @@ func (valdec uint8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*uint8)(reflect2.PtrOf(p)) = dec.decodeUint8(valdec.t, tag)
 }
 
-func (valdec uint8Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // uint8PtrDecoder is the implementation of ValueDecoder for *uint8.
 type uint8PtrDecoder struct {
 	t reflect.Type
@@ -586,10 +534,6 @@ type uint8PtrDecoder struct {
 
 func (valdec uint8PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**uint8)(reflect2.PtrOf(p)) = dec.decodeUint8Ptr(valdec.t, tag)
-}
-
-func (valdec uint8PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // uint16Decoder is the implementation of ValueDecoder for uint16.
@@ -601,10 +545,6 @@ func (valdec uint16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*uint16)(reflect2.PtrOf(p)) = dec.decodeUint16(valdec.t, tag)
 }
 
-func (valdec uint16Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // uint16PtrDecoder is the implementation of ValueDecoder for *uint16.
 type uint16PtrDecoder struct {
 	t reflect.Type
@@ -612,10 +552,6 @@ type uint16PtrDecoder struct {
 
 func (valdec uint16PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**uint16)(reflect2.PtrOf(p)) = dec.decodeUint16Ptr(valdec.t, tag)
-}
-
-func (valdec uint16PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // uint32Decoder is the implementation of ValueDecoder for uint32.
@@ -627,10 +563,6 @@ func (valdec uint32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*uint32)(reflect2.PtrOf(p)) = dec.decodeUint32(valdec.t, tag)
 }
 
-func (valdec uint32Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // uint32PtrDecoder is the implementation of ValueDecoder for *uint32.
 type uint32PtrDecoder struct {
 	t reflect.Type
@@ -638,10 +570,6 @@ type uint32PtrDecoder struct {
 
 func (valdec uint32PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**uint32)(reflect2.PtrOf(p)) = dec.decodeUint32Ptr(valdec.t, tag)
-}
-
-func (valdec uint32PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // uint64Decoder is the implementation of ValueDecoder for uint64.
@@ -653,10 +581,6 @@ func (valdec uint64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*uint64)(reflect2.PtrOf(p)) = dec.decodeUint64(valdec.t, tag)
 }
 
-func (valdec uint64Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // uint64PtrDecoder is the implementation of ValueDecoder for *uint64.
 type uint64PtrDecoder struct {
 	t reflect.Type
@@ -664,10 +588,6 @@ type uint64PtrDecoder struct {
 
 func (valdec uint64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**uint64)(reflect2.PtrOf(p)) = dec.decodeUint64Ptr(valdec.t, tag)
-}
-
-func (valdec uint64PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // uintptrDecoder is the implementation of ValueDecoder for uintptr.
@@ -679,10 +599,6 @@ func (valdec uintptrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*uintptr)(reflect2.PtrOf(p)) = dec.decodeUintptr(valdec.t, tag)
 }
 
-func (valdec uintptrDecoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // uintptrPtrDecoder is the implementation of ValueDecoder for *uintptr.
 type uintptrPtrDecoder struct {
 	t reflect.Type
@@ -690,8 +606,4 @@ type uintptrPtrDecoder struct {
 
 func (valdec uintptrPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**uintptr)(reflect2.PtrOf(p)) = dec.decodeUintptrPtr(valdec.t, tag)
-}
-
-func (valdec uintptrPtrDecoder) Type() reflect.Type {
-	return valdec.t
 }

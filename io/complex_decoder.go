@@ -6,7 +6,7 @@
 |                                                          |
 | io/complex_decoder.go                                    |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -122,10 +122,6 @@ func (valdec complex64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*complex64)(reflect2.PtrOf(p)) = dec.decodeComplex64(valdec.t, tag)
 }
 
-func (valdec complex64Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // complex64PtrDecoder is the implementation of ValueDecoder for *complex64.
 type complex64PtrDecoder struct {
 	t reflect.Type
@@ -133,10 +129,6 @@ type complex64PtrDecoder struct {
 
 func (valdec complex64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**complex64)(reflect2.PtrOf(p)) = dec.decodeComplex64Ptr(valdec.t, tag)
-}
-
-func (valdec complex64PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
 
 // complex128Decoder is the implementation of ValueDecoder for complex128.
@@ -148,10 +140,6 @@ func (valdec complex128Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*complex128)(reflect2.PtrOf(p)) = dec.decodeComplex128(valdec.t, tag)
 }
 
-func (valdec complex128Decoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // complex128PtrDecoder is the implementation of ValueDecoder for *complex128.
 type complex128PtrDecoder struct {
 	t reflect.Type
@@ -159,8 +147,4 @@ type complex128PtrDecoder struct {
 
 func (valdec complex128PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**complex128)(reflect2.PtrOf(p)) = dec.decodeComplex128Ptr(valdec.t, tag)
-}
-
-func (valdec complex128PtrDecoder) Type() reflect.Type {
-	return valdec.t
 }

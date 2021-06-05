@@ -23,29 +23,36 @@ var decoderMap sync.Map
 // ValueDecoder is the interface that groups the basic Decode methods.
 type ValueDecoder interface {
 	Decode(dec *Decoder, p interface{}, tag byte)
-	Type() reflect.Type
 }
 
-func getValueDecoder(t reflect.Type) (valdec ValueDecoder) {
+func registerValueDecoder(t reflect.Type, valdec ValueDecoder) {
+	decoderMap.Store(t, valdec)
+}
+
+// RegisterValueDecoder valdec.
+func RegisterValueDecoder(v interface{}, valdec ValueDecoder) {
+	registerValueDecoder(reflect.TypeOf(v), valdec)
+}
+
+func getRegisteredValueDecoder(t reflect.Type) (valdec ValueDecoder) {
 	if valdec, ok := decoderMap.Load(t); ok {
 		return valdec.(ValueDecoder)
 	}
 	return nil
 }
 
-// RegisterValueDecoder valdec.
-func RegisterValueDecoder(valdec ValueDecoder) {
-	decoderMap.Store(valdec.Type(), valdec)
+func getValueDecoder(t reflect.Type) (valdec ValueDecoder) {
+	valdec = getRegisteredValueDecoder(t)
+	if valdec == nil {
+		valdec = valueDecoderFactories[t.Kind()](t)
+		registerValueDecoder(t, valdec)
+	}
+	return
 }
 
 // GetValueDecoder of Type t.
-func GetValueDecoder(t reflect.Type) (valdec ValueDecoder) {
-	valdec = getValueDecoder(t)
-	if valdec == nil {
-		valdec = valueDecoderFactories[t.Kind()](t)
-		RegisterValueDecoder(valdec)
-	}
-	return
+func GetValueDecoder(v interface{}) (valdec ValueDecoder) {
+	return getValueDecoder(reflect.TypeOf(v))
 }
 
 var valueDecoderFactories []func(t reflect.Type) ValueDecoder

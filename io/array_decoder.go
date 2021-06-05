@@ -6,7 +6,7 @@
 |                                                          |
 | io/array_decoder.go                                      |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -61,10 +61,6 @@ func (valdec arrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	default:
 		dec.defaultDecode(valdec.at.Type1(), p, tag)
 	}
-}
-
-func (valdec arrayDecoder) Type() reflect.Type {
-	return valdec.at.Type1()
 }
 
 // makeArrayDecoder returns a arrayDecoder for [N]T.

@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_decoder.go                                     |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -108,12 +108,8 @@ func (valdec *structDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	case TagEmpty:
 		valdec.t.UnsafeSet(reflect2.PtrOf(p), valdec.t.UnsafeNew())
 	default:
-		dec.defaultDecode(valdec.Type(), p, tag)
+		dec.defaultDecode(valdec.t.Type1(), p, tag)
 	}
-}
-
-func (valdec *structDecoder) Type() reflect.Type {
-	return valdec.t.Type1()
 }
 
 // newStructDecoder returns a ValueDecoder for struct T.
@@ -121,7 +117,7 @@ func newStructDecoder(t reflect.Type) *structDecoder {
 	decoder := &structDecoder{t: reflect2.Type2(t).(*reflect2.UnsafeStructType)}
 	decoder.lock.Lock()
 	defer decoder.lock.Unlock()
-	RegisterValueDecoder(decoder)
+	registerValueDecoder(t, decoder)
 	decoder.fields = getFieldMap(t)
 	return decoder
 }

@@ -221,21 +221,10 @@ func (dec *Decoder) decode(p interface{}, tag byte) {
 		return
 	}
 	t := reflect.TypeOf(p).Elem()
-	switch t.Kind() {
-	case reflect.Map:
-		if dec.fastDecodeMap(t, p, tag) {
-			return
-		}
-	case reflect.Ptr:
-		if dec.fastDecodePtr(p, tag) {
-			return
-		}
-	case reflect.Slice:
-		if dec.fastDecodeSlice(p, tag) {
-			return
-		}
+	if t.Kind() == reflect.Ptr && dec.fastDecodePtr(p, tag) {
+		return
 	}
-	if valdec := GetValueDecoder(t); valdec != nil {
+	if valdec := getValueDecoder(t); valdec != nil {
 		valdec.Decode(dec, p, tag)
 	}
 }

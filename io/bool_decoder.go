@@ -6,7 +6,7 @@
 |                                                          |
 | io/bool_decoder.go                                       |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Jun 5, 2021                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -79,10 +79,6 @@ func (valdec boolDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(*bool)(reflect2.PtrOf(p)) = dec.decodeBool(valdec.t, tag)
 }
 
-func (valdec boolDecoder) Type() reflect.Type {
-	return valdec.t
-}
-
 // boolPtrDecoder is the implementation of ValueDecoder for *bool.
 type boolPtrDecoder struct {
 	t reflect.Type
@@ -90,8 +86,4 @@ type boolPtrDecoder struct {
 
 func (valdec boolPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	*(**bool)(reflect2.PtrOf(p)) = dec.decodeBoolPtr(valdec.t, tag)
-}
-
-func (valdec boolPtrDecoder) Type() reflect.Type {
-	return valdec.t
 }
