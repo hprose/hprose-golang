@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_codec.go                                 |
 |                                                          |
-| LastModified: May 10, 2021                               |
+| LastModified: Jun 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -31,6 +31,7 @@ type clientCodec struct {
 	io.MapType
 }
 
+// Encode request.
 func (c clientCodec) Encode(name string, args []interface{}, context *ClientContext) ([]byte, error) {
 	encoder := new(io.Encoder).Simple(c.Simple)
 	if c.Simple {
@@ -51,6 +52,7 @@ func (c clientCodec) Encode(name string, args []interface{}, context *ClientCont
 	return encoder.Bytes(), encoder.Error
 }
 
+// Decode response.
 func (c clientCodec) Decode(response []byte, context *ClientContext) (result []interface{}, err error) {
 	decoder := io.NewDecoder(response).Simple(false)
 	decoder.LongType = c.LongType
