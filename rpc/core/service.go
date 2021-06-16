@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service.go                                      |
 |                                                          |
-| LastModified: May 17, 2021                               |
+| LastModified: Jun 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -48,6 +48,7 @@ func RegisterHandler(name string, handlerFactory HandlerFactory) {
 	}
 }
 
+// HandlerGetter for Service.
 type HandlerGetter interface {
 	GetHandler(name string) Handler
 }
