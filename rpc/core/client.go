@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client.go                                       |
 |                                                          |
-| LastModified: May 17, 2021                               |
+| LastModified: Jun 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -47,6 +47,7 @@ func RegisterTransport(name string, transportFactory TransportFactory) {
 	}
 }
 
+// TransportGetter for Client.
 type TransportGetter interface {
 	GetTransport(name string) Transport
 }
