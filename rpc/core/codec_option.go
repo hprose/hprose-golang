@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/codec_option.go                                 |
 |                                                          |
-| LastModified: Mar 25, 2021                               |
+| LastModified: Jun 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -39,7 +39,7 @@ func WithSimple(simple bool) CodecOption {
 	}
 }
 
-// WithDebug returns a longType Option for clientCodec & serviceCodec.
+// WithLongType returns a longType Option for clientCodec & serviceCodec.
 func WithLongType(longType io.LongType) CodecOption {
 	return func(c interface{}) {
 		switch c := c.(type) {
