@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/tag_parser.go                                   |
 |                                                          |
-| LastModified: May 16, 2021                               |
+| LastModified: Jun 16, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -19,6 +19,7 @@ import (
 	"time"
 )
 
+// TagParser for Client Proxy.
 type TagParser struct {
 	Name    string
 	Context *ClientContext
@@ -142,6 +143,7 @@ func (tp *TagParser) parseContext() {
 	}
 }
 
+// ParseTag from ClientContext.
 func ParseTag(ctx *ClientContext, tag reflect.StructTag) *TagParser {
 	parser := &TagParser{Context: ctx, tag: tag}
 	parser.parseName()
