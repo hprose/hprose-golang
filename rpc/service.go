@@ -29,26 +29,32 @@ func init() {
 	websocket.RegisterHandler()
 }
 
-// Service for RPC.
 type (
-	Service       = core.Service
+	// Service for RPC.
+	Service = core.Service
+	// HandlerGetter for Service.
 	HandlerGetter = core.HandlerGetter
 )
 
+// NewService returns an instance of Service.
 var NewService = core.NewService
 
+// HTTPHandler returns http.Handler of Service.
 func HTTPHandler(h HandlerGetter) *http.Handler {
 	return &h.GetHandler("websocket").(*websocket.Handler).Handler
 }
 
+// SocketHandler returns socket.Handler of Service.
 func SocketHandler(h HandlerGetter) *socket.Handler {
 	return h.GetHandler("socket").(*socket.Handler)
 }
 
+// UDPHandler returns udp.Handler of Service.
 func UDPHandler(h HandlerGetter) *udp.Handler {
 	return h.GetHandler("udp").(*udp.Handler)
 }
 
+// WebSocketHandler returns websocket.Handler of Service.
 func WebSocketHandler(h HandlerGetter) *websocket.Handler {
 	return h.GetHandler("websocket").(*websocket.Handler)
 }
