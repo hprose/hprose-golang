@@ -6,7 +6,7 @@
 |                                                              |
 | rpc/plugins/loadbalance/weighted_least_active_loadbalance.go |
 |                                                              |
-| LastModified: Mar 24, 2021                                   |
+| LastModified: Aug 24, 2021                                   |
 | Author: Ma Bingyao <andot@hprose.com>                        |
 |                                                              |
 \*____________________________________________________________*/
@@ -25,8 +25,8 @@ import (
 // WeightedLeastActiveLoadBalance plugin for hprose.
 type WeightedLeastActiveLoadBalance struct {
 	WeightedLoadBalance
-	actives          intSlice
-	effectiveWeights intSlice
+	actives          int64Slice
+	effectiveWeights int64Slice
 	rwlock           sync.RWMutex
 }
 
@@ -36,8 +36,8 @@ func NewWeightedLeastActiveLoadBalance(uris map[string]int) *WeightedLeastActive
 		WeightedLoadBalance: MakeWeightedLoadBalance(uris),
 	}
 	n := len(uris)
-	lb.actives = make([]int, n)
-	lb.effectiveWeights = make([]int, n)
+	lb.actives = make([]int64, n)
+	lb.effectiveWeights = make([]int64, n)
 	copy(lb.effectiveWeights, lb.Weights)
 	return lb
 }
@@ -48,7 +48,7 @@ func (lb *WeightedLeastActiveLoadBalance) getIndex() int {
 
 	lb.rwlock.RLock()
 	leastActive := lb.actives.Min()
-	totalWeight := 0
+	var totalWeight int64
 	for i := 0; i < n; i++ {
 		if lb.actives[i] == leastActive {
 			leastActiveIndexes = append(leastActiveIndexes, i)
@@ -65,7 +65,7 @@ func (lb *WeightedLeastActiveLoadBalance) getIndex() int {
 	if totalWeight <= 0 {
 		return leastActiveIndexes[rand.Intn(count)]
 	}
-	currentWeight := rand.Intn(totalWeight)
+	currentWeight := rand.Int63n(totalWeight)
 	lb.rwlock.RLock()
 	for i := 0; i < count; i++ {
 		currentWeight -= lb.effectiveWeights[leastActiveIndexes[i]]

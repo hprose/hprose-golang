@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/handler.go                                    |
 |                                                          |
-| LastModified: May 22, 2021                               |
+| LastModified: Aug 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -158,7 +158,7 @@ func (h *Handler) send(ctx context.Context, conn net.Conn, queue chan data, errC
 		case response := <-queue:
 			index, body, e := response.Index, response.Body, response.Error
 			if e != nil {
-				index |= 0x80000000
+				index |= int(0x80000000)
 				if e == core.ErrRequestEntityTooLarge {
 					body = []byte(core.RequestEntityTooLarge)
 				} else {

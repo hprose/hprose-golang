@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/loadbalance/nginx_round_robin_loadbalance.go |
 |                                                          |
-| LastModified: Mar 24, 2021                               |
+| LastModified: Aug 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -25,8 +25,8 @@ import (
 // NginxRoundRobinLoadBalance plugin for hprose.
 type NginxRoundRobinLoadBalance struct {
 	WeightedLoadBalance
-	effectiveWeights intSlice
-	currentWeights   intSlice
+	effectiveWeights int64Slice
+	currentWeights   int64Slice
 	lock             sync.Mutex
 }
 
@@ -36,8 +36,8 @@ func NewNginxRoundRobinLoadBalance(uris map[string]int) *NginxRoundRobinLoadBala
 		WeightedLoadBalance: MakeWeightedLoadBalance(uris),
 	}
 	n := len(uris)
-	lb.currentWeights = make([]int, n)
-	lb.effectiveWeights = make([]int, n)
+	lb.currentWeights = make([]int64, n)
+	lb.effectiveWeights = make([]int64, n)
 	copy(lb.effectiveWeights, lb.Weights)
 	return lb
 }
@@ -49,7 +49,7 @@ func (lb *NginxRoundRobinLoadBalance) getIndex() int {
 	totalWeight := lb.effectiveWeights.Sum()
 	if totalWeight > 0 {
 		var index int
-		currentWeight := math.MinInt64
+		currentWeight := int64(math.MinInt64)
 		for i := 0; i < n; i++ {
 			lb.currentWeights[i] += lb.effectiveWeights[i]
 			weight := lb.currentWeights[i]

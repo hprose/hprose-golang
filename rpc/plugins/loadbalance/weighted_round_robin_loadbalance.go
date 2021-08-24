@@ -6,7 +6,7 @@
 |                                                             |
 | rpc/plugins/loadbalance/weighted_round_robin_loadbalance.go |
 |                                                             |
-| LastModified: Mar 24, 2021                                  |
+| LastModified: Aug 24, 2021                                  |
 | Author: Ma Bingyao <andot@hprose.com>                       |
 |                                                             |
 \*___________________________________________________________*/
@@ -24,10 +24,10 @@ import (
 type WeightedRoundRobinLoadBalance struct {
 	WeightedLoadBalance
 	lock          sync.Mutex
-	maxWeight     int
-	gcdWeight     int
 	index         int
-	currentWeight int
+	maxWeight     int64
+	gcdWeight     int64
+	currentWeight int64
 }
 
 // NewWeightedRoundRobinLoadBalance returns a WeightedRoundRobinLoadBalance instance.

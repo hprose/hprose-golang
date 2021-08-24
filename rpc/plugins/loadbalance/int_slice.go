@@ -4,18 +4,18 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| rpc/plugins/loadbalance/int_slice.go                     |
+| rpc/plugins/loadbalance/int64_slice.go                   |
 |                                                          |
-| LastModified: Mar 24, 2021                               |
+| LastModified: Aug 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package loadbalance
 
-type intSlice []int
+type int64Slice []int64
 
-func (nums intSlice) Aggregate(f func(int, int) int) int {
+func (nums int64Slice) Aggregate(f func(int64, int64) int64) int64 {
 	n := len(nums)
 	if n == 0 {
 		return 0
@@ -27,14 +27,14 @@ func (nums intSlice) Aggregate(f func(int, int) int) int {
 	return current
 }
 
-func (nums intSlice) Sum() int {
-	return nums.Aggregate(func(x, y int) int {
+func (nums int64Slice) Sum() int64 {
+	return nums.Aggregate(func(x, y int64) int64 {
 		return x + y
 	})
 }
 
-func (nums intSlice) Min() int {
-	return nums.Aggregate(func(x, y int) int {
+func (nums int64Slice) Min() int64 {
+	return nums.Aggregate(func(x, y int64) int64 {
 		if x > y {
 			return y
 		}
@@ -42,8 +42,8 @@ func (nums intSlice) Min() int {
 	})
 }
 
-func (nums intSlice) Max() int {
-	return nums.Aggregate(func(x, y int) int {
+func (nums int64Slice) Max() int64 {
+	return nums.Aggregate(func(x, y int64) int64 {
 		if x > y {
 			return x
 		}
@@ -51,11 +51,11 @@ func (nums intSlice) Max() int {
 	})
 }
 
-func (nums intSlice) GCD() int {
+func (nums int64Slice) GCD() int64 {
 	return nums.Aggregate(gcd)
 }
 
-func gcd(x, y int) int {
+func gcd(x, y int64) int64 {
 	if x < y {
 		x, y = y, x
 	}

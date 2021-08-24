@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/loadbalance/weighted_random_loadbalance.go   |
 |                                                          |
-| LastModified: Mar 24, 2021                               |
+| LastModified: Aug 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,7 +24,7 @@ import (
 // WeightedRandomLoadBalance plugin for hprose.
 type WeightedRandomLoadBalance struct {
 	WeightedLoadBalance
-	effectiveWeights intSlice
+	effectiveWeights int64Slice
 	rwlock           sync.RWMutex
 }
 
@@ -33,7 +33,7 @@ func NewWeightedRandomLoadBalance(uris map[string]int) *WeightedRandomLoadBalanc
 	lb := &WeightedRandomLoadBalance{
 		WeightedLoadBalance: MakeWeightedLoadBalance(uris),
 	}
-	lb.effectiveWeights = make([]int, len(uris))
+	lb.effectiveWeights = make([]int64, len(uris))
 	copy(lb.effectiveWeights, lb.Weights)
 	return lb
 }
@@ -47,7 +47,7 @@ func (lb *WeightedRandomLoadBalance) getIndex() int {
 	if totalWeight <= 0 {
 		return rand.Intn(n)
 	}
-	currentWeight := rand.Intn(totalWeight)
+	currentWeight := rand.Int63n(totalWeight)
 	for i := 0; i < n; i++ {
 		currentWeight -= lb.effectiveWeights[i]
 		if currentWeight < 0 {
