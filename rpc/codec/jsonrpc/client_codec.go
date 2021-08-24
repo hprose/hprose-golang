@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/codec/jsonrpc/client_codec.go                        |
 |                                                          |
-| LastModified: May 17, 2021                               |
+| LastModified: Aug 24, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -27,7 +27,7 @@ type ClientCodec struct {
 }
 
 func (c *ClientCodec) Encode(name string, args []interface{}, context *core.ClientContext) ([]byte, error) {
-	id := atomic.AddInt64(&c.counter, 1) & 0x7fffffff
+	id := atomic.AddInt64(&c.counter, 1) & int64(0x7fffffff)
 	request := Request{
 		JSONRPC: "2.0",
 		ID:      id,
