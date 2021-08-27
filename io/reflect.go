@@ -6,7 +6,7 @@
 |                                                          |
 | io/reflect.go                                            |
 |                                                          |
-| LastModified: May 8, 2021                                |
+| LastModified: Aug 27, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -25,7 +25,7 @@ import (
 )
 
 type eface struct {
-	typ uintptr
+	typ unsafe.Pointer
 	ptr unsafe.Pointer
 }
 
@@ -63,7 +63,7 @@ func toSlice(array interface{}) (slice interface{}) {
 	t := reflect.TypeOf(array)
 	sliceType := reflect.SliceOf(t.Elem())
 	sliceStruct := unpackEFace(&slice)
-	sliceStruct.typ = (uintptr)(reflect2.PtrOf(sliceType))
+	sliceStruct.typ = reflect2.PtrOf(sliceType)
 	sliceStruct.ptr = unsafeToSlice(array, t.Len())
 	return
 }
@@ -109,7 +109,6 @@ var float32PtrType = reflect.TypeOf((*float32)(nil))
 var float64PtrType = reflect.TypeOf((*float64)(nil))
 var complex64PtrType = reflect.TypeOf((*complex64)(nil))
 var complex128PtrType = reflect.TypeOf((*complex128)(nil))
-var interfacePtrType = reflect.TypeOf((*interface{})(nil))
 var bytesPtrType = reflect.TypeOf((*[]byte)(nil))
 var stringPtrType = reflect.TypeOf((*string)(nil))
 var timePtrType = reflect.TypeOf((*time.Time)(nil))
