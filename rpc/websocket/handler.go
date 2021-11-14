@@ -179,7 +179,7 @@ func (h *Handler) send(ctx context.Context, conn *websocket.Conn, queue chan dat
 		case response := <-queue:
 			index, body, e := response.Index, response.Body, response.Error
 			if e != nil {
-				index |= int(0x80000000)
+				index |= 1<<31 - 1
 				if e == core.ErrRequestEntityTooLarge {
 					body = []byte(core.RequestEntityTooLarge)
 				} else {
