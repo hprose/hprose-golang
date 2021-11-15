@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/websocket/handler.go                                 |
 |                                                          |
-| LastModified: Aug 24, 2021                               |
+| LastModified: Nov 11, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,6 +15,7 @@ package websocket
 
 import (
 	"context"
+	"math"
 	"math/rand"
 	"net"
 	"net/http"
@@ -179,7 +180,7 @@ func (h *Handler) send(ctx context.Context, conn *websocket.Conn, queue chan dat
 		case response := <-queue:
 			index, body, e := response.Index, response.Body, response.Error
 			if e != nil {
-				index |= int(0x80000000)
+				index |= math.MinInt32
 				if e == core.ErrRequestEntityTooLarge {
 					body = []byte(core.RequestEntityTooLarge)
 				} else {

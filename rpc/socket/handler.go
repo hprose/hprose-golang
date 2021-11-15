@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/handler.go                                    |
 |                                                          |
-| LastModified: Aug 24, 2021                               |
+| LastModified: Nov 11, 2021                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,6 +17,7 @@ import (
 	"context"
 	"crypto/tls"
 	"io"
+	"math"
 	"net"
 	"reflect"
 	"time"
@@ -158,7 +159,7 @@ func (h *Handler) send(ctx context.Context, conn net.Conn, queue chan data, errC
 		case response := <-queue:
 			index, body, e := response.Index, response.Body, response.Error
 			if e != nil {
-				index |= int(0x80000000)
+				index |= math.MinInt32
 				if e == core.ErrRequestEntityTooLarge {
 					body = []byte(core.RequestEntityTooLarge)
 				} else {
