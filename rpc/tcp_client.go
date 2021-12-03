@@ -21,6 +21,7 @@ package rpc
 
 import (
 	"crypto/tls"
+	"errors"
 	"net"
 	"net/url"
 	"time"
@@ -62,13 +63,16 @@ func (client *TCPClient) createTCPConn() (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	tcpaddr, err := net.ResolveTCPAddr(u.Scheme, u.Host)
+	d := net.Dialer{
+		Timeout: client.Timeout(),
+	}
+	c, err := d.Dial(u.Scheme, u.Host)
 	if err != nil {
 		return nil, err
 	}
-	conn, err := net.DialTCP(u.Scheme, nil, tcpaddr)
-	if err != nil {
-		return nil, err
+	conn, ok := c.(*net.TCPConn)
+	if !ok {
+		return nil, errors.New("not tcp conn")
 	}
 	err = conn.SetLinger(client.Linger)
 	if err != nil {
