@@ -156,7 +156,7 @@ func (dec *Decoder) ReadSafeString() (s string) {
 
 // ReadString reads safe string and add reference.
 func (dec *Decoder) ReadString() (s string) {
-	s = dec.ReadUnsafeString()
+	s = dec.ReadSafeString()
 	dec.AddReference(s)
 	return
 }

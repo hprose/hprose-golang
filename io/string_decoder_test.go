@@ -178,6 +178,29 @@ func TestDecodeStringFromReader(t *testing.T) {
 	assert.Equal(t, "👩‍👩‍👧‍👧", *s)
 }
 
+func TestStringDecodeIsSafe(t *testing.T) {
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb)
+	enc.Encode("测试1")
+	enc.Encode("测试2")
+	enc.Encode("测试3")
+	data := []byte(sb.String())
+	dec := NewDecoder(data)
+	var s1, s2, s3 string
+	dec.Decode(&s1)
+	assert.Equal(t, "测试1", s1)
+	dec.Decode(&s2)
+	assert.Equal(t, "测试2", s2)
+	dec.Decode(&s3)
+	assert.Equal(t, "测试3", s3)
+	data[9] = '4'
+	assert.Equal(t, "测试1", s1)
+	data[20] = '5'
+	assert.Equal(t, "测试2", s2)
+	data[31] = '6'
+	assert.Equal(t, "测试3", s3)
+}
+
 func TestLongStringDecode(t *testing.T) {
 	sb := new(strings.Builder)
 	for i := 0; i < 100000; i++ {
