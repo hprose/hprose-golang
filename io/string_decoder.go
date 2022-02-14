@@ -6,7 +6,7 @@
 |                                                          |
 | io/string_decoder.go                                     |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 14, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -85,7 +85,10 @@ func (dec *Decoder) readStringAsBytes(utf16Length int) (data []byte, safe bool) 
 			data = append(data, buf[:off]...)
 			return
 		}
-		safe = true
+		if !safe {
+			safe = true
+			data = make([]byte, 0, utf16Length*3)
+		}
 		data = append(data, buf...)
 		if !dec.loadMore() {
 			if remains < 0 {
@@ -106,7 +109,9 @@ func (dec *Decoder) readStringAsSafeBytes(utf16Length int) []byte {
 	if safe {
 		return data
 	}
-	return append(([]byte)(nil), data...)
+	result := make([]byte, len(data))
+	copy(result, data)
+	return result
 }
 
 // ReadStringAsBytes reads string as bytes.
@@ -125,11 +130,14 @@ func (dec *Decoder) readUnsafeString(utf16Length int) (s string) {
 }
 
 func (dec *Decoder) readSafeString(utf16Length int) (s string) {
-	data := dec.readStringAsSafeBytes(utf16Length)
+	data, safe := dec.readStringAsBytes(utf16Length)
 	if data == nil {
 		return
 	}
-	return unsafeString(data)
+	if safe {
+		return unsafeString(data)
+	}
+	return string(data)
 }
 
 // ReadUnsafeString reads unsafe string.
@@ -148,7 +156,7 @@ func (dec *Decoder) ReadSafeString() (s string) {
 
 // ReadString reads safe string and add reference.
 func (dec *Decoder) ReadString() (s string) {
-	s = dec.ReadSafeString()
+	s = dec.ReadUnsafeString()
 	dec.AddReference(s)
 	return
 }

@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/codec/jsonrpc/client_codec.go                        |
 |                                                          |
-| LastModified: Aug 24, 2021                               |
+| LastModified: Feb 14, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -60,9 +60,11 @@ func (c *ClientCodec) Decode(response []byte, context *core.ClientContext) (resu
 			if err = c.Codec.Unmarshal(data, p); err != nil {
 				return
 			}
-			result = append(result, t.Indirect(p))
+			result = []interface{}{t.Indirect(p)}
 		default:
-			for i, r := range resp.Result.([]interface{}) {
+			res := resp.Result.([]interface{})
+			result = make([]interface{}, 0, len(res))
+			for i, r := range res {
 				data, _ := c.Codec.Marshal(r)
 				t := reflect2.Type2(context.ReturnType[i])
 				p := t.New()

@@ -6,7 +6,7 @@
 |                                                          |
 | io/string_decoder_test.go                                |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Feb 14, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -176,4 +176,48 @@ func TestDecodeStringFromReader(t *testing.T) {
 	assert.Equal(t, "🐱🐶", *s)
 	dec.Decode(&s)
 	assert.Equal(t, "👩‍👩‍👧‍👧", *s)
+}
+
+func TestLongStringDecode(t *testing.T) {
+	sb := new(strings.Builder)
+	for i := 0; i < 100000; i++ {
+		sb.WriteString("测试")
+		sb.WriteString(strconv.Itoa(i))
+	}
+	src := sb.String()
+	sb = new(strings.Builder)
+	enc := NewEncoder(sb)
+	enc.Encode(src)
+	enc.Encode(src)
+	enc.Encode(src)
+	dec := NewDecoderFromReader(bytes.NewReader(([]byte)(sb.String())), 512)
+	var s *string
+	dec.Decode(&s)
+	assert.Equal(t, src, *s)
+	dec.Decode(&s)
+	assert.Equal(t, src, *s)
+	dec.Decode(&s)
+	assert.Equal(t, src, *s)
+}
+
+func BenchmarkLongStringDecode(b *testing.B) {
+	sb := new(strings.Builder)
+	for i := 0; i < 100000; i++ {
+		sb.WriteString("测试")
+		sb.WriteString(strconv.Itoa(i))
+	}
+	src := sb.String()
+	sb = new(strings.Builder)
+	enc := NewEncoder(sb)
+	enc.Encode(src)
+	enc.Encode(src)
+	enc.Encode(src)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		dec := NewDecoderFromReader(bytes.NewReader(([]byte)(sb.String())), 512)
+		var s *string
+		dec.Decode(&s)
+		dec.Decode(&s)
+		dec.Decode(&s)
+	}
 }

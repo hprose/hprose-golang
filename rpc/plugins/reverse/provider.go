@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/reverse/provider.go                          |
 |                                                          |
-| LastModified: May 19, 2021                               |
+| LastModified: Feb 14, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -150,8 +150,9 @@ func (p *Provider) Execute(ctx context.Context, name string, args []interface{})
 		out = out[:n-1]
 		n--
 	}
+	result = make([]interface{}, n)
 	for i := 0; i < n; i++ {
-		result = append(result, out[i].Interface())
+		result[i] = out[i].Interface()
 	}
 	return
 }
