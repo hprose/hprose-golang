@@ -124,15 +124,15 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	case *uint:
 		dec.decodeUint(uintType, tag, pv)
 	case *uint8:
-		*pv = dec.decodeUint8(uint8Type, tag)
+		dec.decodeUint8(uint8Type, tag, pv)
 	case *uint16:
-		*pv = dec.decodeUint16(uint16Type, tag)
+		dec.decodeUint16(uint16Type, tag, pv)
 	case *uint32:
-		*pv = dec.decodeUint32(uint32Type, tag)
+		dec.decodeUint32(uint32Type, tag, pv)
 	case *uint64:
-		*pv = dec.decodeUint64(uint64Type, tag)
+		dec.decodeUint64(uint64Type, tag, pv)
 	case *uintptr:
-		*pv = dec.decodeUintptr(uintptrType, tag)
+		dec.decodeUintptr(uintptrType, tag, pv)
 	case *float32:
 		*pv = dec.decodeFloat32(float32Type, tag)
 	case *float64:
@@ -180,15 +180,15 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	case **uint:
 		dec.decodeUintPtr(uintPtrType, tag, pv)
 	case **uint8:
-		*pv = dec.decodeUint8Ptr(uint8PtrType, tag)
+		dec.decodeUint8Ptr(uint8PtrType, tag, pv)
 	case **uint16:
-		*pv = dec.decodeUint16Ptr(uint16PtrType, tag)
+		dec.decodeUint16Ptr(uint16PtrType, tag, pv)
 	case **uint32:
-		*pv = dec.decodeUint32Ptr(uint32PtrType, tag)
+		dec.decodeUint32Ptr(uint32PtrType, tag, pv)
 	case **uint64:
-		*pv = dec.decodeUint64Ptr(uint64PtrType, tag)
+		dec.decodeUint64Ptr(uint64PtrType, tag, pv)
 	case **uintptr:
-		*pv = dec.decodeUintptrPtr(uintptrPtrType, tag)
+		dec.decodeUintptrPtr(uintptrPtrType, tag, pv)
 	case **float32:
 		*pv = dec.decodeFloat32Ptr(float32PtrType, tag)
 	case **float64:

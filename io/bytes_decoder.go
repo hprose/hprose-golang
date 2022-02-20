@@ -6,7 +6,7 @@
 |                                                          |
 | io/bytes_decoder.go                                      |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -43,7 +43,7 @@ func (dec *Decoder) readUint8Slice(et reflect.Type) []byte {
 	slice := make([]byte, count)
 	dec.AddReference(slice)
 	for i := 0; i < count; i++ {
-		slice[i] = dec.decodeUint8(et, dec.NextByte())
+		dec.decodeUint8(et, dec.NextByte(), &slice[i])
 	}
 	dec.Skip()
 	return slice

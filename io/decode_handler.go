@@ -58,23 +58,23 @@ func uintDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func uint8Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*uint8)(p) = dec.decodeUint8(t, dec.NextByte())
+	dec.decodeUint8(t, dec.NextByte(), (*uint8)(p))
 }
 
 func uint16Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*uint16)(p) = dec.decodeUint16(t, dec.NextByte())
+	dec.decodeUint16(t, dec.NextByte(), (*uint16)(p))
 }
 
 func uint32Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*uint32)(p) = dec.decodeUint32(t, dec.NextByte())
+	dec.decodeUint32(t, dec.NextByte(), (*uint32)(p))
 }
 
 func uint64Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*uint64)(p) = dec.decodeUint64(t, dec.NextByte())
+	dec.decodeUint64(t, dec.NextByte(), (*uint64)(p))
 }
 
 func uintptrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*uintptr)(p) = dec.decodeUintptr(t, dec.NextByte())
+	dec.decodeUintptr(t, dec.NextByte(), (*uintptr)(p))
 }
 
 func float32Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -150,23 +150,23 @@ func uintPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func uint8PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**uint8)(p) = dec.decodeUint8Ptr(t, dec.NextByte())
+	dec.decodeUint8Ptr(t, dec.NextByte(), (**uint8)(p))
 }
 
 func uint16PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**uint16)(p) = dec.decodeUint16Ptr(t, dec.NextByte())
+	dec.decodeUint16Ptr(t, dec.NextByte(), (**uint16)(p))
 }
 
 func uint32PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*uint32)(p) = dec.decodeUint32(t, dec.NextByte())
+	dec.decodeUint32(t, dec.NextByte(), (*uint32)(p))
 }
 
 func uint64PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**uint64)(p) = dec.decodeUint64Ptr(t, dec.NextByte())
+	dec.decodeUint64Ptr(t, dec.NextByte(), (**uint64)(p))
 }
 
 func uintptrPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**uintptr)(p) = dec.decodeUintptrPtr(t, dec.NextByte())
+	dec.decodeUintptrPtr(t, dec.NextByte(), (**uintptr)(p))
 }
 
 func float32PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
