@@ -72,7 +72,8 @@ type Decoder struct {
 	buf    []byte
 	head   int
 	tail   int
-	refer  *decoderRefer
+	simple bool
+	refer  decoderRefer
 	ref    []structInfo
 	Error  error
 	LongType
@@ -85,6 +86,7 @@ func NewDecoder(input []byte) *Decoder {
 	return &Decoder{
 		reader: nil,
 		buf:    input,
+		simple: true,
 		head:   0,
 		tail:   len(input),
 	}
@@ -99,6 +101,7 @@ func NewDecoderFromReader(reader io.Reader, bufSize ...int) *Decoder {
 	return &Decoder{
 		reader: reader,
 		buf:    make([]byte, size),
+		simple: true,
 		head:   0,
 		tail:   0,
 	}
@@ -265,18 +268,14 @@ func (dec *Decoder) Reset() *Decoder {
 
 // Simple resets the decoder to simple mode or not.
 func (dec *Decoder) Simple(simple bool) *Decoder {
-	if simple {
-		dec.refer = nil
-	} else {
-		dec.refer = &decoderRefer{}
-	}
-	dec.ref = dec.ref[:0]
+	dec.simple = simple
+	dec.Reset()
 	return dec
 }
 
 // IsSimple returns the decoder is in simple mode or not.
 func (dec *Decoder) IsSimple() bool {
-	return nil == dec.refer
+	return dec.simple
 }
 
 // AddReference adds o to the reference.
