@@ -34,7 +34,9 @@ func (dec *Decoder) readBytes() []byte {
 // ReadBytes reads bytes and add reference.
 func (dec *Decoder) ReadBytes() []byte {
 	bytes := dec.readBytes()
-	dec.AddReference(bytes)
+	if !dec.IsSimple() {
+		dec.refer.Add(bytes)
+	}
 	return bytes
 }
 

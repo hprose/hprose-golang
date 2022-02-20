@@ -116,7 +116,9 @@ func (dec *Decoder) readTime(p *time.Time) {
 // ReadTime reads time.Time and add reference.
 func (dec *Decoder) ReadTime() (t time.Time) {
 	dec.readTime(&t)
-	dec.AddReference(t)
+	if !dec.IsSimple() {
+		dec.refer.Add(t)
+	}
 	return
 }
 
@@ -145,7 +147,9 @@ func (dec *Decoder) readDateTime(p *time.Time) {
 // ReadDateTime reads time.Time and add reference.
 func (dec *Decoder) ReadDateTime() (t time.Time) {
 	dec.readDateTime(&t)
-	dec.AddReference(t)
+	if !dec.IsSimple() {
+		dec.refer.Add(t)
+	}
 	return
 }
 
@@ -165,10 +169,14 @@ func (dec *Decoder) decodeTime(t reflect.Type, tag byte, p *time.Time) {
 		*p = time.Unix(0, int64(dec.ReadFloat64()))
 	case TagTime:
 		dec.readTime(p)
-		dec.AddReference(*p)
+		if !dec.IsSimple() {
+			dec.refer.Add(*p)
+		}
 	case TagDate:
 		dec.readDateTime(p)
-		dec.AddReference(*p)
+		if !dec.IsSimple() {
+			dec.refer.Add(*p)
+		}
 	case TagString:
 		if dec.IsSimple() {
 			*p = dec.stringToTime(dec.ReadUnsafeString())

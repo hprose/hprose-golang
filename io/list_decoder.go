@@ -33,7 +33,9 @@ func (valdec listDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 		count := dec.ReadInt()
 		l := list.New()
 		*plist = l
-		dec.AddReference(l)
+		if !dec.IsSimple() {
+			dec.refer.Add(l)
+		}
 		for i := 0; i < count; i++ {
 			var e interface{}
 			dec.decodeInterface(dec.NextByte(), &e)

@@ -24,7 +24,9 @@ import (
 func (dec *Decoder) readObjectAsMap(structInfo structInfo) map[string]interface{} {
 	m := make(map[string]interface{}, len(structInfo.names))
 	t := reflect2.TypeOf(m).(*reflect2.UnsafeMapType)
-	dec.AddReference(m)
+	if !dec.IsSimple() {
+		dec.refer.Add(m)
+	}
 	ptr := reflect2.PtrOf(&m)
 	for _, name := range structInfo.names {
 		var v interface{}
