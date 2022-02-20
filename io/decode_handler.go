@@ -106,7 +106,7 @@ func bytesDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func timeDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*time.Time)(p) = dec.decodeTime(t, dec.NextByte())
+	dec.decodeTime(t, dec.NextByte(), (*time.Time)(p))
 }
 
 func bigIntDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {

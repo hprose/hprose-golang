@@ -6,7 +6,7 @@
 |                                                          |
 | io/time_decoder.go                                       |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -97,8 +97,7 @@ func (dec *Decoder) readNsec() (nsec int, tag byte) {
 	return
 }
 
-// ReadTime reads time.Time and add reference.
-func (dec *Decoder) ReadTime() (t time.Time) {
+func (dec *Decoder) readTime(p *time.Time) {
 	hour := dec.read2Digit()
 	min := dec.read2Digit()
 	sec := dec.read2Digit()
@@ -111,13 +110,17 @@ func (dec *Decoder) ReadTime() (t time.Time) {
 	if tag == TagUTC {
 		loc = time.UTC
 	}
-	t = time.Date(1970, time.January, 1, hour, min, sec, nsec, loc)
+	*p = time.Date(1970, time.January, 1, hour, min, sec, nsec, loc)
+}
+
+// ReadTime reads time.Time and add reference.
+func (dec *Decoder) ReadTime() (t time.Time) {
+	dec.readTime(&t)
 	dec.AddReference(t)
 	return
 }
 
-// ReadDateTime reads time.Time and add reference.
-func (dec *Decoder) ReadDateTime() (t time.Time) {
+func (dec *Decoder) readDateTime(p *time.Time) {
 	year := dec.read4Digit()
 	month := dec.read2Digit()
 	day := dec.read2Digit()
@@ -136,52 +139,62 @@ func (dec *Decoder) ReadDateTime() (t time.Time) {
 	if tag == TagUTC {
 		loc = time.UTC
 	}
-	t = time.Date(year, time.Month(month), day, hour, min, sec, nsec, loc)
+	*p = time.Date(year, time.Month(month), day, hour, min, sec, nsec, loc)
+}
+
+// ReadDateTime reads time.Time and add reference.
+func (dec *Decoder) ReadDateTime() (t time.Time) {
+	dec.readDateTime(&t)
 	dec.AddReference(t)
 	return
 }
 
-func (dec *Decoder) decodeTime(t reflect.Type, tag byte) (result time.Time) {
+func (dec *Decoder) decodeTime(t reflect.Type, tag byte, p *time.Time) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return time.Unix(0, int64(i))
+		*p = time.Unix(0, int64(i))
+		return
 	}
 	switch tag {
 	case TagEmpty, TagFalse:
-		return time.Unix(0, 0)
+		*p = time.Unix(0, 0)
 	case TagTrue:
-		return time.Unix(0, 1)
+		*p = time.Unix(0, 1)
 	case TagInteger, TagLong:
-		return time.Unix(0, dec.ReadInt64())
+		*p = time.Unix(0, dec.ReadInt64())
 	case TagDouble:
-		return time.Unix(0, int64(dec.ReadFloat64()))
+		*p = time.Unix(0, int64(dec.ReadFloat64()))
 	case TagTime:
-		return dec.ReadTime()
+		dec.readTime(p)
+		dec.AddReference(*p)
 	case TagDate:
-		return dec.ReadDateTime()
+		dec.readDateTime(p)
+		dec.AddReference(*p)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToTime(dec.ReadUnsafeString())
+			*p = dec.stringToTime(dec.ReadUnsafeString())
+		} else {
+			*p = dec.stringToTime(dec.ReadString())
 		}
-		return dec.stringToTime(dec.ReadString())
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeTimePtr(t reflect.Type, tag byte) *time.Time {
+func (dec *Decoder) decodeTimePtr(t reflect.Type, tag byte, p **time.Time) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	time := dec.decodeTime(t, tag)
-	return &time
+	var tt time.Time
+	dec.decodeTime(t, tag, &tt)
+	*p = &tt
 }
 
 // timeDecoder is the implementation of ValueDecoder for time.Time.
 type timeDecoder struct{}
 
 func (timeDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*time.Time)(reflect2.PtrOf(p)) = dec.decodeTime(reflect.TypeOf(p).Elem(), tag)
+	dec.decodeTime(reflect.TypeOf(p).Elem(), tag, (*time.Time)(reflect2.PtrOf(p)))
 }
 
 func init() {
