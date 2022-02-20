@@ -6,7 +6,7 @@
 |                                                          |
 | io/float_decoder.go                                      |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -44,80 +44,86 @@ func (dec *Decoder) readInf() float64 {
 	return math.Inf(1)
 }
 
-func (dec *Decoder) decodeFloat32(t reflect.Type, tag byte) (result float32) {
+func (dec *Decoder) decodeFloat32(t reflect.Type, tag byte, p *float32) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return float32(i)
+		*p = float32(i)
+		return
 	}
 	switch tag {
 	case TagNull, TagEmpty, TagFalse:
-		return 0
+		*p = 0
 	case TagTrue:
-		return 1
+		*p = 1
 	case TagInteger:
-		return float32(dec.ReadInt())
+		*p = float32(dec.ReadInt())
 	case TagLong, TagDouble:
-		return dec.ReadFloat32()
+		*p = dec.ReadFloat32()
 	case TagNaN:
-		return float32(math.NaN())
+		*p = float32(math.NaN())
 	case TagInfinity:
-		return float32(dec.readInf())
+		*p = float32(dec.readInf())
 	case TagUTF8Char:
-		return dec.stringToFloat32(dec.readUnsafeString(1))
+		*p = dec.stringToFloat32(dec.readUnsafeString(1))
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToFloat32(dec.ReadUnsafeString())
+			*p = dec.stringToFloat32(dec.ReadUnsafeString())
+		} else {
+			*p = dec.stringToFloat32(dec.ReadString())
 		}
-		return dec.stringToFloat32(dec.ReadString())
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeFloat32Ptr(t reflect.Type, tag byte) *float32 {
+func (dec *Decoder) decodeFloat32Ptr(t reflect.Type, tag byte, p **float32) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	f := dec.decodeFloat32(t, tag)
-	return &f
+	var f float32
+	dec.decodeFloat32(t, tag, &f)
+	*p = &f
 }
 
-func (dec *Decoder) decodeFloat64(t reflect.Type, tag byte) (result float64) {
+func (dec *Decoder) decodeFloat64(t reflect.Type, tag byte, p *float64) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return float64(i)
+		*p = float64(i)
+		return
 	}
 	switch tag {
 	case TagNull, TagEmpty, TagFalse:
-		return 0
+		*p = 0
 	case TagTrue:
-		return 1
+		*p = 1
 	case TagInteger:
-		return float64(dec.ReadInt())
+		*p = float64(dec.ReadInt())
 	case TagLong, TagDouble:
-		return dec.ReadFloat64()
+		*p = dec.ReadFloat64()
 	case TagNaN:
-		return math.NaN()
+		*p = math.NaN()
 	case TagInfinity:
-		return dec.readInf()
+		*p = dec.readInf()
 	case TagUTF8Char:
-		return dec.stringToFloat64(dec.readUnsafeString(1))
+		*p = dec.stringToFloat64(dec.readUnsafeString(1))
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToFloat64(dec.ReadUnsafeString())
+			*p = dec.stringToFloat64(dec.ReadUnsafeString())
+		} else {
+			*p = dec.stringToFloat64(dec.ReadString())
 		}
-		return dec.stringToFloat64(dec.ReadString())
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeFloat64Ptr(t reflect.Type, tag byte) *float64 {
+func (dec *Decoder) decodeFloat64Ptr(t reflect.Type, tag byte, p **float64) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	f := dec.decodeFloat64(t, tag)
-	return &f
+	var f float64
+	dec.decodeFloat64(t, tag, &f)
+	*p = &f
 }
 
 // float32Decoder is the implementation of ValueDecoder for float32.
@@ -126,7 +132,7 @@ type float32Decoder struct {
 }
 
 func (valdec float32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*float32)(reflect2.PtrOf(p)) = dec.decodeFloat32(valdec.t, tag)
+	dec.decodeFloat32(valdec.t, tag, (*float32)(reflect2.PtrOf(p)))
 }
 
 // float32PtrDecoder is the implementation of ValueDecoder for *float32.
@@ -135,7 +141,7 @@ type float32PtrDecoder struct {
 }
 
 func (valdec float32PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**float32)(reflect2.PtrOf(p)) = dec.decodeFloat32Ptr(valdec.t, tag)
+	dec.decodeFloat32Ptr(valdec.t, tag, (**float32)(reflect2.PtrOf(p)))
 }
 
 // float64Decoder is the implementation of ValueDecoder for float64.
@@ -144,7 +150,7 @@ type float64Decoder struct {
 }
 
 func (valdec float64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*float64)(reflect2.PtrOf(p)) = dec.decodeFloat64(valdec.t, tag)
+	dec.decodeFloat64(valdec.t, tag, (*float64)(reflect2.PtrOf(p)))
 }
 
 // float64PtrDecoder is the implementation of ValueDecoder for *float64.
@@ -153,5 +159,5 @@ type float64PtrDecoder struct {
 }
 
 func (valdec float64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**float64)(reflect2.PtrOf(p)) = dec.decodeFloat64Ptr(valdec.t, tag)
+	dec.decodeFloat64Ptr(valdec.t, tag, (**float64)(reflect2.PtrOf(p)))
 }

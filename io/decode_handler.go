@@ -78,11 +78,11 @@ func uintptrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func float32Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*float32)(p) = dec.decodeFloat32(t, dec.NextByte())
+	dec.decodeFloat32(t, dec.NextByte(), (*float32)(p))
 }
 
 func float64Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*float64)(p) = dec.decodeFloat64(t, dec.NextByte())
+	dec.decodeFloat64(t, dec.NextByte(), (*float64)(p))
 }
 
 func complex64Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -170,11 +170,11 @@ func uintptrPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func float32PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**float32)(p) = dec.decodeFloat32Ptr(t, dec.NextByte())
+	dec.decodeFloat32Ptr(t, dec.NextByte(), (**float32)(p))
 }
 
 func float64PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**float64)(p) = dec.decodeFloat64Ptr(t, dec.NextByte())
+	dec.decodeFloat64Ptr(t, dec.NextByte(), (**float64)(p))
 }
 
 func complex64PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
