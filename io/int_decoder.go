@@ -6,7 +6,7 @@
 |                                                          |
 | io/int_decoder.go                                        |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -36,38 +36,42 @@ func (dec *Decoder) stringToUint64(s string, bitSize int) uint64 {
 	return i
 }
 
-func (dec *Decoder) decodeInt(t reflect.Type, tag byte) (result int) {
+func (dec *Decoder) decodeInt(t reflect.Type, tag byte, p *int) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return int(i)
+		*p = int(i)
+		return
 	}
 	switch tag {
 	case TagNull, TagEmpty, TagFalse:
-		return 0
+		*p = 0
 	case TagTrue:
-		return 1
+		*p = 1
 	case TagInteger, TagLong:
-		return dec.ReadInt()
+		*p = dec.ReadInt()
 	case TagDouble:
-		return int(dec.ReadFloat64())
+		*p = int(dec.ReadFloat64())
 	case TagUTF8Char:
-		return int(dec.stringToInt64(dec.readUnsafeString(1), 0))
+		*p = int(dec.stringToInt64(dec.readUnsafeString(1), 0))
 	case TagString:
 		if dec.IsSimple() {
-			return int(dec.stringToInt64(dec.ReadUnsafeString(), 0))
+			*p = int(dec.stringToInt64(dec.ReadUnsafeString(), 0))
+			return
 		}
-		return int(dec.stringToInt64(dec.ReadString(), 0))
+		*p = int(dec.stringToInt64(dec.ReadString(), 0))
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
 	return
 }
 
-func (dec *Decoder) decodeIntPtr(t reflect.Type, tag byte) *int {
+func (dec *Decoder) decodeIntPtr(t reflect.Type, tag byte, p **int) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	i := dec.decodeInt(t, tag)
-	return &i
+	var i int
+	dec.decodeInt(t, tag, &i)
+	*p = &i
 }
 
 func (dec *Decoder) decodeInt8(t reflect.Type, tag byte) (result int8) {
@@ -416,7 +420,7 @@ type intDecoder struct {
 }
 
 func (valdec intDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*int)(reflect2.PtrOf(p)) = dec.decodeInt(valdec.t, tag)
+	dec.decodeInt(valdec.t, tag, (*int)(reflect2.PtrOf(p)))
 }
 
 // intPtrDecoder is the implementation of ValueDecoder for *int.
@@ -425,7 +429,7 @@ type intPtrDecoder struct {
 }
 
 func (valdec intPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**int)(reflect2.PtrOf(p)) = dec.decodeIntPtr(valdec.t, tag)
+	dec.decodeIntPtr(valdec.t, tag, (**int)(reflect2.PtrOf(p)))
 }
 
 // int8Decoder is the implementation of ValueDecoder for int8.
