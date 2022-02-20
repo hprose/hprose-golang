@@ -138,9 +138,9 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	case *float64:
 		dec.decodeFloat64(float64Type, tag, pv)
 	case *complex64:
-		*pv = dec.decodeComplex64(complex64Type, tag)
+		dec.decodeComplex64(complex64Type, tag, pv)
 	case *complex128:
-		*pv = dec.decodeComplex128(complex128Type, tag)
+		dec.decodeComplex128(complex128Type, tag, pv)
 	case *interface{}:
 		*pv = dec.decodeInterface(tag)
 	case *[]byte:
@@ -194,9 +194,9 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	case **float64:
 		dec.decodeFloat64Ptr(float64PtrType, tag, pv)
 	case **complex64:
-		*pv = dec.decodeComplex64Ptr(complex64PtrType, tag)
+		dec.decodeComplex64Ptr(complex64PtrType, tag, pv)
 	case **complex128:
-		*pv = dec.decodeComplex128Ptr(complex128PtrType, tag)
+		dec.decodeComplex128Ptr(complex128PtrType, tag, pv)
 	case **interface{}:
 		*pv = dec.decodeInterfacePtr(tag)
 	case **[]byte:
