@@ -27,7 +27,8 @@ type Encoder struct {
 	addr   *Encoder // of receiver, to detect copies by value.
 	buf    []byte
 	off    int
-	refer  *encoderRefer
+	simple bool
+	refer  encoderRefer
 	ref    map[reflect.Type]int
 	last   int
 	Writer io.Writer
@@ -36,7 +37,10 @@ type Encoder struct {
 
 // NewEncoder create an encoder object.
 func NewEncoder(w io.Writer) *Encoder {
-	return &Encoder{Writer: w}
+	return &Encoder{
+		Writer: w,
+		simple: true,
+	}
 }
 
 func (enc *Encoder) copyCheck() {
@@ -294,11 +298,8 @@ func (enc *Encoder) Reset() *Encoder {
 
 // Simple resets the encoder to simple mode or not.
 func (enc *Encoder) Simple(simple bool) *Encoder {
-	if simple {
-		enc.refer = nil
-	} else {
-		enc.refer = &encoderRefer{}
-	}
+	enc.simple = simple
+	enc.refer.Reset()
 	enc.ref = nil
 	enc.last = 0
 	return enc
@@ -306,7 +307,7 @@ func (enc *Encoder) Simple(simple bool) *Encoder {
 
 // IsSimple returns the encoder is in simple mode or not.
 func (enc *Encoder) IsSimple() bool {
-	return nil == enc.refer
+	return enc.simple
 }
 
 // WriteNil to encoder.
