@@ -6,7 +6,7 @@
 |                                                          |
 | io/decoder.go                                            |
 |                                                          |
-| LastModified: May 14, 2021                               |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -110,7 +110,7 @@ func NewDecoderFromReader(reader io.Reader, bufSize ...int) *Decoder {
 func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	switch pv := p.(type) {
 	case *bool:
-		*pv = dec.decodeBool(boolType, tag)
+		dec.decodeBool(boolType, tag, pv)
 	case *int:
 		*pv = dec.decodeInt(intType, tag)
 	case *int8:
@@ -166,7 +166,7 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	switch pv := p.(type) {
 	case **bool:
-		*pv = dec.decodeBoolPtr(boolPtrType, tag)
+		dec.decodeBoolPtr(boolPtrType, tag, pv)
 	case **int:
 		*pv = dec.decodeIntPtr(intPtrType, tag)
 	case **int8:

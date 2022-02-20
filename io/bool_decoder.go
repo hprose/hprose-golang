@@ -6,7 +6,7 @@
 |                                                          |
 | io/bool_decoder.go                                       |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -28,46 +28,51 @@ func (dec *Decoder) stringToBool(s string) bool {
 	return b
 }
 
-func (dec *Decoder) decodeBool(t reflect.Type, tag byte) (result bool) {
+func (dec *Decoder) decodeBool(t reflect.Type, tag byte, p *bool) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return i > 0
+		*p = i > 0
+		return
 	}
 	switch tag {
 	case TagNull, TagEmpty, TagFalse:
-		return false
+		*p = false
 	case TagTrue, TagNaN:
-		return true
+		*p = true
 	case TagInteger, TagLong, TagDouble:
 		bytes := dec.UnsafeUntil(TagSemicolon)
 		if len(bytes) == 0 {
-			return false
+			*p = false
+			return
 		}
 		if len(bytes) == 1 {
-			return bytes[0] != '0'
+			*p = bytes[0] != '0'
+			return
 		}
-		return true
+		*p = true
 	case TagInfinity:
 		dec.Skip()
-		return true
+		*p = true
 	case TagUTF8Char:
-		return dec.stringToBool(dec.readUnsafeString(1))
+		*p = dec.stringToBool(dec.readUnsafeString(1))
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToBool(dec.ReadUnsafeString())
+			*p = dec.stringToBool(dec.ReadUnsafeString())
+			return
 		}
-		return dec.stringToBool(dec.ReadString())
+		*p = dec.stringToBool(dec.ReadString())
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeBoolPtr(t reflect.Type, tag byte) *bool {
+func (dec *Decoder) decodeBoolPtr(t reflect.Type, tag byte, p **bool) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	b := dec.decodeBool(t, tag)
-	return &b
+	var b bool
+	dec.decodeBool(t, tag, &b)
+	*p = &b
 }
 
 // boolDecoder is the implementation of ValueDecoder for bool.
@@ -76,7 +81,7 @@ type boolDecoder struct {
 }
 
 func (valdec boolDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*bool)(reflect2.PtrOf(p)) = dec.decodeBool(valdec.t, tag)
+	dec.decodeBool(valdec.t, tag, (*bool)(reflect2.PtrOf(p)))
 }
 
 // boolPtrDecoder is the implementation of ValueDecoder for *bool.
@@ -85,5 +90,5 @@ type boolPtrDecoder struct {
 }
 
 func (valdec boolPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**bool)(reflect2.PtrOf(p)) = dec.decodeBoolPtr(valdec.t, tag)
+	dec.decodeBoolPtr(valdec.t, tag, (**bool)(reflect2.PtrOf(p)))
 }

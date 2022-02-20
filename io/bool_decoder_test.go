@@ -6,7 +6,7 @@
 |                                                          |
 | io/bool_decoder_test.go                                  |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,11 +14,15 @@
 package io_test
 
 import (
+	"bytes"
 	"math"
 	"strings"
 	"testing"
 
+	"github.com/bytedance/sonic/decoder"
+	"github.com/bytedance/sonic/encoder"
 	. "github.com/hprose/hprose-golang/v3/io"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -109,4 +113,80 @@ func TestDecodeBool(t *testing.T) {
 	assert.Equal(t, (*bool)(nil), bp) // nil
 	dec.Decode(&bp)
 	assert.Equal(t, true, *bp) // true
+}
+
+func BenchmarkHproseDecodeBool(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb).Simple(false)
+	enc.Encode(true)
+	enc.Encode(false)
+	enc.Encode("true")
+	enc.Encode("false")
+	data := ([]byte)(sb.String())
+	var t, f bool
+	for i := 0; i < b.N; i++ {
+		dec := NewDecoder(data).Simple(false)
+		dec.Decode(&t)
+		dec.Decode(&f)
+		dec.Decode(&t)
+		dec.Decode(&f)
+	}
+}
+
+func BenchmarkSimpleHproseDecodeBool(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb)
+	enc.Encode(true)
+	enc.Encode(false)
+	enc.Encode("true")
+	enc.Encode("false")
+	data := ([]byte)(sb.String())
+	var t, f bool
+	for i := 0; i < b.N; i++ {
+		dec := NewDecoder(data)
+		dec.Decode(&t)
+		dec.Decode(&f)
+		dec.Decode(&t)
+		dec.Decode(&f)
+	}
+}
+
+func BenchmarkJsonDecodeBool(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := jsoniter.NewEncoder(sb)
+	enc.Encode(true)
+	enc.Encode(false)
+	enc.Encode("true")
+	enc.Encode("false")
+	data := ([]byte)(sb.String())
+	var t, f bool
+	for i := 0; i < b.N; i++ {
+		dec := jsoniter.NewDecoder(bytes.NewReader(data))
+		dec.Decode(&t)
+		dec.Decode(&f)
+		dec.Decode(&t)
+		dec.Decode(&f)
+	}
+}
+
+func BenchmarkSonicJsonDecodeBool(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := encoder.Encoder{}
+	bytes, _ := enc.Encode(true)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(false)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode("true")
+	sb.Write(bytes)
+	bytes, _ = enc.Encode("false")
+	sb.Write(bytes)
+	data := sb.String()
+	var t, f bool
+	for i := 0; i < b.N; i++ {
+		dec := decoder.NewDecoder(data)
+		dec.Decode(&t)
+		dec.Decode(&f)
+		dec.Decode(&t)
+		dec.Decode(&f)
+	}
 }

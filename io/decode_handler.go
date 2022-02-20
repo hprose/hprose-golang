@@ -6,7 +6,7 @@
 |                                                          |
 | io/decode_handler.go                                     |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -30,7 +30,7 @@ func invalidDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func boolDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*bool)(p) = dec.decodeBool(t, dec.NextByte())
+	dec.decodeBool(t, dec.NextByte(), (*bool)(p))
 }
 
 func intDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -122,7 +122,7 @@ func bigRatDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func boolPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**bool)(p) = dec.decodeBoolPtr(t, dec.NextByte())
+	dec.decodeBoolPtr(t, dec.NextByte(), (**bool)(p))
 }
 
 func intPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
