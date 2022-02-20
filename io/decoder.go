@@ -152,11 +152,11 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	case *uuid.UUID:
 		dec.decodeUUID(uuidType, tag, pv)
 	case *big.Int:
-		*pv = dec.decodeBigIntValue(bigIntValueType, tag)
+		dec.decodeBigIntValue(bigIntValueType, tag, pv)
 	case *big.Float:
-		*pv = dec.decodeBigFloatValue(bigFloatValueType, tag)
+		dec.decodeBigFloatValue(bigFloatValueType, tag, pv)
 	case *big.Rat:
-		*pv = dec.decodeBigRatValue(bigRatValueType, tag)
+		dec.decodeBigRatValue(bigRatValueType, tag, pv)
 	default:
 		return false
 	}
@@ -208,11 +208,11 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	case **uuid.UUID:
 		dec.decodeUUIDPtr(uuidPtrType, tag, pv)
 	case **big.Int:
-		*pv = dec.decodeBigInt(bigIntType, tag)
+		dec.decodeBigInt(bigIntType, tag, pv)
 	case **big.Float:
-		*pv = dec.decodeBigFloat(bigFloatType, tag)
+		dec.decodeBigFloat(bigFloatType, tag, pv)
 	case **big.Rat:
-		*pv = dec.decodeBigRat(bigRatType, tag)
+		dec.decodeBigRat(bigRatType, tag, pv)
 	default:
 		return false
 	}

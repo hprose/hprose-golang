@@ -6,7 +6,7 @@
 |                                                          |
 | io/big_decoder.go                                        |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -80,163 +80,175 @@ func (dec *Decoder) ReadBigFloat() *big.Float {
 	return dec.readBigFloat(nil)
 }
 
-func (dec *Decoder) decodeBigInt(t reflect.Type, tag byte) (result *big.Int) {
+func (dec *Decoder) decodeBigInt(t reflect.Type, tag byte, p **big.Int) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return big.NewInt(int64(i))
+		*p = big.NewInt(int64(i))
+		return
 	}
 	switch tag {
 	case TagNull:
-		return nil
+		*p = nil
 	case TagEmpty, TagFalse:
-		return bigIntZero
+		*p = bigIntZero
 	case TagTrue:
-		return bigIntOne
+		*p = bigIntOne
 	case TagInteger:
-		return big.NewInt(dec.ReadInt64())
+		*p = big.NewInt(dec.ReadInt64())
 	case TagLong:
-		return dec.readBigInt(t)
+		*p = dec.readBigInt(t)
 	case TagDouble:
 		if bf := dec.readBigFloat(t); bf != nil {
-			bi, _ := bf.Int(nil)
-			return bi
+			*p, _ = bf.Int(nil)
 		}
 	case TagUTF8Char:
-		return dec.stringToBigInt(dec.readUnsafeString(1), t)
+		*p = dec.stringToBigInt(dec.readUnsafeString(1), t)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToBigInt(dec.ReadUnsafeString(), t)
+			*p = dec.stringToBigInt(dec.ReadUnsafeString(), t)
+		} else {
+			*p = dec.stringToBigInt(dec.ReadString(), t)
 		}
-		return dec.stringToBigInt(dec.ReadString(), t)
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeBigIntValue(t reflect.Type, tag byte) big.Int {
-	if i := dec.decodeBigInt(t, tag); i != nil {
-		return *i
+func (dec *Decoder) decodeBigIntValue(t reflect.Type, tag byte, p *big.Int) {
+	var pp *big.Int
+	dec.decodeBigInt(t, tag, &pp)
+	if pp == nil {
+		*p = *bigIntZero
+	} else {
+		*p = *pp
 	}
-	return *bigIntZero
 }
 
-func (dec *Decoder) decodeBigFloat(t reflect.Type, tag byte) (result *big.Float) {
+func (dec *Decoder) decodeBigFloat(t reflect.Type, tag byte, p **big.Float) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return big.NewFloat(float64(i))
+		*p = big.NewFloat(float64(i))
+		return
 	}
 	switch tag {
 	case TagNull:
-		return nil
+		*p = nil
 	case TagEmpty, TagFalse:
-		return bigFloatZero
+		*p = bigFloatZero
 	case TagTrue:
-		return bigFloatOne
+		*p = bigFloatOne
 	case TagInteger:
-		return big.NewFloat(float64(dec.ReadInt64()))
+		*p = big.NewFloat(float64(dec.ReadInt64()))
 	case TagLong, TagDouble:
-		return dec.readBigFloat(t)
+		*p = dec.readBigFloat(t)
 	case TagInfinity:
 		if dec.NextByte() == TagNeg {
-			return big.NewFloat(math.Inf(-1))
+			*p = big.NewFloat(math.Inf(-1))
+		} else {
+			*p = big.NewFloat(math.Inf(1))
 		}
-		return big.NewFloat(math.Inf(1))
 	case TagUTF8Char:
-		return dec.stringToBigFloat(dec.readUnsafeString(1), t)
+		*p = dec.stringToBigFloat(dec.readUnsafeString(1), t)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToBigFloat(dec.ReadUnsafeString(), t)
+			*p = dec.stringToBigFloat(dec.ReadUnsafeString(), t)
+		} else {
+			*p = dec.stringToBigFloat(dec.ReadString(), t)
 		}
-		return dec.stringToBigFloat(dec.ReadString(), t)
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeBigFloatValue(t reflect.Type, tag byte) big.Float {
-	if f := dec.decodeBigFloat(t, tag); f != nil {
-		return *f
+func (dec *Decoder) decodeBigFloatValue(t reflect.Type, tag byte, p *big.Float) {
+	var pp *big.Float
+	dec.decodeBigFloat(t, tag, &pp)
+	if pp == nil {
+		*p = *bigFloatZero
+	} else {
+		*p = *pp
 	}
-	return *bigFloatZero
 }
 
-func (dec *Decoder) decodeBigRat(t reflect.Type, tag byte) (result *big.Rat) {
+func (dec *Decoder) decodeBigRat(t reflect.Type, tag byte, p **big.Rat) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return big.NewRat(int64(i), 1)
+		*p = big.NewRat(int64(i), 1)
+		return
 	}
 	switch tag {
 	case TagNull:
-		return nil
+		*p = nil
 	case TagEmpty, TagFalse:
-		return bigRatZero
+		*p = bigRatZero
 	case TagTrue:
-		return bigRatOne
+		*p = bigRatOne
 	case TagInteger:
-		return big.NewRat(dec.ReadInt64(), 1)
+		*p = big.NewRat(dec.ReadInt64(), 1)
 	case TagLong:
-		return new(big.Rat).SetInt(dec.readBigInt(t))
+		*p = new(big.Rat).SetInt(dec.readBigInt(t))
 	case TagDouble:
-		return new(big.Rat).SetFloat64(dec.ReadFloat64())
+		*p = new(big.Rat).SetFloat64(dec.ReadFloat64())
 	case TagUTF8Char:
-		return dec.stringToBigRat(dec.readUnsafeString(1), t)
+		*p = dec.stringToBigRat(dec.readUnsafeString(1), t)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToBigRat(dec.ReadUnsafeString(), t)
+			*p = dec.stringToBigRat(dec.ReadUnsafeString(), t)
+		} else {
+			*p = dec.stringToBigRat(dec.ReadString(), t)
 		}
-		return dec.stringToBigRat(dec.ReadString(), t)
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeBigRatValue(t reflect.Type, tag byte) big.Rat {
-	if r := dec.decodeBigRat(t, tag); r != nil {
-		return *r
+func (dec *Decoder) decodeBigRatValue(t reflect.Type, tag byte, p *big.Rat) {
+	var pp *big.Rat
+	dec.decodeBigRat(t, tag, &pp)
+	if pp == nil {
+		*p = *bigRatZero
+	} else {
+		*p = *pp
 	}
-	return *bigRatZero
 }
 
 // bigIntValueDecoder is the implementation of ValueDecoder for big.Int.
 type bigIntValueDecoder struct{}
 
 func (bigIntValueDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*big.Int)(reflect2.PtrOf(p)) = dec.decodeBigIntValue(reflect.TypeOf(p).Elem(), tag)
+	dec.decodeBigIntValue(reflect.TypeOf(p).Elem(), tag, (*big.Int)(reflect2.PtrOf(p)))
 }
 
 // bigIntDecoder is the implementation of ValueDecoder for *big.Int.
 type bigIntDecoder struct{}
 
 func (bigIntDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**big.Int)(reflect2.PtrOf(p)) = dec.decodeBigInt(reflect.TypeOf(p).Elem(), tag)
+	dec.decodeBigInt(reflect.TypeOf(p).Elem(), tag, (**big.Int)(reflect2.PtrOf(p)))
 }
 
 // bigFloatValueDecoder is the implementation of ValueDecoder for big.Float.
 type bigFloatValueDecoder struct{}
 
 func (bigFloatValueDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*big.Float)(reflect2.PtrOf(p)) = dec.decodeBigFloatValue(reflect.TypeOf(p).Elem(), tag)
+	dec.decodeBigFloatValue(reflect.TypeOf(p).Elem(), tag, (*big.Float)(reflect2.PtrOf(p)))
 }
 
 // bigFloatDecoder is the implementation of ValueDecoder for *big.Float.
 type bigFloatDecoder struct{}
 
 func (bigFloatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**big.Float)(reflect2.PtrOf(p)) = dec.decodeBigFloat(reflect.TypeOf(p).Elem(), tag)
+	dec.decodeBigFloat(reflect.TypeOf(p).Elem(), tag, (**big.Float)(reflect2.PtrOf(p)))
 }
 
 // bigRatValueDecoder is the implementation of ValueDecoder for big.Rat.
 type bigRatValueDecoder struct{}
 
 func (bigRatValueDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*big.Rat)(reflect2.PtrOf(p)) = dec.decodeBigRatValue(reflect.TypeOf(p).Elem(), tag)
+	dec.decodeBigRatValue(reflect.TypeOf(p).Elem(), tag, (*big.Rat)(reflect2.PtrOf(p)))
 }
 
 // bigRatDecoder is the implementation of ValueDecoder for big.Rat/*big.Rat.
 type bigRatDecoder struct{}
 
 func (bigRatDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**big.Rat)(reflect2.PtrOf(p)) = dec.decodeBigRat(reflect.TypeOf(p).Elem(), tag)
+	dec.decodeBigRat(reflect.TypeOf(p).Elem(), tag, (**big.Rat)(reflect2.PtrOf(p)))
 }
 
 func init() {
