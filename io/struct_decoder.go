@@ -27,7 +27,8 @@ func (dec *Decoder) readObjectAsMap(structInfo structInfo) map[string]interface{
 	dec.AddReference(m)
 	ptr := reflect2.PtrOf(&m)
 	for _, name := range structInfo.names {
-		v := dec.decodeInterface(dec.NextByte())
+		var v interface{}
+		dec.decodeInterface(dec.NextByte(), &v)
 		t.UnsafeSetIndex(ptr, reflect2.PtrOf(name), reflect2.PtrOf(&v))
 	}
 	dec.Skip()
@@ -42,7 +43,8 @@ func (dec *Decoder) readObject(structInfo structInfo) interface{} {
 		if field, ok := structInfo.fields[name]; ok {
 			field.Decode(dec, field.Type.Type1(), field.Field.UnsafeGet(ptr))
 		} else {
-			dec.decodeInterface(dec.NextByte())
+			var v interface{}
+			dec.decodeInterface(dec.NextByte(), &v)
 		}
 	}
 	dec.Skip()
@@ -70,7 +72,8 @@ func (valdec *structDecoder) decodeField(dec *Decoder, ptr unsafe.Pointer, name 
 	if field, ok := valdec.fields[name]; ok {
 		field.Decode(dec, field.Type.Type1(), field.Field.UnsafeGet(ptr))
 	} else {
-		dec.decodeInterface(dec.NextByte())
+		var v interface{}
+		dec.decodeInterface(dec.NextByte(), &v)
 	}
 }
 

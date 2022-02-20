@@ -6,7 +6,7 @@
 |                                                          |
 | io/map_decoder.go                                        |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -161,7 +161,8 @@ func (valdec mapDecoder) decodeObjectAsMap(dec *Decoder, p interface{}, tag byte
 		}
 	} else {
 		for _, name := range structInfo.names {
-			v := dec.decodeInterface(dec.NextByte())
+			var v interface{}
+			dec.decodeInterface(dec.NextByte(), &v)
 			valdec.t.UnsafeSetIndex(mp, reflect2.PtrOf(name), reflect2.PtrOf(&v))
 		}
 	}

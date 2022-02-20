@@ -21,32 +21,33 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
-func (dec *Decoder) decodeLongAsInterface() interface{} {
+func (dec *Decoder) decodeLongAsInterface(p *interface{}) {
 	switch dec.LongType {
 	case LongTypeInt:
-		return dec.ReadInt()
+		*p = dec.ReadInt()
 	case LongTypeUint:
-		return dec.ReadUint()
+		*p = dec.ReadUint()
 	case LongTypeInt64:
-		return dec.ReadInt64()
+		*p = dec.ReadInt64()
 	case LongTypeUint64:
-		return dec.ReadUint64()
+		*p = dec.ReadUint64()
+	default:
+		*p = dec.ReadBigInt()
 	}
-	return dec.ReadBigInt()
 }
 
-func (dec *Decoder) decodeNaNAsInterface() interface{} {
+func (dec *Decoder) decodeNaNAsInterface(p *interface{}) {
 	switch dec.RealType {
 	case RealTypeFloat32:
-		return float32(math.NaN())
+		*p = float32(math.NaN())
 	case RealTypeFloat64:
-		return math.NaN()
+		*p = math.NaN()
+	default:
+		dec.Error = DecodeError("hprose/io: can not parse NaN to *big.Float")
 	}
-	dec.Error = DecodeError("hprose/io: can not parse NaN to *big.Float")
-	return nil
 }
 
-func (dec *Decoder) decodeInfinityAsInterface() interface{} {
+func (dec *Decoder) decodeInfinityAsInterface(p *interface{}) {
 	var f float64
 	if dec.NextByte() == TagNeg {
 		f = math.Inf(-1)
@@ -55,118 +56,123 @@ func (dec *Decoder) decodeInfinityAsInterface() interface{} {
 	}
 	switch dec.RealType {
 	case RealTypeFloat32:
-		return float32(f)
+		*p = float32(f)
 	case RealTypeFloat64:
-		return f
+		*p = f
+	default:
+		*p = big.NewFloat(f)
 	}
-	return big.NewFloat(f)
 }
 
-func (dec *Decoder) decodeDoubleAsInterface() interface{} {
+func (dec *Decoder) decodeDoubleAsInterface(p *interface{}) {
 	switch dec.RealType {
 	case RealTypeFloat32:
-		return dec.ReadFloat32()
+		*p = dec.ReadFloat32()
 	case RealTypeFloat64:
-		return dec.ReadFloat64()
+		*p = dec.ReadFloat64()
+	default:
+		*p = dec.ReadBigFloat()
 	}
-	return dec.ReadBigFloat()
 }
 
-func (dec *Decoder) decodeListAsInterface(tag byte) interface{} {
+func (dec *Decoder) decodeListAsInterface(tag byte, p *interface{}) {
 	var result []interface{}
 	ifsdec.Decode(dec, &result, tag)
-	return result
+	*p = result
 }
 
-func (dec *Decoder) decodeMapAsInterface(tag byte) interface{} {
+func (dec *Decoder) decodeMapAsInterface(tag byte, p *interface{}) {
 	if dec.MapType == MapTypeIIMap {
 		var result map[interface{}]interface{}
 		ififmdec.Decode(dec, &result, tag)
-		return result
+		*p = result
+	} else {
+		var result map[string]interface{}
+		sifmdec.Decode(dec, &result, tag)
+		*p = result
 	}
-	var result map[string]interface{}
-	sifmdec.Decode(dec, &result, tag)
-	return result
 }
 
-func (dec *Decoder) decodeInterface(tag byte) (result interface{}) {
+func (dec *Decoder) decodeInterface(tag byte, p *interface{}) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return int(i)
+		*p = int(i)
+		return
 	}
 	switch tag {
 	case TagNull:
-		return nil
+		*p = nil
 	case TagEmpty:
-		return ""
+		*p = ""
 	case TagFalse:
-		return false
+		*p = false
 	case TagTrue:
-		return true
+		*p = true
 	case TagInteger:
-		return dec.ReadInt()
+		*p = dec.ReadInt()
 	case TagLong:
-		return dec.decodeLongAsInterface()
+		dec.decodeLongAsInterface(p)
 	case TagNaN:
-		return dec.decodeNaNAsInterface()
+		dec.decodeNaNAsInterface(p)
 	case TagInfinity:
-		return dec.decodeInfinityAsInterface()
+		dec.decodeInfinityAsInterface(p)
 	case TagDouble:
-		return dec.decodeDoubleAsInterface()
+		dec.decodeDoubleAsInterface(p)
 	case TagTime:
-		return dec.ReadTime()
+		*p = dec.ReadTime()
 	case TagDate:
-		return dec.ReadDateTime()
+		*p = dec.ReadDateTime()
 	case TagGUID:
-		return dec.ReadUUID()
+		*p = dec.ReadUUID()
 	case TagUTF8Char:
-		return dec.readSafeString(1)
+		*p = dec.readSafeString(1)
 	case TagString:
-		return dec.ReadString()
+		*p = dec.ReadString()
 	case TagBytes:
-		return dec.ReadBytes()
+		*p = dec.ReadBytes()
 	case TagList:
-		return dec.decodeListAsInterface(tag)
+		dec.decodeListAsInterface(tag, p)
 	case TagMap:
-		return dec.decodeMapAsInterface(tag)
+		dec.decodeMapAsInterface(tag, p)
 	case TagObject:
-		return dec.ReadObject()
+		*p = dec.ReadObject()
 	case TagRef:
-		dec.ReadReference(&result)
+		dec.ReadReference(p)
 		return
 	case TagClass:
 		dec.ReadStruct(interfaceType)
-		dec.Decode(&result)
-		return
+		dec.Decode(p)
 	case TagError:
 		var s string
 		dec.decodeString(stringType, dec.NextByte(), &s)
 		dec.Error = DecodeError(s)
-		return
+	default:
+		if dec.Error == nil {
+			dec.Error = DecodeError(fmt.Sprintf("hprose/io: invalid tag '%s'(0x%x)", string(tag), tag))
+		}
+		*p = nil
 	}
-	if dec.Error == nil {
-		dec.Error = DecodeError(fmt.Sprintf("hprose/io: invalid tag '%s'(0x%x)", string(tag), tag))
-	}
-	return nil
 }
 
-func (dec *Decoder) decodeInterfacePtr(tag byte) *interface{} {
+func (dec *Decoder) decodeInterfacePtr(tag byte, p **interface{}) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	i := dec.decodeInterface(tag)
-	return &i
+	var i interface{}
+	dec.decodeInterface(tag, &i)
+	*p = &i
 }
 
 // interfaceDecoder is the implementation of ValueDecoder for interface{}.
 type interfaceDecoder struct{}
 
 func (valdec interfaceDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*interface{})(reflect2.PtrOf(p)) = dec.decodeInterface(tag)
+	dec.decodeInterface(tag, (*interface{})(reflect2.PtrOf(p)))
 }
 
 // interfacePtrDecoder is the implementation of ValueDecoder for *interface{}.
 type interfacePtrDecoder struct{}
 
 func (valdec interfacePtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**interface{})(reflect2.PtrOf(p)) = dec.decodeInterfacePtr(tag)
+	dec.decodeInterfacePtr(tag, (**interface{})(reflect2.PtrOf(p)))
 }

@@ -92,7 +92,7 @@ func complex128Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func interfaceDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*interface{})(p) = dec.decodeInterface(dec.NextByte())
+	dec.decodeInterface(dec.NextByte(), (*interface{})(p))
 }
 
 func stringDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -164,7 +164,7 @@ func complex128PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func interfacePtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**interface{})(p) = dec.decodeInterfacePtr(dec.NextByte())
+	dec.decodeInterfacePtr(dec.NextByte(), (**interface{})(p))
 }
 
 func stringPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
