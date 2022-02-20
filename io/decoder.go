@@ -144,7 +144,7 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	case *interface{}:
 		*pv = dec.decodeInterface(tag)
 	case *[]byte:
-		*pv = dec.decodeBytes(bytesType, tag)
+		dec.decodeBytes(bytesType, tag, pv)
 	case *string:
 		*pv = dec.decodeString(stringType, tag)
 	case *time.Time:
@@ -200,7 +200,7 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	case **interface{}:
 		*pv = dec.decodeInterfacePtr(tag)
 	case **[]byte:
-		*pv = dec.decodeBytesPtr(bytesPtrType, tag)
+		dec.decodeBytesPtr(bytesPtrType, tag, pv)
 	case **string:
 		*pv = dec.decodeStringPtr(stringPtrType, tag)
 	case **time.Time:

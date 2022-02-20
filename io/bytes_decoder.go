@@ -49,38 +49,39 @@ func (dec *Decoder) readUint8Slice(et reflect.Type) []byte {
 	return slice
 }
 
-func (dec *Decoder) decodeBytes(t reflect.Type, tag byte) (result []byte) {
+func (dec *Decoder) decodeBytes(t reflect.Type, tag byte, p *[]byte) {
 	switch tag {
 	case TagNull:
-		return nil
+		*p = nil
 	case TagEmpty:
-		return []byte{}
+		*p = []byte{}
 	case TagBytes:
-		return dec.ReadBytes()
+		*p = dec.ReadBytes()
 	case TagList:
-		return dec.readUint8Slice(t.Elem())
+		*p = dec.readUint8Slice(t.Elem())
 	case TagUTF8Char:
-		return dec.readStringAsSafeBytes(1)
+		*p = dec.readStringAsSafeBytes(1)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.ReadStringAsBytes()
+			*p = dec.ReadStringAsBytes()
+		} else {
+			*p = reflect2.UnsafeCastString(dec.ReadString())
 		}
-		return reflect2.UnsafeCastString(dec.ReadString())
 	case TagGUID:
-		bytes, _ := dec.ReadUUID().MarshalBinary()
-		return bytes
+		*p, _ = dec.ReadUUID().MarshalBinary()
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeBytesPtr(t reflect.Type, tag byte) *[]byte {
+func (dec *Decoder) decodeBytesPtr(t reflect.Type, tag byte, p **[]byte) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	bytes := dec.decodeBytes(t, tag)
-	return &bytes
+	var bytes []byte
+	dec.decodeBytes(t, tag, &bytes)
+	*p = &bytes
 }
 
 // bytesDecoder is the implementation of ValueDecoder for []byte.
@@ -89,7 +90,7 @@ type bytesDecoder struct {
 }
 
 func (valdec bytesDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*[]byte)(reflect2.PtrOf(p)) = dec.decodeBytes(valdec.t, tag)
+	dec.decodeBytes(valdec.t, tag, (*[]byte)(reflect2.PtrOf(p)))
 }
 
 // bytesPtrDecoder is the implementation of ValueDecoder for *[]byte.
@@ -98,7 +99,7 @@ type bytesPtrDecoder struct {
 }
 
 func (valdec bytesPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**[]byte)(reflect2.PtrOf(p)) = dec.decodeBytesPtr(valdec.t, tag)
+	dec.decodeBytesPtr(valdec.t, tag, (**[]byte)(reflect2.PtrOf(p)))
 }
 
 func init() {

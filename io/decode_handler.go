@@ -102,7 +102,7 @@ func stringDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func bytesDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*[]byte)(p) = dec.decodeBytes(t, dec.NextByte())
+	dec.decodeBytes(t, dec.NextByte(), (*[]byte)(p))
 }
 
 func timeDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
