@@ -74,38 +74,42 @@ func (dec *Decoder) decodeIntPtr(t reflect.Type, tag byte, p **int) {
 	*p = &i
 }
 
-func (dec *Decoder) decodeInt8(t reflect.Type, tag byte) (result int8) {
+func (dec *Decoder) decodeInt8(t reflect.Type, tag byte, p *int8) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return int8(i)
+		*p = int8(i)
+		return
 	}
 	switch tag {
 	case TagNull, TagEmpty, TagFalse:
-		return 0
+		*p = 0
 	case TagTrue:
-		return 1
+		*p = 1
 	case TagInteger, TagLong:
-		return dec.ReadInt8()
+		*p = dec.ReadInt8()
 	case TagDouble:
-		return int8(dec.ReadFloat64())
+		*p = int8(dec.ReadFloat64())
 	case TagUTF8Char:
-		return int8(dec.stringToInt64(dec.readUnsafeString(1), 8))
+		*p = int8(dec.stringToInt64(dec.readUnsafeString(1), 8))
 	case TagString:
 		if dec.IsSimple() {
-			return int8(dec.stringToInt64(dec.ReadUnsafeString(), 8))
+			*p = int8(dec.stringToInt64(dec.ReadUnsafeString(), 8))
+			return
 		}
-		return int8(dec.stringToInt64(dec.ReadString(), 8))
+		*p = int8(dec.stringToInt64(dec.ReadString(), 8))
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
 	return
 }
 
-func (dec *Decoder) decodeInt8Ptr(t reflect.Type, tag byte) *int8 {
+func (dec *Decoder) decodeInt8Ptr(t reflect.Type, tag byte, p **int8) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	i := dec.decodeInt8(t, tag)
-	return &i
+	var i int8
+	dec.decodeInt8(t, tag, &i)
+	*p = &i
 }
 
 func (dec *Decoder) decodeInt16(t reflect.Type, tag byte) (result int16) {
@@ -438,7 +442,7 @@ type int8Decoder struct {
 }
 
 func (valdec int8Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*int8)(reflect2.PtrOf(p)) = dec.decodeInt8(valdec.t, tag)
+	dec.decodeInt8(valdec.t, tag, (*int8)(reflect2.PtrOf(p)))
 }
 
 // int8PtrDecoder is the implementation of ValueDecoder for *int8.
@@ -447,7 +451,7 @@ type int8PtrDecoder struct {
 }
 
 func (valdec int8PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**int8)(reflect2.PtrOf(p)) = dec.decodeInt8Ptr(valdec.t, tag)
+	dec.decodeInt8Ptr(valdec.t, tag, (**int8)(reflect2.PtrOf(p)))
 }
 
 // int16Decoder is the implementation of ValueDecoder for int16.
