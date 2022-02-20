@@ -6,7 +6,7 @@
 |                                                          |
 | io/uuid_decoder.go                                       |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -51,41 +51,45 @@ func (dec *Decoder) ReadUUID() uuid.UUID {
 	return uuid
 }
 
-func (dec *Decoder) decodeUUID(t reflect.Type, tag byte) (result uuid.UUID) {
+func (dec *Decoder) decodeUUID(t reflect.Type, tag byte, p *uuid.UUID) {
 	switch tag {
 	case TagEmpty, TagNull:
-		return uuid.Nil
+		*p = uuid.Nil
 	case TagGUID:
-		return dec.ReadUUID()
+		*p = dec.ReadUUID()
 	case TagBytes:
 		if dec.IsSimple() {
-			return dec.bytesToUUID(dec.readUnsafeBytes())
+			*p = dec.bytesToUUID(dec.readUnsafeBytes())
+		} else {
+			*p = dec.bytesToUUID(dec.ReadBytes())
 		}
-		return dec.bytesToUUID(dec.ReadBytes())
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToUUID(dec.ReadUnsafeString())
+			*p = dec.stringToUUID(dec.ReadUnsafeString())
+		} else {
+			*p = dec.stringToUUID(dec.ReadString())
 		}
-		return dec.stringToUUID(dec.ReadString())
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
 	return
 }
 
-func (dec *Decoder) decodeUUIDPtr(t reflect.Type, tag byte) *uuid.UUID {
+func (dec *Decoder) decodeUUIDPtr(t reflect.Type, tag byte, p **uuid.UUID) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	uuid := dec.decodeUUID(t, tag)
-	return &uuid
+	var u uuid.UUID
+	dec.decodeUUID(t, tag, &u)
+	*p = &u
 }
 
 // uuidDecoder is the implementation of ValueDecoder for uuid.UUID.
 type uuidDecoder struct{}
 
 func (uuidDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*uuid.UUID)(reflect2.PtrOf(p)) = dec.decodeUUID(reflect.TypeOf(p).Elem(), tag)
+	dec.decodeUUID(reflect.TypeOf(p).Elem(), tag, (*uuid.UUID)(reflect2.PtrOf(p)))
 }
 
 func init() {

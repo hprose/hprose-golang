@@ -14,9 +14,7 @@
 package io
 
 import (
-	"math/big"
 	"reflect"
-	"time"
 	"unsafe"
 
 	"github.com/modern-go/reflect2"
@@ -99,26 +97,6 @@ func interfaceDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 
 func stringDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 	*(*string)(p) = dec.decodeString(t, dec.NextByte())
-}
-
-func bytesDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	dec.decodeBytes(t, dec.NextByte(), (*[]byte)(p))
-}
-
-func timeDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	dec.decodeTime(t, dec.NextByte(), (*time.Time)(p))
-}
-
-func bigIntDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**big.Int)(p) = dec.decodeBigInt(t, dec.NextByte())
-}
-
-func bigFloatDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**big.Float)(p) = dec.decodeBigFloat(t, dec.NextByte())
-}
-
-func bigRatDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**big.Rat)(p) = dec.decodeBigRat(t, dec.NextByte())
 }
 
 func boolPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
