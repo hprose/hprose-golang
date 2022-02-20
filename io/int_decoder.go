@@ -55,13 +55,12 @@ func (dec *Decoder) decodeInt(t reflect.Type, tag byte, p *int) {
 	case TagString:
 		if dec.IsSimple() {
 			*p = int(dec.stringToInt64(dec.ReadUnsafeString(), 0))
-			return
+		} else {
+			*p = int(dec.stringToInt64(dec.ReadString(), 0))
 		}
-		*p = int(dec.stringToInt64(dec.ReadString(), 0))
 	default:
 		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
 func (dec *Decoder) decodeIntPtr(t reflect.Type, tag byte, p **int) {
@@ -93,13 +92,12 @@ func (dec *Decoder) decodeInt8(t reflect.Type, tag byte, p *int8) {
 	case TagString:
 		if dec.IsSimple() {
 			*p = int8(dec.stringToInt64(dec.ReadUnsafeString(), 8))
-			return
+		} else {
+			*p = int8(dec.stringToInt64(dec.ReadString(), 8))
 		}
-		*p = int8(dec.stringToInt64(dec.ReadString(), 8))
 	default:
 		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
 func (dec *Decoder) decodeInt8Ptr(t reflect.Type, tag byte, p **int8) {
@@ -112,38 +110,41 @@ func (dec *Decoder) decodeInt8Ptr(t reflect.Type, tag byte, p **int8) {
 	*p = &i
 }
 
-func (dec *Decoder) decodeInt16(t reflect.Type, tag byte) (result int16) {
+func (dec *Decoder) decodeInt16(t reflect.Type, tag byte, p *int16) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return int16(i)
+		*p = int16(i)
+		return
 	}
 	switch tag {
 	case TagNull, TagEmpty, TagFalse:
-		return 0
+		*p = 0
 	case TagTrue:
-		return 1
+		*p = 1
 	case TagInteger, TagLong:
-		return dec.ReadInt16()
+		*p = dec.ReadInt16()
 	case TagDouble:
-		return int16(dec.ReadFloat64())
+		*p = int16(dec.ReadFloat64())
 	case TagUTF8Char:
-		return int16(dec.stringToInt64(dec.readUnsafeString(1), 16))
+		*p = int16(dec.stringToInt64(dec.readUnsafeString(1), 16))
 	case TagString:
 		if dec.IsSimple() {
-			return int16(dec.stringToInt64(dec.ReadUnsafeString(), 16))
+			*p = int16(dec.stringToInt64(dec.ReadUnsafeString(), 16))
+		} else {
+			*p = int16(dec.stringToInt64(dec.ReadString(), 16))
 		}
-		return int16(dec.stringToInt64(dec.ReadString(), 16))
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeInt16Ptr(t reflect.Type, tag byte) *int16 {
+func (dec *Decoder) decodeInt16Ptr(t reflect.Type, tag byte, p **int16) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	i := dec.decodeInt16(t, tag)
-	return &i
+	var i int16
+	dec.decodeInt16(t, tag, &i)
+	*p = &i
 }
 
 func (dec *Decoder) decodeInt32(t reflect.Type, tag byte) (result int32) {
@@ -460,7 +461,7 @@ type int16Decoder struct {
 }
 
 func (valdec int16Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*int16)(reflect2.PtrOf(p)) = dec.decodeInt16(valdec.t, tag)
+	dec.decodeInt16(valdec.t, tag, (*int16)(reflect2.PtrOf(p)))
 }
 
 // int16PtrDecoder is the implementation of ValueDecoder for *int16.
@@ -469,7 +470,7 @@ type int16PtrDecoder struct {
 }
 
 func (valdec int16PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*int16)(reflect2.PtrOf(p)) = dec.decodeInt16(valdec.t, tag)
+	dec.decodeInt16Ptr(valdec.t, tag, (**int16)(reflect2.PtrOf(p)))
 }
 
 // int32Decoder is the implementation of ValueDecoder for int32.
