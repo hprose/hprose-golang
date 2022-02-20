@@ -6,7 +6,7 @@
 |                                                          |
 | io/interface_decoder.go                                  |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -138,7 +138,9 @@ func (dec *Decoder) decodeInterface(tag byte) (result interface{}) {
 		dec.Decode(&result)
 		return
 	case TagError:
-		dec.Error = DecodeError(dec.decodeString(stringType, dec.NextByte()))
+		var s string
+		dec.decodeString(stringType, dec.NextByte(), &s)
+		dec.Error = DecodeError(s)
 		return
 	}
 	if dec.Error == nil {

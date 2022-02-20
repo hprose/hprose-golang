@@ -96,7 +96,7 @@ func interfaceDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func stringDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*string)(p) = dec.decodeString(t, dec.NextByte())
+	dec.decodeString(t, dec.NextByte(), (*string)(p))
 }
 
 func boolPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -168,7 +168,7 @@ func interfacePtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func stringPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**string)(p) = dec.decodeStringPtr(t, dec.NextByte())
+	dec.decodeStringPtr(t, dec.NextByte(), (**string)(p))
 }
 
 func otherDecode(t reflect.Type) DecodeHandler {

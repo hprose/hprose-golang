@@ -146,7 +146,7 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	case *[]byte:
 		dec.decodeBytes(bytesType, tag, pv)
 	case *string:
-		*pv = dec.decodeString(stringType, tag)
+		dec.decodeString(stringType, tag, pv)
 	case *time.Time:
 		dec.decodeTime(timeType, tag, pv)
 	case *uuid.UUID:
@@ -202,7 +202,7 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	case **[]byte:
 		dec.decodeBytesPtr(bytesPtrType, tag, pv)
 	case **string:
-		*pv = dec.decodeStringPtr(stringPtrType, tag)
+		dec.decodeStringPtr(stringPtrType, tag, pv)
 	case **time.Time:
 		dec.decodeTimePtr(timePtrType, tag, pv)
 	case **uuid.UUID:
@@ -500,7 +500,9 @@ func (dec *Decoder) defaultDecode(t reflect.Type, p interface{}, tag byte) {
 		dec.Decode(p)
 		return
 	case TagError:
-		dec.Error = DecodeError(dec.decodeString(stringType, dec.NextByte()))
+		var s string
+		dec.decodeString(stringType, dec.NextByte(), &s)
+		dec.Error = DecodeError(s)
 		return
 	default:
 		dec.decodeError(t, tag)

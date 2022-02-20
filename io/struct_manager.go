@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_manager.go                                     |
 |                                                          |
-| LastModified: May 17, 2021                               |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -164,7 +164,7 @@ func (dec *Decoder) ReadStruct(t reflect.Type) {
 	count := dec.ReadInt()
 	names := make([]string, count)
 	for i := 0; i < count; i++ {
-		names[i] = dec.decodeString(stringType, dec.NextByte())
+		dec.decodeString(stringType, dec.NextByte(), &names[i])
 	}
 	dec.Skip()
 	dec.ref = append(dec.ref, makeStructInfo(name, names, t))

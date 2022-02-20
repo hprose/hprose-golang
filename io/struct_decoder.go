@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_decoder.go                                     |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -94,7 +94,9 @@ func (valdec *structDecoder) decodeMapAsObject(dec *Decoder, p interface{}) {
 	count := dec.ReadInt()
 	dec.AddReference(p)
 	for i := 0; i < count; i++ {
-		valdec.decodeField(dec, ptr, dec.decodeString(stringType, dec.NextByte()))
+		var name string
+		dec.decodeString(stringType, dec.NextByte(), &name)
+		valdec.decodeField(dec, ptr, name)
 	}
 	dec.Skip()
 }

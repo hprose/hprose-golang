@@ -6,7 +6,7 @@
 |                                                          |
 | io/string_decoder.go                                     |
 |                                                          |
-| LastModified: Feb 14, 2022                               |
+| LastModified: Feb 20, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -161,49 +161,51 @@ func (dec *Decoder) ReadString() (s string) {
 	return
 }
 
-func (dec *Decoder) decodeString(t reflect.Type, tag byte) (result string) {
+func (dec *Decoder) decodeString(t reflect.Type, tag byte, p *string) {
 	switch tag {
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		return string(tag)
+		*p = string(tag)
 	case TagNull, TagEmpty:
-		return ""
+		*p = ""
 	case TagTrue:
-		return "true"
+		*p = "true"
 	case TagFalse:
-		return "false"
+		*p = "false"
 	case TagNaN:
-		return "NaN"
+		*p = "NaN"
 	case TagInfinity:
 		if dec.NextByte() == TagNeg {
-			return "-Inf"
+			*p = "-Inf"
+		} else {
+			*p = "+Inf"
 		}
-		return "+Inf"
 	case TagInteger, TagLong, TagDouble:
-		return unsafeString(dec.Until(TagSemicolon))
+		*p = unsafeString(dec.Until(TagSemicolon))
 	case TagUTF8Char:
-		return dec.readSafeString(1)
+		*p = dec.readSafeString(1)
 	case TagString:
-		return dec.ReadString()
+		*p = dec.ReadString()
 	case TagBytes:
-		return unsafeString(dec.ReadBytes())
+		*p = unsafeString(dec.ReadBytes())
 	case TagTime:
-		return dec.ReadTime().String()
+		*p = dec.ReadTime().String()
 	case TagDate:
-		return dec.ReadDateTime().String()
+		*p = dec.ReadDateTime().String()
 	case TagGUID:
-		return dec.ReadUUID().String()
+		*p = dec.ReadUUID().String()
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeStringPtr(t reflect.Type, tag byte) *string {
+func (dec *Decoder) decodeStringPtr(t reflect.Type, tag byte, p **string) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	s := dec.decodeString(t, tag)
-	return &s
+	var s string
+	dec.decodeString(t, tag, &s)
+	*p = &s
 }
 
 // stringDecoder is the implementation of ValueDecoder for string.
@@ -212,7 +214,7 @@ type stringDecoder struct {
 }
 
 func (valdec stringDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*string)(reflect2.PtrOf(p)) = dec.decodeString(valdec.t, tag)
+	dec.decodeString(valdec.t, tag, (*string)(reflect2.PtrOf(p)))
 }
 
 // stringPtrDecoder is the implementation of ValueDecoder for *string.
@@ -221,5 +223,5 @@ type stringPtrDecoder struct {
 }
 
 func (valdec stringPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**string)(reflect2.PtrOf(p)) = dec.decodeStringPtr(valdec.t, tag)
+	dec.decodeStringPtr(valdec.t, tag, (**string)(reflect2.PtrOf(p)))
 }
