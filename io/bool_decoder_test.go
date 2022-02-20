@@ -19,8 +19,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bytedance/sonic/decoder"
-	"github.com/bytedance/sonic/encoder"
 	. "github.com/hprose/hprose-golang/v3/io"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
@@ -162,28 +160,6 @@ func BenchmarkJsonDecodeBool(b *testing.B) {
 	var t, f bool
 	for i := 0; i < b.N; i++ {
 		dec := jsoniter.NewDecoder(bytes.NewReader(data))
-		dec.Decode(&t)
-		dec.Decode(&f)
-		dec.Decode(&t)
-		dec.Decode(&f)
-	}
-}
-
-func BenchmarkSonicJsonDecodeBool(b *testing.B) {
-	sb := &strings.Builder{}
-	enc := encoder.Encoder{}
-	bytes, _ := enc.Encode(true)
-	sb.Write(bytes)
-	bytes, _ = enc.Encode(false)
-	sb.Write(bytes)
-	bytes, _ = enc.Encode("true")
-	sb.Write(bytes)
-	bytes, _ = enc.Encode("false")
-	sb.Write(bytes)
-	data := sb.String()
-	var t, f bool
-	for i := 0; i < b.N; i++ {
-		dec := decoder.NewDecoder(data)
 		dec.Decode(&t)
 		dec.Decode(&f)
 		dec.Decode(&t)

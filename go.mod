@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/andot/complexconv v1.0.0
-	github.com/bytedance/sonic v1.0.2
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/json-iterator/go v1.1.12

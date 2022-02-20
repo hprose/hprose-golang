@@ -22,7 +22,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bytedance/sonic/encoder"
 	. "github.com/hprose/hprose-golang/v3/io"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
@@ -676,22 +675,6 @@ func BenchmarkJsonEncodeSlice(b *testing.B) {
 	}
 }
 
-func BenchmarkSonicJsonEncodeSlice(b *testing.B) {
-	sb := &strings.Builder{}
-	enc := encoder.Encoder{}
-	slice := []int16{
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-	}
-	for i := 0; i < b.N; i++ {
-		bytes, _ := enc.Encode(slice)
-		sb.Write(bytes)
-	}
-}
-
 func BenchmarkHproseEncodeArray(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb).Simple(false)
@@ -734,22 +717,6 @@ func BenchmarkJsonEncodeArray(b *testing.B) {
 	}
 	for i := 0; i < b.N; i++ {
 		enc.Encode(array)
-	}
-}
-
-func BenchmarkSonicJsonEncodeArray(b *testing.B) {
-	sb := &strings.Builder{}
-	enc := encoder.Encoder{}
-	array := [50]int16{
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-		1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
-	}
-	for i := 0; i < b.N; i++ {
-		bytes, _ := enc.Encode(array)
-		sb.Write(bytes)
 	}
 }
 
@@ -813,27 +780,6 @@ func BenchmarkJsonEncodeMap(b *testing.B) {
 	}
 }
 
-func BenchmarkSonicJsonEncodeMap(b *testing.B) {
-	sb := &strings.Builder{}
-	enc := encoder.Encoder{}
-	m := map[int16]int16{
-		1: 1,
-		2: 2,
-		3: 3,
-		4: 4,
-		5: 5,
-		6: 6,
-		7: 7,
-		8: 8,
-		9: 9,
-		0: 0,
-	}
-	for i := 0; i < b.N; i++ {
-		bytes, _ := enc.Encode(m)
-		sb.Write(bytes)
-	}
-}
-
 func BenchmarkHproseEncodeStruct(b *testing.B) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb).Simple(false)
@@ -891,27 +837,5 @@ func BenchmarkJsonEncodeStruct(b *testing.B) {
 	}
 	for i := 0; i < b.N; i++ {
 		enc.Encode(ts)
-	}
-}
-
-func BenchmarkSonicJsonEncodeStruct(b *testing.B) {
-	sb := &strings.Builder{}
-	enc := encoder.Encoder{}
-	type TestStruct struct {
-		Name     string
-		Age      int
-		Birthday time.Time
-		Male     bool
-	}
-	ts := &TestStruct{
-		Name:     "Tom",
-		Age:      18,
-		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
-		Male:     true,
-	}
-	encoder.Pretouch(reflect.TypeOf(ts))
-	for i := 0; i < b.N; i++ {
-		bytes, _ := enc.Encode(ts)
-		sb.Write(bytes)
 	}
 }
