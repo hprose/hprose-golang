@@ -118,9 +118,9 @@ func (dec *Decoder) fastDecode(p interface{}, tag byte) bool {
 	case *int16:
 		dec.decodeInt16(int16Type, tag, pv)
 	case *int32:
-		*pv = dec.decodeInt32(int32Type, tag)
+		dec.decodeInt32(int32Type, tag, pv)
 	case *int64:
-		*pv = dec.decodeInt64(int64Type, tag)
+		dec.decodeInt64(int64Type, tag, pv)
 	case *uint:
 		*pv = dec.decodeUint(uintType, tag)
 	case *uint8:
@@ -174,9 +174,9 @@ func (dec *Decoder) fastDecodePtr(p interface{}, tag byte) bool {
 	case **int16:
 		dec.decodeInt16Ptr(int16PtrType, tag, pv)
 	case **int32:
-		*pv = dec.decodeInt32Ptr(int32PtrType, tag)
+		dec.decodeInt32Ptr(int32PtrType, tag, pv)
 	case **int64:
-		*pv = dec.decodeInt64Ptr(int64PtrType, tag)
+		dec.decodeInt64Ptr(int64PtrType, tag, pv)
 	case **uint:
 		*pv = dec.decodeUintPtr(uintPtrType, tag)
 	case **uint8:

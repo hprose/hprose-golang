@@ -46,11 +46,11 @@ func int16Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func int32Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*int32)(p) = dec.decodeInt32(t, dec.NextByte())
+	dec.decodeInt32(t, dec.NextByte(), (*int32)(p))
 }
 
 func int64Decode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(*int64)(p) = dec.decodeInt64(t, dec.NextByte())
+	dec.decodeInt64(t, dec.NextByte(), (*int64)(p))
 }
 
 func uintDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
@@ -138,11 +138,11 @@ func int16PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 }
 
 func int32PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**int32)(p) = dec.decodeInt32Ptr(t, dec.NextByte())
+	dec.decodeInt32Ptr(t, dec.NextByte(), (**int32)(p))
 }
 
 func int64PtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
-	*(**int64)(p) = dec.decodeInt64Ptr(t, dec.NextByte())
+	dec.decodeInt64Ptr(t, dec.NextByte(), (**int64)(p))
 }
 
 func uintPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {

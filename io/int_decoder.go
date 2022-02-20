@@ -147,72 +147,78 @@ func (dec *Decoder) decodeInt16Ptr(t reflect.Type, tag byte, p **int16) {
 	*p = &i
 }
 
-func (dec *Decoder) decodeInt32(t reflect.Type, tag byte) (result int32) {
+func (dec *Decoder) decodeInt32(t reflect.Type, tag byte, p *int32) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return int32(i)
+		*p = int32(i)
+		return
 	}
 	switch tag {
 	case TagNull, TagEmpty, TagFalse:
-		return 0
+		*p = 0
 	case TagTrue:
-		return 1
+		*p = 1
 	case TagInteger, TagLong:
-		return dec.ReadInt32()
+		*p = dec.ReadInt32()
 	case TagDouble:
-		return int32(dec.ReadFloat64())
+		*p = int32(dec.ReadFloat64())
 	case TagUTF8Char:
-		return int32(dec.stringToInt64(dec.readUnsafeString(1), 32))
+		*p = int32(dec.stringToInt64(dec.readUnsafeString(1), 32))
 	case TagString:
 		if dec.IsSimple() {
-			return int32(dec.stringToInt64(dec.ReadUnsafeString(), 32))
+			*p = int32(dec.stringToInt64(dec.ReadUnsafeString(), 32))
+		} else {
+			*p = int32(dec.stringToInt64(dec.ReadString(), 32))
 		}
-		return int32(dec.stringToInt64(dec.ReadString(), 32))
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeInt32Ptr(t reflect.Type, tag byte) *int32 {
+func (dec *Decoder) decodeInt32Ptr(t reflect.Type, tag byte, p **int32) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	i := dec.decodeInt32(t, tag)
-	return &i
+	var i int32
+	dec.decodeInt32(t, tag, &i)
+	*p = &i
 }
 
-func (dec *Decoder) decodeInt64(t reflect.Type, tag byte) (result int64) {
+func (dec *Decoder) decodeInt64(t reflect.Type, tag byte, p *int64) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return int64(i)
+		*p = int64(i)
+		return
 	}
 	switch tag {
 	case TagNull, TagEmpty, TagFalse:
-		return 0
+		*p = 0
 	case TagTrue:
-		return 1
+		*p = 1
 	case TagInteger, TagLong:
-		return dec.ReadInt64()
+		*p = dec.ReadInt64()
 	case TagDouble:
-		return int64(dec.ReadFloat64())
+		*p = int64(dec.ReadFloat64())
 	case TagUTF8Char:
-		return dec.stringToInt64(dec.readUnsafeString(1), 64)
+		*p = dec.stringToInt64(dec.readUnsafeString(1), 64)
 	case TagString:
 		if dec.IsSimple() {
-			return dec.stringToInt64(dec.ReadUnsafeString(), 64)
+			*p = dec.stringToInt64(dec.ReadUnsafeString(), 64)
+		} else {
+			*p = dec.stringToInt64(dec.ReadString(), 64)
 		}
-		return dec.stringToInt64(dec.ReadString(), 64)
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeInt64Ptr(t reflect.Type, tag byte) *int64 {
+func (dec *Decoder) decodeInt64Ptr(t reflect.Type, tag byte, p **int64) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	i := dec.decodeInt64(t, tag)
-	return &i
+	var i int64
+	dec.decodeInt64(t, tag, &i)
+	*p = &i
 }
 
 func (dec *Decoder) decodeUint(t reflect.Type, tag byte) (result uint) {
@@ -479,7 +485,7 @@ type int32Decoder struct {
 }
 
 func (valdec int32Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*int32)(reflect2.PtrOf(p)) = dec.decodeInt32(valdec.t, tag)
+	dec.decodeInt32(valdec.t, tag, (*int32)(reflect2.PtrOf(p)))
 }
 
 // int32PtrDecoder is the implementation of ValueDecoder for *int32.
@@ -488,7 +494,7 @@ type int32PtrDecoder struct {
 }
 
 func (valdec int32PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**int32)(reflect2.PtrOf(p)) = dec.decodeInt32Ptr(valdec.t, tag)
+	dec.decodeInt32Ptr(valdec.t, tag, (**int32)(reflect2.PtrOf(p)))
 }
 
 // int64Decoder is the implementation of ValueDecoder for int64.
@@ -497,7 +503,7 @@ type int64Decoder struct {
 }
 
 func (valdec int64Decoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*int64)(reflect2.PtrOf(p)) = dec.decodeInt64(valdec.t, tag)
+	dec.decodeInt64(valdec.t, tag, (*int64)(reflect2.PtrOf(p)))
 }
 
 // int64PtrDecoder is the implementation of ValueDecoder for *int64.
@@ -506,7 +512,7 @@ type int64PtrDecoder struct {
 }
 
 func (valdec int64PtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**int64)(reflect2.PtrOf(p)) = dec.decodeInt64Ptr(valdec.t, tag)
+	dec.decodeInt64Ptr(valdec.t, tag, (**int64)(reflect2.PtrOf(p)))
 }
 
 // uintDecoder is the implementation of ValueDecoder for uint.
