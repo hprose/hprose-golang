@@ -221,38 +221,41 @@ func (dec *Decoder) decodeInt64Ptr(t reflect.Type, tag byte, p **int64) {
 	*p = &i
 }
 
-func (dec *Decoder) decodeUint(t reflect.Type, tag byte) (result uint) {
+func (dec *Decoder) decodeUint(t reflect.Type, tag byte, p *uint) {
 	if i := intDigits[tag]; i != invalidDigit {
-		return uint(i)
+		*p = uint(i)
+		return
 	}
 	switch tag {
 	case TagNull, TagEmpty, TagFalse:
-		return 0
+		*p = 0
 	case TagTrue:
-		return 1
+		*p = 1
 	case TagInteger, TagLong:
-		return dec.ReadUint()
+		*p = dec.ReadUint()
 	case TagDouble:
-		return uint(dec.ReadFloat64())
+		*p = uint(dec.ReadFloat64())
 	case TagUTF8Char:
-		return uint(dec.stringToUint64(dec.readUnsafeString(1), 0))
+		*p = uint(dec.stringToUint64(dec.readUnsafeString(1), 0))
 	case TagString:
 		if dec.IsSimple() {
-			return uint(dec.stringToUint64(dec.ReadUnsafeString(), 0))
+			*p = uint(dec.stringToUint64(dec.ReadUnsafeString(), 0))
+		} else {
+			*p = uint(dec.stringToUint64(dec.ReadString(), 0))
 		}
-		return uint(dec.stringToUint64(dec.ReadString(), 0))
 	default:
-		dec.defaultDecode(t, &result, tag)
+		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
-func (dec *Decoder) decodeUintPtr(t reflect.Type, tag byte) *uint {
+func (dec *Decoder) decodeUintPtr(t reflect.Type, tag byte, p **uint) {
 	if tag == TagNull {
-		return nil
+		*p = nil
+		return
 	}
-	i := dec.decodeUint(t, tag)
-	return &i
+	var i uint
+	dec.decodeUint(t, tag, &i)
+	*p = &i
 }
 
 func (dec *Decoder) decodeUint8(t reflect.Type, tag byte) (result uint8) {
@@ -521,7 +524,7 @@ type uintDecoder struct {
 }
 
 func (valdec uintDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(*uint)(reflect2.PtrOf(p)) = dec.decodeUint(valdec.t, tag)
+	dec.decodeUint(valdec.t, tag, (*uint)(reflect2.PtrOf(p)))
 }
 
 // uintPtrDecoder is the implementation of ValueDecoder for *uint.
@@ -530,7 +533,7 @@ type uintPtrDecoder struct {
 }
 
 func (valdec uintPtrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
-	*(**uint)(reflect2.PtrOf(p)) = dec.decodeUintPtr(valdec.t, tag)
+	dec.decodeUintPtr(valdec.t, tag, (**uint)(reflect2.PtrOf(p)))
 }
 
 // uint8Decoder is the implementation of ValueDecoder for uint8.
