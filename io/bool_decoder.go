@@ -40,15 +40,14 @@ func (dec *Decoder) decodeBool(t reflect.Type, tag byte, p *bool) {
 		*p = true
 	case TagInteger, TagLong, TagDouble:
 		bytes := dec.UnsafeUntil(TagSemicolon)
-		if len(bytes) == 0 {
+		switch len(bytes) {
+		case 0:
 			*p = false
-			return
-		}
-		if len(bytes) == 1 {
+		case 1:
 			*p = bytes[0] != '0'
-			return
+		default:
+			*p = true
 		}
-		*p = true
 	case TagInfinity:
 		dec.Skip()
 		*p = true
@@ -57,9 +56,9 @@ func (dec *Decoder) decodeBool(t reflect.Type, tag byte, p *bool) {
 	case TagString:
 		if dec.IsSimple() {
 			*p = dec.stringToBool(dec.ReadUnsafeString())
-			return
+		} else {
+			*p = dec.stringToBool(dec.ReadString())
 		}
-		*p = dec.stringToBool(dec.ReadString())
 	default:
 		dec.defaultDecode(t, p, tag)
 	}
