@@ -20,6 +20,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bytedance/sonic/decoder"
+	"github.com/bytedance/sonic/encoder"
 	. "github.com/hprose/hprose-golang/v3/io"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
@@ -282,6 +284,48 @@ func BenchmarkReadIntFromBytes(b *testing.B) {
 
 func BenchmarkHproseDecodeStruct(b *testing.B) {
 	sb := &strings.Builder{}
+	enc := NewEncoder(sb).Simple(false)
+	type TestStruct struct {
+		Name     string
+		Age      int
+		Birthday time.Time
+		Male     bool
+	}
+	ts := &TestStruct{
+		Name:     "Tom",
+		Age:      18,
+		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male:     true,
+	}
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	enc.Encode(ts)
+	data := ([]byte)(sb.String())
+	var obj TestStruct
+	for i := 0; i < b.N; i++ {
+		dec := NewDecoder(data).Simple(false)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+	}
+}
+
+func BenchmarkSimpleHproseDecodeStruct(b *testing.B) {
+	sb := &strings.Builder{}
 	enc := NewEncoder(sb)
 	type TestStruct struct {
 		Name     string
@@ -308,7 +352,7 @@ func BenchmarkHproseDecodeStruct(b *testing.B) {
 	data := ([]byte)(sb.String())
 	var obj TestStruct
 	for i := 0; i < b.N; i++ {
-		dec := NewDecoderFromReader(bytes.NewReader(data))
+		dec := NewDecoder(data)
 		dec.Decode(&obj)
 		dec.Decode(&obj)
 		dec.Decode(&obj)
@@ -351,6 +395,58 @@ func BenchmarkJsonDecodeStruct(b *testing.B) {
 	var obj TestStruct
 	for i := 0; i < b.N; i++ {
 		dec := jsoniter.NewDecoder(bytes.NewReader(data))
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+		dec.Decode(&obj)
+	}
+}
+
+func BenchmarkSonicJsonDecodeStruct(b *testing.B) {
+	sb := &strings.Builder{}
+	enc := encoder.Encoder{}
+	type TestStruct struct {
+		Name     string
+		Age      int
+		Birthday time.Time
+		Male     bool
+	}
+	ts := &TestStruct{
+		Name:     "Tom",
+		Age:      18,
+		Birthday: time.Date(2002, 1, 2, 3, 4, 5, 6, time.Local),
+		Male:     true,
+	}
+	bytes, _ := enc.Encode(ts)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(ts)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(ts)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(ts)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(ts)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(ts)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(ts)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(ts)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(ts)
+	sb.Write(bytes)
+	bytes, _ = enc.Encode(ts)
+	sb.Write(bytes)
+	data := sb.String()
+	var obj TestStruct
+	for i := 0; i < b.N; i++ {
+		dec := decoder.NewDecoder(data)
 		dec.Decode(&obj)
 		dec.Decode(&obj)
 		dec.Decode(&obj)
