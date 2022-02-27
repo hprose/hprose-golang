@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service_codec.go                                |
 |                                                          |
-| LastModified: Jun 16, 2021                               |
+| LastModified: Feb 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -36,7 +36,8 @@ type serviceCodec struct {
 
 // Encode response.
 func (c serviceCodec) Encode(result interface{}, context *ServiceContext) ([]byte, error) {
-	encoder := new(io.Encoder).Simple(c.Simple)
+	encoder := io.GetEncoder().Simple(c.Simple)
+	defer io.FreeEncoder(encoder)
 	if c.Simple {
 		context.ResponseHeaders().Set("simple", true)
 	}
@@ -69,7 +70,8 @@ func (c serviceCodec) Decode(request []byte, context *ServiceContext) (name stri
 		err = c.decodeMethod(name, context)
 		return
 	}
-	decoder := io.NewDecoder(request).Simple(false)
+	decoder := io.GetDecoder().ResetBytes(request)
+	defer io.FreeDecoder(decoder)
 	decoder.LongType = c.LongType
 	decoder.RealType = c.RealType
 	decoder.MapType = c.MapType

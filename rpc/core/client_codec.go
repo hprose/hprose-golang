@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_codec.go                                 |
 |                                                          |
-| LastModified: Jun 16, 2021                               |
+| LastModified: Feb 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -33,7 +33,8 @@ type clientCodec struct {
 
 // Encode request.
 func (c clientCodec) Encode(name string, args []interface{}, context *ClientContext) ([]byte, error) {
-	encoder := new(io.Encoder).Simple(c.Simple)
+	encoder := io.GetEncoder().Simple(c.Simple)
+	defer io.FreeEncoder(encoder)
 	if c.Simple {
 		context.RequestHeaders().Set("simple", true)
 	}
@@ -54,7 +55,8 @@ func (c clientCodec) Encode(name string, args []interface{}, context *ClientCont
 
 // Decode response.
 func (c clientCodec) Decode(response []byte, context *ClientContext) (result []interface{}, err error) {
-	decoder := io.NewDecoder(response).Simple(false)
+	decoder := io.GetDecoder().ResetBytes(response)
+	defer io.FreeDecoder(decoder)
 	decoder.LongType = c.LongType
 	decoder.RealType = c.RealType
 	decoder.MapType = c.MapType
