@@ -213,14 +213,26 @@ func (enc *Encoder) Write(v interface{}) (err error) {
 	return enc.Flush()
 }
 
-// Bytes returns the accumulated bytes.
-func (enc *Encoder) Bytes() []byte {
+// Buffer returns the accumulated bytes.
+func (enc *Encoder) Buffer() []byte {
 	return enc.buf
 }
 
-// String returns the accumulated string.
-func (enc *Encoder) String() string {
+// Bytes returns a copy of the accumulated bytes.
+func (enc *Encoder) Bytes() []byte {
+	bytes := make([]byte, len(enc.buf))
+	copy(bytes, enc.buf)
+	return bytes
+}
+
+// UnsafeString returns the accumulated string.
+func (enc *Encoder) UnsafeString() string {
 	return *(*string)(unsafe.Pointer(&enc.buf))
+}
+
+// String returns a copy of the accumulated string.
+func (enc *Encoder) String() string {
+	return string(enc.buf)
 }
 
 // WriteReference of v to stream.

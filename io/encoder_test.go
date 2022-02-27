@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoder_test.go                                       |
 |                                                          |
-| LastModified: May 9, 2021                                |
+| LastModified: Feb 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -606,7 +606,7 @@ func TestEncoderCopiedByValuePanic(t *testing.T) {
 
 func TestEncoderBytes(t *testing.T) {
 	enc := new(Encoder)
-	assert.Nil(t, enc.Bytes())
+	assert.Empty(t, enc.Bytes())
 	enc.Encode(1)
 	assert.Equal(t, []byte{'1'}, enc.Bytes())
 }

@@ -33,7 +33,7 @@ func (f Formatter) Marshal(v interface{}) ([]byte, error) {
 	if err := encoder.Encode(v); err != nil {
 		return nil, err
 	}
-	return []byte(encoder.String()), nil
+	return encoder.Bytes(), nil
 }
 
 var decoderPool = sync.Pool{New: func() interface{} { return new(Decoder) }}
