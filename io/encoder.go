@@ -291,7 +291,9 @@ func (enc *Encoder) Reset() *Encoder {
 	if !enc.IsSimple() {
 		enc.refer.Reset()
 	}
-	enc.ref = nil
+	for k := range enc.ref {
+		delete(enc.ref, k)
+	}
 	enc.last = 0
 	return enc
 }
@@ -305,9 +307,7 @@ func (enc *Encoder) ResetBuffer() *Encoder {
 // Simple resets the encoder to simple mode or not.
 func (enc *Encoder) Simple(simple bool) *Encoder {
 	enc.simple = simple
-	enc.refer.Reset()
-	enc.ref = nil
-	enc.last = 0
+	enc.Reset()
 	return enc
 }
 

@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoder_refer.go                                      |
 |                                                          |
-| LastModified: Mar 21, 2020                               |
+| LastModified: Feb 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -66,7 +66,11 @@ func (r *encoderRefer) WriteString(enc *Encoder, s string) (ok bool) {
 }
 
 func (r *encoderRefer) Reset() {
-	r.ref = nil
-	r.sref = nil
+	for k := range r.ref {
+		delete(r.ref, k)
+	}
+	for k := range r.sref {
+		delete(r.sref, k)
+	}
 	r.last = 0
 }
