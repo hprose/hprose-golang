@@ -15,7 +15,6 @@ package io
 
 import (
 	"io"
-	"sync"
 )
 
 type Formatter struct {
@@ -25,29 +24,22 @@ type Formatter struct {
 	MapType
 }
 
-var encoderPool = sync.Pool{New: func() interface{} { return new(Encoder) }}
-
 func (f Formatter) Marshal(v interface{}) ([]byte, error) {
-	encoder := encoderPool.Get().(*Encoder).Simple(f.Simple).ResetBuffer()
-	defer encoderPool.Put(encoder)
+	encoder := GetEncoder().Simple(f.Simple)
+	defer FreeEncoder(encoder)
 	if err := encoder.Encode(v); err != nil {
 		return nil, err
 	}
 	return encoder.Bytes(), nil
 }
 
-var decoderPool = sync.Pool{New: func() interface{} { return new(Decoder) }}
-
 func (f Formatter) Unmarshal(data []byte, v interface{}) error {
 	var decoder *Decoder
 	if f.Simple {
 		decoder = NewDecoder(data)
 	} else {
-		decoder = decoderPool.Get().(*Decoder).Simple(f.Simple).ResetBytes(data)
-		defer func() {
-			decoder.ResetBytes(nil)
-			decoderPool.Put(decoder)
-		}()
+		decoder = GetDecoder().Simple(f.Simple).ResetBytes(data)
+		defer FreeDecoder(decoder)
 	}
 	decoder.LongType = f.LongType
 	decoder.RealType = f.RealType
@@ -57,11 +49,8 @@ func (f Formatter) Unmarshal(data []byte, v interface{}) error {
 }
 
 func (f Formatter) UnmarshalFromReader(reader io.Reader, v interface{}) error {
-	decoder := decoderPool.Get().(*Decoder).Simple(f.Simple).ResetReader(reader)
-	defer func() {
-		decoder.ResetReader(nil)
-		decoderPool.Put(decoder)
-	}()
+	decoder := GetDecoder().Simple(f.Simple).ResetReader(reader)
+	defer FreeDecoder(decoder)
 	decoder.LongType = f.LongType
 	decoder.RealType = f.RealType
 	decoder.MapType = f.MapType
