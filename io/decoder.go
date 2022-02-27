@@ -332,6 +332,18 @@ func (dec *Decoder) ResetBytes(input []byte) *Decoder {
 	return dec
 }
 
+// ResetBuffer of the Decoder.
+func (dec *Decoder) ResetBuffer() *Decoder {
+	if dec.reader == nil {
+		dec.buf = nil
+	} else {
+		dec.reader = nil
+	}
+	dec.head = 0
+	dec.tail = 0
+	return dec
+}
+
 // NextByte reads and returns the next byte from the dec. If no byte is available, it returns 0.
 func (dec *Decoder) NextByte() (b byte) {
 	if (dec.head == dec.tail) && !dec.loadMore() {
