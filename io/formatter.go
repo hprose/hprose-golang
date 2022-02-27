@@ -6,7 +6,7 @@
 |                                                          |
 | io/formatter.go                                          |
 |                                                          |
-| LastModified: Feb 24, 2022                               |
+| LastModified: Feb 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -28,8 +28,7 @@ type Formatter struct {
 var encoderPool = sync.Pool{New: func() interface{} { return new(Encoder) }}
 
 func (f Formatter) Marshal(v interface{}) ([]byte, error) {
-	encoder := encoderPool.Get().(*Encoder).Simple(f.Simple)
-	encoder.buf = encoder.buf[:0]
+	encoder := encoderPool.Get().(*Encoder).Simple(f.Simple).ResetBuffer()
 	defer encoderPool.Put(encoder)
 	if err := encoder.Encode(v); err != nil {
 		return nil, err
