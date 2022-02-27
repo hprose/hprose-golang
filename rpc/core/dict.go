@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/dict.go                                         |
 |                                                          |
-| LastModified: May 17, 2021                               |
+| LastModified: Feb 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,6 +14,7 @@
 package core
 
 import (
+	"strconv"
 	"sync"
 )
 
@@ -38,8 +39,40 @@ type Dict interface {
 
 func getInt(d Dict, key string, defaultValue ...int) int {
 	if value, ok := d.Get(key); ok {
-		if value, ok := value.(int); ok {
+		switch value := value.(type) {
+		case int:
 			return value
+		case uint:
+			return int(value)
+		case int64:
+			return int(value)
+		case uint64:
+			return int(value)
+		case int32:
+			return int(value)
+		case uint32:
+			return int(value)
+		case int16:
+			return int(value)
+		case uint16:
+			return int(value)
+		case int8:
+			return int(value)
+		case uint8:
+			return int(value)
+		case float64:
+			return int(value)
+		case float32:
+			return int(value)
+		case bool:
+			if value {
+				return 1
+			}
+			return 0
+		case string:
+			if i, err := strconv.ParseInt(value, 0, 0); err == nil {
+				return int(i)
+			}
 		}
 	}
 	if len(defaultValue) > 0 {
@@ -50,10 +83,43 @@ func getInt(d Dict, key string, defaultValue ...int) int {
 
 func getUInt(d Dict, key string, defaultValue ...uint) uint {
 	if value, ok := d.Get(key); ok {
-		if value, ok := value.(uint); ok {
+		switch value := value.(type) {
+		case uint:
 			return value
+		case int:
+			return uint(value)
+		case uint64:
+			return uint(value)
+		case int64:
+			return uint(value)
+		case uint32:
+			return uint(value)
+		case int32:
+			return uint(value)
+		case uint16:
+			return uint(value)
+		case int16:
+			return uint(value)
+		case uint8:
+			return uint(value)
+		case int8:
+			return uint(value)
+		case float64:
+			return uint(value)
+		case float32:
+			return uint(value)
+		case bool:
+			if value {
+				return 1
+			}
+			return 0
+		case string:
+			if i, err := strconv.ParseUint(value, 0, 0); err == nil {
+				return uint(i)
+			}
 		}
 	}
+
 	if len(defaultValue) > 0 {
 		return defaultValue[0]
 	}
@@ -62,8 +128,40 @@ func getUInt(d Dict, key string, defaultValue ...uint) uint {
 
 func getInt64(d Dict, key string, defaultValue ...int64) int64 {
 	if value, ok := d.Get(key); ok {
-		if value, ok := value.(int64); ok {
+		switch value := value.(type) {
+		case int64:
 			return value
+		case int:
+			return int64(value)
+		case uint:
+			return int64(value)
+		case uint64:
+			return int64(value)
+		case int32:
+			return int64(value)
+		case uint32:
+			return int64(value)
+		case int16:
+			return int64(value)
+		case uint16:
+			return int64(value)
+		case int8:
+			return int64(value)
+		case uint8:
+			return int64(value)
+		case float64:
+			return int64(value)
+		case float32:
+			return int64(value)
+		case bool:
+			if value {
+				return 1
+			}
+			return 0
+		case string:
+			if i, err := strconv.ParseInt(value, 0, 0); err == nil {
+				return i
+			}
 		}
 	}
 	if len(defaultValue) > 0 {
@@ -74,8 +172,40 @@ func getInt64(d Dict, key string, defaultValue ...int64) int64 {
 
 func getUInt64(d Dict, key string, defaultValue ...uint64) uint64 {
 	if value, ok := d.Get(key); ok {
-		if value, ok := value.(uint64); ok {
+		switch value := value.(type) {
+		case uint64:
 			return value
+		case uint:
+			return uint64(value)
+		case int:
+			return uint64(value)
+		case int64:
+			return uint64(value)
+		case uint32:
+			return uint64(value)
+		case int32:
+			return uint64(value)
+		case uint16:
+			return uint64(value)
+		case int16:
+			return uint64(value)
+		case uint8:
+			return uint64(value)
+		case int8:
+			return uint64(value)
+		case float64:
+			return uint64(value)
+		case float32:
+			return uint64(value)
+		case bool:
+			if value {
+				return 1
+			}
+			return 0
+		case string:
+			if i, err := strconv.ParseUint(value, 0, 0); err == nil {
+				return i
+			}
 		}
 	}
 	if len(defaultValue) > 0 {
@@ -86,8 +216,40 @@ func getUInt64(d Dict, key string, defaultValue ...uint64) uint64 {
 
 func getFloat(d Dict, key string, defaultValue ...float64) float64 {
 	if value, ok := d.Get(key); ok {
-		if value, ok := value.(float64); ok {
+		switch value := value.(type) {
+		case float64:
 			return value
+		case float32:
+			return float64(value)
+		case int:
+			return float64(value)
+		case uint:
+			return float64(value)
+		case int64:
+			return float64(value)
+		case uint64:
+			return float64(value)
+		case int32:
+			return float64(value)
+		case uint32:
+			return float64(value)
+		case int16:
+			return float64(value)
+		case uint16:
+			return float64(value)
+		case int8:
+			return float64(value)
+		case uint8:
+			return float64(value)
+		case bool:
+			if value {
+				return 1
+			}
+			return 0
+		case string:
+			if f, err := strconv.ParseFloat(value, 64); err == nil {
+				return f
+			}
 		}
 	}
 	if len(defaultValue) > 0 {
@@ -98,8 +260,37 @@ func getFloat(d Dict, key string, defaultValue ...float64) float64 {
 
 func getBool(d Dict, key string, defaultValue ...bool) bool {
 	if value, ok := d.Get(key); ok {
-		if value, ok := value.(bool); ok {
+		switch value := value.(type) {
+		case bool:
 			return value
+		case float64:
+			return value != 0
+		case float32:
+			return value != 0
+		case int:
+			return value != 0
+		case uint:
+			return value != 0
+		case int64:
+			return value != 0
+		case uint64:
+			return value != 0
+		case int32:
+			return value != 0
+		case uint32:
+			return value != 0
+		case int16:
+			return value != 0
+		case uint16:
+			return value != 0
+		case int8:
+			return value != 0
+		case uint8:
+			return value != 0
+		case string:
+			if b, err := strconv.ParseBool(value); err == nil {
+				return b
+			}
 		}
 	}
 	if len(defaultValue) > 0 {
@@ -110,8 +301,35 @@ func getBool(d Dict, key string, defaultValue ...bool) bool {
 
 func getString(d Dict, key string, defaultValue ...string) string {
 	if value, ok := d.Get(key); ok {
-		if value, ok := value.(string); ok {
+		switch value := value.(type) {
+		case string:
 			return value
+		case bool:
+			return strconv.FormatBool(value)
+		case float64:
+			return strconv.FormatFloat(value, 'g', -1, 64)
+		case float32:
+			return strconv.FormatFloat(float64(value), 'g', -1, 32)
+		case int:
+			return strconv.FormatInt(int64(value), 10)
+		case uint:
+			return strconv.FormatUint(uint64(value), 10)
+		case int64:
+			return strconv.FormatInt(value, 10)
+		case uint64:
+			return strconv.FormatUint(value, 10)
+		case int32:
+			return strconv.FormatInt(int64(value), 10)
+		case uint32:
+			return strconv.FormatUint(uint64(value), 10)
+		case int16:
+			return strconv.FormatInt(int64(value), 10)
+		case uint16:
+			return strconv.FormatUint(uint64(value), 10)
+		case int8:
+			return strconv.FormatInt(int64(value), 10)
+		case uint8:
+			return strconv.FormatUint(uint64(value), 10)
 		}
 	}
 	if len(defaultValue) > 0 {
