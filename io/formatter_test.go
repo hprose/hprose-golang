@@ -47,7 +47,7 @@ func makeTestStructs() (testStructs []testStruct) {
 
 func TestHproseSimpleFormatter(t *testing.T) {
 	wg := new(sync.WaitGroup)
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 50; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -73,7 +73,7 @@ func TestHproseSimpleFormatter(t *testing.T) {
 func TestHproseFormatter(t *testing.T) {
 	formatter := io.Formatter{}
 	wg := new(sync.WaitGroup)
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 50; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
