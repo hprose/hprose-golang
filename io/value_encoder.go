@@ -6,7 +6,7 @@
 |                                                          |
 | io/value_encoder.go                                      |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -39,11 +39,10 @@ func getStructEncoder(t reflect.Type) ValueEncoder {
 	if valenc, ok := structEncoderMap.Load(t); ok {
 		return valenc.(ValueEncoder)
 	}
-	name := t.Name()
-	if name == "" {
-		return newAnonymousStructEncoder(t)
+	if name := t.Name(); name != "" {
+		return newNamedStructEncoder(t, name)
 	}
-	return newStructEncoder(t, name)
+	return newAnonymousStructEncoder(t)
 }
 
 func getOtherEncoder(t reflect.Type) ValueEncoder {

@@ -6,7 +6,7 @@
 |                                                          |
 | io/decode_handler.go                                     |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -171,8 +171,11 @@ func stringPtrDecode(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 	dec.decodeStringPtr(t, dec.NextByte(), (**string)(p))
 }
 
-func otherDecode(t reflect.Type) DecodeHandler {
-	valdec := getValueDecoder(t)
+func getOtherDecodeHandler(t reflect.Type) DecodeHandler {
+	valdec := getNamedStructDecoder(t)
+	if valdec == nil {
+		valdec = getValueDecoder(t)
+	}
 	t2 := reflect2.Type2(t)
 	return func(dec *Decoder, t reflect.Type, p unsafe.Pointer) {
 		valdec.Decode(dec, t2.PackEFace(p), dec.NextByte())
@@ -192,7 +195,7 @@ func GetDecodeHandler(t reflect.Type) DecodeHandler {
 			}
 		}
 	}
-	return otherDecode(t)
+	return getOtherDecodeHandler(t)
 }
 
 var (

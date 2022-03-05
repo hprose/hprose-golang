@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_encoder_test.go                                |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -105,4 +105,49 @@ func TestDecodeMapAsObject(t *testing.T) {
 	var ts *TestStruct
 	dec.Decode(&ts)
 	assert.Equal(t, &TestStruct{1, false, &hello, 3.14, 0}, ts)
+}
+
+func TestDecodeAnonymousStruct(t *testing.T) {
+	src := struct {
+		A int
+		B bool    `hprose:"-"`
+		C string  `json:"json,omitempty"`
+		D float32 `json:",omitempty"`
+		e float64
+	}{1, true, "hello", 3.14, 2.718}
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb).Simple(false)
+	enc.Encode(src)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var ts struct {
+		A int
+		B bool    `hprose:"-"`
+		C string  `json:"json,omitempty"`
+		D float32 `json:",omitempty"`
+		e float64
+	}
+	dec.Decode(&ts)
+	assert.Equal(t, struct {
+		A int
+		B bool    `hprose:"-"`
+		C string  `json:"json,omitempty"`
+		D float32 `json:",omitempty"`
+		e float64
+	}{1, false, "hello", 3.14, 0}, ts)
+}
+
+func TestDecodeStructWithDBTag(t *testing.T) {
+	type User struct {
+		UserID   int    `db:"id"`
+		UserName string `db:"name"`
+	}
+	Register(User{}, "db")
+	src := User{1, "张三"}
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb)
+	enc.Encode(src)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var ts User
+	dec.Decode(&ts)
+	assert.Equal(t, src, ts)
 }

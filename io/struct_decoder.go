@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_decoder.go                                     |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -67,7 +67,6 @@ func (dec *Decoder) ReadObject() interface{} {
 type structDecoder struct {
 	t      *reflect2.UnsafeStructType
 	fields map[string]FieldAccessor
-	lock   sync.RWMutex
 }
 
 func (valdec *structDecoder) decodeField(dec *Decoder, ptr unsafe.Pointer, name string) {
@@ -84,8 +83,6 @@ func (valdec *structDecoder) decodeObject(dec *Decoder, p interface{}) {
 	structInfo := dec.getStructInfo(index)
 	dec.AddReference(p)
 	ptr := reflect2.PtrOf(p)
-	valdec.lock.RLock()
-	defer valdec.lock.RUnlock()
 	for _, name := range structInfo.names {
 		valdec.decodeField(dec, ptr, name)
 	}
@@ -94,8 +91,6 @@ func (valdec *structDecoder) decodeObject(dec *Decoder, p interface{}) {
 
 func (valdec *structDecoder) decodeMapAsObject(dec *Decoder, p interface{}) {
 	ptr := reflect2.PtrOf(p)
-	valdec.lock.RLock()
-	defer valdec.lock.RUnlock()
 	count := dec.ReadInt()
 	dec.AddReference(p)
 	for i := 0; i < count; i++ {
@@ -119,16 +114,37 @@ func (valdec *structDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 	}
 }
 
-// newStructDecoder returns a ValueDecoder for struct T.
-func newStructDecoder(t reflect.Type) *structDecoder {
-	decoder := &structDecoder{t: reflect2.Type2(t).(*reflect2.UnsafeStructType)}
-	decoder.lock.Lock()
-	defer decoder.lock.Unlock()
-	registerValueDecoder(t, decoder)
-	decoder.fields = getFieldMap(t)
+var namedStructDecoderMap sync.Map
+
+func registerNamedStructDecoder(t reflect.Type, valdec ValueDecoder) {
+	namedStructDecoderMap.Store(t, valdec)
+}
+
+func getNamedStructDecoder(t reflect.Type) ValueDecoder {
+	if valdec, ok := namedStructDecoderMap.Load(t); ok {
+		return valdec.(ValueDecoder)
+	}
+	return nil
+}
+
+func newNamedStructDecoder(t reflect.Type, tag ...string) *structDecoder {
+	t2 := reflect2.Type2(t).(*reflect2.UnsafeStructType)
+	decoder := &structDecoder{t: t2}
+	registerNamedStructDecoder(t, decoder)
+	decoder.fields = getFieldMap(t, tag...)
+	return decoder
+}
+
+func newAnonymousStructDecoder(t reflect.Type, tag ...string) *structDecoder {
+	t2 := reflect2.Type2(t).(*reflect2.UnsafeStructType)
+	decoder := &structDecoder{t: t2}
+	decoder.fields = getFieldMap(t, tag...)
 	return decoder
 }
 
 func getStructDecoder(t reflect.Type) ValueDecoder {
-	return newStructDecoder(t)
+	if t.Name() == "" {
+		return newAnonymousStructDecoder(t)
+	}
+	return newNamedStructDecoder(t)
 }

@@ -6,7 +6,7 @@
 |                                                          |
 | io/encode_handler.go                                     |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -349,10 +349,16 @@ func ptrEncode(enc *Encoder, v interface{}) {
 }
 
 func getStructEncodeHandler(t reflect.Type) EncodeHandler {
+	if encoder := getNamedStructEncoder(t); encoder != nil {
+		return encoder.Write
+	}
 	return getStructEncoder(t).Write
 }
 
 func getStructPtrEncodeHandler(t reflect.Type) EncodeHandler {
+	if encoder := getNamedStructEncoder(t); encoder != nil {
+		return encoder.Encode
+	}
 	return getStructEncoder(t).Encode
 }
 

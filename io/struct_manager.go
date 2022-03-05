@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_manager.go                                     |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -119,11 +119,11 @@ func getFields(t reflect.Type, tag ...string) []FieldAccessor {
 
 var structFieldMapCache sync.Map
 
-func getFieldMap(t reflect.Type) map[string]FieldAccessor {
+func getFieldMap(t reflect.Type, tag ...string) map[string]FieldAccessor {
 	if fieldMap, ok := structFieldMapCache.Load(t); ok {
 		return fieldMap.(map[string]FieldAccessor)
 	}
-	fields := getFields(t)
+	fields := getFields(t, tag...)
 	fieldMap := make(map[string]FieldAccessor, len(fields))
 	for _, field := range fields {
 		fieldMap[field.Alias] = field
@@ -197,10 +197,11 @@ func RegisterName(alias string, proto interface{}, tag ...string) {
 	structTypeMap.Store(name, t)
 	if name == "" {
 		newAnonymousStructEncoder(t, tag...)
+		newAnonymousStructDecoder(t, tag...)
 	} else {
-		newStructEncoder(t, name, tag...)
+		newNamedStructEncoder(t, name, tag...)
+		newNamedStructDecoder(t, tag...)
 	}
-	newStructDecoder(t)
 }
 
 // GetStructType by alias.

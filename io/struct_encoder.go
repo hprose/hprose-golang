@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_encoder.go                                     |
 |                                                          |
-| LastModified: Jun 25, 2020                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -25,7 +25,6 @@ import (
 type structEncoder struct {
 	fields   []FieldAccessor
 	metadata []byte
-	lock     sync.RWMutex
 }
 
 func (valenc *structEncoder) Encode(enc *Encoder, v interface{}) {
@@ -33,8 +32,6 @@ func (valenc *structEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (valenc *structEncoder) Write(enc *Encoder, v interface{}) {
-	valenc.lock.RLock()
-	defer valenc.lock.RUnlock()
 	fields := valenc.fields
 	n := len(fields)
 	t := reflect.TypeOf(v)
@@ -71,11 +68,22 @@ func toPtr(t reflect.Type, v interface{}) interface{} {
 	return pv.Interface()
 }
 
-func newStructEncoder(t reflect.Type, name string, tag ...string) *structEncoder {
+var namedStructEncoderMap sync.Map
+
+func registerNamedStructEncoder(t reflect.Type, valenc ValueEncoder) {
+	namedStructEncoderMap.Store(t, valenc)
+}
+
+func getNamedStructEncoder(t reflect.Type) ValueEncoder {
+	if valenc, ok := namedStructEncoderMap.Load(t); ok {
+		return valenc.(ValueEncoder)
+	}
+	return nil
+}
+
+func newNamedStructEncoder(t reflect.Type, name string, tag ...string) *structEncoder {
 	encoder := &structEncoder{}
-	encoder.lock.Lock()
-	defer encoder.lock.Unlock()
-	registerValueEncoder(t, encoder)
+	registerNamedStructEncoder(t, encoder)
 	fields := getFields(t, tag...)
 	n := len(fields)
 	var metadata []byte
@@ -92,21 +100,19 @@ func newStructEncoder(t reflect.Type, name string, tag ...string) *structEncoder
 	metadata = append(metadata, TagClosebrace)
 	encoder.fields = fields
 	encoder.metadata = metadata
+	registerValueEncoder(t, encoder)
 	return encoder
 }
 
 // anonymousStructEncoder is the implementation of ValueEncoder for anonymous struct/*struct.
 type anonymousStructEncoder struct {
 	fields []FieldAccessor
-	lock   sync.RWMutex
 }
 
 func newAnonymousStructEncoder(t reflect.Type, tag ...string) *anonymousStructEncoder {
 	encoder := &anonymousStructEncoder{}
-	encoder.lock.Lock()
-	defer encoder.lock.Unlock()
-	registerValueEncoder(t, encoder)
 	encoder.fields = getFields(t, tag...)
+	registerValueEncoder(t, encoder)
 	return encoder
 }
 
@@ -115,8 +121,6 @@ func (valenc *anonymousStructEncoder) Encode(enc *Encoder, v interface{}) {
 }
 
 func (valenc *anonymousStructEncoder) Write(enc *Encoder, v interface{}) {
-	valenc.lock.RLock()
-	defer valenc.lock.RUnlock()
 	enc.SetReference(v)
 	fields := valenc.fields
 	n := len(fields)

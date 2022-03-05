@@ -6,7 +6,7 @@
 |                                                          |
 | io/ptr_decoder.go                                        |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -44,7 +44,11 @@ func (valdec ptrDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 
 func getPtrDecoder(t reflect.Type) ValueDecoder {
 	et := t.Elem()
-	if elemDecoder := getRegisteredValueDecoder(et); elemDecoder != nil {
+	elemDecoder := getRegisteredValueDecoder(et)
+	if elemDecoder == nil {
+		elemDecoder = getNamedStructDecoder(et)
+	}
+	if elemDecoder != nil {
 		return ptrDecoder{
 			reflect2.Type2(t).(*reflect2.UnsafePtrType),
 			reflect2.Type2(et),
