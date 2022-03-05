@@ -6,7 +6,7 @@
 |                                                          |
 | io/string_decoder.go                                     |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,6 +16,7 @@ package io
 import (
 	"reflect"
 
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 	"github.com/modern-go/reflect2"
 )
 
@@ -126,7 +127,7 @@ func (dec *Decoder) readUnsafeString(utf16Length int) (s string) {
 	if data == nil {
 		return
 	}
-	return unsafeString(data)
+	return convert.ToUnsafeString(data)
 }
 
 func (dec *Decoder) readSafeString(utf16Length int) (s string) {
@@ -135,7 +136,7 @@ func (dec *Decoder) readSafeString(utf16Length int) (s string) {
 		return
 	}
 	if safe {
-		return unsafeString(data)
+		return convert.ToUnsafeString(data)
 	}
 	return string(data)
 }
@@ -182,13 +183,13 @@ func (dec *Decoder) decodeString(t reflect.Type, tag byte, p *string) {
 			*p = "+Inf"
 		}
 	case TagInteger, TagLong, TagDouble:
-		*p = unsafeString(dec.Until(TagSemicolon))
+		*p = convert.ToUnsafeString(dec.Until(TagSemicolon))
 	case TagUTF8Char:
 		*p = dec.readSafeString(1)
 	case TagString:
 		*p = dec.ReadString()
 	case TagBytes:
-		*p = unsafeString(dec.ReadBytes())
+		*p = convert.ToUnsafeString(dec.ReadBytes())
 	case TagTime:
 		*p = dec.ReadTime().String()
 	case TagDate:

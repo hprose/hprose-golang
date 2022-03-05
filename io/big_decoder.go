@@ -6,7 +6,7 @@
 |                                                          |
 | io/big_decoder.go                                        |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -18,6 +18,7 @@ import (
 	"math/big"
 	"reflect"
 
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 	"github.com/modern-go/reflect2"
 )
 
@@ -63,11 +64,11 @@ func (dec *Decoder) stringToBigRat(s string, t reflect.Type) *big.Rat {
 }
 
 func (dec *Decoder) readBigInt(t reflect.Type) *big.Int {
-	return dec.stringToBigInt(unsafeString(dec.UnsafeUntil(TagSemicolon)), t)
+	return dec.stringToBigInt(convert.ToUnsafeString(dec.UnsafeUntil(TagSemicolon)), t)
 }
 
 func (dec *Decoder) readBigFloat(t reflect.Type) *big.Float {
-	return dec.stringToBigFloat(unsafeString(dec.UnsafeUntil(TagSemicolon)), t)
+	return dec.stringToBigFloat(convert.ToUnsafeString(dec.UnsafeUntil(TagSemicolon)), t)
 }
 
 // ReadBigInt reads *big.Int.

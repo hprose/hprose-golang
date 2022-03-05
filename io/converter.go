@@ -6,7 +6,7 @@
 |                                                          |
 | io/converter.go                                          |
 |                                                          |
-| LastModified: May 17, 2021                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -22,6 +22,7 @@ import (
 	"unsafe"
 
 	"github.com/google/uuid"
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 	"github.com/modern-go/reflect2"
 )
 
@@ -247,10 +248,10 @@ func init() {
 		*(**big.Rat)(reflect2.PtrOf(p)) = dec.stringToBigRat(*(*string)(reflect2.PtrOf(o)), bigRatType)
 	})
 	RegisterConverter(stringType, bytesType, func(dec *Decoder, o interface{}, p interface{}) {
-		*(*[]byte)(reflect2.PtrOf(p)) = reflect2.UnsafeCastString(*(*string)(reflect2.PtrOf(o)))
+		*(*[]byte)(reflect2.PtrOf(p)) = convert.ToUnsafeBytes(*(*string)(reflect2.PtrOf(o)))
 	})
 	RegisterConverter(bytesType, stringType, func(dec *Decoder, o interface{}, p interface{}) {
-		*(*string)(reflect2.PtrOf(p)) = unsafeString(*(*[]byte)(reflect2.PtrOf(o)))
+		*(*string)(reflect2.PtrOf(p)) = convert.ToUnsafeString(*(*[]byte)(reflect2.PtrOf(o)))
 	})
 	RegisterConverter(stringType, timeType, func(dec *Decoder, o interface{}, p interface{}) {
 		*(*time.Time)(reflect2.PtrOf(p)) = dec.stringToTime(*(*string)(reflect2.PtrOf(o)))

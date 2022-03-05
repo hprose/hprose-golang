@@ -6,7 +6,7 @@
 |                                                          |
 | io/int_decoder.go                                        |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,6 +15,8 @@ package io
 
 import (
 	"strconv"
+
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 )
 
 const invalidDigit = uint64(0xff)
@@ -111,7 +113,7 @@ func (dec *Decoder) ReadUint() (value uint) {
 
 // ReadFloat32 reads float32.
 func (dec *Decoder) ReadFloat32() (value float32) {
-	f, err := strconv.ParseFloat(unsafeString(dec.UnsafeUntil(TagSemicolon)), 32)
+	f, err := strconv.ParseFloat(convert.ToUnsafeString(dec.UnsafeUntil(TagSemicolon)), 32)
 	if dec.Error == nil && err != nil {
 		dec.Error = err
 	}
@@ -120,7 +122,7 @@ func (dec *Decoder) ReadFloat32() (value float32) {
 
 // ReadFloat64 reads float64.
 func (dec *Decoder) ReadFloat64() (value float64) {
-	f, err := strconv.ParseFloat(unsafeString(dec.UnsafeUntil(TagSemicolon)), 64)
+	f, err := strconv.ParseFloat(convert.ToUnsafeString(dec.UnsafeUntil(TagSemicolon)), 64)
 	if dec.Error == nil && err != nil {
 		dec.Error = err
 	}

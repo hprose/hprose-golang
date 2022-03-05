@@ -6,7 +6,7 @@
 |                                                          |
 | io/bytes_decoder.go                                      |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,6 +16,7 @@ package io
 import (
 	"reflect"
 
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 	"github.com/modern-go/reflect2"
 )
 
@@ -67,7 +68,7 @@ func (dec *Decoder) decodeBytes(t reflect.Type, tag byte, p *[]byte) {
 		if dec.IsSimple() {
 			*p = dec.ReadStringAsBytes()
 		} else {
-			*p = reflect2.UnsafeCastString(dec.ReadString())
+			*p = convert.ToUnsafeBytes(dec.ReadString())
 		}
 	case TagGUID:
 		*p, _ = dec.ReadUUID().MarshalBinary()

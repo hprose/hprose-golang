@@ -6,7 +6,7 @@
 |                                                          |
 | io/array_decoder.go                                      |
 |                                                          |
-| LastModified: Jun 5, 2021                                |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,6 +17,7 @@ import (
 	"reflect"
 	"unsafe"
 
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 	"github.com/modern-go/reflect2"
 )
 
@@ -108,7 +109,7 @@ func (valdec byteArrayDecoder) Decode(dec *Decoder, p interface{}, tag byte) {
 			dec.Skip()
 			valdec.copy(p, data)
 		} else {
-			valdec.copy(p, reflect2.UnsafeCastString(dec.ReadString()))
+			valdec.copy(p, convert.ToUnsafeBytes(dec.ReadString()))
 		}
 	default:
 		valdec.arrayDecoder.Decode(dec, p, tag)

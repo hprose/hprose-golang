@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 	"github.com/modern-go/reflect2"
 )
 
@@ -59,7 +60,7 @@ func appendName(buf []byte, s string, message string) []byte {
 	if length < 0 {
 		panic(fmt.Sprintf("hprose/io: invalid UTF-8 in %s", message))
 	}
-	return appendBinary(buf, reflect2.UnsafeCastString(s), length)
+	return appendBinary(buf, convert.ToUnsafeBytes(s), length)
 }
 
 func toPtr(t reflect.Type, v interface{}) interface{} {

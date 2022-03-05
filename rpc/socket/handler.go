@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/handler.go                                    |
 |                                                          |
-| LastModified: Nov 11, 2021                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -22,6 +22,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
 
@@ -161,9 +162,9 @@ func (h *Handler) send(ctx context.Context, conn net.Conn, queue chan data, errC
 			if e != nil {
 				index |= math.MinInt32
 				if e == core.ErrRequestEntityTooLarge {
-					body = []byte(core.RequestEntityTooLarge)
+					body = convert.ToUnsafeBytes(core.RequestEntityTooLarge)
 				} else {
-					body = []byte(e.Error())
+					body = convert.ToUnsafeBytes(e.Error())
 				}
 			}
 			header := makeHeader(len(body), index)

@@ -6,7 +6,7 @@
 |                                                          |
 | io/reflect.go                                            |
 |                                                          |
-| LastModified: Aug 27, 2021                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -31,10 +31,6 @@ type eface struct {
 
 func unpackEFace(ptr *interface{}) *eface {
 	return (*eface)(unsafe.Pointer(ptr))
-}
-
-func unsafeString(bytes []byte) string {
-	return *(*string)(unsafe.Pointer(&bytes))
 }
 
 // sliceHeader is a safe version of SliceHeader used within this package.

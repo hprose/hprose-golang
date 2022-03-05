@@ -6,7 +6,7 @@
 |                                                          |
 | io/encode.go                                             |
 |                                                          |
-| LastModified: Feb 18, 2021                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -16,7 +16,7 @@ package io
 import (
 	"math"
 
-	"github.com/modern-go/reflect2"
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 )
 
 const (
@@ -182,9 +182,9 @@ func appendBytes(buf []byte, bytes []byte) []byte {
 
 func appendString(buf []byte, s string, length int) []byte {
 	if length < 0 {
-		return appendBytes(buf, reflect2.UnsafeCastString(s))
+		return appendBytes(buf, convert.ToUnsafeBytes(s))
 	}
 	buf = append(buf, TagString)
-	buf = appendBinary(buf, reflect2.UnsafeCastString(s), length)
+	buf = appendBinary(buf, convert.ToUnsafeBytes(s), length)
 	return buf
 }

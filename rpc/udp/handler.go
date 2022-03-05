@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/udp/handler.go                                       |
 |                                                          |
-| LastModified: May 9, 2021                                |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -18,6 +18,7 @@ import (
 	"net"
 	"reflect"
 
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 )
 
@@ -135,9 +136,9 @@ func (h *Handler) send(ctx context.Context, conn *net.UDPConn, queue chan data, 
 			if e != nil {
 				index |= 0x8000
 				if e == core.ErrRequestEntityTooLarge {
-					body = []byte(core.RequestEntityTooLarge)
+					body = convert.ToUnsafeBytes(core.RequestEntityTooLarge)
 				} else {
-					body = []byte(e.Error())
+					body = convert.ToUnsafeBytes(e.Error())
 				}
 				h.onError(conn, e)
 			}
