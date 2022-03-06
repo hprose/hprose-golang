@@ -6,7 +6,7 @@
 |                                                          |
 | hprose.go                                                |
 |                                                          |
-| LastModified: May 24, 2021                               |
+| LastModified: Mar 6, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -57,9 +57,7 @@ type (
 	ServiceCodec               = rpc.ServiceCodec
 	CodecOption                = rpc.CodecOption
 	Client                     = rpc.Client
-	TransportGetter            = rpc.TransportGetter
 	Service                    = rpc.Service
-	HandlerGetter              = rpc.HandlerGetter
 
 	JSONRPCClientCodec  = jsonrpc.ClientCodec
 	JSONRPCServiceCodec = jsonrpc.ServiceCodec
