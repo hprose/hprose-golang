@@ -91,7 +91,7 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) (response
 	switch resp.Header.StatusCode() {
 	case fasthttp.StatusOK:
 		clientContext.Items().Set("httpResponseHeaders", getResponseHeader(&resp.Header))
-		return resp.Body(), nil
+		return resp.SwapBody(nil), nil
 	case fasthttp.StatusRequestEntityTooLarge:
 		return nil, core.ErrRequestEntityTooLarge
 	default:
