@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service.go                                      |
 |                                                          |
-| LastModified: Jun 16, 2021                               |
+| LastModified: Mar 6, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -46,11 +46,6 @@ func RegisterHandler(name string, handlerFactory HandlerFactory) {
 			serverTypes.Store(serverType, names)
 		}
 	}
-}
-
-// HandlerGetter for Service.
-type HandlerGetter interface {
-	GetHandler(name string) Handler
 }
 
 // Service for RPC.
