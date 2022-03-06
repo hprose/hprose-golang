@@ -4,10 +4,11 @@ go 1.13
 
 require (
 	github.com/andot/complexconv v1.0.0
+	github.com/fasthttp/websocket v1.5.0
 	github.com/google/uuid v1.3.0
-	github.com/gorilla/websocket v1.4.2
 	github.com/json-iterator/go v1.1.12
 	github.com/modern-go/reflect2 v1.0.2
-	github.com/orcaman/concurrent-map v0.0.0-20210501183033-44dafcb38ecc
+	github.com/orcaman/concurrent-map v1.0.0
 	github.com/stretchr/testify v1.7.0
+	github.com/valyala/fasthttp v1.33.0
 )

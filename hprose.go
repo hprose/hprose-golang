@@ -17,6 +17,7 @@ import (
 	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/hprose/hprose-golang/v3/rpc"
 	"github.com/hprose/hprose-golang/v3/rpc/codec/jsonrpc"
+	"github.com/hprose/hprose-golang/v3/rpc/http/cookie"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/cluster"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/forward"
@@ -92,7 +93,8 @@ type (
 	ProviderContext = reverse.ProviderContext
 	Provider        = reverse.Provider
 
-	ExecuteTimeout = timeout.ExecuteTimeout
+	ExecuteTimeout      = timeout.ExecuteTimeout
+	CookieManagerOption = cookie.CookieManagerOption
 )
 
 const (
@@ -134,6 +136,10 @@ const (
 	TagResult byte = io.TagResult
 	TagError  byte = io.TagError
 	TagEnd    byte = io.TagEnd
+
+	NoCookieManager     = cookie.NoCookieManager
+	GlobalCookieManager = cookie.GlobalCookieManager
+	ClientCookieManager = cookie.ClientCookieManager
 )
 
 var (

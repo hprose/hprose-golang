@@ -16,6 +16,7 @@ package rpc
 import (
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	"github.com/hprose/hprose-golang/v3/rpc/http"
+	"github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
 	"github.com/hprose/hprose-golang/v3/rpc/mock"
 	"github.com/hprose/hprose-golang/v3/rpc/socket"
 	"github.com/hprose/hprose-golang/v3/rpc/udp"
@@ -25,6 +26,7 @@ import (
 func init() {
 	mock.RegisterTransport()
 	http.RegisterTransport()
+	fasthttp.RegisterTransport()
 	socket.RegisterTransport()
 	udp.RegisterTransport()
 	websocket.RegisterTransport()
@@ -41,6 +43,11 @@ var NewClient = core.NewClient
 // HTTPTransport returns http.Transport of Client.
 func HTTPTransport(client *Client) *http.Transport {
 	return client.GetTransport("http").(*http.Transport)
+}
+
+// FastHTTPTransport returns fasthttp.Transport of Client.
+func FastHTTPTransport(client *Client) *fasthttp.Transport {
+	return client.GetTransport("fasthttp").(*fasthttp.Transport)
 }
 
 // SocketTransport returns socket.Transport of Client.

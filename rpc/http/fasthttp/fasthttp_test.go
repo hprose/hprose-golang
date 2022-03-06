@@ -4,14 +4,14 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| rpc/http/http_test.go                                    |
+| rpc/http/fasthttp/fasthttp_test.go                       |
 |                                                          |
-| LastModified: May 7, 2021                                |
+| LastModified: Mar 6, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-package http_test
+package fasthttp_test
 
 import (
 	"context"
@@ -25,10 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hprose/hprose-golang/v3/rpc"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
-	. "github.com/hprose/hprose-golang/v3/rpc/http"
-	"github.com/hprose/hprose-golang/v3/rpc/http/cookie"
+	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
+	. "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/cluster"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/forward"
@@ -38,10 +37,11 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/oneway"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
 	"github.com/stretchr/testify/assert"
+	"github.com/valyala/fasthttp"
 )
 
 func init() {
-	RegisterHandler()
+	rpchttp.RegisterHandler()
 	RegisterTransport()
 }
 
@@ -50,15 +50,14 @@ func TestHelloWorld(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
 	client := core.NewClient("http://127.0.0.1:8000/")
-	rpc.HTTPTransport(client).SetCookieManagerOption(cookie.NoCookieManager)
 	client.Use(log.Plugin)
 	var proxy struct {
 		Hello func(name string) (string, error)
@@ -67,7 +66,7 @@ func TestHelloWorld(t *testing.T) {
 	result, err := proxy.Hello("world")
 	assert.Equal(t, "hello world", result)
 	assert.NoError(t, err)
-	server.Close()
+	server.Shutdown()
 }
 
 func TestClientTimeout(t *testing.T) {
@@ -75,10 +74,10 @@ func TestClientTimeout(t *testing.T) {
 	service.AddFunction(func(d time.Duration) {
 		time.Sleep(d)
 	}, "wait")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -91,7 +90,7 @@ func TestClientTimeout(t *testing.T) {
 	client.UseService(&proxy)
 	err = proxy.Wait(time.Millisecond * 30)
 	assert.True(t, core.IsTimeoutError(err))
-	server.Close()
+	server.Shutdown()
 }
 
 func TestServiceTimeout(t *testing.T) {
@@ -100,10 +99,10 @@ func TestServiceTimeout(t *testing.T) {
 		time.Sleep(d)
 	}, "wait")
 	service.Use(timeout.New(5 * time.Millisecond))
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -117,7 +116,7 @@ func TestServiceTimeout(t *testing.T) {
 	assert.False(t, core.IsTimeoutError(err))
 	err = proxy.Wait(time.Millisecond * 30)
 	assert.True(t, core.IsTimeoutError(err))
-	server.Close()
+	server.Shutdown()
 }
 
 func TestMissingMethod(t *testing.T) {
@@ -129,10 +128,10 @@ func TestMissingMethod(t *testing.T) {
 		}
 		return []interface{}{name + string(data)}, nil
 	})
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -144,7 +143,7 @@ func TestMissingMethod(t *testing.T) {
 	client.UseService(&proxy)
 	result := proxy.Hello("world")
 	assert.Equal(t, `Hello["world"]`, result)
-	server.Close()
+	server.Shutdown()
 }
 
 func TestMissingMethod2(t *testing.T) {
@@ -157,10 +156,10 @@ func TestMissingMethod2(t *testing.T) {
 		}
 		return []interface{}{name + string(data) + serviceContext.LocalAddr.String()}, nil
 	})
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -172,7 +171,7 @@ func TestMissingMethod2(t *testing.T) {
 	client.UseService(&proxy)
 	result := proxy.Hello("world")
 	assert.Equal(t, `Hello["world"]127.0.0.1:8000`, result)
-	server.Close()
+	server.Shutdown()
 }
 
 func TestHeaders(t *testing.T) {
@@ -187,10 +186,10 @@ func TestHeaders(t *testing.T) {
 		serviceContext.ResponseHeaders().Set("pong", true)
 		return next(ctx, name, args)
 	})
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -205,7 +204,7 @@ func TestHeaders(t *testing.T) {
 	result := proxy.Hello(ctx, "world")
 	assert.Equal(t, `hello world`, result)
 	assert.True(t, clientContext.ResponseHeaders().GetBool("pong"))
-	server.Close()
+	server.Shutdown()
 }
 
 func TestMaxRequestLength(t *testing.T) {
@@ -214,10 +213,10 @@ func TestMaxRequestLength(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -231,7 +230,7 @@ func TestMaxRequestLength(t *testing.T) {
 	if assert.Error(t, err) {
 		assert.Equal(t, core.ErrRequestEntityTooLarge, err)
 	}
-	server.Close()
+	server.Shutdown()
 }
 
 func TestCircuitBreaker(t *testing.T) {
@@ -239,10 +238,10 @@ func TestCircuitBreaker(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -259,7 +258,7 @@ func TestCircuitBreaker(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.Equal(t, "hello world", result)
 	}
-	server.Close()
+	server.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	for i := 0; i < 4; i++ {
@@ -270,9 +269,9 @@ func TestCircuitBreaker(t *testing.T) {
 	if assert.Error(t, err) {
 		assert.Equal(t, "service breaked", err.Error())
 	}
-	server = &http.Server{Addr: ":8000"}
+	server = &fasthttp.Server{}
 	_ = service.Bind(server)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	_, err = proxy.Hello("world")
 	if assert.Error(t, err) {
@@ -283,7 +282,7 @@ func TestCircuitBreaker(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.Equal(t, "hello world", result)
 	}
-	server.Close()
+	server.Shutdown()
 }
 
 func TestCircuitBreaker2(t *testing.T) {
@@ -291,10 +290,10 @@ func TestCircuitBreaker2(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -314,7 +313,7 @@ func TestCircuitBreaker2(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.Equal(t, "hello world", result)
 	}
-	server.Close()
+	server.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")
@@ -325,9 +324,9 @@ func TestCircuitBreaker2(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.Equal(t, "Hello breaked", result)
 	}
-	server = &http.Server{Addr: ":8000"}
+	server = &fasthttp.Server{}
 	_ = service.Bind(server)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	result, err = proxy.Hello("world")
 	if assert.NoError(t, err) {
@@ -338,7 +337,7 @@ func TestCircuitBreaker2(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.Equal(t, "hello world", result)
 	}
-	server.Close()
+	server.Shutdown()
 }
 
 func TestClusterFailover1(t *testing.T) {
@@ -346,25 +345,25 @@ func TestClusterFailover1(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -386,7 +385,7 @@ func TestClusterFailover1(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server1.Close()
+	server1.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
@@ -394,7 +393,7 @@ func TestClusterFailover1(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server2.Close()
+	server2.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
@@ -402,7 +401,7 @@ func TestClusterFailover1(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server3.Close()
+	server3.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
@@ -410,7 +409,7 @@ func TestClusterFailover1(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server4.Close()
+	server4.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	client.UseService(&proxy)
@@ -423,25 +422,25 @@ func TestClusterFailover2(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -466,7 +465,7 @@ func TestClusterFailover2(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server1.Close()
+	server1.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
@@ -474,7 +473,7 @@ func TestClusterFailover2(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server2.Close()
+	server2.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
@@ -482,7 +481,7 @@ func TestClusterFailover2(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server3.Close()
+	server3.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
@@ -490,7 +489,7 @@ func TestClusterFailover2(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server4.Close()
+	server4.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")
@@ -502,10 +501,10 @@ func TestClusterFailtry(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -525,14 +524,14 @@ func TestClusterFailtry(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server.Close()
+	server.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	go func() {
 		time.Sleep(time.Second)
-		server = &http.Server{Addr: ":8000"}
+		server = &fasthttp.Server{}
 		service.Bind(server)
-		go server.ListenAndServe()
+		go server.ListenAndServe(":8000")
 	}()
 
 	result, err = proxy.Hello("world")
@@ -540,7 +539,7 @@ func TestClusterFailtry(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server.Close()
+	server.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")
@@ -552,10 +551,10 @@ func TestClusterFailfast(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -576,7 +575,7 @@ func TestClusterFailfast(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server.Close()
+	server.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")
@@ -588,10 +587,10 @@ func TestClusterSuccess(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -611,7 +610,7 @@ func TestClusterSuccess(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.Equal(t, "hello world", result)
 	}
-	server.Close()
+	server.Shutdown()
 }
 
 func TestClusterForking(t *testing.T) {
@@ -619,25 +618,25 @@ func TestClusterForking(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -657,7 +656,7 @@ func TestClusterForking(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server1.Close()
+	server1.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
@@ -665,7 +664,7 @@ func TestClusterForking(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server2.Close()
+	server2.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
@@ -673,7 +672,7 @@ func TestClusterForking(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server3.Close()
+	server3.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = proxy.Hello("world")
@@ -681,7 +680,7 @@ func TestClusterForking(t *testing.T) {
 		assert.Equal(t, "hello world", result)
 	}
 
-	server4.Close()
+	server4.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	_, err = proxy.Hello("world")
@@ -693,25 +692,25 @@ func TestClusterBroadcast(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -734,7 +733,7 @@ func TestClusterBroadcast(t *testing.T) {
 		}, result)
 	}
 
-	server1.Close()
+	server1.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
@@ -746,7 +745,7 @@ func TestClusterBroadcast(t *testing.T) {
 		[]interface{}{"hello world"},
 	}, result)
 
-	server2.Close()
+	server2.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
@@ -758,7 +757,7 @@ func TestClusterBroadcast(t *testing.T) {
 		[]interface{}{"hello world"},
 	}, result)
 
-	server3.Close()
+	server3.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
@@ -770,7 +769,7 @@ func TestClusterBroadcast(t *testing.T) {
 		[]interface{}{"hello world"},
 	}, result)
 
-	server4.Close()
+	server4.Shutdown()
 	time.Sleep(time.Millisecond)
 
 	result, err = client.InvokeContext(core.WithContext(context.Background(), clientContext), "hello", []interface{}{"world"})
@@ -788,10 +787,10 @@ func TestForward(t *testing.T) {
 	service1.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service1.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
 	fw := forward.New("http://127.0.0.1:8001/")
 	fw.Use(log.Plugin)
@@ -801,10 +800,10 @@ func TestForward(t *testing.T) {
 	// 	return
 	// })
 	// service2.Use(fw.InvokeHandler)
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service2.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server1.ListenAndServe(":8002")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -833,8 +832,8 @@ func TestForward(t *testing.T) {
 		assert.Equal(t, "hello forward", result)
 	}
 
-	server1.Close()
-	server2.Close()
+	server1.Shutdown()
+	server2.Shutdown()
 }
 
 func TestConcurrentLimiter(t *testing.T) {
@@ -842,10 +841,10 @@ func TestConcurrentLimiter(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -874,7 +873,7 @@ func TestConcurrentLimiter(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server.Close()
+	server.Shutdown()
 }
 
 func TestConcurrentLimiterWithoutTimeout(t *testing.T) {
@@ -882,10 +881,10 @@ func TestConcurrentLimiterWithoutTimeout(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -911,7 +910,7 @@ func TestConcurrentLimiterWithoutTimeout(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server.Close()
+	server.Shutdown()
 }
 
 func TestRateLimiterIOHandler(t *testing.T) {
@@ -919,10 +918,10 @@ func TestRateLimiterIOHandler(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -950,7 +949,7 @@ func TestRateLimiterIOHandler(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server.Close()
+	server.Shutdown()
 }
 
 func TestRateLimiterInvokeHandler(t *testing.T) {
@@ -958,10 +957,10 @@ func TestRateLimiterInvokeHandler(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -989,7 +988,7 @@ func TestRateLimiterInvokeHandler(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server.Close()
+	server.Shutdown()
 }
 
 func TestRandomLoadBalance(t *testing.T) {
@@ -997,25 +996,25 @@ func TestRandomLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1052,10 +1051,10 @@ func TestRandomLoadBalance(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server1.Close()
-	server2.Close()
-	server3.Close()
-	server4.Close()
+	server1.Shutdown()
+	server2.Shutdown()
+	server3.Shutdown()
+	server4.Shutdown()
 }
 
 func TestRoundRobinLoadBalance(t *testing.T) {
@@ -1063,25 +1062,25 @@ func TestRoundRobinLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1118,10 +1117,10 @@ func TestRoundRobinLoadBalance(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server1.Close()
-	server2.Close()
-	server3.Close()
-	server4.Close()
+	server1.Shutdown()
+	server2.Shutdown()
+	server3.Shutdown()
+	server4.Shutdown()
 }
 
 func TestLeastActiveLoadBalance(t *testing.T) {
@@ -1129,25 +1128,25 @@ func TestLeastActiveLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1184,10 +1183,10 @@ func TestLeastActiveLoadBalance(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server1.Close()
-	server2.Close()
-	server3.Close()
-	server4.Close()
+	server1.Shutdown()
+	server2.Shutdown()
+	server3.Shutdown()
+	server4.Shutdown()
 }
 
 func TestWeightedRandomLoadBalance(t *testing.T) {
@@ -1195,25 +1194,25 @@ func TestWeightedRandomLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1242,10 +1241,10 @@ func TestWeightedRandomLoadBalance(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server1.Close()
-	server2.Close()
-	server3.Close()
-	server4.Close()
+	server1.Shutdown()
+	server2.Shutdown()
+	server3.Shutdown()
+	server4.Shutdown()
 }
 
 func TestWeightedRoundRobinLoadBalance(t *testing.T) {
@@ -1253,25 +1252,25 @@ func TestWeightedRoundRobinLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1300,10 +1299,10 @@ func TestWeightedRoundRobinLoadBalance(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server1.Close()
-	server2.Close()
-	server3.Close()
-	server4.Close()
+	server1.Shutdown()
+	server2.Shutdown()
+	server3.Shutdown()
+	server4.Shutdown()
 }
 
 func TestNginxRoundRobinLoadBalance(t *testing.T) {
@@ -1311,25 +1310,25 @@ func TestNginxRoundRobinLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1358,10 +1357,10 @@ func TestNginxRoundRobinLoadBalance(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server1.Close()
-	server2.Close()
-	server3.Close()
-	server4.Close()
+	server1.Shutdown()
+	server2.Shutdown()
+	server3.Shutdown()
+	server4.Shutdown()
 }
 
 func TestWeightedLeastActiveLoadBalance(t *testing.T) {
@@ -1369,25 +1368,25 @@ func TestWeightedLeastActiveLoadBalance(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server1 := &http.Server{Addr: ":8001"}
+	server1 := &fasthttp.Server{}
 	err := service.Bind(server1)
 	assert.NoError(t, err)
-	go server1.ListenAndServe()
+	go server1.ListenAndServe(":8001")
 
-	server2 := &http.Server{Addr: ":8002"}
+	server2 := &fasthttp.Server{}
 	err = service.Bind(server2)
 	assert.NoError(t, err)
-	go server2.ListenAndServe()
+	go server2.ListenAndServe(":8002")
 
-	server3 := &http.Server{Addr: ":8003"}
+	server3 := &fasthttp.Server{}
 	err = service.Bind(server3)
 	assert.NoError(t, err)
-	go server3.ListenAndServe()
+	go server3.ListenAndServe(":8003")
 
-	server4 := &http.Server{Addr: ":8004"}
+	server4 := &fasthttp.Server{}
 	err = service.Bind(server4)
 	assert.NoError(t, err)
-	go server4.ListenAndServe()
+	go server4.ListenAndServe(":8004")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1416,10 +1415,10 @@ func TestWeightedLeastActiveLoadBalance(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	server1.Close()
-	server2.Close()
-	server3.Close()
-	server4.Close()
+	server1.Shutdown()
+	server2.Shutdown()
+	server3.Shutdown()
+	server4.Shutdown()
 }
 
 func TestOneway(t *testing.T) {
@@ -1428,10 +1427,10 @@ func TestOneway(t *testing.T) {
 	service.AddFunction(func() {
 		time.Sleep(time.Millisecond * 50)
 	}, "sleep")
-	server := &http.Server{Addr: ":8005"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8005")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1451,7 +1450,7 @@ func TestOneway(t *testing.T) {
 	duration = time.Since(start)
 	assert.True(t, duration < time.Millisecond*10)
 	time.Sleep(time.Millisecond * 60)
-	server.Close()
+	server.Shutdown()
 }
 
 func TestClientAbort(t *testing.T) {
@@ -1459,10 +1458,10 @@ func TestClientAbort(t *testing.T) {
 	service.AddFunction(func(name string) string {
 		return "hello " + name
 	}, "hello")
-	server := &http.Server{Addr: ":8000"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8000")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1488,7 +1487,7 @@ func TestClientAbort(t *testing.T) {
 	client.Abort()
 	wg.Wait()
 	assert.Greater(t, n, int32(0))
-	server.Close()
+	server.Shutdown()
 }
 
 func TestHttpHeaders(t *testing.T) {
@@ -1507,10 +1506,10 @@ func TestHttpHeaders(t *testing.T) {
 		}
 		return next(ctx, name, args)
 	})
-	server := &http.Server{Addr: ":8006"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8006")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1531,7 +1530,7 @@ func TestHttpHeaders(t *testing.T) {
 		pong := header.Get("Pong")
 		assert.Equal(t, "true", pong)
 	}
-	server.Close()
+	server.Shutdown()
 }
 
 func TestHttpHeaders2(t *testing.T) {
@@ -1541,7 +1540,7 @@ func TestHttpHeaders2(t *testing.T) {
 	}, "hello")
 	header := make(http.Header)
 	header.Set("Pong", "true")
-	service.GetHandler("http").(*Handler).Header = header
+	service.GetHandler("http").(*rpchttp.Handler).Header = header
 	service.Use(func(ctx context.Context, name string, args []interface{}, next core.NextInvokeHandler) (result []interface{}, err error) {
 		serviceContext := core.GetServiceContext(ctx)
 		if header, ok := serviceContext.Items().GetInterface("httpRequestHeaders").(http.Header); assert.True(t, ok) {
@@ -1551,10 +1550,10 @@ func TestHttpHeaders2(t *testing.T) {
 		}
 		return next(ctx, name, args)
 	})
-	server := &http.Server{Addr: ":8007"}
+	server := &fasthttp.Server{}
 	err := service.Bind(server)
 	assert.NoError(t, err)
-	go server.ListenAndServe()
+	go server.ListenAndServe(":8007")
 
 	time.Sleep(time.Millisecond * 5)
 
@@ -1567,7 +1566,7 @@ func TestHttpHeaders2(t *testing.T) {
 	clientContext := core.NewClientContext()
 	header = make(http.Header)
 	header.Set("Ping", "true")
-	client.GetTransport("http").(*Transport).Header = header
+	client.GetTransport("fasthttp").(*Transport).Header = header
 	ctx := core.WithContext(context.Background(), clientContext)
 	result := proxy.Hello(ctx, "world")
 	assert.Equal(t, `hello world`, result)
@@ -1575,5 +1574,5 @@ func TestHttpHeaders2(t *testing.T) {
 		pong := header.Get("Pong")
 		assert.Equal(t, "true", pong)
 	}
-	server.Close()
+	server.Shutdown()
 }

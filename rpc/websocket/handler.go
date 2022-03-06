@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/websocket/handler.go                                 |
 |                                                          |
-| LastModified: Nov 11, 2021                               |
+| LastModified: Mar 5, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,9 +23,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/fasthttp/websocket"
+	"github.com/hprose/hprose-golang/v3/internal/convert"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
+	"github.com/valyala/fasthttp"
 )
 
 type Handler struct {
@@ -56,10 +58,14 @@ func (h *Handler) onError(conn *websocket.Conn, err error) {
 
 // BindContext to the websocket server.
 func (h *Handler) BindContext(ctx context.Context, server core.Server) {
-	s := server.(*http.Server)
-	s.Handler = h
-	s.BaseContext = func(l net.Listener) context.Context {
-		return ctx
+	switch s := server.(type) {
+	case *http.Server:
+		s.Handler = h
+		s.BaseContext = func(l net.Listener) context.Context {
+			return ctx
+		}
+	case *fasthttp.Server:
+		s.Handler = h.ServeFastHTTP
 	}
 }
 
@@ -89,6 +95,35 @@ func (h *Handler) ServeHTTP(response http.ResponseWriter, request *http.Request)
 		return
 	}
 	h.Serve(request.Context(), conn)
+}
+
+// ServeFastHTTP implements the fasthttp.RequestHandler.
+func (h *Handler) ServeFastHTTP(ctx *fasthttp.RequestCtx) {
+	if !websocket.FastHTTPIsWebSocketUpgrade(ctx) {
+		h.Handler.ServeFastHTTP(ctx)
+		return
+	}
+	upgrader := websocket.FastHTTPUpgrader{
+		Subprotocols: []string{"hprose"},
+		CheckOrigin: func(ctx *fasthttp.RequestCtx) bool {
+			origin := convert.ToUnsafeString(ctx.Request.Header.Peek("origin"))
+			if origin != "" && origin != "null" {
+				if len(h.AccessControlAllowOrigins) == 0 ||
+					h.AccessControlAllowOrigins[origin] {
+					return true
+				}
+				return false
+			}
+			return true
+		},
+	}
+	err := upgrader.Upgrade(ctx, func(conn *websocket.Conn) {
+		h.Serve(context.Background(), conn)
+	})
+	if err != nil {
+		h.onError(nil, err)
+		return
+	}
 }
 
 func (h *Handler) reportError(ctx context.Context, errChan chan error, err error) {
@@ -182,9 +217,9 @@ func (h *Handler) send(ctx context.Context, conn *websocket.Conn, queue chan dat
 			if e != nil {
 				index |= math.MinInt32
 				if e == core.ErrRequestEntityTooLarge {
-					body = []byte(core.RequestEntityTooLarge)
+					body = convert.ToUnsafeBytes(core.RequestEntityTooLarge)
 				} else {
-					body = []byte(e.Error())
+					body = convert.ToUnsafeBytes(e.Error())
 				}
 			}
 			header := makeHeader(index)
@@ -264,6 +299,7 @@ func RegisterHandler() {
 	core.RegisterHandler("websocket", handlerFactory{
 		[]reflect.Type{
 			reflect.TypeOf((*http.Server)(nil)),
+			reflect.TypeOf((*fasthttp.Server)(nil)),
 		},
 	})
 }

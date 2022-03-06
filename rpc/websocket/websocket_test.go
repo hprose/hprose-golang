@@ -36,11 +36,36 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/timeout"
 	. "github.com/hprose/hprose-golang/v3/rpc/websocket"
 	"github.com/stretchr/testify/assert"
+	"github.com/valyala/fasthttp"
 )
 
 func init() {
 	RegisterHandler()
 	RegisterTransport()
+}
+
+func TestHelloWorldOnFastHTTP(t *testing.T) {
+	service := core.NewService()
+	service.AddFunction(func(name string) string {
+		return "hello " + name
+	}, "hello")
+	server := &fasthttp.Server{}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	go server.ListenAndServe(":8000")
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := core.NewClient("ws://127.0.0.1:8000/")
+	client.Use(log.Plugin)
+	var proxy struct {
+		Hello func(name string) (string, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Hello("world")
+	assert.Equal(t, "hello world", result)
+	assert.NoError(t, err)
+	server.Shutdown()
 }
 
 func TestHelloWorld(t *testing.T) {

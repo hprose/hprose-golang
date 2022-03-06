@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/fasthttp/websocket"
 	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/hprose/hprose-golang/v3/rpc"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/log"
@@ -534,6 +534,11 @@ func TestHTTP(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	resp.Body.Close()
 	assert.NoError(t, err)
+	fasthttpTransport := rpc.FastHTTPTransport(client)
+	fasthttpTransport.Header = http.Header{
+		"test":   []string{"test"},
+		"Origin": []string{"hprose.com"},
+	}
 	{
 		result, err := client.Invoke("hello", []interface{}{"world"})
 		assert.Equal(t, "test:hello world", result[0])
