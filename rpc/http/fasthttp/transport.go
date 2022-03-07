@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/fasthttp/transport.go                           |
 |                                                          |
-| LastModified: Mar 6, 2022                                |
+| LastModified: Mar 7, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -26,10 +26,11 @@ import (
 )
 
 type Transport struct {
-	Header         http.Header
-	FastHTTPClient fasthttp.Client
-	compression    bool
-	keepAlive      bool
+	DisableHTTPHeader bool
+	Header            http.Header
+	FastHTTPClient    fasthttp.Client
+	compression       bool
+	keepAlive         bool
 	*cookieManager
 }
 
@@ -56,11 +57,13 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) (response
 	req.Header.SetMethod("POST")
 	req.SetRequestURI(clientContext.URL.String())
 	req.SetBody(request)
-	if trans.Header != nil {
-		addRequestHeader(&req.Header, trans.Header)
-	}
-	if header, ok := clientContext.Items().GetInterface("httpRequestHeaders").(http.Header); ok {
-		addRequestHeader(&req.Header, header)
+	if !trans.DisableHTTPHeader {
+		if trans.Header != nil {
+			addRequestHeader(&req.Header, trans.Header)
+		}
+		if header, ok := clientContext.Items().GetInterface("httpRequestHeaders").(http.Header); ok {
+			addRequestHeader(&req.Header, header)
+		}
 	}
 	if trans.keepAlive {
 		req.Header.Set("Connection", "keep-alive")
@@ -90,7 +93,9 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) (response
 	clientContext.Items().Set("httpStatusText", string(resp.Header.StatusMessage()))
 	switch resp.Header.StatusCode() {
 	case fasthttp.StatusOK:
-		clientContext.Items().Set("httpResponseHeaders", getResponseHeader(&resp.Header))
+		if !trans.DisableHTTPHeader {
+			clientContext.Items().Set("httpResponseHeaders", getResponseHeader(&resp.Header))
+		}
 		return resp.SwapBody(nil), nil
 	case fasthttp.StatusRequestEntityTooLarge:
 		return nil, core.ErrRequestEntityTooLarge

@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/transport.go                                    |
 |                                                          |
-| LastModified: May 5, 2021                                |
+| LastModified: Mar 7, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -28,8 +28,9 @@ import (
 )
 
 type Transport struct {
-	Header     http.Header
-	HTTPClient http.Client
+	DisableHTTPHeader bool
+	Header            http.Header
+	HTTPClient        http.Client
 }
 
 func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, error) {
@@ -38,11 +39,13 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, 
 	if err != nil {
 		return nil, err
 	}
-	if trans.Header != nil {
-		addHeader(req.Header, trans.Header)
-	}
-	if header, ok := clientContext.Items().GetInterface("httpRequestHeaders").(http.Header); ok {
-		addHeader(req.Header, header)
+	if !trans.DisableHTTPHeader {
+		if trans.Header != nil {
+			addHeader(req.Header, trans.Header)
+		}
+		if header, ok := clientContext.Items().GetInterface("httpRequestHeaders").(http.Header); ok {
+			addHeader(req.Header, header)
+		}
 	}
 	var resp *http.Response
 	resp, err = trans.HTTPClient.Do(req)
@@ -54,7 +57,9 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) ([]byte, 
 	clientContext.Items().Set("httpStatusText", http.StatusText(resp.StatusCode))
 	switch resp.StatusCode {
 	case http.StatusOK:
-		clientContext.Items().Set("httpResponseHeaders", resp.Header)
+		if !trans.DisableHTTPHeader {
+			clientContext.Items().Set("httpResponseHeaders", resp.Header)
+		}
 		return readAll(resp.Body, resp.ContentLength)
 	case http.StatusRequestEntityTooLarge:
 		return nil, core.ErrRequestEntityTooLarge

@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/http/handler.go                                      |
 |                                                          |
-| LastModified: Mar 6, 2022                                |
+| LastModified: Mar 7, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -36,6 +36,7 @@ type Handler struct {
 	P3P                          bool
 	GET                          bool
 	CrossDomain                  bool
+	DisableHTTPHeader            bool
 	Header                       http.Header
 	AccessControlAllowOrigins    map[string]bool
 	LastModified                 string
@@ -214,11 +215,13 @@ func (h *Handler) sendHeader(serviceContext *core.ServiceContext, response http.
 			responseHeader.Set("Access-Control-Allow-Origin", "*")
 		}
 	}
-	if h.Header != nil {
-		addHeader(responseHeader, h.Header)
-	}
-	if header, ok := serviceContext.Items().GetInterface("httpResponseHeaders").(http.Header); ok {
-		addHeader(responseHeader, header)
+	if !h.DisableHTTPHeader {
+		if h.Header != nil {
+			addHeader(responseHeader, h.Header)
+		}
+		if header, ok := serviceContext.Items().GetInterface("httpResponseHeaders").(http.Header); ok {
+			addHeader(responseHeader, header)
+		}
 	}
 	if code := serviceContext.Items().GetInt("httpStatusCode"); code != 0 {
 		response.WriteHeader(code)
@@ -229,7 +232,9 @@ func (h *Handler) getServiceContext(response http.ResponseWriter, request *http.
 	serviceContext := core.NewServiceContext(h.Service)
 	serviceContext.Items().Set("request", request)
 	serviceContext.Items().Set("response", response)
-	serviceContext.Items().Set("httpRequestHeaders", request.Header)
+	if !h.DisableHTTPHeader {
+		serviceContext.Items().Set("httpRequestHeaders", request.Header)
+	}
 	serviceContext.LocalAddr, _ = net.ResolveTCPAddr("tcp", request.Host)
 	serviceContext.RemoteAddr, _ = net.ResolveTCPAddr("tcp", request.RemoteAddr)
 	serviceContext.Handler = h
@@ -338,11 +343,13 @@ func (h *Handler) sendFastHTTPHeader(serviceContext *core.ServiceContext, ctx *f
 			ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
 		}
 	}
-	if h.Header != nil {
-		addResponseHeader(&ctx.Response.Header, h.Header)
-	}
-	if header, ok := serviceContext.Items().GetInterface("httpResponseHeaders").(http.Header); ok {
-		addResponseHeader(&ctx.Response.Header, header)
+	if !h.DisableHTTPHeader {
+		if h.Header != nil {
+			addResponseHeader(&ctx.Response.Header, h.Header)
+		}
+		if header, ok := serviceContext.Items().GetInterface("httpResponseHeaders").(http.Header); ok {
+			addResponseHeader(&ctx.Response.Header, header)
+		}
 	}
 	if code := serviceContext.Items().GetInt("httpStatusCode"); code != 0 {
 		ctx.SetStatusCode(code)
@@ -352,7 +359,9 @@ func (h *Handler) sendFastHTTPHeader(serviceContext *core.ServiceContext, ctx *f
 func (h *Handler) getFastHTTPServiceContext(ctx *fasthttp.RequestCtx) *core.ServiceContext {
 	serviceContext := core.NewServiceContext(h.Service)
 	serviceContext.Items().Set("requestCtx", ctx)
-	serviceContext.Items().Set("httpRequestHeaders", getRequestHeader(&ctx.Request.Header))
+	if !h.DisableHTTPHeader {
+		serviceContext.Items().Set("httpRequestHeaders", getRequestHeader(&ctx.Request.Header))
+	}
 	serviceContext.LocalAddr, _ = net.ResolveTCPAddr("tcp", convert.ToUnsafeString(ctx.Host()))
 	serviceContext.RemoteAddr = ctx.RemoteAddr()
 	serviceContext.Handler = h
