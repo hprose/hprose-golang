@@ -6,7 +6,7 @@
 |                                                          |
 | hprose.go                                                |
 |                                                          |
-| LastModified: Mar 6, 2022                                |
+| LastModified: Mar 7, 2022                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -99,43 +99,54 @@ type (
 
 const (
 	// Serialize Type.
-	TagInteger  byte = io.TagInteger
-	TagLong     byte = io.TagLong
-	TagDouble   byte = io.TagDouble
-	TagNull     byte = io.TagNull
-	TagEmpty    byte = io.TagEmpty
-	TagTrue     byte = io.TagTrue
-	TagFalse    byte = io.TagFalse
-	TagNaN      byte = io.TagNaN
-	TagInfinity byte = io.TagInfinity
-	TagDate     byte = io.TagDate
-	TagTime     byte = io.TagTime
-	TagUTC      byte = io.TagUTC
-	TagBytes    byte = io.TagBytes
-	TagUTF8Char byte = io.TagUTF8Char
-	TagString   byte = io.TagString
-	TagGUID     byte = io.TagGUID
-	TagList     byte = io.TagList
-	TagMap      byte = io.TagMap
-	TagClass    byte = io.TagClass
-	TagObject   byte = io.TagObject
-	TagRef      byte = io.TagRef
+	TagInteger  = io.TagInteger
+	TagLong     = io.TagLong
+	TagDouble   = io.TagDouble
+	TagNull     = io.TagNull
+	TagEmpty    = io.TagEmpty
+	TagTrue     = io.TagTrue
+	TagFalse    = io.TagFalse
+	TagNaN      = io.TagNaN
+	TagInfinity = io.TagInfinity
+	TagDate     = io.TagDate
+	TagTime     = io.TagTime
+	TagUTC      = io.TagUTC
+	TagBytes    = io.TagBytes
+	TagUTF8Char = io.TagUTF8Char
+	TagString   = io.TagString
+	TagGUID     = io.TagGUID
+	TagList     = io.TagList
+	TagMap      = io.TagMap
+	TagClass    = io.TagClass
+	TagObject   = io.TagObject
+	TagRef      = io.TagRef
 
 	// Serialize Marks.
-	TagPos        byte = io.TagPos
-	TagNeg        byte = io.TagNeg
-	TagSemicolon  byte = io.TagSemicolon
-	TagOpenbrace  byte = io.TagOpenbrace
-	TagClosebrace byte = io.TagClosebrace
-	TagQuote      byte = io.TagQuote
-	TagPoint      byte = io.TagPoint
+	TagPos        = io.TagPos
+	TagNeg        = io.TagNeg
+	TagSemicolon  = io.TagSemicolon
+	TagOpenbrace  = io.TagOpenbrace
+	TagClosebrace = io.TagClosebrace
+	TagQuote      = io.TagQuote
+	TagPoint      = io.TagPoint
 
 	// Protocol Tags.
-	TagHeader byte = io.TagHeader
-	TagCall   byte = io.TagCall
-	TagResult byte = io.TagResult
-	TagError  byte = io.TagError
-	TagEnd    byte = io.TagEnd
+	TagHeader = io.TagHeader
+	TagCall   = io.TagCall
+	TagResult = io.TagResult
+	TagError  = io.TagError
+	TagEnd    = io.TagEnd
+
+	LongTypeInt      = io.LongTypeInt
+	LongTypeUint     = io.LongTypeUint
+	LongTypeInt64    = io.LongTypeInt64
+	LongTypeUint64   = io.LongTypeUint64
+	LongTypeBigInt   = io.LongTypeBigInt
+	RealTypeFloat64  = io.RealTypeFloat64
+	RealTypeFloat32  = io.RealTypeFloat32
+	RealTypeBigFloat = io.RealTypeBigFloat
+	MapTypeIIMap     = io.MapTypeIIMap
+	MapTypeSIMap     = io.MapTypeSIMap
 
 	NoCookieManager     = cookie.NoCookieManager
 	GlobalCookieManager = cookie.GlobalCookieManager
@@ -159,6 +170,10 @@ var (
 	NewEncoder           = io.NewEncoder
 	GetValueDecoder      = io.GetValueDecoder
 	GetValueEncoder      = io.GetValueEncoder
+	GetEncoder           = io.GetEncoder
+	FreeEncoder          = io.FreeEncoder
+	GetDecoder           = io.GetDecoder
+	FreeDecoder          = io.FreeDecoder
 
 	ErrClosed                = rpc.ErrClosed
 	ErrRequestEntityTooLarge = rpc.ErrRequestEntityTooLarge
@@ -187,6 +202,7 @@ var (
 	NewClient                = rpc.NewClient
 	NewService               = rpc.NewService
 	HTTPTransport            = rpc.HTTPTransport
+	FastHTTPTransport        = rpc.FastHTTPTransport
 	SocketTransport          = rpc.SocketTransport
 	UDPTransport             = rpc.UDPTransport
 	WebSocketTransport       = rpc.WebSocketTransport
