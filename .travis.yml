@@ -6,10 +6,12 @@ go:
   - "1.15"
   - "1.16"
   - "1.17"
+  - "1.18"
 
 before_install:
   - export GO111MODULE="on"
   - go get github.com/mattn/goveralls
+  - go install github.com/mattn/goveralls
 
 script:
   - $GOPATH/bin/goveralls -race -service=travis-ci
