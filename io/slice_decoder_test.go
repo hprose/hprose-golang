@@ -6,7 +6,7 @@
 |                                                          |
 | io/slice_decoder_test.go                                 |
 |                                                          |
-| LastModified: Apr 27, 2021                               |
+| LastModified: Mar 16, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -23,6 +23,32 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestDecodeInt16SlicePtr(t *testing.T) {
+	sb := new(strings.Builder)
+	enc := NewEncoder(sb)
+	enc.Encode([]int{1, 2, 3, 4, 5})
+	enc.Encode([]float32{1, 2, 3, 4, 5})
+	enc.Encode([]string{"1", "2", "3", "4", "5"})
+	enc.Encode(nil)
+	enc.Encode("")
+	enc.Encode(1)
+	dec := NewDecoder(([]byte)(sb.String()))
+	var slice *[]int16
+	expected := []int16{1, 2, 3, 4, 5}
+	dec.Decode(&slice)
+	assert.Equal(t, expected, *slice) // []int{1, 2, 3, 4, 5}
+	dec.Decode(&slice)
+	assert.Equal(t, expected, *slice) // []float32{1, 2, 3, 4, 5}
+	dec.Decode(&slice)
+	assert.Equal(t, expected, *slice) // []string{"1", "2", "3", "4", "5"}
+	dec.Decode(&slice)
+	assert.Nil(t, slice) // nil
+	dec.Decode(&slice)
+	assert.Equal(t, []int16{}, *slice) // ""
+	dec.Decode(&slice)
+	assert.EqualError(t, dec.Error, `hprose/io: can not cast int to []int16`) // 1
+}
 
 func TestDecodeIntSlice(t *testing.T) {
 	sb := new(strings.Builder)

@@ -6,7 +6,7 @@
 |                                                          |
 | io/ptr_decoder.go                                        |
 |                                                          |
-| LastModified: Mar 5, 2022                                |
+| LastModified: Mar 16, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -58,59 +58,35 @@ func getPtrDecoder(t reflect.Type) ValueDecoder {
 	return ptrDecoderFactories[et.Kind()](t)
 }
 
-func getArrayPtrDecoder(t reflect.Type) ValueDecoder {
+func getElemPtrDecoder(t reflect.Type, getElemDecoder func(t reflect.Type) ValueDecoder) ValueDecoder {
 	et := t.Elem()
-	elemDecoder := getArrayDecoder(et)
+	elemDecoder := getElemDecoder(et)
 	registerValueDecoder(et, elemDecoder)
 	return ptrDecoder{
 		reflect2.Type2(t).(*reflect2.UnsafePtrType),
 		reflect2.Type2(et),
 		elemDecoder,
 	}
+}
+
+func getArrayPtrDecoder(t reflect.Type) ValueDecoder {
+	return getElemPtrDecoder(t, getArrayDecoder)
 }
 
 func getMapPtrDecoder(t reflect.Type) ValueDecoder {
-	et := t.Elem()
-	elemDecoder := getMapDecoder(et)
-	registerValueDecoder(et, elemDecoder)
-	return ptrDecoder{
-		reflect2.Type2(t).(*reflect2.UnsafePtrType),
-		reflect2.Type2(et),
-		elemDecoder,
-	}
+	return getElemPtrDecoder(t, getMapDecoder)
 }
 
 func getPtrPtrDecoder(t reflect.Type) ValueDecoder {
-	et := t.Elem()
-	elemDecoder := getPtrDecoder(et)
-	registerValueDecoder(et, elemDecoder)
-	return ptrDecoder{
-		reflect2.Type2(t).(*reflect2.UnsafePtrType),
-		reflect2.Type2(et),
-		elemDecoder,
-	}
+	return getElemPtrDecoder(t, getPtrDecoder)
 }
 
 func getSlicePtrDecoder(t reflect.Type) ValueDecoder {
-	et := t.Elem()
-	elemDecoder := getSliceDecoder(et)
-	registerValueDecoder(et, elemDecoder)
-	return ptrDecoder{
-		reflect2.Type2(t).(*reflect2.UnsafePtrType),
-		reflect2.Type2(et),
-		elemDecoder,
-	}
+	return getElemPtrDecoder(t, getSliceDecoder)
 }
 
 func getStructPtrDecoder(t reflect.Type) ValueDecoder {
-	et := t.Elem()
-	elemDecoder := getStructDecoder(et)
-	registerValueDecoder(et, elemDecoder)
-	return ptrDecoder{
-		reflect2.Type2(t).(*reflect2.UnsafePtrType),
-		reflect2.Type2(et),
-		elemDecoder,
-	}
+	return getElemPtrDecoder(t, getStructDecoder)
 }
 
 var ptrDecoderFactories []func(t reflect.Type) ValueDecoder
