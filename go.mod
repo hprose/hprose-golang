@@ -9,6 +9,6 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/orcaman/concurrent-map v1.0.0
-	github.com/stretchr/testify v1.7.0
-	github.com/valyala/fasthttp v1.33.0
+	github.com/stretchr/testify v1.7.1
+	github.com/valyala/fasthttp v1.34.0
 )
