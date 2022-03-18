@@ -6,7 +6,7 @@
 |                                                          |
 | io/decoder.go                                            |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: Mar 18, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -477,7 +477,8 @@ func (dec *Decoder) loadMore() bool {
 			dec.Error = io.EOF
 		}
 		return false
-	} else if dec.buf == nil {
+	}
+	if dec.buf == nil {
 		dec.buf = make([]byte, defaultBufferSize)
 	}
 	for {
