@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/plugins/log/log.go                                   |
 |                                                          |
-| LastModified: Mar 6, 2021                                |
+| LastModified: Mar 18, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -15,11 +15,11 @@ package log
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"unsafe"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
+	jsoniter "github.com/json-iterator/go"
 )
 
 // Log plugin for hprose.
@@ -82,14 +82,14 @@ func (log *Log) InvokeHandler(ctx context.Context, name string, args []interface
 		}
 		if err != nil {
 			log.Println("error:", err)
-		} else if data, e := json.Marshal(result); e == nil {
+		} else if data, e := jsoniter.Marshal(result); e == nil {
 			log.Println("result:", unsafeString(data))
 		} else {
 			log.Println("result:", result)
 		}
 	}()
 	log.Println("name:", name)
-	if data, e := json.Marshal(args); e == nil {
+	if data, e := jsoniter.Marshal(args); e == nil {
 		log.Println("args:", unsafeString(data))
 	} else {
 		log.Println("args:", args)

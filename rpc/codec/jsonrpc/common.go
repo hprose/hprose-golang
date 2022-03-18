@@ -6,14 +6,14 @@
 |                                                          |
 | rpc/codec/jsonrpc/common.go                              |
 |                                                          |
-| LastModified: May 10, 2021                               |
+| LastModified: Mar 18, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 package jsonrpc
 
-import "encoding/json"
+import jsoniter "github.com/json-iterator/go"
 
 type Codec interface {
 	Marshal(v interface{}) ([]byte, error)
@@ -23,11 +23,11 @@ type Codec interface {
 type jsonCodec struct{}
 
 func (jsonCodec) Marshal(v interface{}) ([]byte, error) {
-	return json.Marshal(v)
+	return jsoniter.Marshal(v)
 }
 
 func (jsonCodec) Unmarshal(data []byte, v interface{}) error {
-	return json.Unmarshal(data, v)
+	return jsoniter.Unmarshal(data, v)
 }
 
 type Request struct {
