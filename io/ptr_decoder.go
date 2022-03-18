@@ -6,7 +6,7 @@
 |                                                          |
 | io/ptr_decoder.go                                        |
 |                                                          |
-| LastModified: Mar 16, 2022                               |
+| LastModified: Mar 18, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -58,7 +58,7 @@ func getPtrDecoder(t reflect.Type) ValueDecoder {
 	return ptrDecoderFactories[et.Kind()](t)
 }
 
-func getElemPtrDecoder(t reflect.Type, getElemDecoder func(t reflect.Type) ValueDecoder) ValueDecoder {
+func _getPtrDecoder(t reflect.Type, getElemDecoder func(t reflect.Type) ValueDecoder) ValueDecoder {
 	et := t.Elem()
 	elemDecoder := getElemDecoder(et)
 	registerValueDecoder(et, elemDecoder)
@@ -70,23 +70,23 @@ func getElemPtrDecoder(t reflect.Type, getElemDecoder func(t reflect.Type) Value
 }
 
 func getArrayPtrDecoder(t reflect.Type) ValueDecoder {
-	return getElemPtrDecoder(t, getArrayDecoder)
+	return _getPtrDecoder(t, getArrayDecoder)
 }
 
 func getMapPtrDecoder(t reflect.Type) ValueDecoder {
-	return getElemPtrDecoder(t, getMapDecoder)
+	return _getPtrDecoder(t, getMapDecoder)
 }
 
 func getPtrPtrDecoder(t reflect.Type) ValueDecoder {
-	return getElemPtrDecoder(t, getPtrDecoder)
+	return _getPtrDecoder(t, getPtrDecoder)
 }
 
 func getSlicePtrDecoder(t reflect.Type) ValueDecoder {
-	return getElemPtrDecoder(t, getSliceDecoder)
+	return _getPtrDecoder(t, getSliceDecoder)
 }
 
 func getStructPtrDecoder(t reflect.Type) ValueDecoder {
-	return getElemPtrDecoder(t, getStructDecoder)
+	return _getPtrDecoder(t, getStructDecoder)
 }
 
 var ptrDecoderFactories []func(t reflect.Type) ValueDecoder
