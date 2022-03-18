@@ -1,21 +1,46 @@
+/*--------------------------------------------------------*\
+|                                                          |
+|                          hprose                          |
+|                                                          |
+| Official WebSite: https://hprose.com                     |
+|                                                          |
+| internal/convert/convert.go                              |
+|                                                          |
+| LastModified: Mar 18, 2022                               |
+| Author: Ma Bingyao <andot@hprose.com>                    |
+|                                                          |
+\*________________________________________________________*/
+
 package convert
 
 import (
-	"reflect"
 	"unsafe"
 )
 
+// stringHeader is a safe version of reflect.StringHeader used within this package.
+type stringHeader struct {
+	Data unsafe.Pointer
+	Len  int
+}
+
+// sliceHeader is a safe version of reflect.SliceHeader used within this package.
+type sliceHeader struct {
+	Data unsafe.Pointer
+	Len  int
+	Cap  int
+}
+
 //go:nosplit
 func ToUnsafeString(v []byte) (s string) {
-	(*reflect.StringHeader)(unsafe.Pointer(&s)).Len = (*reflect.SliceHeader)(unsafe.Pointer(&v)).Len
-	(*reflect.StringHeader)(unsafe.Pointer(&s)).Data = (*reflect.SliceHeader)(unsafe.Pointer(&v)).Data
+	(*stringHeader)(unsafe.Pointer(&s)).Len = (*sliceHeader)(unsafe.Pointer(&v)).Len
+	(*stringHeader)(unsafe.Pointer(&s)).Data = (*sliceHeader)(unsafe.Pointer(&v)).Data
 	return
 }
 
 //go:nosplit
 func ToUnsafeBytes(s string) (v []byte) {
-	(*reflect.SliceHeader)(unsafe.Pointer(&v)).Cap = (*reflect.StringHeader)(unsafe.Pointer(&s)).Len
-	(*reflect.SliceHeader)(unsafe.Pointer(&v)).Len = (*reflect.StringHeader)(unsafe.Pointer(&s)).Len
-	(*reflect.SliceHeader)(unsafe.Pointer(&v)).Data = (*reflect.StringHeader)(unsafe.Pointer(&s)).Data
+	(*sliceHeader)(unsafe.Pointer(&v)).Cap = (*stringHeader)(unsafe.Pointer(&s)).Len
+	(*sliceHeader)(unsafe.Pointer(&v)).Len = (*stringHeader)(unsafe.Pointer(&s)).Len
+	(*sliceHeader)(unsafe.Pointer(&v)).Data = (*stringHeader)(unsafe.Pointer(&s)).Data
 	return
 }
