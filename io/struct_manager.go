@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_manager.go                                     |
 |                                                          |
-| LastModified: Mar 5, 2022                                |
+| LastModified: Mar 18, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -66,7 +66,7 @@ func fieldAlias(tag reflect.StructTag, name string, tags []string) string {
 	return name
 }
 
-func _getFields(t reflect2.StructType, tags []string, mapping map[string]bool, fields []FieldAccessor) []FieldAccessor {
+func _getFields(t reflect2.StructType, tags []string, mapping map[string]struct{}, fields []FieldAccessor) []FieldAccessor {
 	n := t.NumField()
 	for i := 0; i < n; i++ {
 		f := t.Field(i)
@@ -91,7 +91,7 @@ func _getFields(t reflect2.StructType, tags []string, mapping map[string]bool, f
 		if name == "-" {
 			continue
 		}
-		if mapping[name] {
+		if _, ok := mapping[name]; ok {
 			panic(fmt.Sprintf("hprose/io: ambiguous fields with the same name or alias: %s", name))
 		}
 
@@ -107,14 +107,14 @@ func _getFields(t reflect2.StructType, tags []string, mapping map[string]bool, f
 			continue
 		}
 
-		mapping[name] = true
+		mapping[name] = struct{}{}
 		fields = append(fields, field)
 	}
 	return fields
 }
 
 func getFields(t reflect.Type, tag ...string) []FieldAccessor {
-	return _getFields(reflect2.Type2(t).(reflect2.StructType), tag, map[string]bool{}, nil)
+	return _getFields(reflect2.Type2(t).(reflect2.StructType), tag, map[string]struct{}{}, nil)
 }
 
 var structFieldMapCache sync.Map
