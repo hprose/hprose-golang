@@ -10,5 +10,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/stretchr/testify v1.7.1
-	github.com/valyala/fasthttp v1.34.0
+	github.com/valyala/fasthttp v1.37.0
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
