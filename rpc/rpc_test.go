@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/rpc_test.go                                          |
 |                                                          |
-| LastModified: May 19, 2021                               |
+| LastModified: May 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -877,5 +877,40 @@ func TestReverseInvoke(t *testing.T) {
 	assert.Equal(t, "hello world", result)
 	assert.NoError(t, err)
 	provider.Close()
+	server.Close()
+}
+
+func TestPanic(t *testing.T) {
+	service := rpc.NewService()
+	service.Codec = rpc.NewServiceCodec(rpc.WithDebug(true))
+	service.AddFunction(func() error {
+		return errors.New("test")
+	}, "testPanic")
+	server, err := net.Listen("tcp", "127.0.0.1:8412")
+	assert.NoError(t, err)
+	err = service.Bind(server)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond * 5)
+
+	client := rpc.NewClient("tcp://127.0.0.1/")
+	client.Use(log.Plugin)
+	var proxy1 struct {
+		TestPanic func() error
+	}
+	var proxy2 struct {
+		TestPanic func()
+	}
+	client.UseService(&proxy1)
+	client.UseService(&proxy2)
+	{
+		err := proxy1.TestPanic()
+		if assert.Error(t, err) {
+			assert.Equal(t, "test", err.Error())
+		}
+	}
+	{
+		assert.Panics(t, proxy2.TestPanic)
+	}
 	server.Close()
 }

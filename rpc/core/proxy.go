@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/proxy.go                                        |
 |                                                          |
-| LastModified: Feb 20, 2021                               |
+| LastModified: May 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -14,6 +14,7 @@
 package core
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -112,9 +113,18 @@ func (b proxyBuilder) out(ft reflect.Type, results []interface{}, err error) (ou
 }
 
 func (b proxyBuilder) method(proxy interface{}, h InvocationHandler, name string, ft reflect.Type, sf reflect.StructField) reflect.Value {
+	n := ft.NumOut()
+	hasError := n > 0 && ft.Out(n-1) == errorType
 	return reflect.MakeFunc(ft, func(in []reflect.Value) (out []reflect.Value) {
 		args := b.in(ft, in)
 		results, err := h(proxy, sf, name, args)
+		if err != nil && !hasError {
+			if e, ok := err.(*PanicError); ok {
+				panic(fmt.Sprintf("%v\r\n%s", e.Panic, e.Stack))
+			} else {
+				panic(err)
+			}
+		}
 		return b.out(ft, results, err)
 	})
 }
