@@ -669,6 +669,18 @@ func TestUnix(t *testing.T) {
 
 func TestUDP(t *testing.T) {
 	service := rpc.NewService()
+	service.AddMissingMethod(func(name string, args []interface{}) (result []interface{}, err error) {
+		data, err := json.Marshal(args)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{name + string(data)}, nil
+	})
+	method := service.Get("*")
+	assert.Equal(t, reflect.Func, method.Func().Kind())
+	assert.Equal(t, []reflect.Type{reflect.TypeOf(""), reflect.TypeOf([]interface{}{})}, method.Parameters())
+	assert.True(t, method.ReturnError())
+	assert.Nil(t, method.Options())
 	udpHandler := rpc.UDPHandler(service)
 	udpHandler.OnClose = func(c net.Conn) {
 		fmt.Println(c.LocalAddr().String() + " closed on server")
