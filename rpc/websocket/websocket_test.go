@@ -1538,8 +1538,8 @@ func TestClientAbort(t *testing.T) {
 	client.Use(limiter.NewRateLimiter(5000).InvokeHandler)
 	n := int32(0)
 	var wg sync.WaitGroup
-	wg.Add(3000)
-	for i := 0; i < 3000; i++ {
+	wg.Add(5000)
+	for i := 0; i < 5000; i++ {
 		go func(i int) {
 			defer wg.Done()
 			result, err := proxy.Hello(fmt.Sprintf("world %d", i))
