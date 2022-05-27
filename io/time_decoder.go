@@ -6,7 +6,7 @@
 |                                                          |
 | io/time_decoder.go                                       |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: May 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -159,7 +159,7 @@ func (dec *Decoder) decodeTime(t reflect.Type, tag byte, p *time.Time) {
 		return
 	}
 	switch tag {
-	case TagEmpty, TagFalse:
+	case TagNull, TagEmpty, TagFalse:
 		*p = time.Unix(0, 0)
 	case TagTrue:
 		*p = time.Unix(0, 1)

@@ -6,7 +6,7 @@
 |                                                          |
 | io/time_decoder_test.go                                  |
 |                                                          |
-| LastModified: Jun 05, 2021                               |
+| LastModified: May 27, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -34,12 +34,16 @@ func TestDecodeTime(t *testing.T) {
 	assert.NoError(t, enc.Encode(t1))
 	assert.NoError(t, enc.Encode(&t1))
 	assert.NoError(t, enc.Encode(t1))
+	assert.NoError(t, enc.Encode(nil))
+	assert.NoError(t, enc.Encode(nil))
 
 	t2 := Time(t1)
 	assert.NoError(t, enc.Encode(&t2))
 	assert.NoError(t, enc.Encode(t2))
 	assert.NoError(t, enc.Encode(&t2))
 	assert.NoError(t, enc.Encode(t2))
+	assert.NoError(t, enc.Encode(nil))
+	assert.NoError(t, enc.Encode(nil))
 
 	dec := NewDecoder(([]byte)(sb.String())).Simple(false)
 	var t3 *time.Time
@@ -54,6 +58,11 @@ func TestDecodeTime(t *testing.T) {
 	assert.Equal(t, *t3, t1)
 	dec.Decode(&t4)
 	assert.Equal(t, t4, t1)
+	dec.Decode(&t3)
+	assert.Nil(t, t3)
+	dec.Decode(&t4)
+	assert.Equal(t, t4, time.Unix(0, 0))
+
 	dec.Decode(&t5)
 	assert.Equal(t, *t5, t2)
 	dec.Decode(&t6)
@@ -62,4 +71,8 @@ func TestDecodeTime(t *testing.T) {
 	assert.Equal(t, *t5, t2)
 	dec.Decode(&t6)
 	assert.Equal(t, t6, t2)
+	dec.Decode(&t5)
+	assert.Nil(t, t5)
+	dec.Decode(&t6)
+	assert.Equal(t, t6, Time(time.Unix(0, 0)))
 }
