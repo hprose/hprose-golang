@@ -7,6 +7,7 @@ go:
   - "1.16"
   - "1.17"
   - "1.18"
+  - "1.19"
 
 before_install:
   - export GO111MODULE="on"
