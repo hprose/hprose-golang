@@ -1,0 +1,46 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: ["v3"]
+  pull_request:
+    branches: ["v3"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go:
+          - "1.19"
+          - "1.18"
+          - "1.17"
+          - "1.16"
+          - "1.15"
+          - "1.14"
+          - "1.13"
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        env:
+          GO111MODULE: "on"
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: go mod download
+      - name: Install goveralls
+        run: |
+          go get github.com/mattn/goveralls
+          go install github.com/mattn/goveralls
+      - name: Test and Send coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goveralls -race -service=github
