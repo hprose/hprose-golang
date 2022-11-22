@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/socket/handler.go                                    |
 |                                                          |
-| LastModified: Mar 5, 2022                                |
+| LastModified: Nov 22, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -28,6 +28,7 @@ import (
 
 type Handler struct {
 	Service  *core.Service
+	Pool     core.WorkerPool
 	OnAccept func(net.Conn) net.Conn
 	OnClose  func(net.Conn)
 	OnError  func(net.Conn, error)
@@ -114,6 +115,12 @@ func (h *Handler) run(ctx context.Context, queue chan data, index int, body []by
 	body, err = h.Service.Handle(ctx, body)
 }
 
+func (h *Handler) task(ctx context.Context, queue chan data, index int, body []byte) func() {
+	return func() {
+		h.run(ctx, queue, index, body)
+	}
+}
+
 func (h *Handler) catch(ctx context.Context, errChan chan error) {
 	if e := recover(); e != nil {
 		h.reportError(ctx, errChan, core.NewPanicError(e))
@@ -146,7 +153,11 @@ func (h *Handler) receive(ctx context.Context, conn net.Conn, queue chan data, e
 				h.reportError(ctx, errChan, err)
 				return
 			}
-			go h.run(core.WithContext(ctx, h.getServiceContext(conn)), queue, index, body)
+			if h.Pool != nil {
+				h.Pool.Submit(h.task(core.WithContext(ctx, h.getServiceContext(conn)), queue, index, body))
+			} else {
+				go h.run(core.WithContext(ctx, h.getServiceContext(conn)), queue, index, body)
+			}
 		}
 	}
 }

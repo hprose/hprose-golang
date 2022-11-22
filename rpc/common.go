@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/common.go                                            |
 |                                                          |
-| LastModified: Jun 16, 2021                               |
+| LastModified: Nov 22, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -44,6 +44,8 @@ type (
 	ServiceCodec = core.ServiceCodec
 	// CodecOption for clientCodec & serviceCodec.
 	CodecOption = core.CodecOption
+	// WorkerPool interface
+	WorkerPool = core.WorkerPool
 )
 
 var (

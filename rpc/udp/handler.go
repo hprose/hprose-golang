@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/udp/handler.go                                       |
 |                                                          |
-| LastModified: Mar 5, 2022                                |
+| LastModified: Nov 22, 2022                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,6 +24,7 @@ import (
 
 type Handler struct {
 	Service *core.Service
+	Pool    core.WorkerPool
 	OnClose func(net.Conn)
 	OnError func(net.Conn, error)
 }
@@ -85,6 +86,12 @@ func (h *Handler) run(ctx context.Context, queue chan data, index int, body []by
 	body, err = h.Service.Handle(ctx, body)
 }
 
+func (h *Handler) task(ctx context.Context, queue chan data, index int, body []byte, addr *net.UDPAddr) func() {
+	return func() {
+		h.run(ctx, queue, index, body, addr)
+	}
+}
+
 func (h *Handler) catch(ctx context.Context, errChan chan error) {
 	if e := recover(); e != nil {
 		h.reportError(ctx, errChan, core.NewPanicError(e))
@@ -117,7 +124,11 @@ func (h *Handler) receive(ctx context.Context, conn *net.UDPConn, queue chan dat
 				default:
 					body := make([]byte, length)
 					copy(body, buffer[8:])
-					go h.run(core.WithContext(ctx, h.getServiceContext(conn, addr)), queue, index, body, addr)
+					if h.Pool != nil {
+						h.Pool.Submit(h.task(core.WithContext(ctx, h.getServiceContext(conn, addr)), queue, index, body, addr))
+					} else {
+						go h.run(core.WithContext(ctx, h.getServiceContext(conn, addr)), queue, index, body, addr)
+					}
 				}
 			}
 		}
