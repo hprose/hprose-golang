@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_manager.go                                     |
 |                                                          |
-| LastModified: Mar 18, 2022                               |
+| LastModified: Feb 12, 2023                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -46,12 +46,8 @@ func _fieldAlias(tag reflect.StructTag, tagname string) string {
 }
 
 func fieldAlias(tag reflect.StructTag, name string, tags []string) string {
-	for _, tagname := range defaultTags {
-		if tagname != "" {
-			if alias := _fieldAlias(tag, tagname); alias != "" {
-				return alias
-			}
-		}
+	if len(tags) == 0 {
+		tags = defaultTags
 	}
 	for _, tagname := range tags {
 		if tagname != "" {
