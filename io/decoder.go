@@ -6,7 +6,7 @@
 |                                                          |
 | io/decoder.go                                            |
 |                                                          |
-| LastModified: Mar 18, 2022                               |
+| LastModified: Dec 13, 2023                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -341,6 +341,10 @@ func (dec *Decoder) ResetBuffer() *Decoder {
 	}
 	dec.head = 0
 	dec.tail = 0
+	dec.Error = nil
+	dec.MapType = MapTypeIIMap
+	dec.RealType = RealTypeFloat64
+	dec.LongType = LongTypeInt
 	return dec
 }
 

@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoder.go                                            |
 |                                                          |
-| LastModified: Feb 27, 2022                               |
+| LastModified: Dec 13, 2023                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -313,6 +313,7 @@ func (enc *Encoder) Reset() *Encoder {
 // ResetBuffer of the Encoder.
 func (enc *Encoder) ResetBuffer() *Encoder {
 	enc.buf = enc.buf[:0]
+	enc.Error = nil
 	return enc
 }
 
