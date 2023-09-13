@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/service.go                                      |
 |                                                          |
-| LastModified: Mar 6, 2022                                |
+| LastModified: Sep 13, 2023                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -103,7 +103,15 @@ func (s *Service) GetHandler(name string) Handler {
 
 // Handle the reqeust and returns the response.
 func (s *Service) Handle(ctx context.Context, request []byte) ([]byte, error) {
-	return s.ioManager.Handler().(NextIOHandler)(ctx, request)
+	response, err := s.ioManager.Handler().(NextIOHandler)(ctx, request)
+	if len(response) == 0 {
+		serviceContext := GetServiceContext(ctx)
+		if err == nil {
+			return s.Codec.Encode(nil, serviceContext)
+		}
+		return s.Codec.Encode(err, serviceContext)
+	}
+	return response, err
 }
 
 // Process the reqeust and returns the response.
@@ -111,18 +119,18 @@ func (s *Service) Process(ctx context.Context, request []byte) ([]byte, error) {
 	serviceContext := GetServiceContext(ctx)
 	name, args, err := s.Codec.Decode(request, serviceContext)
 	if err != nil {
-		return s.Codec.Encode(err, serviceContext)
+		return nil, err
 	}
 	var result interface{}
 	func() {
 		defer func() {
 			if p := recover(); p != nil {
-				result = NewPanicError(p)
+				err = NewPanicError(p)
 			}
 		}()
-		results, err := s.invokeManager.Handler().(NextInvokeHandler)(ctx, name, args)
-		if err != nil {
-			result = err
+		results, e := s.invokeManager.Handler().(NextInvokeHandler)(ctx, name, args)
+		if e != nil {
+			err = e
 			return
 		}
 		switch len(results) {
@@ -134,6 +142,9 @@ func (s *Service) Process(ctx context.Context, request []byte) ([]byte, error) {
 			result = results
 		}
 	}()
+	if err != nil {
+		return nil, err
+	}
 	return s.Codec.Encode(result, serviceContext)
 }
 
