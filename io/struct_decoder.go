@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_decoder.go                                     |
 |                                                          |
-| LastModified: Mar 5, 2022                                |
+| LastModified: Dec 13, 2023                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -67,10 +67,14 @@ func (dec *Decoder) ReadObject() interface{} {
 type structDecoder struct {
 	t      *reflect2.UnsafeStructType
 	fields map[string]FieldAccessor
+	sync.RWMutex
 }
 
 func (valdec *structDecoder) decodeField(dec *Decoder, ptr unsafe.Pointer, name string) {
-	if field, ok := valdec.fields[name]; ok {
+	valdec.RLock()
+	field, ok := valdec.fields[name]
+	valdec.RUnlock()
+	if ok {
 		field.Decode(dec, field.Type.Type1(), field.Field.UnsafeGet(ptr))
 	} else {
 		var v interface{}
@@ -130,6 +134,8 @@ func getNamedStructDecoder(t reflect.Type) ValueDecoder {
 func newNamedStructDecoder(t reflect.Type, tag ...string) *structDecoder {
 	t2 := reflect2.Type2(t).(*reflect2.UnsafeStructType)
 	decoder := &structDecoder{t: t2}
+	decoder.Lock()
+	defer decoder.Unlock()
 	registerNamedStructDecoder(t, decoder)
 	decoder.fields = getFieldMap(t, tag...)
 	return decoder
