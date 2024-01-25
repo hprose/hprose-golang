@@ -276,7 +276,10 @@ func (h *Handler) ServeFastHTTP(ctx *fasthttp.RequestCtx) {
 		}
 	}
 	serviceContext := h.getFastHTTPServiceContext(ctx)
-	result, err := h.Service.Handle(core.WithContext(context.Background(), serviceContext), ctx.Request.Body())
+	body := ctx.Request.Body()
+	request := make([]byte, len(body))
+	copy(request, body)
+	result, err := h.Service.Handle(core.WithContext(context.Background(), serviceContext), request)
 	if err != nil {
 		h.onFastHTTPError(ctx, err)
 	}
