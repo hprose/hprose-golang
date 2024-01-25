@@ -26,7 +26,6 @@ import (
 func init() {
 	mock.RegisterTransport()
 	http.RegisterTransport()
-	fasthttp.RegisterTransport()
 	socket.RegisterTransport()
 	udp.RegisterTransport()
 	websocket.RegisterTransport()
