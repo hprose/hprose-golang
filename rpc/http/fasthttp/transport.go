@@ -96,7 +96,10 @@ func (trans *Transport) Transport(ctx context.Context, request []byte) (response
 		if !trans.DisableHTTPHeader {
 			clientContext.Items().Set("httpResponseHeaders", getResponseHeader(&resp.Header))
 		}
-		return resp.SwapBody(nil), nil
+		body := resp.Body()
+		response := make([]byte, len(body))
+		copy(response, body)
+		return response, nil
 	case fasthttp.StatusRequestEntityTooLarge:
 		return nil, core.ErrRequestEntityTooLarge
 	default:
