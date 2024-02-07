@@ -6,7 +6,7 @@
 |                                                          |
 | io/uuid_decoder.go                                       |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: Feb 7, 2024                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -72,7 +72,6 @@ func (dec *Decoder) decodeUUID(t reflect.Type, tag byte, p *uuid.UUID) {
 	default:
 		dec.defaultDecode(t, p, tag)
 	}
-	return
 }
 
 func (dec *Decoder) decodeUUIDPtr(t reflect.Type, tag byte, p **uuid.UUID) {
