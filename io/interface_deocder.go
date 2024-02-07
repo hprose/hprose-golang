@@ -6,7 +6,7 @@
 |                                                          |
 | io/interface_decoder.go                                  |
 |                                                          |
-| LastModified: Feb 20, 2022                               |
+| LastModified: Feb 7, 2024                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,6 +17,8 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"reflect"
+	"unsafe"
 
 	"github.com/modern-go/reflect2"
 )
@@ -78,7 +80,43 @@ func (dec *Decoder) decodeDoubleAsInterface(p *interface{}) {
 func (dec *Decoder) decodeListAsInterface(tag byte, p *interface{}) {
 	var result []interface{}
 	ifsdec.Decode(dec, &result, tag)
-	*p = result
+	n := len(result)
+	if n == 0 || dec.ListType == ListTypeInterfaceSlice {
+		*p = result
+		return
+	}
+	var t reflect.Type
+	for i := 0; i < n; i++ {
+		rt := reflect.TypeOf(result[i])
+		if isNil(result[i]) || rt.Kind() == reflect.Invalid || rt.Kind() == reflect.Interface {
+			continue
+		}
+		if t == nil {
+			t = rt
+		}
+		if rt != t {
+			*p = result
+			return
+		}
+	}
+	if t == nil {
+		*p = result
+		return
+	}
+	st := reflect2.Type2(reflect.SliceOf(t)).(*reflect2.UnsafeSliceType)
+	s := st.UnsafeMakeSlice(n, n)
+	for i := 0; i < n; i++ {
+		if isNil(result[i]) {
+			continue
+		}
+		p := reflect2.PtrOf(result[i])
+		if t.Kind() == reflect.Ptr || t.Kind() == reflect.Map {
+			st.UnsafeSetIndex(s, i, (unsafe.Pointer)(&p))
+		} else {
+			st.UnsafeSetIndex(s, i, p)
+		}
+	}
+	*p = st.UnsafeIndirect(s)
 }
 
 func (dec *Decoder) decodeMapAsInterface(tag byte, p *interface{}) {

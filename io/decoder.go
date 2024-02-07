@@ -6,7 +6,7 @@
 |                                                          |
 | io/decoder.go                                            |
 |                                                          |
-| LastModified: Dec 13, 2023                               |
+| LastModified: Feb 7, 2024                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -63,6 +63,24 @@ const (
 	MapTypeSIMap
 )
 
+type StructType int8
+
+const (
+	// StructTypeStructPointer represents the default type is *T.
+	StructTypeStructPointer StructType = iota
+	// StructTypeStructObject represents the default type is T.
+	StructTypeStructObject
+)
+
+type ListType int8
+
+const (
+	// ListTypeInterfaceSlice represents the default type is []interface{}.
+	ListTypeInterfaceSlice ListType = iota
+	// ListTypeSlice represents the default type is []T.
+	ListTypeSlice
+)
+
 const defaultBufferSize = 256
 
 // Decoder is a io.Reader like object, with hprose specific read functions.
@@ -79,6 +97,8 @@ type Decoder struct {
 	LongType
 	RealType
 	MapType
+	StructType
+	ListType
 }
 
 // NewDecoder creates an Decoder instance from byte array.
@@ -342,9 +362,11 @@ func (dec *Decoder) ResetBuffer() *Decoder {
 	dec.head = 0
 	dec.tail = 0
 	dec.Error = nil
-	dec.MapType = MapTypeIIMap
 	dec.RealType = RealTypeFloat64
 	dec.LongType = LongTypeInt
+	dec.MapType = MapTypeIIMap
+	dec.StructType = StructTypeStructPointer
+	dec.ListType = ListTypeInterfaceSlice
 	return dec
 }
 

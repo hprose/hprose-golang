@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_decoder.go                                     |
 |                                                          |
-| LastModified: Dec 13, 2023                               |
+| LastModified: Feb 7, 2024                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -50,6 +50,9 @@ func (dec *Decoder) readObject(structInfo structInfo) interface{} {
 		}
 	}
 	dec.Skip()
+	if dec.StructType == StructTypeStructObject {
+		return structInfo.t.UnsafeIndirect(ptr)
+	}
 	return obj
 }
 

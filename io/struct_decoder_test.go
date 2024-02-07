@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_encoder_test.go                                |
 |                                                          |
-| LastModified: Mar 5, 2022                                |
+| LastModified: Feb 7, 2024                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -27,11 +27,10 @@ func TestDecodeEmptyToStruct(t *testing.T) {
 		B bool    `hprose:"-"`
 		C string  `json:"json,omitempty"`
 		D float32 `json:",omitempty"`
-		e float64
 	}
 
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb).Simple(false)
+	enc := NewEncoder(sb)
 	enc.Encode(nil)
 	enc.Encode("")
 	dec := NewDecoder(([]byte)(sb.String()))
@@ -53,7 +52,7 @@ func TestDecodeStruct(t *testing.T) {
 
 	src := TestStruct{1, true, "hello", 3.14, 2.718}
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb).Simple(false)
+	enc := NewEncoder(sb)
 	enc.Encode(src)
 	dec := NewDecoder(([]byte)(sb.String()))
 	var ts TestStruct
@@ -73,7 +72,7 @@ func TestDecodeStructPtr(t *testing.T) {
 	hello := "hello"
 	src := TestStruct{1, true, &hello, 3.14, 2.718}
 	sb := &strings.Builder{}
-	enc := NewEncoder(sb).Simple(false)
+	enc := NewEncoder(sb)
 	enc.Encode(src)
 	dec := NewDecoder(([]byte)(sb.String()))
 	var ts *TestStruct
@@ -101,7 +100,7 @@ func TestDecodeMapAsObject(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb).Simple(false)
 	enc.Encode(src)
-	dec := NewDecoder(([]byte)(sb.String()))
+	dec := NewDecoder(([]byte)(sb.String())).Simple(false)
 	var ts *TestStruct
 	dec.Decode(&ts)
 	assert.Equal(t, &TestStruct{1, false, &hello, 3.14, 0}, ts)
@@ -118,7 +117,7 @@ func TestDecodeAnonymousStruct(t *testing.T) {
 	sb := &strings.Builder{}
 	enc := NewEncoder(sb).Simple(false)
 	enc.Encode(src)
-	dec := NewDecoder(([]byte)(sb.String()))
+	dec := NewDecoder(([]byte)(sb.String())).Simple(false)
 	var ts struct {
 		A int
 		B bool    `hprose:"-"`
@@ -148,6 +147,49 @@ func TestDecodeStructWithDBTag(t *testing.T) {
 	enc.Encode(src)
 	dec := NewDecoder(([]byte)(sb.String()))
 	var ts User
+	dec.Decode(&ts)
+	assert.Equal(t, src, ts)
+}
+
+func TestDecodeStructAsInterface(t *testing.T) {
+	type TestStruct struct {
+		A int
+		B bool    `hprose:"-"`
+		C string  `json:"json,omitempty"`
+		D float32 `json:",omitempty"`
+		e float64
+	}
+	Register((*TestStruct)(nil))
+	src := TestStruct{1, true, "hello", 3.14, 2.718}
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb).Simple(false)
+	enc.Encode(src)
+	dec := NewDecoder(([]byte)(sb.String())).Simple(false)
+	var ts interface{}
+	dec.Decode(&ts)
+	assert.Equal(t, &TestStruct{1, false, "hello", 3.14, 0}, ts)
+	dec = NewDecoder(([]byte)(sb.String())).Simple(false)
+	dec.StructType = StructTypeStructObject
+	dec.Decode(&ts)
+	assert.Equal(t, TestStruct{1, false, "hello", 3.14, 0}, ts)
+}
+
+func TestDecodeSelfReferenceStructAsInterface(t *testing.T) {
+	type TestStruct struct {
+		A *TestStruct
+	}
+	Register((*TestStruct)(nil))
+	src := TestStruct{}
+	src.A = &src
+	sb := &strings.Builder{}
+	enc := NewEncoder(sb).Simple(false)
+	enc.Encode(src)
+	dec := NewDecoder(([]byte)(sb.String())).Simple(false)
+	var ts interface{}
+	dec.Decode(&ts)
+	assert.Equal(t, &src, ts)
+	dec = NewDecoder(([]byte)(sb.String())).Simple(false)
+	dec.StructType = StructTypeStructObject
 	dec.Decode(&ts)
 	assert.Equal(t, src, ts)
 }
