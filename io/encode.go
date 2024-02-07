@@ -6,7 +6,7 @@
 |                                                          |
 | io/encode.go                                             |
 |                                                          |
-| LastModified: Mar 5, 2022                                |
+| LastModified: Feb 7, 2024                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -175,6 +175,10 @@ func appendBinary(buf []byte, bytes []byte, length int) []byte {
 }
 
 func appendBytes(buf []byte, bytes []byte) []byte {
+	if bytes == nil {
+		buf = append(buf, TagNull)
+		return buf
+	}
 	buf = append(buf, TagBytes)
 	buf = appendBinary(buf, bytes, len(bytes))
 	return buf
