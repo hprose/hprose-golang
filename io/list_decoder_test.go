@@ -34,7 +34,7 @@ func TestDecodeList(t *testing.T) {
 	enc.Encode(nil)
 	enc.Encode("")
 	enc.Encode("hello")
-	dec := NewDecoder(([]byte)(sb.String()))
+	dec := NewDecoder(([]byte)(sb.String())).Simple(false)
 	var l *list.List
 	dec.Decode(&l)
 	assert.Equal(t, lst, l)
