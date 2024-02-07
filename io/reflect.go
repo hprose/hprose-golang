@@ -64,6 +64,24 @@ func toSlice(array interface{}) (slice interface{}) {
 	return
 }
 
+func isNil(v interface{}) bool {
+	if v == nil {
+		return true
+	}
+	k := reflect.TypeOf(v).Kind()
+	if !reflect2.IsNullable(k) {
+		return false
+	}
+	p := reflect2.PtrOf(v)
+	if p == nil {
+		return true
+	}
+	if k == reflect.Interface || k == reflect.Slice {
+		return *(*unsafe.Pointer)(p) == nil
+	}
+	return false
+}
+
 var boolType = reflect.TypeOf(false)
 var intType = reflect.TypeOf((int)(0))
 var int8Type = reflect.TypeOf((int8)(0))
