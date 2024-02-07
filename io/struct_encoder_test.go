@@ -31,7 +31,6 @@ func TestEncodeStruct(t *testing.T) {
 		B bool    `hprose:"-"`
 		C string  `json:"json,omitempty"`
 		D float32 `json:",omitempty"`
-		e float64
 	}
 	type TestStruct struct {
 		TestEmbedStruct
