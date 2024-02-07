@@ -6,7 +6,7 @@
 |                                                          |
 | io/encoder.go                                            |
 |                                                          |
-| LastModified: Dec 13, 2023                               |
+| LastModified: Feb 7, 2024                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -366,7 +366,7 @@ func (enc *Encoder) WriteFoot() {
 
 // EncodeReference to encoder.
 func (enc *Encoder) EncodeReference(valenc ValueEncoder, v interface{}) {
-	if reflect2.IsNil(v) {
+	if isNil(v) {
 		enc.WriteNil()
 	} else if ok := enc.WriteReference(v); !ok {
 		valenc.Write(enc, v)
