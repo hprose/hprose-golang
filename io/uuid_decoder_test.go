@@ -39,7 +39,7 @@ func TestDecodeUUID(t *testing.T) {
 	enc.Encode(src[:])
 	enc.Encode((*uuid.UUID)(nil))
 	enc.Encode("")
-	dec := NewDecoder(([]byte)(sb.String()))
+	dec := NewDecoder(([]byte)(sb.String())).Simple(false)
 	var id uuid.UUID
 	dec.Decode(&id)
 	assert.Equal(t, uuid.Nil, id)
