@@ -6,7 +6,7 @@
 |                                                          |
 | hprose.go                                                |
 |                                                          |
-| LastModified: Mar 7, 2022                                |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -195,10 +195,12 @@ var (
 	NewClientCodec           = rpc.NewClientCodec
 	NewServiceCodec          = rpc.NewServiceCodec
 	WithDebug                = rpc.WithDebug
-	WithLongType             = rpc.WithLongType
-	WithMapType              = rpc.WithMapType
-	WithRealType             = rpc.WithRealType
 	WithSimple               = rpc.WithSimple
+	WithLongType             = rpc.WithLongType
+	WithRealType             = rpc.WithRealType
+	WithMapType              = rpc.WithMapType
+	WithStructType           = rpc.WithStructType
+	WithListType             = rpc.WithListType
 	NewClient                = rpc.NewClient
 	NewService               = rpc.NewService
 	HTTPTransport            = rpc.HTTPTransport
