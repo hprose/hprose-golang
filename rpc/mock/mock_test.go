@@ -1343,7 +1343,7 @@ func TestReturnStructSlice(t *testing.T) {
 	assert.NoError(t, err)
 	client := core.NewClient("mock://testReturnStructSlice")
 	client.Codec = core.NewClientCodec(
-		core.WithStructType(io.StructTypeStructObject),
+		core.WithStructType(io.StructTypeValue),
 		core.WithListType(io.ListTypeSlice),
 	)
 	var proxy struct {

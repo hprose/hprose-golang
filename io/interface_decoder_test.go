@@ -6,7 +6,7 @@
 |                                                          |
 | io/interface_decoder_test.go                             |
 |                                                          |
-| LastModified: Feb 7, 2024                                |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -131,7 +131,7 @@ func TestDecodeStructSliceToInterface(t *testing.T) {
 	}
 
 	dec = NewDecoder(([]byte)(sb.String()))
-	dec.StructType = StructTypeStructObject
+	dec.StructType = StructTypeValue
 	dec.Decode(&v)
 	assert.Equal(t, expectedData2, v)
 
@@ -146,7 +146,7 @@ func TestDecodeStructSliceToInterface(t *testing.T) {
 	assert.Equal(t, expectedData3, v)
 
 	dec = NewDecoder(([]byte)(sb.String()))
-	dec.StructType = StructTypeStructObject
+	dec.StructType = StructTypeValue
 	dec.ListType = ListTypeSlice
 	dec.Decode(&v)
 	assert.Equal(t, data, v)

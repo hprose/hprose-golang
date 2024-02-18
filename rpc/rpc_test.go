@@ -404,8 +404,8 @@ func TestAutoTypeConvert(t *testing.T) {
 		rpc.WithLongType(io.LongTypeBigInt),
 		rpc.WithRealType(io.RealTypeBigFloat),
 		rpc.WithMapType(io.MapTypeSIMap),
-		rpc.WithStructType(io.StructTypeStructPointer),
-		rpc.WithListType(io.ListTypeInterfaceSlice),
+		rpc.WithStructType(io.StructTypePtr),
+		rpc.WithListType(io.ListTypeISlice),
 	)
 	service.AddFunction(autoTypeConvert)
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
@@ -425,7 +425,7 @@ func TestAutoTypeConvert(t *testing.T) {
 		rpc.WithLongType(io.LongTypeUint64),
 		rpc.WithRealType(io.RealTypeFloat64),
 		rpc.WithMapType(io.MapTypeIIMap),
-		rpc.WithStructType(io.StructTypeStructObject),
+		rpc.WithStructType(io.StructTypeValue),
 		rpc.WithListType(io.ListTypeSlice),
 	)
 	client.UseService(&proxy)

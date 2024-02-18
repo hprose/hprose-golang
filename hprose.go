@@ -147,6 +147,10 @@ const (
 	RealTypeBigFloat = io.RealTypeBigFloat
 	MapTypeIIMap     = io.MapTypeIIMap
 	MapTypeSIMap     = io.MapTypeSIMap
+	StructTypePtr    = io.StructTypePtr
+	StructTypeValue  = io.StructTypeValue
+	ListTypeISlice   = io.ListTypeISlice
+	ListTypeSlice    = io.ListTypeSlice
 
 	NoCookieManager     = cookie.NoCookieManager
 	GlobalCookieManager = cookie.GlobalCookieManager

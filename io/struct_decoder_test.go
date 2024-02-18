@@ -6,7 +6,7 @@
 |                                                          |
 | io/struct_encoder_test.go                                |
 |                                                          |
-| LastModified: Feb 7, 2024                                |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -169,7 +169,7 @@ func TestDecodeStructAsInterface(t *testing.T) {
 	dec.Decode(&ts)
 	assert.Equal(t, &TestStruct{1, false, "hello", 3.14, 0}, ts)
 	dec = NewDecoder(([]byte)(sb.String())).Simple(false)
-	dec.StructType = StructTypeStructObject
+	dec.StructType = StructTypeValue
 	dec.Decode(&ts)
 	assert.Equal(t, TestStruct{1, false, "hello", 3.14, 0}, ts)
 }
@@ -189,7 +189,7 @@ func TestDecodeSelfReferenceStructAsInterface(t *testing.T) {
 	dec.Decode(&ts)
 	assert.Equal(t, &src, ts)
 	dec = NewDecoder(([]byte)(sb.String())).Simple(false)
-	dec.StructType = StructTypeStructObject
+	dec.StructType = StructTypeValue
 	dec.Decode(&ts)
 	assert.Equal(t, src, ts)
 }

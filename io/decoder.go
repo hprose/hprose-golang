@@ -6,7 +6,7 @@
 |                                                          |
 | io/decoder.go                                            |
 |                                                          |
-| LastModified: Feb 7, 2024                                |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -66,17 +66,17 @@ const (
 type StructType int8
 
 const (
-	// StructTypeStructPointer represents the default type is *T.
-	StructTypeStructPointer StructType = iota
-	// StructTypeStructObject represents the default type is T.
-	StructTypeStructObject
+	// StructTypePtr represents the default type is *T.
+	StructTypePtr StructType = iota
+	// StructTypeValue represents the default type is T.
+	StructTypeValue
 )
 
 type ListType int8
 
 const (
-	// ListTypeInterfaceSlice represents the default type is []interface{}.
-	ListTypeInterfaceSlice ListType = iota
+	// ListTypeISlice represents the default type is []interface{}.
+	ListTypeISlice ListType = iota
 	// ListTypeSlice represents the default type is []T.
 	ListTypeSlice
 )
@@ -365,8 +365,8 @@ func (dec *Decoder) ResetBuffer() *Decoder {
 	dec.RealType = RealTypeFloat64
 	dec.LongType = LongTypeInt
 	dec.MapType = MapTypeIIMap
-	dec.StructType = StructTypeStructPointer
-	dec.ListType = ListTypeInterfaceSlice
+	dec.StructType = StructTypePtr
+	dec.ListType = ListTypeISlice
 	return dec
 }
 

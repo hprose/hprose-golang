@@ -6,7 +6,7 @@
 |                                                          |
 | io/interface_decoder.go                                  |
 |                                                          |
-| LastModified: Feb 7, 2024                                |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -81,7 +81,7 @@ func (dec *Decoder) decodeListAsInterface(tag byte, p *interface{}) {
 	var result []interface{}
 	ifsdec.Decode(dec, &result, tag)
 	n := len(result)
-	if n == 0 || dec.ListType == ListTypeInterfaceSlice {
+	if n == 0 || dec.ListType == ListTypeISlice {
 		*p = result
 		return
 	}
