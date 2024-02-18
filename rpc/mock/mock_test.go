@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/mock/mock_test.go                                    |
 |                                                          |
-| LastModified: May 7, 2021                                |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -24,6 +24,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hprose/hprose-golang/v3/io"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	. "github.com/hprose/hprose-golang/v3/rpc/mock"
 	"github.com/hprose/hprose-golang/v3/rpc/plugins/circuitbreaker"
@@ -58,6 +59,9 @@ func TestHelloWorld(t *testing.T) {
 	client.UseService(&proxy)
 	result, err := proxy.Hello("world")
 	assert.Equal(t, "hello world", result)
+	assert.NoError(t, err)
+	results, err := client.Invoke("hello", []interface{}{"world"})
+	assert.Equal(t, "hello world", results[0])
 	assert.NoError(t, err)
 	server.Close()
 }
@@ -1321,5 +1325,38 @@ func TestClientAbort(t *testing.T) {
 	client.Abort()
 	wg.Wait()
 	assert.Greater(t, n, int32(0))
+	server.Close()
+}
+
+func TestReturnStructSlice(t *testing.T) {
+	type User struct {
+		Name string
+		Age  int
+	}
+	io.RegisterName("User", (*User)(nil))
+	service := core.NewService()
+	service.AddFunction(func() []User {
+		return []User{{"Tom", 18}, {"Jerry", 20}}
+	}, "users")
+	server := Server{Address: "testReturnStructSlice"}
+	err := service.Bind(server)
+	assert.NoError(t, err)
+	client := core.NewClient("mock://testReturnStructSlice")
+	client.Codec = core.NewClientCodec(
+		core.WithStructType(io.StructTypeStructObject),
+		core.WithListType(io.ListTypeSlice),
+	)
+	var proxy struct {
+		Users func() ([]User, error)
+	}
+	client.UseService(&proxy)
+	result, err := proxy.Users()
+	if assert.NoError(t, err) {
+		assert.Equal(t, []User{{"Tom", 18}, {"Jerry", 20}}, result)
+	}
+	results, err := client.Invoke("users", nil)
+	if assert.NoError(t, err) {
+		assert.Equal(t, []User{{"Tom", 18}, {"Jerry", 20}}, results[0])
+	}
 	server.Close()
 }

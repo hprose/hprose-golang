@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/client_codec.go                                 |
 |                                                          |
-| LastModified: Feb 27, 2022                               |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -29,6 +29,8 @@ type clientCodec struct {
 	io.LongType
 	io.RealType
 	io.MapType
+	io.StructType
+	io.ListType
 }
 
 // Encode request.
@@ -60,6 +62,8 @@ func (c clientCodec) Decode(response []byte, context *ClientContext) (result []i
 	decoder.LongType = c.LongType
 	decoder.RealType = c.RealType
 	decoder.MapType = c.MapType
+	decoder.StructType = c.StructType
+	decoder.ListType = c.ListType
 	tag := decoder.NextByte()
 	if tag == io.TagHeader {
 		var h map[string]interface{}

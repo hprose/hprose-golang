@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/core/codec_option.go                                 |
 |                                                          |
-| LastModified: Jun 16, 2021                               |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -71,6 +71,30 @@ func WithMapType(mapType io.MapType) CodecOption {
 			c.MapType = mapType
 		case *clientCodec:
 			c.MapType = mapType
+		}
+	}
+}
+
+// WithStructType returns a structType Option for clientCodec & serviceCodec.
+func WithStructType(structType io.StructType) CodecOption {
+	return func(c interface{}) {
+		switch c := c.(type) {
+		case *serviceCodec:
+			c.StructType = structType
+		case *clientCodec:
+			c.StructType = structType
+		}
+	}
+}
+
+// WithListType returns a listType Option for clientCodec & serviceCodec.
+func WithListType(listType io.ListType) CodecOption {
+	return func(c interface{}) {
+		switch c := c.(type) {
+		case *serviceCodec:
+			c.ListType = listType
+		case *clientCodec:
+			c.ListType = listType
 		}
 	}
 }
