@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/rpc_test.go                                          |
 |                                                          |
-| LastModified: May 27, 2022                               |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -404,6 +404,8 @@ func TestAutoTypeConvert(t *testing.T) {
 		rpc.WithLongType(io.LongTypeBigInt),
 		rpc.WithRealType(io.RealTypeBigFloat),
 		rpc.WithMapType(io.MapTypeSIMap),
+		rpc.WithStructType(io.StructTypeStructPointer),
+		rpc.WithListType(io.ListTypeInterfaceSlice),
 	)
 	service.AddFunction(autoTypeConvert)
 	server, err := net.Listen("tcp", "127.0.0.1:8412")
@@ -423,6 +425,8 @@ func TestAutoTypeConvert(t *testing.T) {
 		rpc.WithLongType(io.LongTypeUint64),
 		rpc.WithRealType(io.RealTypeFloat64),
 		rpc.WithMapType(io.MapTypeIIMap),
+		rpc.WithStructType(io.StructTypeStructObject),
+		rpc.WithListType(io.ListTypeSlice),
 	)
 	client.UseService(&proxy)
 	msg, result := proxy.AutoTypeConvert(int64(12345))
