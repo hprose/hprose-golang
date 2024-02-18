@@ -6,7 +6,7 @@
 |                                                          |
 | rpc/common.go                                            |
 |                                                          |
-| LastModified: Nov 22, 2022                               |
+| LastModified: Feb 18, 2024                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -89,12 +89,16 @@ var (
 	NewServiceCodec = core.NewServiceCodec
 	// WithDebug returns a debug Option for clientCodec & serviceCodec.
 	WithDebug = core.WithDebug
-	// WithLongType returns a longType Option for clientCodec & serviceCodec.
-	WithLongType = core.WithLongType
-	// WithMapType returns a mapType Option for clientCodec & serviceCodec.
-	WithMapType = core.WithMapType
-	// WithRealType returns a realType Option for clientCodec & serviceCodec.
-	WithRealType = core.WithRealType
 	// WithSimple returns a simple Option for clientCodec & serviceCodec.
 	WithSimple = core.WithSimple
+	// WithLongType returns a longType Option for clientCodec & serviceCodec.
+	WithLongType = core.WithLongType
+	// WithRealType returns a realType Option for clientCodec & serviceCodec.
+	WithRealType = core.WithRealType
+	// WithMapType returns a mapType Option for clientCodec & serviceCodec.
+	WithMapType = core.WithMapType
+	// WithStructType returns a structType Option for clientCodec & serviceCodec.
+	WithStructType = core.WithStructType
+	// WithListType returns a listType Option for clientCodec & serviceCodec.
+	WithListType = core.WithListType
 )
